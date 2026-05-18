@@ -1,0 +1,93 @@
+import type { Attivita } from "@vet/shared";
+
+const HEADER = [
+  "Data",
+  "Azienda",
+  "Tipo",
+  "Oraria",
+  "Tariffa",
+  "Ore",
+  "Totale",
+  "Veterinario",
+  "Note",
+];
+
+export function toCsvItalian(items: Attivita[]): string {
+  const rows = items.map((a) => [
+    formatDataIso(a.data),
+    a.aziendaNome,
+    a.tipoNome,
+    a.oraria ? "sì" : "no",
+    formatEuroIt(a.tariffa),
+    a.ore !== undefined ? formatNumberIt(a.ore) : "",
+    formatEuroIt(a.totale),
+    a.ownerName,
+    a.note ?? "",
+  ]);
+  const lines = [HEADER, ...rows].map((cells) =>
+    cells.map(quoteCell).join(";")
+  );
+  return "﻿" + lines.join("\r\n") + "\r\n";
+}
+
+function quoteCell(s: string): string {
+  if (/[";\r\n]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+function formatDataIso(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${day}/${m}/${y}`;
+}
+
+function formatNumberIt(n: number): string {
+  return n.toFixed(2).replace(".", ",");
+}
+
+function formatEuroIt(n: number): string {
+  return n.toFixed(2).replace(".", ",");
+}
+
+export function downloadCsv(filename: string, content: string): void {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+export function csvFilename(opts: {
+  aziendaNome?: string;
+  from?: Date;
+  to?: Date;
+}): string {
+  const parts: string[] = ["attivita"];
+  if (opts.aziendaNome) parts.push(slug(opts.aziendaNome));
+  if (opts.from) parts.push(formatDataCompact(opts.from));
+  if (opts.to) parts.push(formatDataCompact(opts.to));
+  return parts.join("_") + ".csv";
+}
+
+function formatDataCompact(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}${m}${day}`;
+}
+
+function slug(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
