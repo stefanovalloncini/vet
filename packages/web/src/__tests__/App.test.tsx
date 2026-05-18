@@ -22,7 +22,7 @@ describe("App routing", () => {
   it("redirects unauthenticated users to /login", async () => {
     withRepos();
     await waitFor(() => {
-      expect(screen.getByText(/Bentornato/)).toBeInTheDocument();
+      expect(screen.getByText(/Accedi al gestionale/)).toBeInTheDocument();
     });
   });
 
