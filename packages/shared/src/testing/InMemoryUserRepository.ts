@@ -1,6 +1,6 @@
-import type { User } from "../domain/entities/User";
-import type { UserRepository } from "../domain/ports/UserRepository";
-import type { UserInput } from "../domain/schemas/user";
+import type { User } from "../domain/entities/User.js";
+import type { UserRepository } from "../domain/ports/UserRepository.js";
+import type { UserInput } from "../domain/schemas/user.js";
 
 export class InMemoryUserRepository implements UserRepository {
   private readonly map = new Map<string, User>();

@@ -1,5 +1,5 @@
-import type { Role } from "../entities/Role";
-import type { RoleInput } from "../schemas/role";
+import type { Role } from "../entities/Role.js";
+import type { RoleInput } from "../schemas/role.js";
 
 export interface RoleRepository {
   getById(id: string): Promise<Role | null>;

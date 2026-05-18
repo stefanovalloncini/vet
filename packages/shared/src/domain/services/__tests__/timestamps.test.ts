@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { FixedClock } from "../../../testing/FixedClock";
-import { isoNow } from "../timestamps";
+import { FixedClock } from "../../../testing/FixedClock.js";
+import { isoNow } from "../timestamps.js";
 
 describe("isoNow", () => {
   it("uses the injected clock, not Date.now", () => {

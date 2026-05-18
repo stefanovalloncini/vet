@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CAPABILITIES, capabilitySchema, isCapability } from "../registry";
-import { CAPABILITY_LABELS } from "../labels";
+import { CAPABILITIES, capabilitySchema, isCapability } from "../registry.js";
+import { CAPABILITY_LABELS } from "../labels.js";
 
 describe("CAPABILITIES", () => {
   it("is a non-empty readonly tuple of strings", () => {

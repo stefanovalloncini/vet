@@ -4,8 +4,8 @@ import {
   InMemoryRoleRepository,
   InMemoryAllowlistRepository,
   InMemoryAuthService,
-} from "../index";
-import type { Role } from "../../domain/entities/Role";
+} from "../index.js";
+import type { Role } from "../../domain/entities/Role.js";
 
 describe("InMemoryUserRepository", () => {
   let repo: InMemoryUserRepository;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { capabilitySchema } from "../caps/registry";
+import { capabilitySchema } from "../caps/registry.js";
 
 export const roleInputSchema = z
   .object({

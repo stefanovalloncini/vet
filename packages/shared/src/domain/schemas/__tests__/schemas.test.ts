@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { userInputSchema, userDocSchema } from "../user";
-import { roleInputSchema } from "../role";
-import { allowlistEntryInputSchema } from "../allowlist";
+import { userInputSchema, userDocSchema } from "../user.js";
+import { roleInputSchema } from "../role.js";
+import { allowlistEntryInputSchema } from "../allowlist.js";
 
 describe("userInputSchema", () => {
   it("accepts a minimal valid input", () => {

@@ -1,6 +1,6 @@
-import type { Role } from "../domain/entities/Role";
-import type { RoleRepository } from "../domain/ports/RoleRepository";
-import type { RoleInput } from "../domain/schemas/role";
+import type { Role } from "../domain/entities/Role.js";
+import type { RoleRepository } from "../domain/ports/RoleRepository.js";
+import type { RoleInput } from "../domain/schemas/role.js";
 
 export class InMemoryRoleRepository implements RoleRepository {
   private readonly map = new Map<string, Role>();

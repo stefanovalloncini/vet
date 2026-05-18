@@ -1,4 +1,4 @@
-import type { ActorContext } from "../entities/ActorContext";
+import type { ActorContext } from "../entities/ActorContext.js";
 
 export type SignInMethod = "google" | "emailLink";
 

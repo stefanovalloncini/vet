@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SHARED_PACKAGE_VERSION } from "../index";
+import { SHARED_PACKAGE_VERSION } from "../index.js";
 
 describe("@vet/shared sanity", () => {
   it("exposes a version sentinel", () => {

@@ -1,4 +1,4 @@
-import type { Capability } from "./registry";
+import type { Capability } from "./registry.js";
 
 export const CAPABILITY_LABELS: Record<Capability, string> = {
   "activities.read.all": "Leggi tutte le attività",

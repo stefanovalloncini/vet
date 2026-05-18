@@ -1,5 +1,5 @@
-import type { User } from "../entities/User";
-import type { UserInput } from "../schemas/user";
+import type { User } from "../entities/User.js";
+import type { UserInput } from "../schemas/user.js";
 
 export interface UserRepository {
   getById(uid: string): Promise<User | null>;

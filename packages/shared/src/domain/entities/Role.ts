@@ -1,4 +1,4 @@
-import type { Capability } from "../caps/registry";
+import type { Capability } from "../caps/registry.js";
 
 export interface Role {
   id: string;

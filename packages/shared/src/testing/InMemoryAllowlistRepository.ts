@@ -1,6 +1,6 @@
-import type { AllowlistEntry } from "../domain/entities/AllowlistEntry";
-import type { AllowlistRepository } from "../domain/ports/AllowlistRepository";
-import { normalizeEmail, type AllowlistEntryInput } from "../domain/schemas/allowlist";
+import type { AllowlistEntry } from "../domain/entities/AllowlistEntry.js";
+import type { AllowlistRepository } from "../domain/ports/AllowlistRepository.js";
+import { normalizeEmail, type AllowlistEntryInput } from "../domain/schemas/allowlist.js";
 
 export class InMemoryAllowlistRepository implements AllowlistRepository {
   private readonly map = new Map<string, AllowlistEntry>();

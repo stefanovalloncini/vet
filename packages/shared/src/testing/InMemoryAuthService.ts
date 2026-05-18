@@ -1,5 +1,5 @@
-import type { ActorContext } from "../domain/entities/ActorContext";
-import type { AuthService, AuthStateSubscriber } from "../domain/ports/AuthService";
+import type { ActorContext } from "../domain/entities/ActorContext.js";
+import type { AuthService, AuthStateSubscriber } from "../domain/ports/AuthService.js";
 
 export class InMemoryAuthService implements AuthService {
   private current: ActorContext | null = null;
