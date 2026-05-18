@@ -5,7 +5,11 @@ import {
   RequireAuth,
   useAuthState,
 } from "./features/auth";
-import { AziendeListPage, AziendaFormPage } from "./features/aziende";
+import {
+  AziendeListPage,
+  AziendaFormPage,
+  AziendaDetailPage,
+} from "./features/aziende";
 import { AttivitaListPage, AttivitaFormPage } from "./features/attivita";
 import { CestinoPage, ImpostazioniPage } from "./features/cestino";
 import { ActivityTypesPage } from "./features/activity-types";
@@ -148,6 +152,14 @@ export function App() {
         />
         <Route
           path="/aziende/:id"
+          element={
+            <RequireAuth>
+              <AziendaDetailPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/aziende/:id/modifica"
           element={
             <RequireAuth>
               <AziendaFormPage />
