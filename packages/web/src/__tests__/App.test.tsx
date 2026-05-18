@@ -33,7 +33,7 @@ describe("App routing", () => {
       email: "x@y.com",
       displayName: "Stefano",
       roleId: "vet",
-      caps: new Set(["activities.read.all"]),
+      caps: new Set(["aziende.read"]),
     };
     (repos.auth as InMemoryAuthService).setSimulatedUser(actor);
     withRepos(repos);

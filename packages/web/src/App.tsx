@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
 import {
   LoginPage,
   EmailLinkCompletePage,
@@ -6,12 +6,17 @@ import {
   useAuthState,
 } from "./features/auth";
 import { AziendeListPage, AziendaFormPage } from "./features/aziende";
+import { AttivitaListPage, AttivitaFormPage } from "./features/attivita";
 import { ActivityTypesPage } from "./features/activity-types";
 import { AppShell, Card } from "./shared/ui";
 
 function Home() {
   const { user } = useAuthState();
   const firstName = user?.displayName?.split(" ")[0] ?? "";
+
+  if (user?.caps.has("activities.read.all")) {
+    return <Navigate to="/attivita" replace />;
+  }
 
   const tiles = [
     {
@@ -37,8 +42,7 @@ function Home() {
           Ciao {firstName}
         </h1>
         <p className="text-(--color-text-muted) mt-3 text-base">
-          Le attività arrivano nel prossimo aggiornamento. Per ora puoi sistemare
-          le aziende e i tipi di attività.
+          Da qui puoi gestire i tuoi clienti.
         </p>
 
         {visible.length > 0 ? (
@@ -73,6 +77,30 @@ export function App() {
           element={
             <RequireAuth>
               <Home />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/attivita"
+          element={
+            <RequireAuth>
+              <AttivitaListPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/attivita/nuova"
+          element={
+            <RequireAuth>
+              <AttivitaFormPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/attivita/:id"
+          element={
+            <RequireAuth>
+              <AttivitaFormPage />
             </RequireAuth>
           }
         />

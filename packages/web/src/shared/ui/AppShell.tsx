@@ -17,6 +17,7 @@ interface AppShellProps {
 
 const NAV: NavItem[] = [
   { to: "/", label: "Home" },
+  { to: "/attivita", label: "Attività", requiredCap: "activities.read.all" },
   { to: "/aziende", label: "Aziende", requiredCap: "aziende.read" },
 ];
 
