@@ -59,6 +59,36 @@ service cloud.firestore {
       allow delete: if hasCap("allowlist.manage");
     }
 
+    match /attivita/{attivitaId} {
+      allow get: if (resource.data.isDeleted == false && hasCap("activities.read.all"))
+        || (resource.data.isDeleted == true
+            && ((hasCap("trash.read.own") && resource.data.ownerUid == request.auth.uid)
+                || hasCap("trash.read.any")));
+      allow list: if hasCap("activities.read.all")
+        || hasCap("trash.read.own")
+        || hasCap("trash.read.any");
+      allow create: if hasCap("activities.create")
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.isDeleted == false
+        && isServerStamped("createdAt")
+        && isServerStamped("updatedAt");
+      allow update: if (
+          (
+            (hasCap("activities.update.own") && resource.data.ownerUid == request.auth.uid)
+            || hasCap("activities.update.any")
+            || (hasCap("activities.delete.own") && resource.data.ownerUid == request.auth.uid
+                && request.resource.data.isDeleted == true)
+            || (hasCap("activities.delete.any") && request.resource.data.isDeleted == true)
+          )
+          && isImmutable("ownerUid")
+          && isImmutable("ownerEmail")
+          && isImmutable("ownerName")
+          && isImmutable("createdAt")
+          && isServerStamped("updatedAt")
+        );
+      allow delete: if false;
+    }
+
     match /aziende/{aziendaId} {
       allow read: if hasCap("aziende.read");
       allow create: if hasCap("aziende.create")

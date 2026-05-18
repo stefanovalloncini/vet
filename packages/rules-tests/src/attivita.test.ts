@@ -1,0 +1,275 @@
+import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
+import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { disposeEnv, getEnv } from "./setup";
+import { authedAs } from "./helpers";
+
+const attivitaSeed = {
+  data: new Date("2026-03-01T09:00:00.000Z"),
+  aziendaId: "az1",
+  aziendaNome: "Cascina",
+  tipoId: "visita",
+  tipoNome: "Visita",
+  oraria: false,
+  tariffa: 50,
+  totale: 50,
+  ownerUid: "owner-uid",
+  ownerEmail: "owner@example.com",
+  ownerName: "Owner",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  isDeleted: false,
+  schemaVersion: 1,
+};
+
+function basePayload(ownerUid: string) {
+  return {
+    data: new Date("2026-03-02T09:00:00.000Z"),
+    aziendaId: "az1",
+    aziendaNome: "Cascina",
+    tipoId: "visita",
+    tipoNome: "Visita",
+    oraria: false,
+    tariffa: 50,
+    totale: 50,
+    ownerUid,
+    ownerEmail: "u@example.com",
+    ownerName: "U",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    isDeleted: false,
+    schemaVersion: 1,
+  };
+}
+
+describe("attivita rules", () => {
+  beforeAll(async () => {
+    await getEnv();
+  });
+  afterAll(async () => {
+    await disposeEnv();
+  });
+
+  beforeEach(async () => {
+    const env = await getEnv();
+    await env.clearFirestore();
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, "attivita/a1"), attivitaSeed);
+      await setDoc(doc(db, "attivita/del1"), {
+        ...attivitaSeed,
+        isDeleted: true,
+        deletedAt: new Date(),
+        deletedBy: "owner-uid",
+      });
+    });
+  });
+
+  it("read active denied without activities.read.all", async () => {
+    const env = await getEnv();
+    await assertFails(getDoc(doc(authedAs(env, "u"), "attivita/a1")));
+  });
+
+  it("read active allowed with activities.read.all", async () => {
+    const env = await getEnv();
+    await assertSucceeds(
+      getDoc(
+        doc(authedAs(env, "u", ["activities.read.all"]), "attivita/a1")
+      )
+    );
+  });
+
+  it("read deleted denied with only activities.read.all", async () => {
+    const env = await getEnv();
+    await assertFails(
+      getDoc(
+        doc(authedAs(env, "u", ["activities.read.all"]), "attivita/del1")
+      )
+    );
+  });
+
+  it("read own deleted allowed with trash.read.own when owner", async () => {
+    const env = await getEnv();
+    await assertSucceeds(
+      getDoc(
+        doc(
+          authedAs(env, "owner-uid", ["trash.read.own"]),
+          "attivita/del1"
+        )
+      )
+    );
+  });
+
+  it("read other's deleted denied with trash.read.own", async () => {
+    const env = await getEnv();
+    await assertFails(
+      getDoc(
+        doc(authedAs(env, "other-uid", ["trash.read.own"]), "attivita/del1")
+      )
+    );
+  });
+
+  it("read any deleted allowed with trash.read.any", async () => {
+    const env = await getEnv();
+    await assertSucceeds(
+      getDoc(
+        doc(authedAs(env, "other-uid", ["trash.read.any"]), "attivita/del1")
+      )
+    );
+  });
+
+  it("create denied without activities.create", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u");
+    await assertFails(setDoc(doc(db, "attivita/new"), basePayload("u")));
+  });
+
+  it("create allowed with activities.create and ownerUid=self", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["activities.create"]);
+    await assertSucceeds(setDoc(doc(db, "attivita/new"), basePayload("u")));
+  });
+
+  it("create denied when ownerUid != auth.uid", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["activities.create"]);
+    await assertFails(
+      setDoc(doc(db, "attivita/new"), basePayload("someone-else"))
+    );
+  });
+
+  it("create denied when isDeleted=true", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["activities.create"]);
+    await assertFails(
+      setDoc(doc(db, "attivita/new"), {
+        ...basePayload("u"),
+        isDeleted: true,
+      })
+    );
+  });
+
+  it("create denied when audit fields not server-stamped", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["activities.create"]);
+    await assertFails(
+      setDoc(doc(db, "attivita/new"), {
+        ...basePayload("u"),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+    );
+  });
+
+  it("update own allowed with activities.update.own", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertSucceeds(
+      updateDoc(doc(db, "attivita/a1"), {
+        tariffa: 60,
+        totale: 60,
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update other's denied with activities.update.own", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "other-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        tariffa: 60,
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update other's allowed with activities.update.any", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "other-uid", ["activities.update.any"]);
+    await assertSucceeds(
+      updateDoc(doc(db, "attivita/a1"), {
+        tariffa: 60,
+        totale: 60,
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update denied when ownerUid is changed", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        ownerUid: "other-uid",
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update denied when createdAt is changed", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update denied when updatedAt is not server-stamped", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        tariffa: 60,
+        updatedAt: new Date(),
+      })
+    );
+  });
+
+  it("soft delete via update isDeleted=true allowed with activities.delete.own when owner", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.delete.own"]);
+    await assertSucceeds(
+      updateDoc(doc(db, "attivita/a1"), {
+        isDeleted: true,
+        deletedAt: serverTimestamp(),
+        deletedBy: "owner-uid",
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("soft delete other's denied with activities.delete.own", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "other-uid", ["activities.delete.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        isDeleted: true,
+        deletedAt: serverTimestamp(),
+        deletedBy: "other-uid",
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("hard delete denied for everyone", async () => {
+    const env = await getEnv();
+    const owner = authedAs(env, "owner-uid", [
+      "activities.update.own",
+      "activities.delete.own",
+      "activities.update.any",
+      "activities.delete.any",
+    ]);
+    await assertFails(deleteDoc(doc(owner, "attivita/a1")));
+  });
+});
