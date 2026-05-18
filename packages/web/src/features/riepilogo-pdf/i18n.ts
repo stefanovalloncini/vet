@@ -1,0 +1,18 @@
+export const riepilogoI18n = {
+  title: "Riepilogo prestazioni",
+  cliente: "Cliente",
+  periodo: "Periodo",
+  data: "Data",
+  tipo: "Tipo",
+  importo: "Importo",
+  totale: "Totale",
+  partitaIva: "P.IVA",
+  veterinario: "Veterinario",
+  documento: "Documento di riepilogo non fiscale",
+  stampa: "Stampa o salva PDF",
+  back: "Torna indietro",
+  noData: "Nessuna attività nel periodo.",
+  filtroDa: "Da",
+  filtroA: "A",
+  apri: "Apri riepilogo",
+} as const;
