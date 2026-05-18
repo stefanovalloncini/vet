@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import {
   Brand,
@@ -8,9 +9,11 @@ import {
   GoogleIcon,
   TextField,
 } from "../../../shared/ui";
+import { useAuthState } from "../hooks/useAuthState";
 
 export function LoginPage() {
   const { auth } = useRepositories();
+  const { loading, user } = useAuthState();
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +43,18 @@ export function LoginPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-(--color-background)">
+        <p className="text-sm text-(--color-text-muted)">Caricamento...</p>
+      </main>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
   }
 
   return (
