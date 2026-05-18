@@ -59,6 +59,32 @@ service cloud.firestore {
       allow delete: if hasCap("allowlist.manage");
     }
 
+    match /aziende/{aziendaId} {
+      allow read: if hasCap("aziende.read");
+      allow create: if hasCap("aziende.create")
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.isDeleted == false
+        && isServerStamped("createdAt")
+        && isServerStamped("updatedAt");
+      allow update: if hasCap("aziende.update")
+        && isImmutable("createdAt")
+        && isImmutable("createdBy")
+        && isImmutable("createdByName")
+        && isServerStamped("updatedAt");
+      allow delete: if false;
+    }
+
+    match /activity_types/{typeId} {
+      allow read: if hasCap("activity_types.read");
+      allow create: if hasCap("activity_types.manage")
+        && isServerStamped("createdAt")
+        && isServerStamped("updatedAt");
+      allow update: if hasCap("activity_types.manage")
+        && isImmutable("createdAt")
+        && isServerStamped("updatedAt");
+      allow delete: if hasCap("activity_types.manage");
+    }
+
     match /audit/{auditId} {
       allow read: if hasCap("audit.read");
       allow write: if false;
