@@ -8,6 +8,7 @@ import {
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useAziende } from "../hooks/useAziende";
+import { usePinned } from "../hooks/usePinned";
 import { aziendeI18n as t } from "../i18n";
 import { normalizeAziendaNome, type Azienda } from "@vet/shared";
 
@@ -24,16 +25,23 @@ const CADENZA_LABEL = {
 export function AziendeListPage() {
   const { user } = useAuthState();
   const { aziende, loading, error } = useAziende();
+  const { pinned, toggle: togglePin, isPinned } = usePinned();
   const [search, setSearch] = useState("");
 
   const canCreate = user?.caps.has("aziende.create") ?? false;
   const canUpdate = user?.caps.has("aziende.update") ?? false;
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return aziende;
-    const needle = normalizeAziendaNome(search);
-    return aziende.filter((a) => a.nomeNorm.includes(needle));
-  }, [aziende, search]);
+    const base = search.trim()
+      ? aziende.filter((a) => a.nomeNorm.includes(normalizeAziendaNome(search)))
+      : aziende;
+    return [...base].sort((a, b) => {
+      const ap = pinned.has(a.id) ? 0 : 1;
+      const bp = pinned.has(b.id) ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      return a.nomeNorm.localeCompare(b.nomeNorm, "it");
+    });
+  }, [aziende, search, pinned]);
 
   return (
     <AppShell>
@@ -89,7 +97,12 @@ export function AziendeListPage() {
         <ul className="space-y-3">
           {filtered.map((a) => (
             <li key={a.id}>
-              <AziendaRow azienda={a} canEdit={canUpdate} />
+              <AziendaRow
+                azienda={a}
+                canEdit={canUpdate}
+                pinned={isPinned(a.id)}
+                onTogglePin={() => togglePin(a.id)}
+              />
             </li>
           ))}
         </ul>
@@ -101,9 +114,13 @@ export function AziendeListPage() {
 function AziendaRow({
   azienda: a,
   canEdit,
+  pinned,
+  onTogglePin,
 }: {
   azienda: Azienda;
   canEdit: boolean;
+  pinned: boolean;
+  onTogglePin: () => void;
 }) {
   const chips = [
     a.tipoAllevamento ? capitalize(a.tipoAllevamento) : null,
@@ -139,11 +156,26 @@ function AziendaRow({
             </div>
           ) : null}
         </div>
-        {canEdit ? (
-          <span className="text-xs text-(--color-text-subtle) flex-shrink-0 mt-1">
-            →
-          </span>
-        ) : null}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onTogglePin();
+            }}
+            aria-label={pinned ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
+            className={[
+              "text-base p-1 rounded-md hover:bg-(--color-surface-muted)",
+              pinned ? "text-(--color-accent)" : "text-(--color-text-subtle)",
+            ].join(" ")}
+          >
+            {pinned ? "★" : "☆"}
+          </button>
+          {canEdit ? (
+            <span className="text-xs text-(--color-text-subtle)">→</span>
+          ) : null}
+        </div>
       </div>
     </Card>
   );
