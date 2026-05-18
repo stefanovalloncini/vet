@@ -1,12 +1,18 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { RepositoriesProvider } from "./infrastructure/RepositoriesContext";
+import { createInMemoryRepositories } from "./infrastructure/composition/in-memory";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("root element not found");
 
+const repositories = createInMemoryRepositories();
+
 createRoot(rootEl).render(
   <StrictMode>
-    <App />
+    <RepositoriesProvider value={repositories}>
+      <App />
+    </RepositoriesProvider>
   </StrictMode>
 );
