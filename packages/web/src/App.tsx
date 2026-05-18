@@ -1,6 +1,6 @@
 import styles from "./App.module.css";
 
-export function App(): JSX.Element {
+export function App() {
   return (
     <main className={styles.shell}>
       <h1>Vet</h1>

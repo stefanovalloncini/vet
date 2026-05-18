@@ -6,9 +6,6 @@ export default defineConfig({
   server: { port: 5173, strictPort: true },
   build: {
     target: "es2022",
-    sourcemap: true,
-    rollupOptions: {
-      output: { manualChunks: undefined }
-    }
+    sourcemap: true
   }
 });
