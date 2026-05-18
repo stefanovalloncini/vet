@@ -21,7 +21,7 @@ const attivitaSeed = {
   tariffa: 50,
   totale: 50,
   ownerUid: "owner-uid",
-  ownerEmail: "owner@example.com",
+  ownerEmail: "owner-uid@example.com",
   ownerName: "Owner",
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -29,7 +29,13 @@ const attivitaSeed = {
   schemaVersion: 1,
 };
 
-function basePayload(ownerUid: string) {
+const USERS = {
+  "u": { displayName: "U" },
+  "owner-uid": { displayName: "Owner" },
+  "other-uid": { displayName: "Other" },
+};
+
+function basePayload(ownerUid: string, overrides: Record<string, unknown> = {}) {
   return {
     data: new Date("2026-03-02T09:00:00.000Z"),
     aziendaId: "az1",
@@ -40,12 +46,13 @@ function basePayload(ownerUid: string) {
     tariffa: 50,
     totale: 50,
     ownerUid,
-    ownerEmail: "u@example.com",
-    ownerName: "U",
+    ownerEmail: `${ownerUid}@example.com`,
+    ownerName: USERS[ownerUid as keyof typeof USERS]?.displayName ?? "?",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     isDeleted: false,
     schemaVersion: 1,
+    ...overrides,
   };
 }
 
@@ -62,6 +69,17 @@ describe("attivita rules", () => {
     await env.clearFirestore();
     await env.withSecurityRulesDisabled(async (ctx) => {
       const db = ctx.firestore();
+      for (const [uid, profile] of Object.entries(USERS)) {
+        await setDoc(doc(db, `users/${uid}`), {
+          email: `${uid}@example.com`,
+          displayName: profile.displayName,
+          roleId: "vet",
+          disabled: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          schemaVersion: 1,
+        });
+      }
       await setDoc(doc(db, "attivita/a1"), attivitaSeed);
       await setDoc(doc(db, "attivita/del1"), {
         ...attivitaSeed,
@@ -145,14 +163,44 @@ describe("attivita rules", () => {
     );
   });
 
+  it("create denied when ownerEmail forged (mismatches auth.token.email)", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["activities.create"]);
+    await assertFails(
+      setDoc(
+        doc(db, "attivita/new"),
+        basePayload("u", { ownerEmail: "victim@vet.it" })
+      )
+    );
+  });
+
+  it("create denied when ownerName forged (mismatches users/{uid}.displayName)", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["activities.create"]);
+    await assertFails(
+      setDoc(
+        doc(db, "attivita/new"),
+        basePayload("u", { ownerName: "Mario Rossi" })
+      )
+    );
+  });
+
+  it("create denied when ownerName contains a csv formula prefix", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["activities.create"]);
+    await assertFails(
+      setDoc(
+        doc(db, "attivita/new"),
+        basePayload("u", { ownerName: "=cmd|'/c calc'!A1" })
+      )
+    );
+  });
+
   it("create denied when isDeleted=true", async () => {
     const env = await getEnv();
     const db = authedAs(env, "u", ["activities.create"]);
     await assertFails(
-      setDoc(doc(db, "attivita/new"), {
-        ...basePayload("u"),
-        isDeleted: true,
-      })
+      setDoc(doc(db, "attivita/new"), basePayload("u", { isDeleted: true }))
     );
   });
 
@@ -160,11 +208,13 @@ describe("attivita rules", () => {
     const env = await getEnv();
     const db = authedAs(env, "u", ["activities.create"]);
     await assertFails(
-      setDoc(doc(db, "attivita/new"), {
-        ...basePayload("u"),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+      setDoc(
+        doc(db, "attivita/new"),
+        basePayload("u", {
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+      )
     );
   });
 

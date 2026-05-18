@@ -3,6 +3,8 @@ import type { Capability } from "@vet/shared";
 
 interface ExtraClaims {
   roleId?: string;
+  email?: string;
+  name?: string;
 }
 
 export function authedAs(
@@ -17,6 +19,8 @@ export function authedAs(
       caps,
       roleId: extra.roleId ?? "vet",
       capsVer: 1,
+      email: extra.email ?? `${uid}@example.com`,
+      ...(extra.name !== undefined ? { name: extra.name } : {}),
     })
     .firestore();
 }
