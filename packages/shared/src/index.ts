@@ -40,3 +40,12 @@ export {
   type AllowlistEntryInput,
   type AllowlistEntryDoc,
 } from "./domain/schemas/allowlist";
+
+export type { UserRepository } from "./domain/ports/UserRepository";
+export type { RoleRepository } from "./domain/ports/RoleRepository";
+export type { AllowlistRepository } from "./domain/ports/AllowlistRepository";
+export type {
+  AuthService,
+  AuthStateSubscriber,
+  SignInMethod,
+} from "./domain/ports/AuthService";
