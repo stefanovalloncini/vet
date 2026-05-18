@@ -31,6 +31,24 @@
   --radius-xl: 1.25rem;
 }
 
+html[data-theme="dark"] {
+  --color-background: oklch(17% 0.012 80);
+  --color-surface: oklch(22% 0.014 80);
+  --color-surface-muted: oklch(26% 0.014 80);
+  --color-border: oklch(32% 0.014 80);
+  --color-border-strong: oklch(46% 0.014 80);
+  --color-text: oklch(94% 0.010 80);
+  --color-text-muted: oklch(72% 0.012 80);
+  --color-text-subtle: oklch(56% 0.012 80);
+
+  --color-accent: oklch(70% 0.10 145);
+  --color-accent-hover: oklch(78% 0.10 145);
+  --color-accent-soft: oklch(28% 0.05 145);
+
+  --color-danger: oklch(70% 0.18 28);
+  --color-success: oklch(70% 0.12 150);
+}
+
 html,
 body,
 #root {
@@ -43,6 +61,7 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: light dark;
 }
 
 h1,
