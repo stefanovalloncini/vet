@@ -97,6 +97,9 @@ importers:
       '@vet/shared':
         specifier: workspace:*
         version: link:../shared
+      firebase:
+        specifier: ^10.13.0
+        version: 10.14.1
       react:
         specifier: ^18.3.0
         version: 18.3.1
