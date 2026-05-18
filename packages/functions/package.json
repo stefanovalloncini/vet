@@ -18,7 +18,8 @@
   "dependencies": {
     "@vet/shared": "workspace:*",
     "firebase-admin": "^12.5.0",
-    "firebase-functions": "^6.0.0"
+    "firebase-functions": "^6.0.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
