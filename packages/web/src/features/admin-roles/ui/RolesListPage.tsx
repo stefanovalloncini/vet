@@ -1,0 +1,80 @@
+import { Link } from "react-router-dom";
+import { AppShell, Button, Card } from "../../../shared/ui";
+import { useAuthState } from "../../auth";
+import { useRoles } from "../hooks/useRoles";
+import { rolesI18n as t } from "../i18n";
+
+export function RolesListPage() {
+  const { user } = useAuthState();
+  const { roles, loading, error } = useRoles();
+
+  const canManage = user?.caps.has("roles.manage") ?? false;
+
+  return (
+    <AppShell>
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
+          <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
+        </div>
+        {canManage ? (
+          <Link to="/admin/ruoli/nuovo">
+            <Button type="button" variant="primary">
+              {t.nuovoRuolo}
+            </Button>
+          </Link>
+        ) : null}
+      </header>
+
+      {loading ? (
+        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+      ) : error ? (
+        <p className="text-sm text-(--color-danger)">{t.loadError}</p>
+      ) : (
+        <ul className="space-y-3">
+          {roles.map((role) => (
+            <li key={role.id}>
+              <Link
+                to={`/admin/ruoli/${role.id}`}
+                className="block"
+              >
+                <Card className="hover:border-(--color-border-strong) transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline gap-3 flex-wrap">
+                        <h2 className="text-base font-medium text-(--color-text)">
+                          {role.name}
+                        </h2>
+                        <span className="text-xs text-(--color-text-subtle) font-mono">
+                          {role.id}
+                        </span>
+                        {role.locked ? (
+                          <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md bg-(--color-surface-muted) text-(--color-text-muted)">
+                            locked
+                          </span>
+                        ) : null}
+                      </div>
+                      {role.description ? (
+                        <p className="text-sm text-(--color-text-muted) mt-1">
+                          {role.description}
+                        </p>
+                      ) : null}
+                      <p className="text-xs text-(--color-text-subtle) mt-2">
+                        {role.capabilities.length === 0
+                          ? t.nessunaCap
+                          : `${role.capabilities.length} ${t.capability.toLowerCase()}`}
+                      </p>
+                    </div>
+                    <span className="text-xs text-(--color-text-subtle) flex-shrink-0 mt-1">
+                      →
+                    </span>
+                  </div>
+                </Card>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </AppShell>
+  );
+}

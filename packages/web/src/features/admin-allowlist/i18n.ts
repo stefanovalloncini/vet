@@ -1,0 +1,18 @@
+export const allowlistI18n = {
+  title: "Allowlist",
+  subtitle: "Solo le email qui elencate possono accedere.",
+  loading: "Caricamento…",
+  loadError: "Caricamento fallito.",
+  saveError: "Operazione non riuscita.",
+  empty: "Nessuna email autorizzata. Aggiungi la prima per partire.",
+  aggiungi: "Aggiungi email",
+  campoEmail: "Email",
+  campoEmailPlaceholder: "es. mario.rossi@vet.it",
+  campoRuolo: "Ruolo iniziale",
+  campoNote: "Note",
+  invitedAt: "Aggiunta il",
+  invitedBy: "da",
+  elimina: "Rimuovi",
+  confermaRimozione: "Rimuovere l'accesso a questa email? L'utente esistente verrà disconnesso al prossimo refresh.",
+  annulla: "Annulla",
+} as const;

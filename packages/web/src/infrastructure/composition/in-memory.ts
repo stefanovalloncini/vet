@@ -10,6 +10,7 @@ import {
   InMemoryActivityTypesRepository,
   InMemoryAttivitaRepository,
   InMemoryTrashService,
+  InMemoryAuditRepository,
   InMemoryAuthService,
 } from "@vet/shared/testing";
 
@@ -25,6 +26,7 @@ export function createInMemoryRepositories(): Repositories {
     activityTypes: new InMemoryActivityTypesRepository(),
     attivita,
     trash: new InMemoryTrashService(attivita, () => auth.getCurrentUser()?.uid ?? null),
+    audit: new InMemoryAuditRepository(),
     auth,
   };
 }

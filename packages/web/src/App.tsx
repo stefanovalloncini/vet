@@ -9,6 +9,9 @@ import { AziendeListPage, AziendaFormPage } from "./features/aziende";
 import { AttivitaListPage, AttivitaFormPage } from "./features/attivita";
 import { CestinoPage, ImpostazioniPage } from "./features/cestino";
 import { ActivityTypesPage } from "./features/activity-types";
+import { RolesListPage, RoleEditorPage } from "./features/admin-roles";
+import { AllowlistPage } from "./features/admin-allowlist";
+import { AuditPage } from "./features/admin-audit";
 import { AppShell, Card } from "./shared/ui";
 
 function Home() {
@@ -23,7 +26,7 @@ function Home() {
     {
       to: "/aziende",
       title: "Aziende",
-      hint: "Gestisci anagrafica clienti",
+      hint: "Allevamenti e clienti",
       cap: "aziende.read",
     },
     {
@@ -32,6 +35,24 @@ function Home() {
       hint: "Visite, vaccinazioni, ginecologia, ...",
       cap: "activity_types.read",
     },
+    {
+      to: "/admin/ruoli",
+      title: "Ruoli",
+      hint: "Permessi e capacità",
+      cap: "roles.read",
+    },
+    {
+      to: "/admin/allowlist",
+      title: "Allowlist",
+      hint: "Chi può entrare",
+      cap: "allowlist.read",
+    },
+    {
+      to: "/admin/audit",
+      title: "Audit",
+      hint: "Eventi server",
+      cap: "audit.read",
+    },
   ];
 
   const visible = tiles.filter((tile) => user?.caps.has(tile.cap as never));
@@ -39,9 +60,7 @@ function Home() {
   return (
     <AppShell>
       <div className="max-w-3xl">
-        <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
-          Ciao {firstName}
-        </h1>
+        <h1 className="text-3xl text-(--color-text)">Ciao {firstName}</h1>
         <p className="text-(--color-text-muted) mt-3 text-base">
           Da qui puoi gestire i tuoi clienti.
         </p>
@@ -150,6 +169,46 @@ export function App() {
           element={
             <RequireAuth>
               <ActivityTypesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/ruoli"
+          element={
+            <RequireAuth>
+              <RolesListPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/ruoli/nuovo"
+          element={
+            <RequireAuth>
+              <RoleEditorPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/ruoli/:id"
+          element={
+            <RequireAuth>
+              <RoleEditorPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/allowlist"
+          element={
+            <RequireAuth>
+              <AllowlistPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/audit"
+          element={
+            <RequireAuth>
+              <AuditPage />
             </RequireAuth>
           }
         />

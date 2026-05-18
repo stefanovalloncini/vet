@@ -6,6 +6,7 @@ import { FirestoreAllowlistRepository } from "../firestore/FirestoreAllowlistRep
 import { FirestoreAziendeRepository } from "../firestore/FirestoreAziendeRepository";
 import { FirestoreActivityTypesRepository } from "../firestore/FirestoreActivityTypesRepository";
 import { FirestoreAttivitaRepository } from "../firestore/FirestoreAttivitaRepository";
+import { FirestoreAuditRepository } from "../firestore/FirestoreAuditRepository";
 import { FirebaseAuthService } from "../firebase/FirebaseAuthService";
 import { FirebaseTrashService } from "../firebase/FirebaseTrashService";
 import { loadVetEnv } from "./env";
@@ -22,6 +23,7 @@ export function createFirestoreRepositories(): Repositories {
     activityTypes: new FirestoreActivityTypesRepository(firestore),
     attivita: new FirestoreAttivitaRepository(firestore),
     trash: new FirebaseTrashService(functions),
+    audit: new FirestoreAuditRepository(firestore),
     auth: new FirebaseAuthService(auth, firestore),
   };
 }
