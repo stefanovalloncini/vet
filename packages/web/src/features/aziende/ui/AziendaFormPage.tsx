@@ -7,6 +7,7 @@ import {
   Select,
   TextArea,
   TextField,
+  useToast,
 } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
@@ -69,6 +70,7 @@ export function AziendaFormPage() {
   const navigate = useNavigate();
   const { user } = useAuthState();
   const { aziende: repo } = useRepositories();
+  const { notify } = useToast();
 
   const [form, setForm] = useState<FormState>(empty);
   const [loadedAzienda, setLoadedAzienda] = useState<Azienda | null>(null);
@@ -169,12 +171,15 @@ export function AziendaFormPage() {
       if (!(await ensureUnique(built.input))) return;
       if (isEdit && id) {
         await repo.update(id, built.input, user);
+        notify("Azienda aggiornata", "success");
       } else {
         await repo.create(built.input, user);
+        notify("Azienda creata", "success");
       }
       navigate("/aziende");
     } catch {
       setGlobalError(t.erroreSalvataggio);
+      notify(t.erroreSalvataggio, "error");
     } finally {
       setBusy(false);
     }
@@ -186,6 +191,7 @@ export function AziendaFormPage() {
     setGlobalError(null);
     try {
       await repo.softDelete(id, user);
+      notify("Azienda archiviata", "success");
       navigate("/aziende");
     } catch {
       setGlobalError(t.erroreSalvataggio);
