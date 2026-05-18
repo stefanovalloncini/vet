@@ -10,9 +10,11 @@ import {
   startOfMonthLocal,
   statsForRange,
   topEntry,
+  trailingMonths,
 } from "../lib/stats";
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../attivita/lib/format";
+import { Sparkline } from "./Sparkline";
 
 export function DashboardPage() {
   const now = useMemo(() => new Date(), []);
@@ -27,11 +29,18 @@ export function DashboardPage() {
     [now]
   );
 
+  const trailingStart = useMemo(
+    () => new Date(now.getFullYear() - 1, now.getMonth() + 1, 1),
+    [now]
+  );
+
   const allRangeFilters = useMemo(
-    () => ({ from: lastMonthStart, to: monthEnd }),
-    [lastMonthStart, monthEnd]
+    () => ({ from: trailingStart, to: monthEnd }),
+    [trailingStart, monthEnd]
   );
   const { items, loading } = useAttivita(allRangeFilters);
+
+  const trailing = useMemo(() => trailingMonths(items, now, 12), [items, now]);
   const { aziende, payments } = usePaymentsData();
 
   const thisMonth = useMemo(
@@ -71,6 +80,17 @@ export function DashboardPage() {
           </p>
         </Card>
       ) : (
+        <>
+        <Card className="mb-4">
+          <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+            Incassi ultimi 12 mesi
+          </p>
+          <Sparkline
+            values={trailing.totals}
+            labels={trailing.labels}
+            className="mt-3"
+          />
+        </Card>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <StatCard
             label={t.incassoMese}
@@ -121,6 +141,7 @@ export function DashboardPage() {
             </Card>
           ) : null}
         </div>
+        </>
       )}
     </AppShell>
   );

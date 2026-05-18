@@ -73,3 +73,38 @@ export function percentDiff(current: number, previous: number): number | null {
   if (previous === 0) return null;
   return Math.round(((current - previous) / previous) * 100);
 }
+
+const SHORT_MONTHS = [
+  "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
+  "Lug", "Ago", "Set", "Ott", "Nov", "Dic",
+];
+
+export function trailingMonths(
+  items: Attivita[],
+  now: Date,
+  months = 12
+): { totals: number[]; labels: string[] } {
+  const totals: number[] = [];
+  const labels: string[] = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const end = new Date(
+      now.getFullYear(),
+      now.getMonth() - i + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+    let sum = 0;
+    for (const a of items) {
+      if (a.data.getTime() >= start.getTime() && a.data.getTime() <= end.getTime()) {
+        sum += a.totale;
+      }
+    }
+    totals.push(Math.round(sum * 100) / 100);
+    labels.push(SHORT_MONTHS[start.getMonth()]!);
+  }
+  return { totals, labels };
+}
