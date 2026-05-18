@@ -8,6 +8,7 @@ import {
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReminders } from "../../reminders/hooks/useReminders";
+import { useTags } from "../hooks/useTags";
 import { formatDate, formatEuro } from "../../attivita/lib/format";
 import type { Attivita, Azienda, Payment } from "@vet/shared";
 
@@ -24,6 +25,7 @@ export function AziendaDetailPage() {
   const [pays, setPays] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const { reminders } = useReminders();
+  const { tagsFor, setForAzienda } = useTags();
 
   useEffect(() => {
     if (!id) return;
@@ -175,6 +177,12 @@ export function AziendaDetailPage() {
             {a.note}
           </p>
         ) : null}
+        <div className="mt-4 pt-4 border-t border-(--color-border)">
+          <TagsEditor
+            tags={tagsFor(a.id)}
+            onChange={(next) => setForAzienda(a.id, next)}
+          />
+        </div>
         {canExport ? (
           <div className="mt-4 pt-4 border-t border-(--color-border)">
             <Link
@@ -223,6 +231,59 @@ export function AziendaDetailPage() {
         <PromemoriaTab aziendaId={a.id} />
       )}
     </AppShell>
+  );
+}
+
+function TagsEditor({
+  tags,
+  onChange,
+}: {
+  tags: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [input, setInput] = useState("");
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-2">
+        Etichette
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-md bg-(--color-accent-soft) text-(--color-text)"
+          >
+            {tag}
+            <button
+              type="button"
+              onClick={() => onChange(tags.filter((t) => t !== tag))}
+              className="text-(--color-text-subtle) hover:text-(--color-danger)"
+              aria-label="Rimuovi etichetta"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === ",") {
+              e.preventDefault();
+              if (input.trim()) {
+                onChange([...tags, input.trim()]);
+                setInput("");
+              }
+            } else if (e.key === "Backspace" && input === "" && tags.length > 0) {
+              onChange(tags.slice(0, -1));
+            }
+          }}
+          placeholder={tags.length === 0 ? "Aggiungi etichetta…" : ""}
+          className="text-xs bg-transparent text-(--color-text) focus:outline-none placeholder:text-(--color-text-subtle) min-w-[8ch]"
+        />
+      </div>
+    </div>
   );
 }
 
