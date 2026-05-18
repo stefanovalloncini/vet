@@ -1,25 +1,37 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import styles from "./App.module.css";
-import { useRepositories } from "./infrastructure/RepositoriesContext";
+import {
+  LoginPage,
+  EmailLinkCompletePage,
+  RequireAuth,
+  useAuthState,
+} from "./features/auth";
 
-export function App() {
-  const { clock } = useRepositories();
-  const [now, setNow] = useState<string>(() => clock.now().toISOString());
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setNow(clock.now().toISOString());
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [clock]);
-
+function Home() {
+  const { user } = useAuthState();
   return (
     <main className={styles.shell}>
       <h1>Vet</h1>
-      <p>Foundation skeleton.</p>
-      <p className={styles.tick}>
-        Clock tick: <time dateTime={now}>{now}</time>
-      </p>
+      <p>Benvenuto {user?.displayName ?? ""}</p>
     </main>
+  );
+}
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login/complete" element={<EmailLinkCompletePage />} />
+        <Route
+          path="/"
+          element={
+            <RequireAuth>
+              <Home />
+            </RequireAuth>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }

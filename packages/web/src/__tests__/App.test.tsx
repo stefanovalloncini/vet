@@ -1,26 +1,45 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ActorContext } from "@vet/shared";
+import { InMemoryAuthService } from "@vet/shared/testing";
 import { App } from "../App";
 import { RepositoriesProvider } from "../infrastructure/RepositoriesContext";
 import { createInMemoryRepositories } from "../infrastructure/composition/in-memory";
 
-function renderWithRepos() {
-  render(
-    <RepositoriesProvider value={createInMemoryRepositories()}>
+function withRepos(repos = createInMemoryRepositories()) {
+  return render(
+    <RepositoriesProvider value={repos}>
       <App />
     </RepositoriesProvider>
   );
 }
 
-describe("App", () => {
-  it("renders the app title", () => {
-    renderWithRepos();
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Vet");
+describe("App routing", () => {
+  beforeEach(() => {
+    window.history.pushState({}, "", "/");
   });
 
-  it("renders the clock tick from useRepositories", () => {
-    renderWithRepos();
-    expect(screen.getByText(/Clock tick:/)).toBeInTheDocument();
+  it("redirects unauthenticated users to /login", async () => {
+    withRepos();
+    await waitFor(() => {
+      expect(screen.getByText(/Accedi a Vet/)).toBeInTheDocument();
+    });
+  });
+
+  it("shows home when signed in", async () => {
+    const repos = createInMemoryRepositories();
+    const actor: ActorContext = {
+      uid: "u1",
+      email: "x@y.com",
+      displayName: "Stefano",
+      roleId: "vet",
+      caps: new Set(["activities.read.all"]),
+    };
+    (repos.auth as InMemoryAuthService).setSimulatedUser(actor);
+    withRepos(repos);
+    await waitFor(() => {
+      expect(screen.getByText(/Benvenuto Stefano/)).toBeInTheDocument();
+    });
   });
 
   it("throws when used without RepositoriesProvider", () => {
