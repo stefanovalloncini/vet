@@ -17,6 +17,7 @@ import { AgendaPage } from "./features/agenda";
 import { DashboardPage } from "./features/dashboard";
 import { DosaggioPage, StrumentiHome } from "./features/strumenti";
 import { RemindersPage } from "./features/reminders";
+import { RiepilogoPdfPage } from "./features/riepilogo-pdf";
 import { AppShell, Card } from "./shared/ui";
 
 function Home() {
@@ -262,6 +263,14 @@ export function App() {
           element={
             <RequireAuth>
               <RemindersPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/aziende/:id/riepilogo"
+          element={
+            <RequireAuth>
+              <RiepilogoPdfPage />
             </RequireAuth>
           }
         />
