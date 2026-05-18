@@ -46,13 +46,23 @@ export function AziendeListPage() {
             {t.subtitle}
           </p>
         </div>
-        {canCreate ? (
-          <Link to="/aziende/nuova">
-            <Button type="button" variant="primary">
-              {t.nuovaAzienda}
-            </Button>
-          </Link>
-        ) : null}
+        <div className="flex items-center gap-3">
+          {canCreate ? (
+            <>
+              <Link
+                to="/aziende/importa"
+                className="text-sm text-(--color-text-muted) hover:text-(--color-text)"
+              >
+                Importa CSV
+              </Link>
+              <Link to="/aziende/nuova">
+                <Button type="button" variant="primary">
+                  {t.nuovaAzienda}
+                </Button>
+              </Link>
+            </>
+          ) : null}
+        </div>
       </header>
 
       <div className="mb-6 max-w-md">
