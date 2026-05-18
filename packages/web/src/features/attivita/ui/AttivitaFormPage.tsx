@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   AppShell,
   Button,
@@ -45,6 +45,9 @@ function emptyForm(): FormState {
 
 export function AttivitaFormPage() {
   const { id } = useParams<{ id: string }>();
+  const [params] = useSearchParams();
+  const cloneId = params.get("clone");
+  const presetDate = params.get("data");
   const isEdit = id !== undefined;
   const navigate = useNavigate();
   const { user } = useAuthState();
@@ -53,7 +56,7 @@ export function AttivitaFormPage() {
 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [loaded, setLoaded] = useState<Attivita | null>(null);
-  const [loading, setLoading] = useState<boolean>(isEdit);
+  const [loading, setLoading] = useState<boolean>(isEdit || cloneId !== null);
   const [busy, setBusy] = useState(false);
   const [tariffaSuggested, setTariffaSuggested] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -61,31 +64,38 @@ export function AttivitaFormPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
-    if (!isEdit || !id) return;
+    if (!isEdit && !cloneId) {
+      if (presetDate) {
+        setForm((s) => ({ ...s, data: presetDate }));
+      }
+      return;
+    }
+    const targetId = id ?? cloneId;
+    if (!targetId) return;
     let cancelled = false;
     void (async () => {
-      const a = await repo.getById(id);
+      const a = await repo.getById(targetId);
       if (cancelled) return;
       if (!a) {
         navigate("/attivita", { replace: true });
         return;
       }
-      setLoaded(a);
+      if (isEdit) setLoaded(a);
       setForm({
-        data: dateInputValue(a.data),
+        data: isEdit ? dateInputValue(a.data) : dateInputValue(new Date()),
         aziendaId: a.aziendaId,
         tipoId: a.tipoId,
         oraria: a.oraria,
         tariffa: String(a.tariffa),
         ore: a.ore !== undefined ? String(a.ore) : "",
-        note: a.note ?? "",
+        note: isEdit ? a.note ?? "" : "",
       });
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [id, isEdit, navigate, repo]);
+  }, [id, cloneId, isEdit, presetDate, navigate, repo]);
 
   useEffect(() => {
     if (isEdit) return;
@@ -383,14 +393,25 @@ export function AttivitaFormPage() {
                   </Button>
                 </div>
               ) : (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setConfirmDelete(true)}
-                  disabled={busy}
-                >
-                  {t.elimina}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/attivita/nuova?clone=${id}`)}
+                    disabled={busy}
+                  >
+                    Duplica
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setConfirmDelete(true)}
+                    disabled={busy}
+                  >
+                    {t.elimina}
+                  </Button>
+                </div>
               )
             ) : null}
           </div>
