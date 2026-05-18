@@ -5,6 +5,7 @@ import { registerSW } from "virtual:pwa-register";
 import { App } from "./App";
 import { RepositoriesProvider } from "./infrastructure/RepositoriesContext";
 import { createFirestoreRepositories } from "./infrastructure/composition/firestore";
+import { ToastProvider } from "./shared/ui/Toast";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("root element not found");
@@ -16,7 +17,9 @@ registerSW({ immediate: true });
 createRoot(rootEl).render(
   <StrictMode>
     <RepositoriesProvider value={repositories}>
-      <App />
+      <ToastProvider>
+        <App />
+      </ToastProvider>
     </RepositoriesProvider>
   </StrictMode>
 );
