@@ -13,6 +13,7 @@ import { RolesListPage, RoleEditorPage } from "./features/admin-roles";
 import { AllowlistPage } from "./features/admin-allowlist";
 import { AuditPage } from "./features/admin-audit";
 import { PaymentsPage } from "./features/payments";
+import { AgendaPage } from "./features/agenda";
 import { AppShell, Card } from "./shared/ui";
 
 function Home() {
@@ -218,6 +219,14 @@ export function App() {
           element={
             <RequireAuth>
               <PaymentsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/agenda"
+          element={
+            <RequireAuth>
+              <AgendaPage />
             </RequireAuth>
           }
         />
