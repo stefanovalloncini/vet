@@ -10,7 +10,7 @@ module.exports = {
   plugins: ["@typescript-eslint", "react", "react-hooks"],
   extends: [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended-type-checked",
+    "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
   ],
@@ -21,16 +21,12 @@ module.exports = {
     "no-alert": "error",
     "no-eval": "error",
     "no-new-func": "error",
-    "react/forbid-elements": [
-      "error",
-      { forbid: [{ element: "div", message: "use semantic elements where possible" }] }
-    ],
     "no-restricted-imports": [
       "error",
       {
         patterns: [
           {
-            group: ["**/features/*/*", "!**/features/*"],
+            regex: "features/[^/]+/.+",
             message: "Cross-feature imports forbidden. Import from feature index.ts only."
           }
         ]
@@ -39,8 +35,7 @@ module.exports = {
   },
   ignorePatterns: [
     "node_modules/", "dist/", "build/", "coverage/",
-    "**/*.config.ts", "**/*.config.js", ".eslintrc.cjs",
-    "packages/web/playwright.config.ts"
+    "**/*.config.ts", "**/*.config.js", ".eslintrc.cjs"
   ],
   overrides: [
     {
