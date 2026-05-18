@@ -4,6 +4,8 @@ import { useAuthState } from "../../features/auth";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { QuickEntryFab } from "../../features/quick-entry/QuickEntryFab";
 import { SearchPalette } from "../../features/search/SearchPalette";
+import { InstallBanner } from "../../features/pwa-install/InstallBanner";
+import { useTitleBadge } from "../../features/pwa-install/useTitleBadge";
 import { useTheme } from "../theme/useTheme";
 import { Brand } from "./Brand";
 import { Button } from "./Button";
@@ -33,6 +35,7 @@ export function AppShell({ children }: AppShellProps) {
   const { auth } = useRepositories();
   const location = useLocation();
   const { theme, toggle } = useTheme();
+  useTitleBadge();
 
   const items = NAV.filter(
     (item) => !item.requiredCap || user?.caps.has(item.requiredCap as never)
@@ -103,6 +106,7 @@ export function AppShell({ children }: AppShellProps) {
       </main>
       <SearchPalette />
       <QuickEntryFab />
+      <InstallBanner />
     </div>
   );
 }
