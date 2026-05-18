@@ -6,6 +6,8 @@ import {
   InMemoryUserRepository,
   InMemoryRoleRepository,
   InMemoryAllowlistRepository,
+  InMemoryAziendeRepository,
+  InMemoryActivityTypesRepository,
   InMemoryAuthService,
 } from "@vet/shared/testing";
 
@@ -15,6 +17,8 @@ export function createInMemoryRepositories(): Repositories {
     users: new InMemoryUserRepository(),
     roles: new InMemoryRoleRepository(),
     allowlist: new InMemoryAllowlistRepository(),
+    aziende: new InMemoryAziendeRepository(),
+    activityTypes: new InMemoryActivityTypesRepository(),
     auth: new InMemoryAuthService(),
   };
 }
