@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "seed:roles": "tsx seed-roles.ts",
+    "seed:activity-types": "tsx seed-activity-types.ts",
     "rescue:admin": "tsx rescue-admin.ts"
   },
   "dependencies": {

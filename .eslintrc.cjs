@@ -35,7 +35,7 @@ module.exports = {
     ]
   },
   ignorePatterns: [
-    "node_modules/", "dist/", "build/", "lib/", "coverage/",
+    "node_modules/", "dist/", "build/", "lib/", "coverage/", "deploy/",
     "**/*.config.ts", "**/*.config.js", ".eslintrc.cjs"
   ],
   overrides: [
