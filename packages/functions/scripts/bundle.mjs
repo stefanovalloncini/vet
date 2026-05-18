@@ -2,6 +2,7 @@ import { build } from "esbuild";
 import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { execSync } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkgDir = dirname(here);
@@ -54,5 +55,11 @@ await writeFile(
   join(outDir, "package.json"),
   JSON.stringify(deployPkg, null, 2) + "\n"
 );
+
+process.stdout.write(`installing runtime deps in ${outDir}...\n`);
+execSync("npm install --omit=dev --no-package-lock --no-audit --no-fund", {
+  cwd: outDir,
+  stdio: "inherit",
+});
 
 process.stdout.write(`bundle ready: ${outDir}/index.js\n`);
