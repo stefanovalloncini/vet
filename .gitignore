@@ -25,12 +25,39 @@ firebase-debug.log
 firestore-debug.log
 ui-debug.log
 .firebase/
+firebase-export-*/
+
+# Secrets (DO NOT COMMIT)
+**/serviceAccount*.json
+**/firebase-adminsdk-*.json
+**/google-services.json
+*.pem
+*.key
+*.crt
+*.p12
 
 # Logs
 *.log
 npm-debug.log*
 pnpm-debug.log*
 
+# Profiling
+*.heapsnapshot
+*.cpuprofile
+
+# Alternative package managers (we use pnpm)
+package-lock.json
+yarn.lock
+bun.lockb
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
 # OS
 .DS_Store
+._*
 Thumbs.db
