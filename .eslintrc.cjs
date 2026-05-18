@@ -22,6 +22,8 @@ module.exports = {
     "no-alert": "error",
     "no-eval": "error",
     "no-new-func": "error",
+    "react/no-danger": "error",
+    "react/no-danger-with-children": "error",
     "no-restricted-imports": [
       "error",
       {
