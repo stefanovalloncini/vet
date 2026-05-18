@@ -134,7 +134,7 @@ export function AgendaPage() {
         </div>
       </Card>
 
-      <section>
+      <section className="print:block print:!mt-0">
         <header className="flex items-baseline justify-between mb-3 px-1">
           <h2 className="text-sm font-medium text-(--color-text)">
             {selected.toLocaleDateString("it-IT", {
@@ -144,14 +144,25 @@ export function AgendaPage() {
               year: "numeric",
             })}
           </h2>
-          {canCreate ? (
-            <Link
-              to={`/attivita/nuova?data=${dayKey(selected)}`}
-              className="text-sm text-(--color-accent) hover:underline"
-            >
-              + Nuova
-            </Link>
-          ) : null}
+          <div className="flex items-center gap-3">
+            {todaysItems.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="text-sm text-(--color-text-muted) hover:text-(--color-text) print:hidden"
+              >
+                Stampa
+              </button>
+            ) : null}
+            {canCreate ? (
+              <Link
+                to={`/attivita/nuova?data=${dayKey(selected)}`}
+                className="text-sm text-(--color-accent) hover:underline print:hidden"
+              >
+                + Nuova
+              </Link>
+            ) : null}
+          </div>
         </header>
         {loading ? (
           <p className="text-sm text-(--color-text-muted)">{t.loading}</p>

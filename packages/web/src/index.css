@@ -64,6 +64,18 @@ body {
   color-scheme: light dark;
 }
 
+@media print {
+  body {
+    background: white;
+  }
+  header,
+  nav,
+  button[aria-label],
+  .print\:hidden {
+    display: none !important;
+  }
+}
+
 h1,
 .font-serif {
   font-family: var(--font-serif);
