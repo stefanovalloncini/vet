@@ -16,6 +16,11 @@ import {
   connectFunctionsEmulator,
   type Functions,
 } from "firebase/functions";
+import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+  type AppCheck,
+} from "firebase/app-check";
 
 interface VetFirebaseConfig {
   apiKey: string;
@@ -23,12 +28,15 @@ interface VetFirebaseConfig {
   projectId: string;
   appId: string;
   useEmulator: boolean;
+  appCheckSiteKey?: string;
+  appCheckDebugToken?: string;
 }
 
 let app: FirebaseApp | undefined;
 let firestore: Firestore | undefined;
 let auth: Auth | undefined;
 let functions: Functions | undefined;
+let appCheck: AppCheck | undefined;
 
 export function initFirebase(config: VetFirebaseConfig): {
   app: FirebaseApp;
@@ -43,6 +51,24 @@ export function initFirebase(config: VetFirebaseConfig): {
       projectId: config.projectId,
       appId: config.appId,
     });
+
+    if (config.appCheckDebugToken && typeof window !== "undefined") {
+      (
+        window as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string | true }
+      ).FIREBASE_APPCHECK_DEBUG_TOKEN = config.appCheckDebugToken;
+    }
+
+    if (!config.useEmulator && config.appCheckSiteKey) {
+      try {
+        appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(config.appCheckSiteKey),
+          isTokenAutoRefreshEnabled: true,
+        });
+      } catch {
+        // App Check init can fail if site key invalid; degrade gracefully
+      }
+    }
+
     firestore = initializeFirestore(app, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager(),
@@ -58,5 +84,6 @@ export function initFirebase(config: VetFirebaseConfig): {
       connectFunctionsEmulator(functions, "127.0.0.1", 5001);
     }
   }
+  void appCheck;
   return { app: app!, firestore: firestore!, auth: auth!, functions: functions! };
 }
