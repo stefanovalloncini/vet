@@ -8,6 +8,7 @@ import type { AttivitaRepository } from "./AttivitaRepository.js";
 import type { TrashService } from "./TrashService.js";
 import type { AuditRepository } from "./AuditRepository.js";
 import type { PaymentsRepository } from "./PaymentsRepository.js";
+import type { RemindersRepository } from "./RemindersRepository.js";
 import type { AuthService } from "./AuthService.js";
 
 export interface Repositories {
@@ -21,5 +22,6 @@ export interface Repositories {
   readonly trash: TrashService;
   readonly audit: AuditRepository;
   readonly payments: PaymentsRepository;
+  readonly reminders: RemindersRepository;
   readonly auth: AuthService;
 }

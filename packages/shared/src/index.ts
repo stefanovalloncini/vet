@@ -99,6 +99,14 @@ export {
   type PaymentDoc,
   type MetodoPagamento,
 } from "./domain/schemas/payment.js";
+export type { Reminder } from "./domain/entities/Reminder.js";
+export type { RemindersRepository } from "./domain/ports/RemindersRepository.js";
+export {
+  reminderInputSchema,
+  reminderDocSchema,
+  type ReminderInput,
+  type ReminderDoc,
+} from "./domain/schemas/reminder.js";
 export type {
   AuthService,
   AuthStateSubscriber,

@@ -16,6 +16,7 @@ import { PaymentsPage } from "./features/payments";
 import { AgendaPage } from "./features/agenda";
 import { DashboardPage } from "./features/dashboard";
 import { DosaggioPage, StrumentiHome } from "./features/strumenti";
+import { RemindersPage } from "./features/reminders";
 import { AppShell, Card } from "./shared/ui";
 
 function Home() {
@@ -253,6 +254,14 @@ export function App() {
           element={
             <RequireAuth>
               <DosaggioPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/promemoria"
+          element={
+            <RequireAuth>
+              <RemindersPage />
             </RequireAuth>
           }
         />
