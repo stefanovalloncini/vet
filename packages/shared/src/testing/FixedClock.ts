@@ -4,7 +4,7 @@ export class FixedClock implements Clock {
   constructor(private value: Date) {}
 
   now(): Date {
-    return this.value;
+    return new Date(this.value);
   }
 
   set(value: Date): void {
