@@ -29,6 +29,8 @@ interface FormState {
   tariffa: string;
   ore: string;
   note: string;
+  reminderAt: string;
+  reminderTitle: string;
 }
 
 function emptyForm(): FormState {
@@ -40,6 +42,8 @@ function emptyForm(): FormState {
     tariffa: "",
     ore: "",
     note: "",
+    reminderAt: "",
+    reminderTitle: "",
   };
 }
 
@@ -51,7 +55,7 @@ export function AttivitaFormPage() {
   const isEdit = id !== undefined;
   const navigate = useNavigate();
   const { user } = useAuthState();
-  const { attivita: repo } = useRepositories();
+  const { attivita: repo, reminders } = useRepositories();
   const ref = useReferenceData();
 
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -89,6 +93,8 @@ export function AttivitaFormPage() {
         tariffa: String(a.tariffa),
         ore: a.ore !== undefined ? String(a.ore) : "",
         note: isEdit ? a.note ?? "" : "",
+        reminderAt: "",
+        reminderTitle: "",
       });
       setLoading(false);
     })();
@@ -202,6 +208,22 @@ export function AttivitaFormPage() {
         await repo.update(id, input, denorm, user);
       } else {
         await repo.create(input, denorm, user);
+        const dueDate = parseDateInput(form.reminderAt);
+        if (dueDate && form.reminderTitle.trim()) {
+          try {
+            await reminders.create(
+              {
+                aziendaId: azienda.id,
+                titolo: form.reminderTitle.trim(),
+                dueAt: dueDate,
+              },
+              { aziendaNome: azienda.nome },
+              user
+            );
+          } catch {
+            // reminder creation is best-effort
+          }
+        }
       }
       navigate("/attivita");
     } catch {
@@ -345,6 +367,33 @@ export function AttivitaFormPage() {
               disabled={busy}
               maxLength={2000}
             />
+
+            {!isEdit ? (
+              <div className="pt-3 border-t border-(--color-border)">
+                <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
+                  Prossimo richiamo (opzionale)
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <TextField
+                    id="reminder-title"
+                    label="Titolo promemoria"
+                    value={form.reminderTitle}
+                    onChange={(e) => update("reminderTitle", e.target.value)}
+                    placeholder="Es. Richiamo vaccino"
+                    disabled={busy}
+                    maxLength={120}
+                  />
+                  <TextField
+                    id="reminder-at"
+                    type="date"
+                    label="Quando"
+                    value={form.reminderAt}
+                    onChange={(e) => update("reminderAt", e.target.value)}
+                    disabled={busy}
+                  />
+                </div>
+              </div>
+            ) : null}
 
             {totaleLive !== null ? (
               <div className="flex items-baseline justify-between pt-2 border-t border-(--color-border)">
