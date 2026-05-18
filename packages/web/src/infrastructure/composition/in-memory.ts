@@ -8,6 +8,7 @@ import {
   InMemoryAllowlistRepository,
   InMemoryAziendeRepository,
   InMemoryActivityTypesRepository,
+  InMemoryAttivitaRepository,
   InMemoryAuthService,
 } from "@vet/shared/testing";
 
@@ -19,6 +20,7 @@ export function createInMemoryRepositories(): Repositories {
     allowlist: new InMemoryAllowlistRepository(),
     aziende: new InMemoryAziendeRepository(),
     activityTypes: new InMemoryActivityTypesRepository(),
+    attivita: new InMemoryAttivitaRepository(),
     auth: new InMemoryAuthService(),
   };
 }

@@ -5,6 +5,7 @@ import { FirestoreRoleRepository } from "../firestore/FirestoreRoleRepository";
 import { FirestoreAllowlistRepository } from "../firestore/FirestoreAllowlistRepository";
 import { FirestoreAziendeRepository } from "../firestore/FirestoreAziendeRepository";
 import { FirestoreActivityTypesRepository } from "../firestore/FirestoreActivityTypesRepository";
+import { FirestoreAttivitaRepository } from "../firestore/FirestoreAttivitaRepository";
 import { FirebaseAuthService } from "../firebase/FirebaseAuthService";
 import { loadVetEnv } from "./env";
 
@@ -18,6 +19,7 @@ export function createFirestoreRepositories(): Repositories {
     allowlist: new FirestoreAllowlistRepository(firestore),
     aziende: new FirestoreAziendeRepository(firestore),
     activityTypes: new FirestoreActivityTypesRepository(firestore),
+    attivita: new FirestoreAttivitaRepository(firestore),
     auth: new FirebaseAuthService(auth),
   };
 }
