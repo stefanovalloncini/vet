@@ -2,6 +2,68 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null && request.auth.token.vet == true;
+    }
+
+    function hasCap(cap) {
+      return signedIn() && cap in request.auth.token.caps;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isImmutable(field) {
+      return resource.data[field] == request.resource.data[field];
+    }
+
+    function isServerStamped(field) {
+      return request.resource.data[field] == request.time;
+    }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid) || hasCap("users.read.all");
+      allow create: if false;
+      allow update: if (
+        (isSelf(uid) && request.resource.data.diff(resource.data).changedKeys().hasOnly(["displayName", "updatedAt"]))
+        || hasCap("roles.assign")
+      )
+        && isImmutable("email")
+        && isImmutable("createdAt")
+        && isServerStamped("updatedAt");
+      allow delete: if false;
+    }
+
+    match /roles/{roleId} {
+      allow read: if hasCap("roles.read");
+      allow create: if hasCap("roles.manage")
+        && request.resource.data.locked == false
+        && isServerStamped("createdAt")
+        && isServerStamped("updatedAt");
+      allow update: if hasCap("roles.manage")
+        && resource.data.locked == false
+        && request.resource.data.locked == false
+        && isImmutable("createdAt")
+        && isServerStamped("updatedAt");
+      allow delete: if hasCap("roles.manage") && resource.data.locked == false;
+    }
+
+    match /allowlist/{emailNorm} {
+      allow read: if hasCap("allowlist.read");
+      allow create: if hasCap("allowlist.manage")
+        && isServerStamped("invitedAt");
+      allow update: if hasCap("allowlist.manage")
+        && isImmutable("invitedAt");
+      allow delete: if hasCap("allowlist.manage");
+    }
+
+    match /audit/{auditId} {
+      allow read: if hasCap("audit.read");
+      allow write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
