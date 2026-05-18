@@ -5,9 +5,9 @@
   },
   "functions": [
     {
-      "source": "packages/functions",
+      "source": "packages/functions/deploy",
       "codebase": "default",
-      "predeploy": ["pnpm -F @vet/functions build"]
+      "predeploy": ["pnpm -F @vet/shared build && pnpm -F @vet/functions build"]
     }
   ],
   "emulators": {
