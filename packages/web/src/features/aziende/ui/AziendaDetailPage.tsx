@@ -91,9 +91,14 @@ export function AziendaDetailPage() {
           <div>
             <h1 className="text-3xl text-(--color-text)">{a.nome}</h1>
             {a.indirizzo ? (
-              <p className="text-sm text-(--color-text-muted) mt-1">
-                {a.indirizzo}
-              </p>
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(a.indirizzo)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-(--color-text-muted) hover:text-(--color-accent) mt-1 inline-block"
+              >
+                {a.indirizzo} ↗
+              </a>
             ) : null}
           </div>
           {canUpdate ? (
