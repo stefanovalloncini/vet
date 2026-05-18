@@ -1,0 +1,18 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: Vet
+      - heading "Bentornato" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Accedi per registrare la giornata.
+    - generic [ref=e9]:
+      - button "Continua con Google" [ref=e10]:
+        - img [ref=e11]
+        - text: Continua con Google
+      - generic [ref=e18]: oppure
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - generic [ref=e22]: Email
+          - textbox "Email" [ref=e23]:
+            - /placeholder: tua.email@studio.it
+        - button "Inviami il link" [disabled] [ref=e24]
+    - paragraph [ref=e25]: Solo email autorizzate possono accedere.

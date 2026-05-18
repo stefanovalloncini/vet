@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "seed:roles": "tsx seed-roles.ts"
+    "seed:roles": "tsx seed-roles.ts",
+    "rescue:admin": "tsx rescue-admin.ts"
   },
   "dependencies": {
     "@vet/shared": "workspace:*",

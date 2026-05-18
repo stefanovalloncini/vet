@@ -17,6 +17,7 @@
     "test:e2e": "pnpm -F @vet/web test:e2e",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint --no-error-on-unmatched-pattern \"packages/**/*.{ts,tsx,js,jsx}\"",
     "seed:roles": "pnpm -F vet-scripts seed:roles",
+    "rescue:admin": "pnpm -F vet-scripts rescue:admin",
     "dev": "pnpm -F @vet/shared build && pnpm -F @vet/functions build && concurrently -k -n 'emulator,web' -c 'magenta,cyan' 'firebase emulators:start' 'pnpm -F @vet/web dev'"
   },
   "devDependencies": {
