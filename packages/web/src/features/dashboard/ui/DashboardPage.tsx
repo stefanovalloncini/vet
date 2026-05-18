@@ -15,6 +15,7 @@ import {
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../attivita/lib/format";
 import { Sparkline } from "./Sparkline";
+import { BarChart } from "./BarChart";
 import { useReminders } from "../../reminders/hooks/useReminders";
 
 export function DashboardPage() {
@@ -201,6 +202,20 @@ export function DashboardPage() {
             </Card>
           ) : null}
         </div>
+        {thisMonth.byTipo.size > 0 ? (
+          <Card className="mt-4">
+            <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
+              Attività del mese per tipo
+            </p>
+            <BarChart
+              bars={[...thisMonth.byTipo.values()]
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 8)
+                .map((v) => ({ label: v.nome, value: v.total }))}
+              formatValue={formatEuro}
+            />
+          </Card>
+        ) : null}
         {recentAziende.length > 0 ? (
           <div className="mt-6">
             <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
