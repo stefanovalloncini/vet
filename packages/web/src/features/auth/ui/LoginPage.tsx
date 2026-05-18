@@ -1,59 +1,112 @@
 import { useState, type FormEvent } from "react";
-import styles from "./LoginPage.module.css";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import {
+  Brand,
+  Button,
+  Card,
+  Divider,
+  GoogleIcon,
+  TextField,
+} from "../../../shared/ui";
 
 export function LoginPage() {
   const { auth } = useRepositories();
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   async function handleGoogle() {
     setError(null);
+    setBusy(true);
     try {
       await auth.signInWithGoogle();
     } catch {
       setError("Accesso non riuscito. Riprova.");
+    } finally {
+      setBusy(false);
     }
   }
 
   async function handleEmail(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setBusy(true);
     try {
       await auth.sendEmailSignInLink(email);
       setEmailSent(true);
     } catch {
       setError("Invio link non riuscito.");
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <main className={styles.shell}>
-      <h1 className={styles.heading}>Accedi a Vet</h1>
-      <button type="button" className={styles.button} onClick={handleGoogle}>
-        Continua con Google
-      </button>
-      <p className={styles.divider}>oppure</p>
-      {emailSent ? (
-        <p>Controlla la tua email per il link di accesso.</p>
-      ) : (
-        <form onSubmit={handleEmail}>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            className={styles.input}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button type="submit" className={styles.button}>
-            Inviami il link
-          </button>
-        </form>
-      )}
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+    <main className="min-h-screen flex items-center justify-center px-4 py-16 bg-(--color-background)">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-10">
+          <Brand size="md" className="mb-4" />
+          <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
+            Bentornato
+          </h1>
+          <p className="text-(--color-text-muted) mt-3 text-sm">
+            Accedi per registrare la giornata.
+          </p>
+        </div>
+
+        <Card elevated>
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth
+            disabled={busy}
+            onClick={handleGoogle}
+            leadingIcon={<GoogleIcon />}
+          >
+            Continua con Google
+          </Button>
+
+          <Divider className="my-6">oppure</Divider>
+
+          {emailSent ? (
+            <div className="rounded-xl bg-(--color-accent-soft) border border-(--color-accent)/20 p-4 text-sm text-(--color-text)">
+              Controlla la tua email. Ti abbiamo inviato un link per accedere.
+            </div>
+          ) : (
+            <form onSubmit={handleEmail} className="space-y-4">
+              <TextField
+                id="email"
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={busy}
+                placeholder="tua.email@studio.it"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                disabled={busy || email.length === 0}
+              >
+                Inviami il link
+              </Button>
+            </form>
+          )}
+
+          {error ? (
+            <p role="alert" className="mt-4 text-sm text-(--color-danger)">
+              {error}
+            </p>
+          ) : null}
+        </Card>
+
+        <p className="text-center text-xs text-(--color-text-subtle) mt-8">
+          Solo email autorizzate possono accedere.
+        </p>
+      </div>
     </main>
   );
 }

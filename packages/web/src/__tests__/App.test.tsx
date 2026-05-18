@@ -22,7 +22,7 @@ describe("App routing", () => {
   it("redirects unauthenticated users to /login", async () => {
     withRepos();
     await waitFor(() => {
-      expect(screen.getByText(/Accedi a Vet/)).toBeInTheDocument();
+      expect(screen.getByText(/Bentornato/)).toBeInTheDocument();
     });
   });
 
@@ -38,7 +38,7 @@ describe("App routing", () => {
     (repos.auth as InMemoryAuthService).setSimulatedUser(actor);
     withRepos(repos);
     await waitFor(() => {
-      expect(screen.getByText(/Benvenuto Stefano/)).toBeInTheDocument();
+      expect(screen.getByText(/Ciao Stefano/)).toBeInTheDocument();
     });
   });
 
