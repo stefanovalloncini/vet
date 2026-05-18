@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useAuthState } from "../../features/auth";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { QuickEntryFab } from "../../features/quick-entry/QuickEntryFab";
+import { useTheme } from "../theme/useTheme";
 import { Brand } from "./Brand";
 import { Button } from "./Button";
 
@@ -30,6 +31,7 @@ export function AppShell({ children }: AppShellProps) {
   const { user } = useAuthState();
   const { auth } = useRepositories();
   const location = useLocation();
+  const { theme, toggle } = useTheme();
 
   const items = NAV.filter(
     (item) => !item.requiredCap || user?.caps.has(item.requiredCap as never)
@@ -66,10 +68,18 @@ export function AppShell({ children }: AppShellProps) {
               })}
             </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="text-sm text-(--color-text-muted) hidden md:inline">
               {user?.email}
             </span>
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label={theme === "dark" ? "Tema chiaro" : "Tema scuro"}
+              className="text-sm text-(--color-text-muted) hover:text-(--color-text) px-2"
+            >
+              {theme === "dark" ? "☀" : "☾"}
+            </button>
             <Link
               to="/impostazioni"
               className="text-sm text-(--color-text-muted) hover:text-(--color-text)"
