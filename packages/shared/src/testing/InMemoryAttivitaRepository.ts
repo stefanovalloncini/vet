@@ -2,6 +2,7 @@ import type { Attivita } from "../domain/entities/Attivita.js";
 import type {
   AttivitaFilters,
   AttivitaRepository,
+  TrashFilters,
 } from "../domain/ports/AttivitaRepository.js";
 import type { ActorContext } from "../domain/entities/ActorContext.js";
 import {
@@ -21,6 +22,14 @@ export class InMemoryAttivitaRepository implements AttivitaRepository {
   async list(filters: AttivitaFilters = {}): Promise<Attivita[]> {
     const items = [...this.map.values()].filter((a) => !a.isDeleted);
     return items.filter((a) => match(a, filters)).sort(byDataDesc);
+  }
+
+  async listDeleted(filters: TrashFilters = {}): Promise<Attivita[]> {
+    const items = [...this.map.values()].filter((a) => a.isDeleted);
+    const filtered = filters.ownerUid
+      ? items.filter((a) => a.ownerUid === filters.ownerUid)
+      : items;
+    return filtered.sort(byDeletedAtDesc);
   }
 
   async getById(id: string): Promise<Attivita | null> {
@@ -127,4 +136,10 @@ function match(a: Attivita, f: AttivitaFilters): boolean {
 
 function byDataDesc(a: Attivita, b: Attivita): number {
   return b.data.getTime() - a.data.getTime();
+}
+
+function byDeletedAtDesc(a: Attivita, b: Attivita): number {
+  const ad = a.deletedAt?.getTime() ?? 0;
+  const bd = b.deletedAt?.getTime() ?? 0;
+  return bd - ad;
 }

@@ -80,7 +80,9 @@ export type { ActivityTypesRepository } from "./domain/ports/ActivityTypesReposi
 export type {
   AttivitaRepository,
   AttivitaFilters,
+  TrashFilters,
 } from "./domain/ports/AttivitaRepository.js";
+export type { TrashService } from "./domain/ports/TrashService.js";
 export type {
   AuthService,
   AuthStateSubscriber,

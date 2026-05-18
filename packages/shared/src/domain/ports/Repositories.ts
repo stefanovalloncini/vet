@@ -5,6 +5,7 @@ import type { AllowlistRepository } from "./AllowlistRepository.js";
 import type { AziendeRepository } from "./AziendeRepository.js";
 import type { ActivityTypesRepository } from "./ActivityTypesRepository.js";
 import type { AttivitaRepository } from "./AttivitaRepository.js";
+import type { TrashService } from "./TrashService.js";
 import type { AuthService } from "./AuthService.js";
 
 export interface Repositories {
@@ -15,5 +16,6 @@ export interface Repositories {
   readonly aziende: AziendeRepository;
   readonly activityTypes: ActivityTypesRepository;
   readonly attivita: AttivitaRepository;
+  readonly trash: TrashService;
   readonly auth: AuthService;
 }

@@ -10,8 +10,13 @@ export interface AttivitaFilters {
   ownerUid?: string;
 }
 
+export interface TrashFilters {
+  ownerUid?: string;
+}
+
 export interface AttivitaRepository {
   list(filters?: AttivitaFilters): Promise<Attivita[]>;
+  listDeleted(filters?: TrashFilters): Promise<Attivita[]>;
   getById(id: string): Promise<Attivita | null>;
   findLastByAziendaAndTipo(
     aziendaId: string,

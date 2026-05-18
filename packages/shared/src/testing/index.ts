@@ -5,4 +5,5 @@ export { InMemoryAllowlistRepository } from "./InMemoryAllowlistRepository.js";
 export { InMemoryAziendeRepository } from "./InMemoryAziendeRepository.js";
 export { InMemoryActivityTypesRepository } from "./InMemoryActivityTypesRepository.js";
 export { InMemoryAttivitaRepository } from "./InMemoryAttivitaRepository.js";
+export { InMemoryTrashService } from "./InMemoryTrashService.js";
 export { InMemoryAuthService } from "./InMemoryAuthService.js";
