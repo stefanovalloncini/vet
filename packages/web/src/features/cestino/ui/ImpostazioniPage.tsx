@@ -1,0 +1,118 @@
+import { useState } from "react";
+import { AppShell, Button, Card } from "../../../shared/ui";
+import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { useAuthState } from "../../auth";
+import { impostazioniI18n as t } from "../i18n";
+
+export function ImpostazioniPage() {
+  const { user } = useAuthState();
+  const { trash, auth } = useRepositories();
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleDelete() {
+    setBusy(true);
+    setError(null);
+    try {
+      await trash.gdprDeleteMine();
+      setDone(true);
+      setTimeout(() => {
+        void auth.signOut();
+      }, 1500);
+    } catch {
+      setError(t.gdprErrore);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <AppShell>
+      <header className="mb-8 max-w-2xl">
+        <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
+          {t.title}
+        </h1>
+        <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
+      </header>
+
+      <div className="max-w-2xl">
+        <Card>
+          <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
+            Profilo
+          </p>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt className="text-(--color-text-subtle) text-xs mb-1">Nome</dt>
+              <dd className="text-(--color-text)">{user?.displayName ?? "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-(--color-text-subtle) text-xs mb-1">Email</dt>
+              <dd className="text-(--color-text)">{user?.email ?? "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-(--color-text-subtle) text-xs mb-1">Ruolo</dt>
+              <dd className="text-(--color-text)">{user?.roleId || "—"}</dd>
+            </div>
+          </dl>
+        </Card>
+
+        <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mt-10 mb-3">
+          {t.gdprSection}
+        </p>
+        <Card>
+          <h2 className="text-base font-medium text-(--color-text)">
+            {t.gdprTitle}
+          </h2>
+          <p className="text-sm text-(--color-text-muted) mt-2 max-w-prose">
+            {t.gdprDescr}
+          </p>
+
+          {done ? (
+            <p className="text-sm text-(--color-text) mt-5">{t.gdprDone}</p>
+          ) : busy ? (
+            <p className="text-sm text-(--color-text-muted) mt-5">{t.gdprBusy}</p>
+          ) : confirming ? (
+            <div className="mt-5 flex flex-col gap-3">
+              <p className="text-sm text-(--color-danger)">{t.gdprConferma}</p>
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={handleDelete}
+                  disabled={busy}
+                >
+                  {t.gdprButton}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setConfirming(false)}
+                  disabled={busy}
+                >
+                  Annulla
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-5">
+              <Button
+                type="button"
+                variant="danger"
+                onClick={() => setConfirming(true)}
+              >
+                {t.gdprButton}
+              </Button>
+            </div>
+          )}
+
+          {error ? (
+            <p role="alert" className="text-sm text-(--color-danger) mt-3">
+              {error}
+            </p>
+          ) : null}
+        </Card>
+      </div>
+    </AppShell>
+  );
+}

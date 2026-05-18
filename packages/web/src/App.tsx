@@ -7,6 +7,7 @@ import {
 } from "./features/auth";
 import { AziendeListPage, AziendaFormPage } from "./features/aziende";
 import { AttivitaListPage, AttivitaFormPage } from "./features/attivita";
+import { CestinoPage, ImpostazioniPage } from "./features/cestino";
 import { ActivityTypesPage } from "./features/activity-types";
 import { AppShell, Card } from "./shared/ui";
 
@@ -125,6 +126,22 @@ export function App() {
           element={
             <RequireAuth>
               <AziendaFormPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/cestino"
+          element={
+            <RequireAuth>
+              <CestinoPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/impostazioni"
+          element={
+            <RequireAuth>
+              <ImpostazioniPage />
             </RequireAuth>
           }
         />

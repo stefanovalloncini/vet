@@ -19,6 +19,7 @@ const NAV: NavItem[] = [
   { to: "/", label: "Home" },
   { to: "/attivita", label: "Attività", requiredCap: "activities.read.all" },
   { to: "/aziende", label: "Aziende", requiredCap: "aziende.read" },
+  { to: "/cestino", label: "Cestino", requiredCap: "trash.read.own" },
 ];
 
 export function AppShell({ children }: AppShellProps) {
@@ -65,6 +66,12 @@ export function AppShell({ children }: AppShellProps) {
             <span className="text-sm text-(--color-text-muted) hidden md:inline">
               {user?.email}
             </span>
+            <Link
+              to="/impostazioni"
+              className="text-sm text-(--color-text-muted) hover:text-(--color-text)"
+            >
+              Impostazioni
+            </Link>
             <Button
               type="button"
               variant="ghost"
