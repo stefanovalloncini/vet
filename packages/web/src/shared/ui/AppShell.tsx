@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuthState } from "../../features/auth";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
+import { QuickEntryFab } from "../../features/quick-entry/QuickEntryFab";
 import { Brand } from "./Brand";
 import { Button } from "./Button";
 
@@ -89,6 +90,7 @@ export function AppShell({ children }: AppShellProps) {
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">
         {children}
       </main>
+      <QuickEntryFab />
     </div>
   );
 }
