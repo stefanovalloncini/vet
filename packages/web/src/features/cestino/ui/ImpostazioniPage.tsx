@@ -6,11 +6,49 @@ import { impostazioniI18n as t } from "../i18n";
 
 export function ImpostazioniPage() {
   const { user } = useAuthState();
-  const { trash, auth } = useRepositories();
+  const { trash, auth, aziende, attivita, payments, reminders } = useRepositories();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    setExporting(true);
+    setError(null);
+    try {
+      const [az, at, pa, re] = await Promise.all([
+        aziende.list(),
+        attivita.list(),
+        payments.list(),
+        reminders.list(),
+      ]);
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        exportedBy: user?.email ?? "",
+        version: 1,
+        aziende: az,
+        attivita: at,
+        payments: pa,
+        reminders: re,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `marinoni-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch {
+      setError("Export non riuscito.");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   async function handleDelete() {
     setBusy(true);
@@ -55,6 +93,28 @@ export function ImpostazioniPage() {
               <dd className="text-(--color-text)">{user?.roleId || "—"}</dd>
             </div>
           </dl>
+        </Card>
+
+        <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mt-10 mb-3">
+          Dati
+        </p>
+        <Card>
+          <h2 className="text-base font-medium text-(--color-text)">
+            Esporta i tuoi dati
+          </h2>
+          <p className="text-sm text-(--color-text-muted) mt-2 max-w-prose">
+            Scarica un backup JSON di aziende, attività, pagamenti e promemoria.
+          </p>
+          <div className="mt-5">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? "Esportazione…" : "Scarica backup JSON"}
+            </Button>
+          </div>
         </Card>
 
         <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mt-10 mb-3">
