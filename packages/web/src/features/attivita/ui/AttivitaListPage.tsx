@@ -35,12 +35,15 @@ export function AttivitaListPage() {
       ? "vet"
       : "none";
 
+  const mineOnly = params.get("mine") === "1";
+
   const filters = useMemo(() => {
     const f: {
       from?: Date;
       to?: Date;
       aziendaId?: string;
       tipoId?: string;
+      ownerUid?: string;
     } = {};
     const fromDate = parseDateInput(from);
     const toDate = parseDateInput(to);
@@ -52,8 +55,9 @@ export function AttivitaListPage() {
     }
     if (aziendaId) f.aziendaId = aziendaId;
     if (tipoId) f.tipoId = tipoId;
+    if (mineOnly && user) f.ownerUid = user.uid;
     return f;
-  }, [from, to, aziendaId, tipoId]);
+  }, [from, to, aziendaId, tipoId, mineOnly, user]);
 
   const { items, loading, error } = useAttivita(filters);
 
@@ -97,6 +101,15 @@ export function AttivitaListPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-xs text-(--color-text-muted) cursor-pointer mr-2">
+            <input
+              type="checkbox"
+              checked={mineOnly}
+              onChange={(e) => setParam("mine", e.target.checked ? "1" : "")}
+              className="w-4 h-4 accent-(--color-accent)"
+            />
+            Solo mie
+          </label>
           {canExport ? (
             <Button
               type="button"
