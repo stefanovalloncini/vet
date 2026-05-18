@@ -60,15 +60,27 @@ export {
   type ActivityTypeInput,
   type ActivityTypeDoc,
 } from "./domain/schemas/activityType.js";
+export {
+  attivitaInputSchema,
+  attivitaDocSchema,
+  computeTotale,
+  type AttivitaInput,
+  type AttivitaDoc,
+} from "./domain/schemas/attivita.js";
 
 export type { Azienda } from "./domain/entities/Azienda.js";
 export type { ActivityType } from "./domain/entities/ActivityType.js";
+export type { Attivita } from "./domain/entities/Attivita.js";
 
 export type { UserRepository } from "./domain/ports/UserRepository.js";
 export type { RoleRepository } from "./domain/ports/RoleRepository.js";
 export type { AllowlistRepository } from "./domain/ports/AllowlistRepository.js";
 export type { AziendeRepository } from "./domain/ports/AziendeRepository.js";
 export type { ActivityTypesRepository } from "./domain/ports/ActivityTypesRepository.js";
+export type {
+  AttivitaRepository,
+  AttivitaFilters,
+} from "./domain/ports/AttivitaRepository.js";
 export type {
   AuthService,
   AuthStateSubscriber,
