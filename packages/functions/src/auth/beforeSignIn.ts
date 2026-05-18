@@ -35,12 +35,18 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
 
     const uid = event.data?.uid;
     let roleId = allow.defaultRoleId;
+    interface ExistingUser {
+      roleId?: string;
+      displayName?: string;
+      createdAt?: unknown;
+    }
+    let existingUser: ExistingUser | null = null;
 
     if (uid) {
       const userSnap = await adminDb.collection("users").doc(uid).get();
       if (userSnap.exists) {
-        const u = userSnap.data() as { roleId?: string };
-        if (u.roleId) roleId = u.roleId;
+        existingUser = (userSnap.data() ?? null) as ExistingUser | null;
+        if (existingUser?.roleId) roleId = existingUser.roleId;
       }
     }
 
@@ -57,15 +63,20 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
     });
 
     if (uid) {
+      const now = new Date();
+      const isFirst = !existingUser;
+      const displayName = existingUser?.displayName
+        ?? event.data?.displayName
+        ?? email.split("@")[0];
       await adminDb.collection("users").doc(uid).set(
         {
           email,
-          displayName: event.data?.displayName ?? email.split("@")[0],
+          displayName,
           roleId,
           disabled: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          lastSignInAt: new Date(),
+          ...(isFirst ? { createdAt: now } : {}),
+          updatedAt: now,
+          lastSignInAt: now,
           schemaVersion: 1,
         },
         { merge: true }
