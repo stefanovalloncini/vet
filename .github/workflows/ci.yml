@@ -22,6 +22,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm -F @vet/shared build
       - run: pnpm lint
       - run: pnpm typecheck
 
@@ -36,6 +37,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm -F @vet/shared build
       - run: pnpm -F @vet/shared test
       - run: pnpm -F @vet/web test
       - run: pnpm -F @vet/functions test
