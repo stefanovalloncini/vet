@@ -1,0 +1,30 @@
+{
+  "name": "vet-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vet activity tracker — monorepo coordinator",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter './packages/*' build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:rules": "pnpm -F @vet/rules-tests test",
+    "test:e2e": "pnpm -F @vet/web test:e2e",
+    "lint": "eslint .",
+    "dev": "concurrently -k -n 'emulator,web' -c 'magenta,cyan' 'firebase emulators:start' 'pnpm -F @vet/web dev'"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "firebase-tools": "^13.0.0",
+    "typescript": "^5.6.0"
+  }
+}
