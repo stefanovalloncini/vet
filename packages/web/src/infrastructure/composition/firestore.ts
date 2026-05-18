@@ -1,0 +1,19 @@
+import { SystemClock, type Repositories } from "@vet/shared";
+import { initFirebase } from "../firestore/client";
+import { FirestoreUserRepository } from "../firestore/FirestoreUserRepository";
+import { FirestoreRoleRepository } from "../firestore/FirestoreRoleRepository";
+import { FirestoreAllowlistRepository } from "../firestore/FirestoreAllowlistRepository";
+import { FirebaseAuthService } from "../firebase/FirebaseAuthService";
+import { loadVetEnv } from "./env";
+
+export function createFirestoreRepositories(): Repositories {
+  const env = loadVetEnv();
+  const { firestore, auth } = initFirebase(env);
+  return {
+    clock: new SystemClock(),
+    users: new FirestoreUserRepository(firestore),
+    roles: new FirestoreRoleRepository(firestore),
+    allowlist: new FirestoreAllowlistRepository(firestore),
+    auth: new FirebaseAuthService(auth),
+  };
+}
