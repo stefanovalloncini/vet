@@ -14,6 +14,7 @@ import { AllowlistPage } from "./features/admin-allowlist";
 import { AuditPage } from "./features/admin-audit";
 import { PaymentsPage } from "./features/payments";
 import { AgendaPage } from "./features/agenda";
+import { DashboardPage } from "./features/dashboard";
 import { AppShell, Card } from "./shared/ui";
 
 function Home() {
@@ -227,6 +228,14 @@ export function App() {
           element={
             <RequireAuth>
               <AgendaPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/riepilogo"
+          element={
+            <RequireAuth>
+              <DashboardPage />
             </RequireAuth>
           }
         />
