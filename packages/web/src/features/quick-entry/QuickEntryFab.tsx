@@ -25,8 +25,31 @@ export function QuickEntryFab() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [recentIds, setRecentIds] = useState<string[]>([]);
 
   const canCreate = user?.caps.has("activities.create") ?? false;
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const recent = await attivita.list();
+        if (cancelled) return;
+        const order: string[] = [];
+        for (const a of recent) {
+          if (!order.includes(a.aziendaId)) order.push(a.aziendaId);
+          if (order.length >= 6) break;
+        }
+        setRecentIds(order);
+      } catch {
+        setRecentIds([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, attivita]);
 
   useEffect(() => {
     if (!open) return;
@@ -91,9 +114,20 @@ export function QuickEntryFab() {
     }
   }
 
+  const sortedAziende = [...ref.aziende].sort((a, b) => {
+    const ai = recentIds.indexOf(a.id);
+    const bi = recentIds.indexOf(b.id);
+    if (ai === -1 && bi === -1) return a.nome.localeCompare(b.nome, "it");
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
   const aziendaOptions = [
     { value: "", label: "Scegli azienda" },
-    ...ref.aziende.map((a) => ({ value: a.id, label: a.nome })),
+    ...sortedAziende.map((a) => ({
+      value: a.id,
+      label: recentIds.includes(a.id) ? `★ ${a.nome}` : a.nome,
+    })),
   ];
   const tipoOptions = [
     { value: "", label: "Scegli tipo" },
