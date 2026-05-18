@@ -13,7 +13,57 @@ import { useReferenceData } from "../hooks/useReferenceData";
 import { attivitaI18n as t } from "../i18n";
 import type { Attivita } from "@vet/shared";
 import { computeTotals, groupAttivita, type GroupKey } from "../lib/totals";
-import { formatDate, formatEuro, parseDateInput } from "../lib/format";
+import { dateInputValue, formatDate, formatEuro, parseDateInput } from "../lib/format";
+
+const QUICK_RANGES = [
+  {
+    id: "today",
+    label: "Oggi",
+    compute: (now: Date) => ({
+      from: dateInputValue(now),
+      to: dateInputValue(now),
+    }),
+  },
+  {
+    id: "week",
+    label: "Questa settimana",
+    compute: (now: Date) => {
+      const day = (now.getDay() + 6) % 7;
+      const start = new Date(now);
+      start.setDate(now.getDate() - day);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      return { from: dateInputValue(start), to: dateInputValue(end) };
+    },
+  },
+  {
+    id: "month",
+    label: "Questo mese",
+    compute: (now: Date) => {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      return { from: dateInputValue(start), to: dateInputValue(end) };
+    },
+  },
+  {
+    id: "lastmonth",
+    label: "Mese scorso",
+    compute: (now: Date) => {
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const end = new Date(now.getFullYear(), now.getMonth(), 0);
+      return { from: dateInputValue(start), to: dateInputValue(end) };
+    },
+  },
+  {
+    id: "year",
+    label: "Anno",
+    compute: (now: Date) => {
+      const start = new Date(now.getFullYear(), 0, 1);
+      const end = new Date(now.getFullYear(), 11, 31);
+      return { from: dateInputValue(start), to: dateInputValue(end) };
+    },
+  },
+];
 import { ExportDialog } from "./ExportDialog";
 
 export function AttivitaListPage() {
@@ -128,6 +178,35 @@ export function AttivitaListPage() {
           ) : null}
         </div>
       </header>
+
+      <div className="flex flex-wrap gap-2 mb-4 print:hidden">
+        {QUICK_RANGES.map((q) => (
+          <button
+            key={q.id}
+            type="button"
+            onClick={() => {
+              const range = q.compute(new Date());
+              setParam("from", range.from);
+              setParam("to", range.to);
+            }}
+            className="px-3 py-1 text-xs rounded-full border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong)"
+          >
+            {q.label}
+          </button>
+        ))}
+        {from || to ? (
+          <button
+            type="button"
+            onClick={() => {
+              setParam("from", "");
+              setParam("to", "");
+            }}
+            className="px-3 py-1 text-xs rounded-full border border-(--color-border) text-(--color-text-muted) hover:text-(--color-danger)"
+          >
+            ✕ pulisci
+          </button>
+        ) : null}
+      </div>
 
       <FilterBar
         from={from}
