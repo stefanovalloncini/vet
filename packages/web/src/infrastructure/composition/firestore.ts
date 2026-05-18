@@ -22,6 +22,6 @@ export function createFirestoreRepositories(): Repositories {
     activityTypes: new FirestoreActivityTypesRepository(firestore),
     attivita: new FirestoreAttivitaRepository(firestore),
     trash: new FirebaseTrashService(functions),
-    auth: new FirebaseAuthService(auth),
+    auth: new FirebaseAuthService(auth, firestore),
   };
 }

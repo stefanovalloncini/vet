@@ -9,6 +9,11 @@ import {
   type Auth,
   type User as FbUser,
 } from "firebase/auth";
+import {
+  doc,
+  getDoc,
+  type Firestore,
+} from "firebase/firestore";
 import type {
   ActorContext,
   AuthService,
@@ -23,7 +28,10 @@ export class FirebaseAuthService implements AuthService {
   private initialized = false;
   private readonly subscribers = new Set<AuthStateSubscriber>();
 
-  constructor(private readonly auth: Auth) {
+  constructor(
+    private readonly auth: Auth,
+    private readonly firestore: Firestore
+  ) {
     onIdTokenChanged(this.auth, async (fbUser) => {
       this.current = fbUser ? await this.toActor(fbUser) : null;
       this.initialized = true;
@@ -80,10 +88,22 @@ export class FirebaseAuthService implements AuthService {
       roleId?: string;
       caps?: string[];
     };
+    let displayName = fbUser.displayName ?? fbUser.email ?? fbUser.uid;
+    if (claims.vet) {
+      try {
+        const userSnap = await getDoc(doc(this.firestore, "users", fbUser.uid));
+        const stored = userSnap.exists()
+          ? (userSnap.data()["displayName"] as string | undefined)
+          : undefined;
+        if (stored) displayName = stored;
+      } catch {
+        // fall back to fbUser.displayName
+      }
+    }
     return {
       uid: fbUser.uid,
       email: fbUser.email ?? "",
-      displayName: fbUser.displayName ?? fbUser.email ?? fbUser.uid,
+      displayName,
       roleId: claims.roleId ?? "",
       caps: new Set((claims.caps as Capability[] | undefined) ?? []),
     };
