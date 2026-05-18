@@ -1,6 +1,9 @@
 export { Button } from "./Button";
 export { TextField } from "./TextField";
+export { TextArea } from "./TextArea";
+export { Select } from "./Select";
 export { Card } from "./Card";
 export { Divider } from "./Divider";
 export { GoogleIcon } from "./GoogleIcon";
 export { Brand } from "./Brand";
+export { AppShell } from "./AppShell";

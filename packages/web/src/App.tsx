@@ -1,80 +1,64 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import {
   LoginPage,
   EmailLinkCompletePage,
   RequireAuth,
   useAuthState,
 } from "./features/auth";
-import { useRepositories } from "./infrastructure/RepositoriesContext";
-import { Brand, Button, Card } from "./shared/ui";
+import { AziendeListPage, AziendaFormPage } from "./features/aziende";
+import { ActivityTypesPage } from "./features/activity-types";
+import { AppShell, Card } from "./shared/ui";
 
 function Home() {
   const { user } = useAuthState();
-  const { auth } = useRepositories();
   const firstName = user?.displayName?.split(" ")[0] ?? "";
 
+  const tiles = [
+    {
+      to: "/aziende",
+      title: "Aziende",
+      hint: "Gestisci anagrafica clienti",
+      cap: "aziende.read",
+    },
+    {
+      to: "/admin/tipi-attivita",
+      title: "Tipi di attività",
+      hint: "Visite, vaccinazioni, ginecologia, ...",
+      cap: "activity_types.read",
+    },
+  ];
+
+  const visible = tiles.filter((tile) => user?.caps.has(tile.cap as never));
+
   return (
-    <div className="min-h-screen flex flex-col bg-(--color-background)">
-      <header className="border-b border-(--color-border) bg-(--color-surface)">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Brand size="sm" />
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-(--color-text-muted) hidden sm:inline">
-              {user?.email}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => auth.signOut()}
-            >
-              Esci
-            </Button>
+    <AppShell>
+      <div className="max-w-3xl">
+        <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
+          Ciao {firstName}
+        </h1>
+        <p className="text-(--color-text-muted) mt-3 text-base">
+          Le attività arrivano nel prossimo aggiornamento. Per ora puoi sistemare
+          le aziende e i tipi di attività.
+        </p>
+
+        {visible.length > 0 ? (
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {visible.map((tile) => (
+              <Link key={tile.to} to={tile.to} className="block">
+                <Card className="h-full hover:border-(--color-border-strong) transition-colors">
+                  <h2 className="text-base font-medium text-(--color-text)">
+                    {tile.title}
+                  </h2>
+                  <p className="text-sm text-(--color-text-muted) mt-1">
+                    {tile.hint}
+                  </p>
+                </Card>
+              </Link>
+            ))}
           </div>
-        </div>
-      </header>
-
-      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-12">
-        <div className="max-w-2xl">
-          <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
-            Ciao {firstName}
-          </h1>
-          <p className="text-(--color-text-muted) mt-3 text-base">
-            La struttura è pronta. Le attività arrivano nel prossimo milestone.
-          </p>
-
-          <Card elevated className="mt-10">
-            <p className="text-sm text-(--color-text-muted)">Stato sessione</p>
-            <dl className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-              <div>
-                <dt className="text-(--color-text-subtle) text-xs uppercase tracking-wider mb-1">
-                  Ruolo
-                </dt>
-                <dd className="font-medium text-(--color-text)">
-                  {user?.roleId || "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-(--color-text-subtle) text-xs uppercase tracking-wider mb-1">
-                  Capabilities
-                </dt>
-                <dd className="font-medium text-(--color-text)">
-                  {user?.caps.size ?? 0}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-(--color-text-subtle) text-xs uppercase tracking-wider mb-1">
-                  UID
-                </dt>
-                <dd className="font-mono text-xs text-(--color-text) truncate">
-                  {user?.uid ?? "—"}
-                </dd>
-              </div>
-            </dl>
-          </Card>
-        </div>
-      </main>
-    </div>
+        ) : null}
+      </div>
+    </AppShell>
   );
 }
 
@@ -89,6 +73,38 @@ export function App() {
           element={
             <RequireAuth>
               <Home />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/aziende"
+          element={
+            <RequireAuth>
+              <AziendeListPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/aziende/nuova"
+          element={
+            <RequireAuth>
+              <AziendaFormPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/aziende/:id"
+          element={
+            <RequireAuth>
+              <AziendaFormPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/tipi-attivita"
+          element={
+            <RequireAuth>
+              <ActivityTypesPage />
             </RequireAuth>
           }
         />

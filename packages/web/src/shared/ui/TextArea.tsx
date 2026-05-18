@@ -1,23 +1,23 @@
-import type { InputHTMLAttributes } from "react";
+import type { TextareaHTMLAttributes } from "react";
 
-interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   id: string;
   label: string;
   error?: string | undefined;
   hint?: string | undefined;
 }
 
-export function TextField({
+export function TextArea({
   id,
   label,
   error,
   hint,
   className = "",
   ...rest
-}: TextFieldProps) {
-  const inputCls = [
+}: TextAreaProps) {
+  const cls = [
     "w-full rounded-xl border bg-(--color-surface) px-4 py-3 text-sm text-(--color-text)",
-    "placeholder:text-(--color-text-subtle)",
+    "placeholder:text-(--color-text-subtle) min-h-[6rem] resize-y",
     "focus:outline-none focus:ring-2 disabled:opacity-50",
     error
       ? "border-(--color-danger) focus:border-(--color-danger) focus:ring-(--color-danger)/20"
@@ -33,7 +33,7 @@ export function TextField({
       >
         {label}
       </label>
-      <input id={id} {...rest} className={inputCls} />
+      <textarea id={id} {...rest} className={cls} />
       {error ? (
         <p className="mt-2 text-xs text-(--color-danger)" role="alert">
           {error}
