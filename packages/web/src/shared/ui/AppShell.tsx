@@ -9,6 +9,7 @@ import { useTitleBadge } from "../../features/pwa-install/useTitleBadge";
 import { useTheme } from "../theme/useTheme";
 import { Brand } from "./Brand";
 import { Button } from "./Button";
+import { MobileNav } from "./MobileNav";
 
 interface NavItem {
   to: string;
@@ -101,9 +102,10 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </div>
       </header>
-      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10 pb-24 sm:pb-10">
         {children}
       </main>
+      <MobileNav />
       <SearchPalette />
       <QuickEntryFab />
       <InstallBanner />
