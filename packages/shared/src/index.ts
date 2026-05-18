@@ -40,10 +40,35 @@ export {
   type AllowlistEntryInput,
   type AllowlistEntryDoc,
 } from "./domain/schemas/allowlist.js";
+export {
+  aziendaInputSchema,
+  aziendaDocSchema,
+  cadenzaFatturazioneSchema,
+  normalizeAziendaNome,
+  isValidPartitaIva,
+  CADENZA_FATTURAZIONE,
+  type AziendaInput,
+  type AziendaDoc,
+  type CadenzaFatturazione,
+} from "./domain/schemas/azienda.js";
+export {
+  activityTypeInputSchema,
+  activityTypeDocSchema,
+  slugifyActivityType,
+  ACTIVITY_TYPE_SEEDS,
+  GINECOLOGIA_TIPO_ID,
+  type ActivityTypeInput,
+  type ActivityTypeDoc,
+} from "./domain/schemas/activityType.js";
+
+export type { Azienda } from "./domain/entities/Azienda.js";
+export type { ActivityType } from "./domain/entities/ActivityType.js";
 
 export type { UserRepository } from "./domain/ports/UserRepository.js";
 export type { RoleRepository } from "./domain/ports/RoleRepository.js";
 export type { AllowlistRepository } from "./domain/ports/AllowlistRepository.js";
+export type { AziendeRepository } from "./domain/ports/AziendeRepository.js";
+export type { ActivityTypesRepository } from "./domain/ports/ActivityTypesRepository.js";
 export type {
   AuthService,
   AuthStateSubscriber,
