@@ -101,7 +101,53 @@ export function DosaggioPage() {
                 <span className="text-(--color-text-subtle) text-2xl">—</span>
               )}
             </p>
+            {(() => {
+              const preset = DOSAGE_PRESETS.find((p) => p.id === presetId);
+              if (!preset || preset.id === "custom") return null;
+              return (
+                <dl className="grid grid-cols-3 gap-4 mt-5 text-sm">
+                  {preset.via ? (
+                    <div>
+                      <dt className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+                        Via
+                      </dt>
+                      <dd className="text-(--color-text) mt-1">{preset.via}</dd>
+                    </div>
+                  ) : null}
+                  {preset.sospensioneCarne !== undefined ? (
+                    <div>
+                      <dt className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+                        {t.sospensione} {t.sospensioneCarne}
+                      </dt>
+                      <dd className="text-(--color-text) mt-1 tabular-nums">
+                        {preset.sospensioneCarne === -1
+                          ? "Non utilizzare"
+                          : `${preset.sospensioneCarne} ${t.giorni}`}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {preset.sospensioneLatte !== undefined ? (
+                    <div>
+                      <dt className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+                        {t.sospensione} {t.sospensioneLatte}
+                      </dt>
+                      <dd className="text-(--color-text) mt-1 tabular-nums">
+                        {preset.sospensioneLatte === -1
+                          ? "Vietato in lattazione"
+                          : preset.sospensioneLatte === 0
+                          ? "0 (no sospensione)"
+                          : `${preset.sospensioneLatte} ${t.giorni}`}
+                      </dd>
+                    </div>
+                  ) : null}
+                </dl>
+              );
+            })()}
           </div>
+
+          <p className="text-xs text-(--color-text-subtle) -mt-1">
+            {t.hint}
+          </p>
         </div>
       </Card>
     </AppShell>
