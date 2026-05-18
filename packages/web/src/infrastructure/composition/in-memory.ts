@@ -9,10 +9,13 @@ import {
   InMemoryAziendeRepository,
   InMemoryActivityTypesRepository,
   InMemoryAttivitaRepository,
+  InMemoryTrashService,
   InMemoryAuthService,
 } from "@vet/shared/testing";
 
 export function createInMemoryRepositories(): Repositories {
+  const auth = new InMemoryAuthService();
+  const attivita = new InMemoryAttivitaRepository();
   return {
     clock: new SystemClock(),
     users: new InMemoryUserRepository(),
@@ -20,7 +23,8 @@ export function createInMemoryRepositories(): Repositories {
     allowlist: new InMemoryAllowlistRepository(),
     aziende: new InMemoryAziendeRepository(),
     activityTypes: new InMemoryActivityTypesRepository(),
-    attivita: new InMemoryAttivitaRepository(),
-    auth: new InMemoryAuthService(),
+    attivita,
+    trash: new InMemoryTrashService(attivita, () => auth.getCurrentUser()?.uid ?? null),
+    auth,
   };
 }

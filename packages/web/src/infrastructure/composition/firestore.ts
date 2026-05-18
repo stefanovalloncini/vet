@@ -7,11 +7,12 @@ import { FirestoreAziendeRepository } from "../firestore/FirestoreAziendeReposit
 import { FirestoreActivityTypesRepository } from "../firestore/FirestoreActivityTypesRepository";
 import { FirestoreAttivitaRepository } from "../firestore/FirestoreAttivitaRepository";
 import { FirebaseAuthService } from "../firebase/FirebaseAuthService";
+import { FirebaseTrashService } from "../firebase/FirebaseTrashService";
 import { loadVetEnv } from "./env";
 
 export function createFirestoreRepositories(): Repositories {
   const env = loadVetEnv();
-  const { firestore, auth } = initFirebase(env);
+  const { firestore, auth, functions } = initFirebase(env);
   return {
     clock: new SystemClock(),
     users: new FirestoreUserRepository(firestore),
@@ -20,6 +21,7 @@ export function createFirestoreRepositories(): Repositories {
     aziende: new FirestoreAziendeRepository(firestore),
     activityTypes: new FirestoreActivityTypesRepository(firestore),
     attivita: new FirestoreAttivitaRepository(firestore),
+    trash: new FirebaseTrashService(functions),
     auth: new FirebaseAuthService(auth),
   };
 }

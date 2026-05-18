@@ -20,6 +20,7 @@ import type {
   AttivitaFilters,
   AttivitaInput,
   AttivitaRepository,
+  TrashFilters,
 } from "@vet/shared";
 import { computeTotale } from "@vet/shared";
 
@@ -34,6 +35,14 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     if (filters.from) constraints.push(where("data", ">=", Timestamp.fromDate(filters.from)));
     if (filters.to) constraints.push(where("data", "<=", Timestamp.fromDate(filters.to)));
     constraints.push(orderBy("data", "desc"));
+    const snap = await getDocs(query(collection(this.db, "attivita"), ...constraints));
+    return snap.docs.map((d) => fromSnap(d.id, d.data()));
+  }
+
+  async listDeleted(filters: TrashFilters = {}): Promise<Attivita[]> {
+    const constraints: QueryConstraint[] = [where("isDeleted", "==", true)];
+    if (filters.ownerUid) constraints.push(where("ownerUid", "==", filters.ownerUid));
+    constraints.push(orderBy("deletedAt", "desc"));
     const snap = await getDocs(query(collection(this.db, "attivita"), ...constraints));
     return snap.docs.map((d) => fromSnap(d.id, d.data()));
   }

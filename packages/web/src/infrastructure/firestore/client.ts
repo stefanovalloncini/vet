@@ -11,6 +11,11 @@ import {
   connectAuthEmulator,
   type Auth,
 } from "firebase/auth";
+import {
+  getFunctions,
+  connectFunctionsEmulator,
+  type Functions,
+} from "firebase/functions";
 
 interface VetFirebaseConfig {
   apiKey: string;
@@ -23,11 +28,13 @@ interface VetFirebaseConfig {
 let app: FirebaseApp | undefined;
 let firestore: Firestore | undefined;
 let auth: Auth | undefined;
+let functions: Functions | undefined;
 
 export function initFirebase(config: VetFirebaseConfig): {
   app: FirebaseApp;
   firestore: Firestore;
   auth: Auth;
+  functions: Functions;
 } {
   if (!app) {
     app = initializeApp({
@@ -42,12 +49,14 @@ export function initFirebase(config: VetFirebaseConfig): {
       }),
     });
     auth = getAuth(app);
+    functions = getFunctions(app, "europe-west8");
     if (config.useEmulator) {
       connectFirestoreEmulator(firestore, "127.0.0.1", 8080);
       connectAuthEmulator(auth, "http://127.0.0.1:9099", {
         disableWarnings: true,
       });
+      connectFunctionsEmulator(functions, "127.0.0.1", 5001);
     }
   }
-  return { app: app!, firestore: firestore!, auth: auth! };
+  return { app: app!, firestore: firestore!, auth: auth!, functions: functions! };
 }
