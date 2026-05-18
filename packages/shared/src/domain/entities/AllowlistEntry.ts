@@ -5,4 +5,5 @@ export interface AllowlistEntry {
   invitedBy: string;
   invitedAt: Date;
   notes?: string;
+  schemaVersion: number;
 }

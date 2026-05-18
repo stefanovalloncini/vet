@@ -15,6 +15,7 @@ export const allowlistEntryDocSchema = z
     invitedBy: z.string(),
     invitedAt: z.date(),
     notes: z.string().max(500).optional(),
+    schemaVersion: z.literal(1),
   })
   .strict();
 
