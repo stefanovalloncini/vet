@@ -16,24 +16,31 @@ import {
   normalizeAziendaNome,
   type AziendaInput,
   type CadenzaFatturazione,
+  type TipoAllevamento,
   type Azienda,
 } from "@vet/shared";
 
 interface FormState {
   nome: string;
   indirizzo: string;
+  telefono: string;
   piva: string;
   emailFatturazione: string;
   cadenzaFatturazione: CadenzaFatturazione | "";
+  tipoAllevamento: TipoAllevamento | "";
+  numeroCapi: string;
   note: string;
 }
 
 const empty: FormState = {
   nome: "",
   indirizzo: "",
+  telefono: "",
   piva: "",
   emailFatturazione: "",
   cadenzaFatturazione: "",
+  tipoAllevamento: "",
+  numeroCapi: "",
   note: "",
 };
 
@@ -42,6 +49,18 @@ const CADENZA_OPTIONS = [
   { value: "monthly", label: t.campoCadenzaMensile },
   { value: "quarterly", label: t.campoCadenzaTrimestrale },
   { value: "semiannual", label: t.campoCadenzaSemestrale },
+];
+
+const TIPO_OPTIONS = [
+  { value: "", label: t.campoTipoNessuno },
+  { value: "bovini", label: t.tipoBovini },
+  { value: "ovini", label: t.tipoOvini },
+  { value: "caprini", label: t.tipoCaprini },
+  { value: "suini", label: t.tipoSuini },
+  { value: "avicoli", label: t.tipoAvicoli },
+  { value: "equini", label: t.tipoEquini },
+  { value: "misto", label: t.tipoMisto },
+  { value: "altro", label: t.tipoAltro },
 ];
 
 export function AziendaFormPage() {
@@ -73,9 +92,12 @@ export function AziendaFormPage() {
       setForm({
         nome: a.nome,
         indirizzo: a.indirizzo ?? "",
+        telefono: a.telefono ?? "",
         piva: a.piva ?? "",
         emailFatturazione: a.emailFatturazione ?? "",
         cadenzaFatturazione: a.cadenzaFatturazione ?? "",
+        tipoAllevamento: a.tipoAllevamento ?? "",
+        numeroCapi: a.numeroCapi !== undefined ? String(a.numeroCapi) : "",
         note: a.note ?? "",
       });
       setLoading(false);
@@ -97,11 +119,16 @@ export function AziendaFormPage() {
   function buildInput(): { ok: true; input: AziendaInput } | { ok: false } {
     const candidate: Record<string, unknown> = { nome: form.nome };
     if (form.indirizzo.trim()) candidate["indirizzo"] = form.indirizzo.trim();
+    if (form.telefono.trim()) candidate["telefono"] = form.telefono.trim();
     if (form.piva.trim()) candidate["piva"] = form.piva.trim();
     if (form.emailFatturazione.trim())
       candidate["emailFatturazione"] = form.emailFatturazione.trim();
     if (form.cadenzaFatturazione)
       candidate["cadenzaFatturazione"] = form.cadenzaFatturazione;
+    if (form.tipoAllevamento)
+      candidate["tipoAllevamento"] = form.tipoAllevamento;
+    if (form.numeroCapi.trim())
+      candidate["numeroCapi"] = Number(form.numeroCapi);
     if (form.note.trim()) candidate["note"] = form.note.trim();
 
     const parsed = aziendaInputSchema.safeParse(candidate);
@@ -213,15 +240,53 @@ export function AziendaFormPage() {
               autoFocus
               maxLength={200}
             />
-            <TextField
-              id="indirizzo"
-              label={t.campoIndirizzo}
-              value={form.indirizzo}
-              onChange={(e) => update("indirizzo", e.target.value)}
-              error={errors.indirizzo}
-              disabled={busy}
-              maxLength={300}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <TextField
+                id="indirizzo"
+                label={t.campoIndirizzo}
+                value={form.indirizzo}
+                onChange={(e) => update("indirizzo", e.target.value)}
+                error={errors.indirizzo}
+                disabled={busy}
+                maxLength={300}
+              />
+              <TextField
+                id="telefono"
+                label={t.campoTelefono}
+                value={form.telefono}
+                onChange={(e) => update("telefono", e.target.value)}
+                error={errors.telefono}
+                disabled={busy}
+                maxLength={40}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <Select
+                id="tipo-allevamento"
+                label={t.campoTipoAllevamento}
+                value={form.tipoAllevamento}
+                onChange={(e) =>
+                  update(
+                    "tipoAllevamento",
+                    (e.target.value as TipoAllevamento | "") ?? ""
+                  )
+                }
+                options={TIPO_OPTIONS}
+                disabled={busy}
+              />
+              <TextField
+                id="numero-capi"
+                type="number"
+                min="0"
+                max="100000"
+                step="1"
+                label={t.campoNumeroCapi}
+                value={form.numeroCapi}
+                onChange={(e) => update("numeroCapi", e.target.value)}
+                error={errors.numeroCapi}
+                disabled={busy}
+              />
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <TextField
                 id="piva"

@@ -44,12 +44,15 @@ export {
   aziendaInputSchema,
   aziendaDocSchema,
   cadenzaFatturazioneSchema,
+  tipoAllevamentoSchema,
   normalizeAziendaNome,
   isValidPartitaIva,
   CADENZA_FATTURAZIONE,
+  TIPI_ALLEVAMENTO,
   type AziendaInput,
   type AziendaDoc,
   type CadenzaFatturazione,
+  type TipoAllevamento,
 } from "./domain/schemas/azienda.js";
 export {
   activityTypeInputSchema,

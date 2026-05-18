@@ -34,6 +34,19 @@ const nomeSchema = z
   .transform((s) => s.trim())
   .pipe(z.string().min(1).max(200));
 
+export const TIPI_ALLEVAMENTO = [
+  "bovini",
+  "ovini",
+  "caprini",
+  "suini",
+  "avicoli",
+  "equini",
+  "misto",
+  "altro",
+] as const;
+export type TipoAllevamento = (typeof TIPI_ALLEVAMENTO)[number];
+export const tipoAllevamentoSchema = z.enum(TIPI_ALLEVAMENTO);
+
 export const aziendaInputSchema = z
   .object({
     nome: nomeSchema,
@@ -41,6 +54,9 @@ export const aziendaInputSchema = z
     piva: pivaSchema.optional(),
     emailFatturazione: z.string().email().max(120).optional(),
     cadenzaFatturazione: cadenzaFatturazioneSchema.optional(),
+    tipoAllevamento: tipoAllevamentoSchema.optional(),
+    numeroCapi: z.number().int().nonnegative().max(100_000).optional(),
+    telefono: z.string().max(40).optional(),
     note: z.string().max(1000).optional(),
   })
   .strict();
@@ -53,6 +69,9 @@ export const aziendaDocSchema = z
     piva: z.string().regex(/^\d{11}$/).optional(),
     emailFatturazione: z.string().email().max(120).optional(),
     cadenzaFatturazione: cadenzaFatturazioneSchema.optional(),
+    tipoAllevamento: tipoAllevamentoSchema.optional(),
+    numeroCapi: z.number().int().nonnegative().max(100_000).optional(),
+    telefono: z.string().max(40).optional(),
     note: z.string().max(1000).optional(),
     createdAt: z.date(),
     updatedAt: z.date(),

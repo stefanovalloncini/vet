@@ -18,6 +18,7 @@ import type {
   AziendaInput,
   AziendeRepository,
   CadenzaFatturazione,
+  TipoAllevamento,
 } from "@vet/shared";
 import { normalizeAziendaNome } from "@vet/shared";
 
@@ -66,6 +67,13 @@ export class FirestoreAziendeRepository implements AziendeRepository {
       ...(input.cadenzaFatturazione !== undefined
         ? { cadenzaFatturazione: input.cadenzaFatturazione }
         : {}),
+      ...(input.tipoAllevamento !== undefined
+        ? { tipoAllevamento: input.tipoAllevamento }
+        : {}),
+      ...(input.numeroCapi !== undefined
+        ? { numeroCapi: input.numeroCapi }
+        : {}),
+      ...(input.telefono !== undefined ? { telefono: input.telefono } : {}),
       ...(input.note !== undefined ? { note: input.note } : {}),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -91,6 +99,9 @@ export class FirestoreAziendeRepository implements AziendeRepository {
       piva: input.piva ?? null,
       emailFatturazione: input.emailFatturazione ?? null,
       cadenzaFatturazione: input.cadenzaFatturazione ?? null,
+      tipoAllevamento: input.tipoAllevamento ?? null,
+      numeroCapi: input.numeroCapi ?? null,
+      telefono: input.telefono ?? null,
       note: input.note ?? null,
       updatedAt: serverTimestamp(),
       updatedBy: actor.uid,
@@ -122,6 +133,13 @@ function fromSnap(id: string, data: Record<string, unknown>): Azienda {
     ...(data.cadenzaFatturazione
       ? { cadenzaFatturazione: data.cadenzaFatturazione as CadenzaFatturazione }
       : {}),
+    ...(data.tipoAllevamento
+      ? { tipoAllevamento: data.tipoAllevamento as TipoAllevamento }
+      : {}),
+    ...(typeof data.numeroCapi === "number"
+      ? { numeroCapi: data.numeroCapi }
+      : {}),
+    ...(data.telefono ? { telefono: data.telefono as string } : {}),
     ...(data.note ? { note: data.note as string } : {}),
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),

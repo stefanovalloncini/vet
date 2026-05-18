@@ -46,6 +46,11 @@ export class InMemoryAziendeRepository implements AziendeRepository {
       ...(input.cadenzaFatturazione !== undefined
         ? { cadenzaFatturazione: input.cadenzaFatturazione }
         : {}),
+      ...(input.tipoAllevamento !== undefined
+        ? { tipoAllevamento: input.tipoAllevamento }
+        : {}),
+      ...(input.numeroCapi !== undefined ? { numeroCapi: input.numeroCapi } : {}),
+      ...(input.telefono !== undefined ? { telefono: input.telefono } : {}),
       ...(input.note !== undefined ? { note: input.note } : {}),
       createdAt: now,
       updatedAt: now,
@@ -88,6 +93,11 @@ export class InMemoryAziendeRepository implements AziendeRepository {
       ...(input.cadenzaFatturazione !== undefined
         ? { cadenzaFatturazione: input.cadenzaFatturazione }
         : {}),
+      ...(input.tipoAllevamento !== undefined
+        ? { tipoAllevamento: input.tipoAllevamento }
+        : {}),
+      ...(input.numeroCapi !== undefined ? { numeroCapi: input.numeroCapi } : {}),
+      ...(input.telefono !== undefined ? { telefono: input.telefono } : {}),
       ...(input.note !== undefined ? { note: input.note } : {}),
     };
     this.map.set(id, next);

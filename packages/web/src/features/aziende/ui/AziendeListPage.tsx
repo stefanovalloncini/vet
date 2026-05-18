@@ -11,6 +11,10 @@ import { useAziende } from "../hooks/useAziende";
 import { aziendeI18n as t } from "../i18n";
 import { normalizeAziendaNome, type Azienda } from "@vet/shared";
 
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 const CADENZA_LABEL = {
   monthly: t.campoCadenzaMensile,
   quarterly: t.campoCadenzaTrimestrale,
@@ -92,6 +96,9 @@ function AziendaRow({
   canEdit: boolean;
 }) {
   const chips = [
+    a.tipoAllevamento ? capitalize(a.tipoAllevamento) : null,
+    a.numeroCapi !== undefined ? `${a.numeroCapi} capi` : null,
+    a.telefono ?? null,
     a.piva ? `P.IVA ${a.piva}` : null,
     a.cadenzaFatturazione ? CADENZA_LABEL[a.cadenzaFatturazione] : null,
     a.emailFatturazione ?? null,

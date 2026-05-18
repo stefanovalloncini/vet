@@ -1,4 +1,4 @@
-import type { CadenzaFatturazione } from "../schemas/azienda.js";
+import type { CadenzaFatturazione, TipoAllevamento } from "../schemas/azienda.js";
 
 export interface Azienda {
   id: string;
@@ -8,6 +8,9 @@ export interface Azienda {
   piva?: string;
   emailFatturazione?: string;
   cadenzaFatturazione?: CadenzaFatturazione;
+  tipoAllevamento?: TipoAllevamento;
+  numeroCapi?: number;
+  telefono?: string;
   note?: string;
   createdAt: Date;
   updatedAt: Date;
