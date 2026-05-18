@@ -88,6 +88,17 @@ export type {
   AuditRepository,
   AuditFilters,
 } from "./domain/ports/AuditRepository.js";
+export type { Payment } from "./domain/entities/Payment.js";
+export type { PaymentsRepository } from "./domain/ports/PaymentsRepository.js";
+export {
+  paymentInputSchema,
+  paymentDocSchema,
+  metodoPagamentoSchema,
+  METODI_PAGAMENTO,
+  type PaymentInput,
+  type PaymentDoc,
+  type MetodoPagamento,
+} from "./domain/schemas/payment.js";
 export type {
   AuthService,
   AuthStateSubscriber,

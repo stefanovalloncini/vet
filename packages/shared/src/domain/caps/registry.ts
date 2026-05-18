@@ -26,6 +26,8 @@ export const CAPABILITIES = [
   "allowlist.manage",
   "audit.read",
   "users.read.all",
+  "payments.read",
+  "payments.manage",
 ] as const;
 
 export type Capability = (typeof CAPABILITIES)[number];

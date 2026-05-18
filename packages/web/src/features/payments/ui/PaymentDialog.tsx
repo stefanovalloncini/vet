@@ -1,0 +1,164 @@
+import { useState, type FormEvent } from "react";
+import {
+  Button,
+  Card,
+  Select,
+  TextArea,
+  TextField,
+} from "../../../shared/ui";
+import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { useAuthState } from "../../auth";
+import { paymentsI18n as t } from "../i18n";
+import {
+  METODI_PAGAMENTO,
+  paymentInputSchema,
+  type MetodoPagamento,
+} from "@vet/shared";
+import { dateInputValue, parseDateInput } from "../../attivita/lib/format";
+import type { AziendaArrears } from "../lib/arrears";
+
+const METODI_OPTIONS = [
+  { value: "", label: "—" },
+  { value: "bonifico", label: t.metodoBonifico },
+  { value: "contanti", label: t.metodoContanti },
+  { value: "altro", label: t.metodoAltro },
+];
+
+export function PaymentDialog({
+  row,
+  onClose,
+  onSaved,
+}: {
+  row: AziendaArrears;
+  onClose: () => void;
+  onSaved: () => void | Promise<void>;
+}) {
+  const { user } = useAuthState();
+  const { payments } = useRepositories();
+  const [periodo, setPeriodo] = useState(dateInputValue(new Date()));
+  const [importo, setImporto] = useState(
+    row.unpaidTotal > 0 ? String(row.unpaidTotal) : ""
+  );
+  const [metodo, setMetodo] = useState<MetodoPagamento | "">("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!user) return;
+    const date = parseDateInput(periodo);
+    if (!date) {
+      setError(t.saveError);
+      return;
+    }
+    const candidate: Record<string, unknown> = {
+      aziendaId: row.azienda.id,
+      periodoFinoA: date,
+    };
+    if (importo.trim()) candidate["importoPagato"] = Number(importo);
+    if (metodo) candidate["metodoPagamento"] = metodo;
+    if (note.trim()) candidate["note"] = note.trim();
+    const parsed = paymentInputSchema.safeParse(candidate);
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? t.saveError);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await payments.create(
+        parsed.data,
+        { aziendaNome: row.azienda.nome },
+        user
+      );
+      await onSaved();
+    } catch {
+      setError(t.saveError);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md">
+        <Card elevated>
+          <h2 className="text-lg font-medium text-(--color-text)">
+            {row.azienda.nome}
+          </h2>
+          <p className="text-sm text-(--color-text-muted) mt-1">
+            {t.segnaPagato}
+          </p>
+          <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+            <TextField
+              id="pay-periodo"
+              type="date"
+              label={t.campoPeriodoFinoA}
+              value={periodo}
+              onChange={(e) => setPeriodo(e.target.value)}
+              required
+              disabled={busy}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <TextField
+                id="pay-importo"
+                type="number"
+                step="0.01"
+                min="0"
+                label={t.campoImporto}
+                value={importo}
+                onChange={(e) => setImporto(e.target.value)}
+                disabled={busy}
+              />
+              <Select
+                id="pay-metodo"
+                label={t.campoMetodo}
+                value={metodo}
+                onChange={(e) =>
+                  setMetodo(
+                    METODI_PAGAMENTO.includes(e.target.value as MetodoPagamento)
+                      ? (e.target.value as MetodoPagamento)
+                      : ""
+                  )
+                }
+                options={METODI_OPTIONS}
+                disabled={busy}
+              />
+            </div>
+            <TextArea
+              id="pay-note"
+              label={t.campoNote}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              disabled={busy}
+              maxLength={500}
+            />
+            {error ? (
+              <p role="alert" className="text-sm text-(--color-danger)">
+                {error}
+              </p>
+            ) : null}
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                disabled={busy}
+              >
+                {t.annulla}
+              </Button>
+              <Button type="submit" variant="primary" disabled={busy}>
+                {t.salva}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </div>
+    </div>
+  );
+}

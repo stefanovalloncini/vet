@@ -12,6 +12,7 @@ import { ActivityTypesPage } from "./features/activity-types";
 import { RolesListPage, RoleEditorPage } from "./features/admin-roles";
 import { AllowlistPage } from "./features/admin-allowlist";
 import { AuditPage } from "./features/admin-audit";
+import { PaymentsPage } from "./features/payments";
 import { AppShell, Card } from "./shared/ui";
 
 function Home() {
@@ -209,6 +210,14 @@ export function App() {
           element={
             <RequireAuth>
               <AuditPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/pagamenti"
+          element={
+            <RequireAuth>
+              <PaymentsPage />
             </RequireAuth>
           }
         />

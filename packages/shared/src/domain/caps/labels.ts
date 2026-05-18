@@ -26,4 +26,6 @@ export const CAPABILITY_LABELS: Record<Capability, string> = {
   "allowlist.manage": "Gestisci allowlist",
   "audit.read": "Leggi audit log",
   "users.read.all": "Leggi profili di tutti gli utenti",
+  "payments.read": "Vedi pagamenti",
+  "payments.manage": "Segna pagamenti",
 };

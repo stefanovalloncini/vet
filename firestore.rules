@@ -122,6 +122,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /payments/{paymentId} {
+      allow read: if hasCap("payments.read");
+      allow create: if hasCap("payments.manage")
+        && request.resource.data.createdBy == request.auth.uid
+        && isServerStamped("createdAt")
+        && isServerStamped("updatedAt");
+      allow update: if false;
+      allow delete: if hasCap("payments.manage");
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

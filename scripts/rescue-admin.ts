@@ -31,6 +31,8 @@ const vetCaps: Capability[] = [
   "activity_types.read",
   "trash.read.own",
   "trash.restore.own",
+  "payments.read",
+  "payments.manage",
 ];
 const viewerCaps: Capability[] = [
   "activities.read.all",
