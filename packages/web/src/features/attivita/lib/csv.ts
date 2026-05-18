@@ -31,10 +31,12 @@ export function toCsvItalian(items: Attivita[]): string {
 }
 
 function quoteCell(s: string): string {
-  if (/[";\r\n]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
+  const dangerous = /^[=+\-@\t\r]/.test(s);
+  const cell = dangerous ? "'" + s : s;
+  if (/[";\r\n]/.test(cell)) {
+    return `"${cell.replace(/"/g, '""')}"`;
   }
-  return s;
+  return cell;
 }
 
 function formatDataIso(d: Date): string {
