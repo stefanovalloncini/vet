@@ -23,6 +23,7 @@ import { DosaggioPage, StrumentiHome } from "./features/strumenti";
 import { RemindersPage } from "./features/reminders";
 import { RiepilogoPdfPage } from "./features/riepilogo-pdf";
 import { ImportAziendePage } from "./features/import-aziende";
+import { VetStatsPage } from "./features/admin-vet-stats";
 import { AppShell, Card } from "./shared/ui";
 
 function Home() {
@@ -292,6 +293,14 @@ export function App() {
           element={
             <RequireAuth>
               <ImportAziendePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/stats-vet"
+          element={
+            <RequireAuth>
+              <VetStatsPage />
             </RequireAuth>
           }
         />
