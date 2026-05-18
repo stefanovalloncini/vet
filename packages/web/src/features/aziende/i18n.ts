@@ -1,9 +1,9 @@
 export const aziendeI18n = {
   title: "Aziende",
-  subtitle: "I clienti per cui lavori.",
+  subtitle: "Allevamenti e clienti per cui lavori.",
   nuovaAzienda: "Nuova azienda",
   cercaPlaceholder: "Cerca per nome…",
-  empty: "Nessuna azienda ancora. Aggiungine una per partire.",
+  empty: "Nessuna azienda. Aggiungi il primo allevamento per partire.",
   emptySearch: "Nessuna azienda trovata.",
   loading: "Caricamento…",
   modifica: "Modifica",

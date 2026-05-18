@@ -60,13 +60,13 @@ export function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-16 bg-(--color-background)">
       <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <Brand size="md" className="mb-4" />
-          <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
-            Bentornato
+        <div className="flex flex-col items-center text-center mb-10">
+          <Brand size="lg" showTagline className="mb-8" />
+          <h1 className="text-3xl text-(--color-text)">
+            Accedi al gestionale
           </h1>
-          <p className="text-(--color-text-muted) mt-3 text-sm">
-            Accedi per registrare la giornata.
+          <p className="text-(--color-text-muted) mt-3 text-sm max-w-xs">
+            Registra le visite negli allevamenti, gestisci le fatture, esporta in un click.
           </p>
         </div>
 
