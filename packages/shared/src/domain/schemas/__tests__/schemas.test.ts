@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { userInputSchema, userDocSchema } from "../user";
-import { roleInputSchema, roleDocSchema } from "../role";
+import { roleInputSchema } from "../role";
 import { allowlistEntryInputSchema } from "../allowlist";
 
 describe("userInputSchema", () => {

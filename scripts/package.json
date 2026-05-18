@@ -1,0 +1,14 @@
+{
+  "name": "vet-scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed:roles": "tsx seed-roles.ts"
+  },
+  "dependencies": {
+    "@vet/shared": "workspace:*",
+    "firebase-admin": "^12.5.0",
+    "tsx": "^4.19.0"
+  }
+}
