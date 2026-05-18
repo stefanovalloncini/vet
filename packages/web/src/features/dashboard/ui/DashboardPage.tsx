@@ -74,6 +74,18 @@ export function DashboardPage() {
     [openReminders, now]
   );
 
+  const recentAziende = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { id: string; nome: string }[] = [];
+    for (const a of items) {
+      if (seen.has(a.aziendaId)) continue;
+      seen.add(a.aziendaId);
+      out.push({ id: a.aziendaId, nome: a.aziendaNome });
+      if (out.length >= 4) break;
+    }
+    return out;
+  }, [items]);
+
   return (
     <AppShell>
       <header className="mb-8">
@@ -189,6 +201,24 @@ export function DashboardPage() {
             </Card>
           ) : null}
         </div>
+        {recentAziende.length > 0 ? (
+          <div className="mt-6">
+            <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
+              Clienti recenti
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {recentAziende.map((a) => (
+                <Link key={a.id} to={`/aziende/${a.id}`}>
+                  <Card className="h-full hover:border-(--color-border-strong) transition-colors text-center py-4">
+                    <p className="text-sm font-medium text-(--color-text) truncate">
+                      {a.nome}
+                    </p>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
         </>
       )}
     </AppShell>

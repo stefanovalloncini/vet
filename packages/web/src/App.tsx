@@ -29,7 +29,7 @@ function Home() {
   const firstName = user?.displayName?.split(" ")[0] ?? "";
 
   if (user?.caps.has("activities.read.all")) {
-    return <Navigate to="/attivita" replace />;
+    return <Navigate to="/riepilogo" replace />;
   }
 
   const tiles = [
