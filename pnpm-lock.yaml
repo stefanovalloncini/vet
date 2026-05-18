@@ -38,6 +38,9 @@ importers:
 
   packages/functions:
     dependencies:
+      '@google-cloud/billing':
+        specifier: ^4.4.0
+        version: 4.6.0
       '@vet/shared':
         specifier: workspace:*
         version: link:../shared
@@ -864,6 +867,10 @@ packages:
 
   '@fontsource/roboto@5.2.10':
     resolution: {integrity: sha512-8HlA5FtSfz//oFSr2eL7GFXAiE7eIkcGOtx7tjsLKq+as702x9+GU7K95iDeWFapHC4M2hv9RrpXKRTGGBI8Zg==}
+
+  '@google-cloud/billing@4.6.0':
+    resolution: {integrity: sha512-2MB7RGt18ayxRum06fUU/Pfz6uV3dYxHLb+6BfNcZyqZJsHMnZuTC+XZt0So3k6qJS1Fpjb+mx8EVVnNGwdQ+Q==}
+    engines: {node: '>=14.0.0'}
 
   '@google-cloud/cloud-sql-connector@1.10.0':
     resolution: {integrity: sha512-PLix9OUaeAfVOKFAqw32/ETvFPef26mcTmDu/iVShGRs+MB1JkL98SwVLHsEjzjfnZrF+BtKqnseoFw0+3LmPw==}
@@ -5506,6 +5513,13 @@ snapshots:
   '@firebase/webchannel-wrapper@1.0.1': {}
 
   '@fontsource/roboto@5.2.10': {}
+
+  '@google-cloud/billing@4.6.0':
+    dependencies:
+      google-gax: 4.6.1
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
 
   '@google-cloud/cloud-sql-connector@1.10.0':
     dependencies:
