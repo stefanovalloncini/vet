@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useAuthState } from "../../features/auth";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { QuickEntryFab } from "../../features/quick-entry/QuickEntryFab";
+import { SearchPalette } from "../../features/search/SearchPalette";
 import { useTheme } from "../theme/useTheme";
 import { Brand } from "./Brand";
 import { Button } from "./Button";
@@ -100,6 +101,7 @@ export function AppShell({ children }: AppShellProps) {
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">
         {children}
       </main>
+      <SearchPalette />
       <QuickEntryFab />
     </div>
   );
