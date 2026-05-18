@@ -14,3 +14,29 @@ export {
   isCapability,
 } from "./domain/caps/registry";
 export { CAPABILITY_LABELS } from "./domain/caps/labels";
+
+export type { User } from "./domain/entities/User";
+export type { Role } from "./domain/entities/Role";
+export type { AllowlistEntry } from "./domain/entities/AllowlistEntry";
+export type { ActorContext } from "./domain/entities/ActorContext";
+export type { Claims } from "./domain/entities/Claims";
+
+export {
+  userInputSchema,
+  userDocSchema,
+  type UserInput,
+  type UserDoc,
+} from "./domain/schemas/user";
+export {
+  roleInputSchema,
+  roleDocSchema,
+  type RoleInput,
+  type RoleDoc,
+} from "./domain/schemas/role";
+export {
+  allowlistEntryInputSchema,
+  allowlistEntryDocSchema,
+  normalizeEmail,
+  type AllowlistEntryInput,
+  type AllowlistEntryDoc,
+} from "./domain/schemas/allowlist";
