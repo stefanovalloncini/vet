@@ -72,7 +72,7 @@ export function RiepilogoPdfPage() {
   return (
     <main className="min-h-screen bg-(--color-background)">
       <div className="max-w-3xl mx-auto py-10 px-6">
-        <div className="flex items-center justify-between mb-8 print:hidden">
+        <div className="flex items-center justify-between mb-8 print:hidden gap-3 flex-wrap">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -80,13 +80,33 @@ export function RiepilogoPdfPage() {
           >
             ← {t.back}
           </button>
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => window.print()}
-          >
-            {t.stampa}
-          </Button>
+          <div className="flex items-center gap-2">
+            {items.length > 0 ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  const lines = items.map(
+                    (a) =>
+                      `${formatDate(a.data)} · ${a.tipoNome} · ${formatEuro(a.totale)}`
+                  );
+                  const text = encodeURIComponent(
+                    `Riepilogo ${azienda?.nome ?? ""}\n\n${lines.join("\n")}\n\nTotale: ${formatEuro(total)}`
+                  );
+                  window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
+                }}
+              >
+                WhatsApp
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => window.print()}
+            >
+              {t.stampa}
+            </Button>
+          </div>
         </div>
 
         <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl p-10 print:border-0 print:rounded-none print:p-0 print:bg-white">
