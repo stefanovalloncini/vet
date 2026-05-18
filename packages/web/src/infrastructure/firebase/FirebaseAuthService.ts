@@ -20,11 +20,13 @@ const EMAIL_LINK_STORAGE_KEY = "vet.signInEmail";
 
 export class FirebaseAuthService implements AuthService {
   private current: ActorContext | null = null;
+  private initialized = false;
   private readonly subscribers = new Set<AuthStateSubscriber>();
 
   constructor(private readonly auth: Auth) {
     onIdTokenChanged(this.auth, async (fbUser) => {
       this.current = fbUser ? await this.toActor(fbUser) : null;
+      this.initialized = true;
       for (const cb of this.subscribers) cb(this.current);
     });
   }
@@ -35,7 +37,9 @@ export class FirebaseAuthService implements AuthService {
 
   subscribe(cb: AuthStateSubscriber): () => void {
     this.subscribers.add(cb);
-    cb(this.current);
+    if (this.initialized) {
+      cb(this.current);
+    }
     return () => {
       this.subscribers.delete(cb);
     };
