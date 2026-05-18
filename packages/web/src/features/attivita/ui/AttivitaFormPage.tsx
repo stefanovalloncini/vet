@@ -7,6 +7,7 @@ import {
   Select,
   TextArea,
   TextField,
+  useToast,
 } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
@@ -57,6 +58,7 @@ export function AttivitaFormPage() {
   const { user } = useAuthState();
   const { attivita: repo, reminders } = useRepositories();
   const ref = useReferenceData();
+  const { notify } = useToast();
 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [loaded, setLoaded] = useState<Attivita | null>(null);
@@ -206,8 +208,10 @@ export function AttivitaFormPage() {
       const denorm = { aziendaNome: azienda.nome, tipoNome: tipo.nome };
       if (isEdit && id) {
         await repo.update(id, input, denorm, user);
+        notify("Attività aggiornata", "success");
       } else {
         await repo.create(input, denorm, user);
+        notify("Attività registrata", "success");
         const dueDate = parseDateInput(form.reminderAt);
         if (dueDate && form.reminderTitle.trim()) {
           try {
@@ -220,6 +224,7 @@ export function AttivitaFormPage() {
               { aziendaNome: azienda.nome },
               user
             );
+            notify("Promemoria creato", "success");
           } catch {
             // reminder creation is best-effort
           }
@@ -228,6 +233,7 @@ export function AttivitaFormPage() {
       navigate("/attivita");
     } catch {
       setGlobalError(t.erroreSalvataggio);
+      notify(t.erroreSalvataggio, "error");
     } finally {
       setBusy(false);
     }
