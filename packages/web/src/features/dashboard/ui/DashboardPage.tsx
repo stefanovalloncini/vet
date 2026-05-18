@@ -15,6 +15,7 @@ import {
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../attivita/lib/format";
 import { Sparkline } from "./Sparkline";
+import { useReminders } from "../../reminders/hooks/useReminders";
 
 export function DashboardPage() {
   const now = useMemo(() => new Date(), []);
@@ -64,6 +65,15 @@ export function DashboardPage() {
   const arrearsTotal = arrears.reduce((s, a) => s + a.unpaidTotal, 0);
   const aziendeAttive = thisMonth.byAzienda.size;
 
+  const { reminders: openReminders } = useReminders({ onlyOpen: true });
+  const urgentReminders = useMemo(
+    () =>
+      openReminders
+        .filter((r) => r.dueAt.getTime() <= now.getTime() + 7 * 86_400_000)
+        .slice(0, 5),
+    [openReminders, now]
+  );
+
   return (
     <AppShell>
       <header className="mb-8">
@@ -81,6 +91,44 @@ export function DashboardPage() {
         </Card>
       ) : (
         <>
+        {urgentReminders.length > 0 ? (
+          <Card className="mb-4 border-(--color-accent)/40">
+            <div className="flex items-baseline justify-between mb-2">
+              <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+                Promemoria urgenti
+              </p>
+              <Link
+                to="/promemoria"
+                className="text-xs text-(--color-accent) hover:underline"
+              >
+                Tutti →
+              </Link>
+            </div>
+            <ul className="space-y-1.5">
+              {urgentReminders.map((r) => {
+                const overdue = r.dueAt.getTime() < now.getTime();
+                return (
+                  <li key={r.id} className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm text-(--color-text) truncate">
+                      {r.titolo}{" "}
+                      <span className="text-(--color-text-muted)">
+                        · {r.aziendaNome}
+                      </span>
+                    </span>
+                    <span
+                      className={[
+                        "text-xs tabular-nums flex-shrink-0",
+                        overdue ? "text-(--color-danger)" : "text-(--color-text-muted)",
+                      ].join(" ")}
+                    >
+                      {r.dueAt.toLocaleDateString("it-IT")}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+        ) : null}
         <Card className="mb-4">
           <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
             Incassi ultimi 12 mesi
