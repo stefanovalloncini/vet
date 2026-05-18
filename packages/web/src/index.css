@@ -2,24 +2,28 @@
 @import "@fontsource/roboto/400.css";
 @import "@fontsource/roboto/500.css";
 @import "@fontsource/roboto/700.css";
+@import "@fontsource-variable/fraunces";
 @import "tailwindcss";
 
 @theme {
-  --color-background: oklch(98% 0.005 80);
-  --color-surface: oklch(100% 0 0);
-  --color-surface-muted: oklch(96% 0.005 80);
-  --color-border: oklch(90% 0.005 80);
-  --color-border-strong: oklch(80% 0.005 80);
-  --color-text: oklch(20% 0.01 60);
-  --color-text-muted: oklch(50% 0.01 60);
-  --color-text-subtle: oklch(70% 0.005 60);
-  --color-accent: oklch(58% 0.13 35);
-  --color-accent-hover: oklch(50% 0.13 35);
-  --color-accent-soft: oklch(95% 0.025 35);
-  --color-danger: oklch(50% 0.18 25);
-  --color-success: oklch(55% 0.13 150);
+  --color-background: oklch(97% 0.012 90);
+  --color-surface: oklch(99.5% 0.004 90);
+  --color-surface-muted: oklch(94% 0.014 90);
+  --color-border: oklch(89% 0.014 90);
+  --color-border-strong: oklch(74% 0.016 90);
+  --color-text: oklch(24% 0.018 60);
+  --color-text-muted: oklch(50% 0.012 60);
+  --color-text-subtle: oklch(67% 0.010 60);
+
+  --color-accent: oklch(45% 0.075 145);
+  --color-accent-hover: oklch(38% 0.075 145);
+  --color-accent-soft: oklch(94% 0.028 145);
+
+  --color-danger: oklch(50% 0.16 28);
+  --color-success: oklch(52% 0.10 150);
 
   --font-sans: "Roboto", system-ui, -apple-system, sans-serif;
+  --font-serif: "Fraunces Variable", "Fraunces", Georgia, serif;
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -39,4 +43,12 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+.font-serif {
+  font-family: var(--font-serif);
+  font-feature-settings: "ss01";
+  font-weight: 500;
+  letter-spacing: -0.015em;
 }
