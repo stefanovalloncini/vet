@@ -17,6 +17,7 @@ import { formatEuro } from "../../attivita/lib/format";
 import { Sparkline } from "./Sparkline";
 import { BarChart } from "./BarChart";
 import { useReminders } from "../../reminders/hooks/useReminders";
+import { OnboardingBanner } from "../../onboarding/OnboardingBanner";
 
 export function DashboardPage() {
   const now = useMemo(() => new Date(), []);
@@ -93,6 +94,11 @@ export function DashboardPage() {
         <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
         <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
       </header>
+
+      <OnboardingBanner
+        hasAziende={aziende.length > 0}
+        hasAttivita={items.length > 0}
+      />
 
       {loading ? (
         <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
