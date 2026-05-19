@@ -10,7 +10,7 @@ import {
   TextField,
 } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
-import { isUnauthorizedEmailError } from "../lib/authErrors";
+import { getAuthErrorMessage, isUserCancelledPopup } from "../lib/authErrors";
 
 export function LoginPage() {
   const { auth } = useRepositories();
@@ -27,9 +27,7 @@ export function LoginPage() {
       await auth.signInWithGoogle();
     } catch (err) {
       console.error("google sign-in failed", err);
-      setError(isUnauthorizedEmailError(err)
-        ? "Email non autorizzata. Contatta l'amministratore."
-        : "Accesso non riuscito. Riprova.");
+      if (!isUserCancelledPopup(err)) setError(getAuthErrorMessage(err));
     } finally {
       setBusy(false);
     }
