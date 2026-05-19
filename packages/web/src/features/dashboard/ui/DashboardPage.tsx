@@ -15,7 +15,7 @@ import {
 } from "../lib/stats";
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../attivita/lib/format";
-import { Sparkline } from "./Sparkline";
+import { RevenueBarChart } from "./RevenueBarChart";
 import { BarChart } from "./BarChart";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { OnboardingBanner } from "../../onboarding/OnboardingBanner";
@@ -154,10 +154,10 @@ export function DashboardPage() {
           <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
             Incassi ultimi 12 mesi
           </p>
-          <Sparkline
+          <RevenueBarChart
             values={trailing.totals}
             labels={trailing.labels}
-            className="mt-3"
+            className="mt-4"
           />
         </Card>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
