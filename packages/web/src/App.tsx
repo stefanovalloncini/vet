@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import {
   LoginPage,
   EmailLinkCompletePage,
   RequireAuth,
 } from "./features/auth";
+import { RouteBoundary } from "./shared/ui";
 import {
   AziendeListPage,
   AziendaFormPage,
@@ -29,6 +30,15 @@ import { HomePage } from "./features/home";
 export function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AppRoutes />
+    </BrowserRouter>
+  );
+}
+
+function AppRoutes() {
+  const location = useLocation();
+  return (
+    <RouteBoundary key={location.pathname}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/login/complete" element={<EmailLinkCompletePage />} />
@@ -241,6 +251,6 @@ export function App() {
           }
         />
       </Routes>
-    </BrowserRouter>
+    </RouteBoundary>
   );
 }

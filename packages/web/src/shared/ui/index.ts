@@ -16,3 +16,4 @@ export { Tabs } from "./Tabs";
 export { Badge } from "./Badge";
 export { PageHeader } from "./PageHeader";
 export { DataLoader } from "./DataLoader";
+export { RouteBoundary } from "./RouteBoundary";
