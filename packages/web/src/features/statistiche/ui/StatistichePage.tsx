@@ -6,7 +6,6 @@ import { Heatmap } from "./Heatmap";
 import { DonutChart } from "./DonutChart";
 import { Sparkline } from "../../dashboard/ui/Sparkline";
 import { formatEuro } from "../../attivita/lib/format";
-import type { Attivita } from "@vet/shared";
 
 type Range = "12m" | "ytd" | "all";
 
@@ -197,5 +196,3 @@ export function StatistichePage() {
     </AppShell>
   );
 }
-
-void Attivita;
