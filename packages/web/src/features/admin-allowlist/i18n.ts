@@ -4,7 +4,7 @@ export const allowlistI18n = {
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   saveError: "Operazione non riuscita.",
-  empty: "Nessuna email autorizzata. Aggiungi la prima per partire.",
+  empty: "Nessuna email autorizzata.",
   aggiungi: "Aggiungi email",
   campoEmail: "Email",
   campoEmailPlaceholder: "es. mario.rossi@vet.it",

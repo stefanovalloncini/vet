@@ -1,6 +1,6 @@
 export const activityTypesI18n = {
   title: "Tipi di attività",
-  subtitle: "Gestisci quali voci compaiono nel form di registrazione.",
+  subtitle: "Tipi di attività configurabili.",
   attivi: "Attivi",
   archiviati: "Archiviati",
   attivo: "Attivo",

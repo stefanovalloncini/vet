@@ -1,9 +1,9 @@
 export const aziendeI18n = {
   title: "Aziende",
-  subtitle: "Allevamenti e clienti per cui lavori.",
+  subtitle: "Anagrafica clienti.",
   nuovaAzienda: "Nuova azienda",
   cercaPlaceholder: "Cerca per nome…",
-  empty: "Nessuna azienda. Aggiungi il primo allevamento per partire.",
+  empty: "Nessuna azienda registrata.",
   emptySearch: "Nessuna azienda trovata.",
   loading: "Caricamento…",
   modifica: "Modifica",
@@ -15,7 +15,7 @@ export const aziendeI18n = {
   confermaEliminazioneDescr:
     "L'azienda viene archiviata: i record di attività restano consultabili.",
   campoNome: "Nome",
-  campoNomeHint: "Come la chiami tu, anche informalmente.",
+  campoNomeHint: "Anche informale.",
   campoIndirizzo: "Indirizzo",
   campoPiva: "Partita IVA",
   campoEmailFatturazione: "Email per fatturazione",

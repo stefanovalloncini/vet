@@ -38,7 +38,7 @@ describe("App routing", () => {
     (repos.auth as InMemoryAuthService).setSimulatedUser(actor);
     withRepos(repos);
     await waitFor(() => {
-      expect(screen.getByText(/Ciao Stefano/)).toBeInTheDocument();
+      expect(screen.getByText(/Pannello di controllo/)).toBeInTheDocument();
     });
   });
 

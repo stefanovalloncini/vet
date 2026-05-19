@@ -1,6 +1,6 @@
 export const dashboardI18n = {
   title: "Riepilogo",
-  subtitle: "I numeri della tua attività.",
+  subtitle: "Indicatori del periodo corrente.",
   meseCorrente: "Questo mese",
   meseScorso: "Mese scorso",
   incassoMese: "Incassi mese",
@@ -11,5 +11,5 @@ export const dashboardI18n = {
   topTipo: "Tipo più frequente",
   loading: "Caricamento…",
   diff: "vs mese scorso",
-  noActivity: "Ancora nulla da raccontare. Inserisci la prima visita.",
+  noActivity: "Nessuna attività registrata.",
 } as const;

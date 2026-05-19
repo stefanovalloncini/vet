@@ -1,8 +1,8 @@
 export const remindersI18n = {
   title: "Promemoria",
-  subtitle: "Visite di ritorno, vaccinazioni, controlli.",
-  emptyAll: "Nessun promemoria. Aggiungi il primo da una scheda azienda.",
-  emptyOpen: "Tutto in pari. Nessun promemoria aperto.",
+  subtitle: "Scadenze e promemoria operativi.",
+  emptyAll: "Nessun promemoria registrato.",
+  emptyOpen: "Nessun promemoria aperto.",
   loading: "Caricamento…",
   scaduto: "Scaduto",
   oggi: "Oggi",

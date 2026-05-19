@@ -1,6 +1,6 @@
 export const strumentiI18n = {
   title: "Strumenti",
-  subtitle: "Bedside tools per il quotidiano in campo.",
+  subtitle: "Strumenti di calcolo per il lavoro in campo.",
   // dosaggio
   dosaggioTitle: "Calcolatore dosaggio",
   dosaggioSubtitle: "Peso × mg/kg ÷ concentrazione = ml da somministrare.",
@@ -17,7 +17,7 @@ export const strumentiI18n = {
   hint: "Verifica sempre il foglio illustrativo. I valori qui sono indicativi.",
   // converter
   convertitoreTitle: "Convertitore unità",
-  convertitoreSubtitle: "Cambi al volo fra unità comuni.",
+  convertitoreSubtitle: "Conversione tra unità di misura.",
   da: "Da",
   a: "A",
 } as const;

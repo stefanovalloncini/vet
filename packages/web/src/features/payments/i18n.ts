@@ -1,9 +1,9 @@
 export const paymentsI18n = {
   title: "Pagamenti",
-  subtitle: "Tieni traccia di chi ha pagato e di chi è in arretrato.",
+  subtitle: "Incassi registrati e arretrati.",
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
-  emptyAziende: "Nessun cliente ancora. Aggiungi un'azienda nella sezione Aziende.",
+  emptyAziende: "Nessuna azienda in anagrafica.",
   pagatoFinoA: "Pagato fino al",
   daSaldare: "Da saldare",
   inRegola: "In regola",

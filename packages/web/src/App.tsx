@@ -29,7 +29,6 @@ import { AppShell, Card } from "./shared/ui";
 
 function Home() {
   const { user } = useAuthState();
-  const firstName = user?.displayName?.split(" ")[0] ?? "";
 
   if (user?.caps.has("activities.read.all")) {
     return <Navigate to="/riepilogo" replace />;
@@ -39,25 +38,25 @@ function Home() {
     {
       to: "/aziende",
       title: "Aziende",
-      hint: "Allevamenti e clienti",
+      hint: "Anagrafica clienti",
       cap: "aziende.read",
     },
     {
       to: "/admin/tipi-attivita",
-      title: "Tipi di attività",
-      hint: "Visite, vaccinazioni, ginecologia, ...",
+      title: "Tipi attività",
+      hint: "Visite, vaccinazioni, ginecologia",
       cap: "activity_types.read",
     },
     {
       to: "/admin/ruoli",
       title: "Ruoli",
-      hint: "Permessi e capacità",
+      hint: "Capacità per ruolo",
       cap: "roles.read",
     },
     {
       to: "/admin/allowlist",
       title: "Allowlist",
-      hint: "Chi può entrare",
+      hint: "Email autorizzate",
       cap: "allowlist.read",
     },
     {
@@ -73,13 +72,15 @@ function Home() {
   return (
     <AppShell>
       <div className="max-w-3xl">
-        <h1 className="text-3xl text-(--color-text)">Ciao {firstName}</h1>
-        <p className="text-(--color-text-muted) mt-3 text-base">
-          Da qui puoi gestire i tuoi clienti.
+        <h1 className="text-2xl font-medium text-(--color-text)">
+          Pannello di controllo
+        </h1>
+        <p className="text-(--color-text-muted) mt-2 text-sm">
+          Aree disponibili in base al tuo profilo.
         </p>
 
         {visible.length > 0 ? (
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
             {visible.map((tile) => (
               <Link key={tile.to} to={tile.to} className="block">
                 <Card className="h-full hover:border-(--color-border-strong) transition-colors">

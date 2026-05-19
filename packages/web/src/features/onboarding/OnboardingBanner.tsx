@@ -19,15 +19,15 @@ export function OnboardingBanner({ hasAziende, hasAttivita }: OnboardingBannerPr
   const steps = [
     {
       done: hasAziende,
-      title: "Inserisci il primo allevamento",
+      title: "Registra la prima azienda",
       to: "/aziende/nuova",
-      cta: "Aggiungi azienda",
+      cta: "Apri",
     },
     {
       done: hasAttivita,
-      title: "Registra la prima visita",
+      title: "Registra la prima attività",
       to: "/attivita/nuova",
-      cta: "Nuova attività",
+      cta: "Apri",
     },
   ];
 
@@ -36,10 +36,10 @@ export function OnboardingBanner({ hasAziende, hasAttivita }: OnboardingBannerPr
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-            Iniziamo
+            Configurazione iniziale
           </p>
           <h2 className="text-base font-medium text-(--color-text) mt-1">
-            Tre passi per partire
+            Passi suggeriti
           </h2>
           <ol className="space-y-2 mt-3">
             {steps.map((s) => (

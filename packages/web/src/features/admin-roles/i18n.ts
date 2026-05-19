@@ -1,7 +1,7 @@
 export const rolesI18n = {
   title: "Ruoli",
-  subtitle: "Definisci chi può fare cosa.",
-  empty: "Nessun ruolo. Strano.",
+  subtitle: "Definizione capacità per ruolo.",
+  empty: "Nessun ruolo definito.",
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   saveError: "Salvataggio non riuscito.",

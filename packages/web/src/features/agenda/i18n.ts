@@ -1,10 +1,10 @@
 export const agendaI18n = {
   title: "Agenda",
-  subtitle: "Le visite mese per mese.",
-  meseScorso: "← Mese precedente",
-  meseProssimo: "Mese successivo →",
+  subtitle: "Vista mensile delle attività.",
+  meseScorso: "Mese precedente",
+  meseProssimo: "Mese successivo",
   oggi: "Oggi",
-  emptyDay: "Nessuna visita oggi.",
+  emptyDay: "Nessuna attività registrata.",
   loading: "Caricamento…",
 } as const;
 

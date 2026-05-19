@@ -1,9 +1,9 @@
 export const attivitaI18n = {
   title: "Attività",
-  subtitle: "Le visite registrate negli allevamenti.",
+  subtitle: "Elenco attività registrate.",
   nuovaAttivita: "Nuova attività",
-  emptyAll: "Nessuna attività registrata. La prima visita parte da qui.",
-  emptyFiltered: "Nessuna attività trovata coi filtri scelti.",
+  emptyAll: "Nessuna attività registrata.",
+  emptyFiltered: "Nessuna attività corrisponde ai filtri.",
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   // form
@@ -23,7 +23,7 @@ export const attivitaI18n = {
   campoOre: "Ore",
   campoNote: "Note",
   totale: "Totale",
-  ginecologiaSuggerita: "Tariffa pre-compilata dall'ultima ginecologia di questo cliente.",
+  ginecologiaSuggerita: "Tariffa precompilata dall'ultima ginecologia di questo cliente.",
   selezionaAzienda: "Scegli azienda",
   selezionaTipo: "Scegli tipo",
   erroreSalvataggio: "Salvataggio non riuscito.",
