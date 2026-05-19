@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Plus } from "lucide-react";
 import {
   Button,
-  Card,
+  Dialog,
   Select,
   TextField,
 } from "../../shared/ui";
@@ -140,78 +141,72 @@ export function QuickEntryFab() {
         type="button"
         aria-label="Voce rapida"
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-30 w-14 h-14 rounded-full bg-(--color-accent) text-white text-3xl shadow-lg hover:bg-(--color-accent-hover) print:hidden"
+        className="fixed bottom-20 right-5 sm:bottom-5 z-30 w-12 h-12 rounded-full bg-(--color-accent) text-white shadow-lg hover:bg-(--color-accent-hover) print:hidden flex items-center justify-center"
       >
-        +
+        <Plus size={22} strokeWidth={2} aria-hidden="true" />
       </button>
-      {open ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-4"
-          onClick={() => setOpen(false)}
-        >
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md">
-            <Card elevated>
-              <h2 className="text-lg font-medium text-(--color-text)">
-                Voce rapida
-              </h2>
-              <p className="text-xs text-(--color-text-muted) mt-1">
-                Tre campi e via — la data è oggi.
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        labelledBy="quick-entry-title"
+        size="md"
+      >
+        <div className="p-5">
+          <h2 id="quick-entry-title" className="text-base font-medium text-(--color-text)">
+            Voce rapida
+          </h2>
+          <p className="text-xs text-(--color-text-muted) mt-1">
+            La data è impostata su oggi.
+          </p>
+          <form onSubmit={handleSubmit} className="space-y-3 mt-5">
+            <Select
+              id="qe-azienda"
+              label="Azienda"
+              value={aziendaId}
+              options={aziendaOptions}
+              onChange={(e) => setAziendaId(e.target.value)}
+            />
+            <Select
+              id="qe-tipo"
+              label="Tipo"
+              value={tipoId}
+              options={tipoOptions}
+              onChange={(e) => setTipoId(e.target.value)}
+            />
+            <TextField
+              id="qe-tariffa"
+              type="number"
+              step="0.01"
+              min="0.01"
+              label="Tariffa (€)"
+              value={tariffa}
+              onChange={(e) => setTariffa(e.target.value)}
+              required
+            />
+            {error ? (
+              <p role="alert" className="text-sm text-(--color-danger)">
+                {error}
               </p>
-              <form onSubmit={handleSubmit} className="space-y-3 mt-5">
-                <Select
-                  id="qe-azienda"
-                  label="Azienda"
-                  value={aziendaId}
-                  options={aziendaOptions}
-                  onChange={(e) => setAziendaId(e.target.value)}
-                />
-                <Select
-                  id="qe-tipo"
-                  label="Tipo"
-                  value={tipoId}
-                  options={tipoOptions}
-                  onChange={(e) => setTipoId(e.target.value)}
-                />
-                <TextField
-                  id="qe-tariffa"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  label="Tariffa (€)"
-                  value={tariffa}
-                  onChange={(e) => setTariffa(e.target.value)}
-                  required
-                />
-                {error ? (
-                  <p role="alert" className="text-sm text-(--color-danger)">
-                    {error}
-                  </p>
-                ) : null}
-                {savedAt ? (
-                  <p className="text-sm text-(--color-success)">
-                    Salvato ✓
-                  </p>
-                ) : null}
-                <div className="flex items-center justify-between gap-3 pt-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setOpen(false)}
-                    disabled={busy}
-                  >
-                    Chiudi
-                  </Button>
-                  <Button type="submit" variant="primary" disabled={busy}>
-                    Salva
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </div>
+            ) : null}
+            {savedAt ? (
+              <p className="text-sm text-(--color-success)">Salvato</p>
+            ) : null}
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                disabled={busy}
+              >
+                Chiudi
+              </Button>
+              <Button type="submit" variant="primary" disabled={busy}>
+                Salva
+              </Button>
+            </div>
+          </form>
         </div>
-      ) : null}
+      </Dialog>
     </>
   );
 }

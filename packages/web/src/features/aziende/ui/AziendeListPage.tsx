@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Star, ChevronRight } from "lucide-react";
 import {
   AppShell,
   Button,
@@ -166,14 +167,24 @@ function AziendaRow({
             }}
             aria-label={pinned ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
             className={[
-              "text-base p-1 rounded-md hover:bg-(--color-surface-muted)",
+              "p-1 rounded-md hover:bg-(--color-surface-muted)",
               pinned ? "text-(--color-accent)" : "text-(--color-text-subtle)",
             ].join(" ")}
           >
-            {pinned ? "★" : "☆"}
+            <Star
+              size={16}
+              strokeWidth={1.75}
+              fill={pinned ? "currentColor" : "none"}
+              aria-hidden="true"
+            />
           </button>
           {canEdit ? (
-            <span className="text-xs text-(--color-text-subtle)">→</span>
+            <ChevronRight
+              size={16}
+              strokeWidth={1.75}
+              className="text-(--color-text-subtle)"
+              aria-hidden="true"
+            />
           ) : null}
         </div>
       </div>

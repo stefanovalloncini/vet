@@ -1,18 +1,27 @@
 import { Link, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Calendar,
+  ClipboardList,
+  Building2,
+  Euro,
+  type LucideIcon,
+} from "lucide-react";
 import { useAuthState } from "../../features/auth";
 
 interface NavItem {
   to: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   requiredCap?: string;
 }
 
 const ITEMS: NavItem[] = [
-  { to: "/riepilogo", label: "Riepilogo", icon: "◆", requiredCap: "activities.read.all" },
-  { to: "/agenda", label: "Agenda", icon: "▣", requiredCap: "activities.read.all" },
-  { to: "/aziende", label: "Aziende", icon: "▾", requiredCap: "aziende.read" },
-  { to: "/pagamenti", label: "Pagamenti", icon: "€", requiredCap: "payments.read" },
+  { to: "/riepilogo", label: "Riepilogo", icon: LayoutDashboard, requiredCap: "activities.read.all" },
+  { to: "/agenda", label: "Agenda", icon: Calendar, requiredCap: "activities.read.all" },
+  { to: "/attivita", label: "Attività", icon: ClipboardList, requiredCap: "activities.read.all" },
+  { to: "/aziende", label: "Aziende", icon: Building2, requiredCap: "aziende.read" },
+  { to: "/pagamenti", label: "Pagamenti", icon: Euro, requiredCap: "payments.read" },
 ];
 
 export function MobileNav() {
@@ -31,18 +40,19 @@ export function MobileNav() {
       <div className="flex">
         {items.map((it) => {
           const active = location.pathname.startsWith(it.to);
+          const Icon = it.icon;
           return (
             <Link
               key={it.to}
               to={it.to}
               className={[
-                "flex-1 flex flex-col items-center gap-1 py-2 text-xs",
+                "flex-1 flex flex-col items-center gap-1 py-2 text-[11px]",
                 active
                   ? "text-(--color-accent)"
                   : "text-(--color-text-muted)",
               ].join(" ")}
             >
-              <span className="text-base">{it.icon}</span>
+              <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
               {it.label}
             </Link>
           );

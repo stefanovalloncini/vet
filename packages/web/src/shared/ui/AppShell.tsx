@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
+import { Moon, Sun, LogOut, Settings } from "lucide-react";
 import { useAuthState } from "../../features/auth";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { QuickEntryFab } from "../../features/quick-entry";
@@ -149,16 +150,22 @@ export function AppShell({ children }: AppShellProps) {
             type="button"
             onClick={toggle}
             aria-label={theme === "dark" ? "Passa al tema chiaro" : "Passa al tema scuro"}
-            className="w-full text-left px-2 py-1.5 rounded-md text-sm text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors"
           >
-            {theme === "dark" ? "Tema chiaro" : "Tema scuro"}
+            {theme === "dark" ? (
+              <Sun size={15} strokeWidth={1.75} aria-hidden="true" />
+            ) : (
+              <Moon size={15} strokeWidth={1.75} aria-hidden="true" />
+            )}
+            <span>{theme === "dark" ? "Tema chiaro" : "Tema scuro"}</span>
           </button>
           <button
             type="button"
             onClick={() => auth.signOut()}
-            className="w-full text-left px-2 py-1.5 rounded-md text-sm text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors"
           >
-            Esci
+            <LogOut size={15} strokeWidth={1.75} aria-hidden="true" />
+            <span>Esci</span>
           </button>
         </div>
 
@@ -177,22 +184,28 @@ export function AppShell({ children }: AppShellProps) {
               type="button"
               onClick={toggle}
               aria-label={theme === "dark" ? "Tema chiaro" : "Tema scuro"}
-              className="px-2 py-1 text-xs text-(--color-text-muted) hover:text-(--color-text)"
+              className="p-2 text-(--color-text-muted) hover:text-(--color-text)"
             >
-              {theme === "dark" ? "Chiaro" : "Scuro"}
+              {theme === "dark" ? (
+                <Sun size={16} strokeWidth={1.75} aria-hidden="true" />
+              ) : (
+                <Moon size={16} strokeWidth={1.75} aria-hidden="true" />
+              )}
             </button>
             <Link
               to="/impostazioni"
-              className="px-2 py-1 text-xs text-(--color-text-muted) hover:text-(--color-text)"
+              aria-label="Impostazioni"
+              className="p-2 text-(--color-text-muted) hover:text-(--color-text)"
             >
-              Impostazioni
+              <Settings size={16} strokeWidth={1.75} aria-hidden="true" />
             </Link>
             <button
               type="button"
               onClick={() => auth.signOut()}
-              className="px-2 py-1 text-xs text-(--color-text-muted) hover:text-(--color-text)"
+              aria-label="Esci"
+              className="p-2 text-(--color-text-muted) hover:text-(--color-text)"
             >
-              Esci
+              <LogOut size={16} strokeWidth={1.75} aria-hidden="true" />
             </button>
           </div>
         </header>
