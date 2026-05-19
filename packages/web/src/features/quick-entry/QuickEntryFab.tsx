@@ -1,19 +1,22 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
 import {
   Button,
   Dialog,
   Select,
   TextField,
+  useToast,
 } from "../../shared/ui";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../auth";
 import { useReferenceData } from "../attivita/hooks/useReferenceData";
 import { QuickAddAziendaDialog } from "../aziende/ui/QuickAddAziendaDialog";
 import { QuickAddTipoDialog } from "../activity-types/ui/QuickAddTipoDialog";
+import { formatEuro } from "../attivita/lib/format";
 import {
   attivitaInputSchema,
   GINECOLOGIA_TIPO_ID,
+  type Attivita,
   type AttivitaInput,
 } from "@vet/shared";
 
@@ -25,10 +28,35 @@ function todayIsoDate(): string {
   return `${y}-${m}-${d}`;
 }
 
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function meanTariffaByTipo(items: Attivita[]): Map<string, number> {
+  const sums = new Map<string, { sum: number; n: number }>();
+  for (const a of items) {
+    if (a.tariffa <= 0) continue;
+    const cur = sums.get(a.tipoId) ?? { sum: 0, n: 0 };
+    cur.sum += a.tariffa;
+    cur.n += 1;
+    sums.set(a.tipoId, cur);
+  }
+  const out = new Map<string, number>();
+  for (const [k, { sum, n }] of sums) {
+    if (n >= 3) out.set(k, sum / n);
+  }
+  return out;
+}
+
 export function QuickEntryFab() {
   const { user } = useAuthState();
   const { attivita } = useRepositories();
   const ref = useReferenceData();
+  const { notify } = useToast();
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<string>(todayIsoDate());
   const [aziendaId, setAziendaId] = useState("");
@@ -36,8 +64,9 @@ export function QuickEntryFab() {
   const [tariffa, setTariffa] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [recentIds, setRecentIds] = useState<string[]>([]);
+  const [items, setItems] = useState<Attivita[]>([]);
+  const [skipDupCheck, setSkipDupCheck] = useState(false);
   const [addAziendaOpen, setAddAziendaOpen] = useState(false);
   const [addTipoOpen, setAddTipoOpen] = useState(false);
 
@@ -52,6 +81,7 @@ export function QuickEntryFab() {
       try {
         const recent = await attivita.list();
         if (cancelled) return;
+        setItems(recent);
         const order: string[] = [];
         for (const a of recent) {
           if (!order.includes(a.aziendaId)) order.push(a.aziendaId);
@@ -59,6 +89,7 @@ export function QuickEntryFab() {
         }
         setRecentIds(order);
       } catch {
+        setItems([]);
         setRecentIds([]);
       }
     })();
@@ -87,21 +118,49 @@ export function QuickEntryFab() {
     }
   }, [aziendaId, tipoId, tariffa, open, attivita, ref.tipi]);
 
+  useEffect(() => {
+    setSkipDupCheck(false);
+  }, [aziendaId, tipoId, data]);
+
+  const means = useMemo(() => meanTariffaByTipo(items), [items]);
+  const tariffaNum = tariffa.trim() === "" ? null : Number(tariffa);
+  const rangeWarning = useMemo(() => {
+    if (tariffaNum === null || !Number.isFinite(tariffaNum) || tariffaNum <= 0) return null;
+    if (!tipoId) return null;
+    const mean = means.get(tipoId);
+    if (mean === undefined) return null;
+    if (tariffaNum < mean * 0.5 || tariffaNum > mean * 2) {
+      return `Tariffa fuori dal range solito per questo tipo (media ${formatEuro(mean)}).`;
+    }
+    return null;
+  }, [tariffaNum, tipoId, means]);
+
+  const candidateDate = useMemo(() => new Date(`${data}T00:00:00`), [data]);
+  const duplicateExists = useMemo(() => {
+    if (!aziendaId || !tipoId) return false;
+    return items.some(
+      (a) =>
+        a.aziendaId === aziendaId &&
+        a.tipoId === tipoId &&
+        isSameDay(a.data, candidateDate)
+    );
+  }, [items, aziendaId, tipoId, candidateDate]);
+
   if (!canCreate) return null;
 
-  function reset() {
-    setData(todayIsoDate());
+  function reset(opts: { keepDate?: boolean } = {}) {
+    if (!opts.keepDate) setData(todayIsoDate());
     setAziendaId("");
     setTipoId("");
     setTariffa("");
     setError(null);
+    setSkipDupCheck(false);
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!user) return;
+  async function performSave(): Promise<string | null> {
+    if (!user) return null;
     const candidate: Record<string, unknown> = {
-      data: new Date(`${data}T00:00:00`),
+      data: candidateDate,
       aziendaId,
       tipoId,
       oraria: false,
@@ -110,31 +169,73 @@ export function QuickEntryFab() {
     const parsed = attivitaInputSchema.safeParse(candidate);
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Dati non validi");
-      return;
+      return null;
     }
     const azienda = ref.aziende.find((a) => a.id === aziendaId);
     const tipo = ref.tipi.find((t) => t.id === tipoId);
     if (!azienda || !tipo) {
       setError("Cliente o tipo non valido");
-      return;
+      return null;
+    }
+    if (duplicateExists && !skipDupCheck) {
+      setError("Esiste già un'attività identica oggi. Premi Salva di nuovo per confermare.");
+      setSkipDupCheck(true);
+      return null;
     }
     setBusy(true);
     setError(null);
     try {
       const input: AttivitaInput = parsed.data;
-      await attivita.create(
+      const newId = await attivita.create(
         input,
         { aziendaNome: azienda.nome, tipoNome: tipo.nome },
         user
       );
-      setSavedAt(new Date());
-      reset();
-      setTimeout(() => setSavedAt(null), 2000);
-    } catch {
+      return newId;
+    } catch (err) {
+      console.error("quick entry save failed", err);
       setError("Salvataggio non riuscito");
+      return null;
     } finally {
       setBusy(false);
     }
+  }
+
+  function notifySavedWithUndo(id: string) {
+    if (!user) return;
+    notify("Attività salvata", {
+      kind: "success",
+      action: {
+        label: "Annulla",
+        onClick: () => {
+          void (async () => {
+            try {
+              await attivita.softDelete(id, user);
+              notify("Attività annullata");
+            } catch (err) {
+              console.error("undo failed", err);
+              notify("Annullamento non riuscito", "error");
+            }
+          })();
+        },
+      },
+    });
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const id = await performSave();
+    if (!id) return;
+    notifySavedWithUndo(id);
+    reset();
+    setOpen(false);
+  }
+
+  async function handleSaveAndNew() {
+    const id = await performSave();
+    if (!id) return;
+    notifySavedWithUndo(id);
+    reset({ keepDate: true });
   }
 
   const sortedAziende = [...ref.aziende].sort((a, b) => {
@@ -231,14 +332,25 @@ export function QuickEntryFab() {
               value={tariffa}
               onChange={(e) => setTariffa(e.target.value)}
               required
+              hint={rangeWarning ?? undefined}
             />
+            {tariffaNum !== null && tariffaNum > 0 ? (
+              <div className="flex items-baseline justify-between text-sm">
+                <span className="text-(--color-text-muted)">Totale</span>
+                <span className="font-medium text-(--color-text) tabular-nums">
+                  {formatEuro(tariffaNum)}
+                </span>
+              </div>
+            ) : null}
+            {duplicateExists ? (
+              <p className="text-xs text-(--color-danger)">
+                Esiste già un'attività con lo stesso cliente, tipo e data.
+              </p>
+            ) : null}
             {error ? (
               <p role="alert" className="text-sm text-(--color-danger)">
                 {error}
               </p>
-            ) : null}
-            {savedAt ? (
-              <p className="text-sm text-(--color-success)">Salvato</p>
             ) : null}
             <div className="flex items-center justify-between gap-3 pt-1">
               <Button
@@ -249,9 +361,19 @@ export function QuickEntryFab() {
               >
                 Chiudi
               </Button>
-              <Button type="submit" variant="primary" disabled={busy}>
-                Salva
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleSaveAndNew}
+                  disabled={busy}
+                >
+                  Salva e nuova
+                </Button>
+                <Button type="submit" variant="primary" disabled={busy}>
+                  Salva
+                </Button>
+              </div>
             </div>
           </form>
         </div>

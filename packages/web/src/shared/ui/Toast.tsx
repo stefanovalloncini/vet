@@ -8,26 +8,52 @@ import {
 } from "react";
 
 type ToastKind = "info" | "success" | "error";
+
+interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
+interface NotifyOptions {
+  kind?: ToastKind;
+  action?: ToastAction;
+  duration?: number;
+}
+
 interface ToastItem {
   id: number;
   kind: ToastKind;
   text: string;
+  action?: ToastAction;
 }
 
 interface ToastApi {
-  notify: (text: string, kind?: ToastKind) => void;
+  notify: (text: string, kindOrOpts?: ToastKind | NotifyOptions) => void;
 }
 
 const ToastContext = createContext<ToastApi | null>(null);
 
+const DEFAULT_DURATION = 3500;
+const ACTION_DURATION = 6000;
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const notify = useCallback((text: string, kind: ToastKind = "info") => {
+  const notify = useCallback<ToastApi["notify"]>((text, kindOrOpts) => {
+    const opts: NotifyOptions =
+      typeof kindOrOpts === "string"
+        ? { kind: kindOrOpts }
+        : kindOrOpts ?? {};
+    const kind: ToastKind = opts.kind ?? "info";
     const id = Date.now() + Math.random();
-    setToasts((prev) => [...prev, { id, kind, text }]);
+    const item: ToastItem = opts.action
+      ? { id, kind, text, action: opts.action }
+      : { id, kind, text };
+    setToasts((prev) => [...prev, item]);
+    const duration =
+      opts.duration ?? (opts.action ? ACTION_DURATION : DEFAULT_DURATION);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3500);
+    }, duration);
   }, []);
   const value = useMemo(() => ({ notify }), [notify]);
   return (
@@ -42,7 +68,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className={[
-              "px-4 py-2 rounded-xl shadow-lg text-sm border max-w-xs animate-[fadeIn_0.15s_ease-out]",
+              "flex items-center gap-3 pl-4 pr-2 py-2 rounded-xl shadow-lg text-sm border max-w-xs animate-[fadeIn_0.15s_ease-out]",
               t.kind === "success"
                 ? "bg-(--color-accent-soft) text-(--color-text) border-(--color-accent)/30"
                 : t.kind === "error"
@@ -51,7 +77,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             ].join(" ")}
             role="status"
           >
-            {t.text}
+            <span>{t.text}</span>
+            {t.action ? (
+              <button
+                type="button"
+                onClick={() => {
+                  t.action!.onClick();
+                  setToasts((prev) => prev.filter((x) => x.id !== t.id));
+                }}
+                className="px-2 py-1 rounded-md text-xs font-medium text-(--color-accent) hover:bg-(--color-accent)/10"
+              >
+                {t.action.label}
+              </button>
+            ) : null}
           </div>
         ))}
       </div>
