@@ -20,7 +20,7 @@ export function Brand({ size = "md", className = "" }: BrandProps) {
       <span
         className={`font-serif ${s.name} text-(--color-text) tracking-tight leading-none`}
       >
-        Studio veterinario
+        Veterinario
       </span>
     </span>
   );

@@ -28,8 +28,8 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: "Studio veterinario",
-        short_name: "Studio",
+        name: "Veterinario",
+        short_name: "Veterinario",
         description: "Gestionale per attività di studio veterinario.",
         theme_color: "#688a68",
         background_color: "#f7f3eb",
