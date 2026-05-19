@@ -1,7 +1,7 @@
 import { beforeUserSignedIn, HttpsError } from "firebase-functions/v2/identity";
 import { adminDb } from "../admin/firebaseAdmin.js";
 import type { Capability } from "@vet/shared";
-import { normalizeEmail } from "@vet/shared";
+import { encodeCaps, normalizeEmail } from "@vet/shared";
 
 interface ComposeInput {
   roleId: string;
@@ -13,7 +13,7 @@ export function composeClaims(input: ComposeInput) {
   return {
     vet: true as const,
     roleId: input.roleId,
-    caps: input.capabilities,
+    caps: encodeCaps(input.capabilities),
     capsVer: input.capsVer,
   };
 }
@@ -56,18 +56,22 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
     }
     const role = roleSnap.data() as { capabilities: Capability[] };
 
-    const claims = composeClaims({
-      roleId,
-      capabilities: role.capabilities,
-      capsVer: Date.now(),
-    });
+    const now = new Date();
+    const isFirst = !existingUser;
+    const displayName = existingUser?.displayName
+      ?? event.data?.displayName
+      ?? email.split("@")[0];
+
+    const claims = {
+      ...composeClaims({
+        roleId,
+        capabilities: role.capabilities,
+        capsVer: Date.now(),
+      }),
+      name: displayName,
+    };
 
     if (uid) {
-      const now = new Date();
-      const isFirst = !existingUser;
-      const displayName = existingUser?.displayName
-        ?? event.data?.displayName
-        ?? email.split("@")[0];
       await adminDb.collection("users").doc(uid).set(
         {
           email,

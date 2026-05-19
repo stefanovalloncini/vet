@@ -58,15 +58,16 @@ export function initFirebase(config: VetFirebaseConfig): {
       ).FIREBASE_APPCHECK_DEBUG_TOKEN = config.appCheckDebugToken;
     }
 
-    if (!config.useEmulator && config.appCheckSiteKey) {
-      try {
-        appCheck = initializeAppCheck(app, {
-          provider: new ReCaptchaEnterpriseProvider(config.appCheckSiteKey),
-          isTokenAutoRefreshEnabled: true,
-        });
-      } catch {
-        // App Check init can fail if site key invalid; degrade gracefully
+    if (!config.useEmulator) {
+      if (!config.appCheckSiteKey) {
+        throw new Error(
+          "App Check site key missing: refusing to start without App Check"
+        );
       }
+      appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(config.appCheckSiteKey),
+        isTokenAutoRefreshEnabled: true,
+      });
     }
 
     firestore = initializeFirestore(app, {

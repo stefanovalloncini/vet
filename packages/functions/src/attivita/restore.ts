@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { adminDb } from "../admin/firebaseAdmin.js";
 import { FieldValue } from "firebase-admin/firestore";
+import { decodeCaps } from "@vet/shared";
 
 const inputSchema = z.object({ id: z.string().min(1).max(64) }).strict();
 
@@ -23,14 +24,14 @@ export function ensureCanRestore(
 }
 
 export const restoreAttivita = onCall(
-  { region: "europe-west8" },
+  { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
     const auth = request.auth;
     const caller: Caller | null = auth
       ? {
           uid: auth.uid,
           email: (auth.token.email as string) ?? "",
-          caps: (auth.token.caps as string[]) ?? [],
+          caps: decodeCaps((auth.token.caps as string[]) ?? []),
         }
       : null;
 

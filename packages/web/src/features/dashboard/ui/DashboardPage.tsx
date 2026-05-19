@@ -89,11 +89,81 @@ export function DashboardPage() {
     return out;
   }, [items]);
 
+  const hasContent = !loading && items.length > 0;
+
+  const rightRailItems = [
+    urgentReminders.length > 0,
+    recentAziende.length > 0,
+  ].some(Boolean);
+
+  const rightRail = hasContent && rightRailItems ? (
+    <>
+      {urgentReminders.length > 0 ? (
+        <Card className="border-(--color-accent)/40">
+          <div className="flex items-baseline justify-between mb-2">
+            <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+              Promemoria urgenti
+            </p>
+            <Link
+              to="/promemoria"
+              className="inline-flex items-center gap-1 text-xs text-(--color-accent) hover:underline"
+            >
+              Tutti
+              <ChevronRight size={12} strokeWidth={2} aria-hidden="true" />
+            </Link>
+          </div>
+          <ul className="space-y-1.5">
+            {urgentReminders.map((r) => {
+              const overdue = r.dueAt.getTime() < now.getTime();
+              return (
+                <li key={r.id} className="flex items-baseline justify-between gap-3">
+                  <span className="text-sm text-(--color-text) truncate">
+                    {r.titolo}{" "}
+                    <span className="text-(--color-text-muted)">
+                      · {r.aziendaNome}
+                    </span>
+                  </span>
+                  <span
+                    className={[
+                      "text-xs tabular-nums flex-shrink-0",
+                      overdue ? "text-(--color-danger)" : "text-(--color-text-muted)",
+                    ].join(" ")}
+                  >
+                    {r.dueAt.toLocaleDateString("it-IT")}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      ) : null}
+      {recentAziende.length > 0 ? (
+        <Card>
+          <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
+            Clienti recenti
+          </p>
+          <ul className="space-y-1.5">
+            {recentAziende.map((a) => (
+              <li key={a.id}>
+                <Link
+                  to={`/aziende/${a.id}`}
+                  className="block text-sm text-(--color-text) hover:text-(--color-accent) truncate"
+                >
+                  {a.nome}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+    </>
+  ) : null;
+
   return (
-    <AppShell>
-      <header className="mb-8">
-        <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
+    <AppShell wide {...(rightRail ? { rightRail } : {})}>
+      <header className="mb-6">
+        <h1 className="text-2xl sm:text-3xl text-(--color-text)">{t.title}</h1>
+        <p className="text-(--color-text-muted) mt-1 text-sm">{t.subtitle}</p>
       </header>
 
       <OnboardingBanner
@@ -111,188 +181,137 @@ export function DashboardPage() {
         </Card>
       ) : (
         <>
-        {urgentReminders.length > 0 ? (
-          <Card className="mb-4 border-(--color-accent)/40">
-            <div className="flex items-baseline justify-between mb-2">
-              <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-                Promemoria urgenti
-              </p>
-              <Link
-                to="/promemoria"
-                className="inline-flex items-center gap-1 text-xs text-(--color-accent) hover:underline"
-              >
-                Tutti
-                <ChevronRight size={12} strokeWidth={2} aria-hidden="true" />
-              </Link>
-            </div>
-            <ul className="space-y-1.5">
-              {urgentReminders.map((r) => {
-                const overdue = r.dueAt.getTime() < now.getTime();
-                return (
-                  <li key={r.id} className="flex items-baseline justify-between gap-3">
-                    <span className="text-sm text-(--color-text) truncate">
-                      {r.titolo}{" "}
-                      <span className="text-(--color-text-muted)">
-                        · {r.aziendaNome}
-                      </span>
-                    </span>
-                    <span
-                      className={[
-                        "text-xs tabular-nums flex-shrink-0",
-                        overdue ? "text-(--color-danger)" : "text-(--color-text-muted)",
-                      ].join(" ")}
-                    >
-                      {r.dueAt.toLocaleDateString("it-IT")}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </Card>
-        ) : null}
-        <Card className="mb-4">
-          <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-            Incassi ultimi 12 mesi
-          </p>
-          <RevenueBarChart
-            values={trailing.totals}
-            labels={trailing.labels}
-            className="mt-4"
-          />
-        </Card>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <StatCard
-            label={t.incassoMese}
-            value={formatEuro(thisMonth.total)}
-            diff={totalDiff}
-            big
-          />
-          <StatCard
-            label={t.visiteMese}
-            value={String(thisMonth.count)}
-            diff={countDiff}
-          />
-          <StatCard
-            label={t.aziendeAttive}
-            value={String(aziendeAttive)}
-          />
-          <Link to="/pagamenti" className="block">
-            <StatCard
-              label={t.arretratiTot}
-              value={formatEuro(arrearsTotal)}
-              accent={arrearsTotal > 0 ? "danger" : "ok"}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 auto-rows-fr">
+            <MetricCard
+              label={t.incassoMese}
+              value={formatEuro(thisMonth.total)}
+              trend={totalDiff}
             />
-          </Link>
-          {topA ? (
-            <Card>
-              <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-                {t.topAzienda}
-              </p>
-              <p className="text-lg font-medium text-(--color-text) mt-2">
-                {topA.value.nome}
-              </p>
-              <p className="text-sm text-(--color-text-muted) mt-1 tabular-nums">
-                {formatEuro(topA.value.total)} · {topA.value.count} visite
-              </p>
-            </Card>
-          ) : null}
-          {topT ? (
-            <Card>
-              <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-                {t.topTipo}
-              </p>
-              <p className="text-lg font-medium text-(--color-text) mt-2">
-                {topT.value.nome}
-              </p>
-              <p className="text-sm text-(--color-text-muted) mt-1 tabular-nums">
-                {formatEuro(topT.value.total)} · {topT.value.count} volte
-              </p>
-            </Card>
-          ) : null}
-        </div>
-        {thisMonth.byTipo.size > 0 ? (
-          <Card className="mt-4">
-            <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
-              Attività del mese per tipo
-            </p>
-            <BarChart
-              bars={[...thisMonth.byTipo.values()]
-                .sort((a, b) => b.total - a.total)
-                .slice(0, 8)
-                .map((v) => ({ label: v.nome, value: v.total }))}
-              formatValue={formatEuro}
+            <MetricCard
+              label={t.visiteMese}
+              value={String(thisMonth.count)}
+              trend={countDiff}
             />
-          </Card>
-        ) : null}
-        {recentAziende.length > 0 ? (
-          <div className="mt-6">
-            <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
-              Clienti recenti
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {recentAziende.map((a) => (
-                <Link key={a.id} to={`/aziende/${a.id}`}>
-                  <Card className="h-full hover:border-(--color-border-strong) transition-colors text-center py-4">
-                    <p className="text-sm font-medium text-(--color-text) truncate">
-                      {a.nome}
-                    </p>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+            <MetricCard
+              label={t.aziendeAttive}
+              value={String(aziendeAttive)}
+            />
+            <Link to="/pagamenti" className="block">
+              <MetricCard
+                label={t.arretratiTot}
+                value={formatEuro(arrearsTotal)}
+                accent={arrearsTotal > 0 ? "danger" : "ok"}
+              />
+            </Link>
+            {topA ? (
+              <MetricCard
+                label={t.topAzienda}
+                value={topA.value.nome}
+                secondary={`${formatEuro(topA.value.total)} · ${topA.value.count} visite`}
+                compactValue
+              />
+            ) : null}
+            {topT ? (
+              <MetricCard
+                label={t.topTipo}
+                value={topT.value.nome}
+                secondary={`${formatEuro(topT.value.total)} · ${topT.value.count} volte`}
+                compactValue
+              />
+            ) : null}
           </div>
-        ) : null}
+          <Card className="mb-4">
+            <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+              Incassi ultimi 12 mesi
+            </p>
+            <RevenueBarChart
+              values={trailing.totals}
+              labels={trailing.labels}
+              className="mt-3"
+            />
+          </Card>
+          {thisMonth.byTipo.size > 0 ? (
+            <Card>
+              <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
+                Attività del mese per tipo
+              </p>
+              <BarChart
+                bars={[...thisMonth.byTipo.values()]
+                  .sort((a, b) => b.total - a.total)
+                  .slice(0, 8)
+                  .map((v) => ({ label: v.nome, value: v.total }))}
+                formatValue={formatEuro}
+              />
+            </Card>
+          ) : null}
         </>
       )}
     </AppShell>
   );
 }
 
-function StatCard({
+function MetricCard({
   label,
   value,
-  diff,
-  big,
+  trend,
+  secondary,
   accent,
+  compactValue,
 }: {
   label: string;
   value: string;
-  diff?: number | null;
-  big?: boolean;
+  trend?: number | null;
+  secondary?: string;
   accent?: "danger" | "ok";
+  compactValue?: boolean;
 }) {
-  return (
-    <Card
-      className={
-        accent === "danger" ? "border-(--color-danger)/30" : undefined
-      }
-    >
-      <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-        {label}
-      </p>
-      <p
-        className={[
-          "mt-2 tabular-nums font-medium",
-          big ? "text-3xl" : "text-2xl",
-          accent === "danger" ? "text-(--color-danger)" : "text-(--color-text)",
-        ].join(" ")}
-      >
-        {value}
-      </p>
-      {diff !== null && diff !== undefined ? (
-        <p
-          className={[
-            "text-xs mt-1 tabular-nums",
-            diff > 0
+  const valueColor =
+    accent === "danger" ? "text-(--color-danger)" : "text-(--color-text)";
+  const trendLine =
+    trend !== null && trend !== undefined
+      ? {
+          text: `${trend > 0 ? "↑" : trend < 0 ? "↓" : "→"} ${Math.abs(trend)}% vs mese prec.`,
+          color:
+            trend > 0
               ? "text-(--color-success)"
-              : diff < 0
+              : trend < 0
               ? "text-(--color-danger)"
               : "text-(--color-text-subtle)",
+        }
+      : null;
+  const secondaryLine = secondary
+    ? { text: secondary, color: "text-(--color-text-muted)" }
+    : trendLine;
+
+  return (
+    <Card
+      className={[
+        "h-full flex flex-col min-h-[112px]",
+        accent === "danger" ? "border-(--color-danger)/30" : "",
+      ].join(" ")}
+    >
+      <p className="text-[10px] uppercase tracking-[0.06em] text-(--color-text-muted) truncate">
+        {label}
+      </p>
+      <div className="mt-auto pt-3">
+        <p
+          className={[
+            "tabular-nums font-medium truncate",
+            compactValue ? "text-base sm:text-lg" : "text-xl sm:text-2xl",
+            valueColor,
           ].join(" ")}
         >
-          {diff > 0 ? "↑" : diff < 0 ? "↓" : "→"} {Math.abs(diff)}% vs mese scorso
+          {value}
         </p>
-      ) : null}
+        <p
+          className={[
+            "text-[11px] mt-0.5 tabular-nums truncate min-h-[14px]",
+            secondaryLine ? secondaryLine.color : "text-(--color-text-subtle)",
+          ].join(" ")}
+        >
+          {secondaryLine ? secondaryLine.text : " "}
+        </p>
+      </div>
     </Card>
   );
 }

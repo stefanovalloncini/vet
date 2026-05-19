@@ -45,3 +45,62 @@ export const capabilitySchema = z.enum(CAPABILITIES);
 export function isCapability(value: unknown): value is Capability {
   return typeof value === "string" && capabilitySet.has(value);
 }
+
+const CAP_CODES: Record<Capability, string> = {
+  "activities.read.all": "ara",
+  "activities.create": "ac",
+  "activities.update.own": "auo",
+  "activities.update.any": "aua",
+  "activities.delete.own": "ado",
+  "activities.delete.any": "ada",
+  "activities.export": "ae",
+  "aziende.read": "zr",
+  "aziende.create": "zc",
+  "aziende.update": "zu",
+  "aziende.delete": "zd",
+  "activity_types.read": "tr",
+  "activity_types.manage": "tm",
+  "trash.read.own": "hro",
+  "trash.read.any": "hra",
+  "trash.restore.own": "hso",
+  "trash.restore.any": "hsa",
+  "trash.purge": "hp",
+  "roles.read": "rr",
+  "roles.manage": "rm",
+  "roles.assign": "rsg",
+  "allowlist.read": "lr",
+  "allowlist.manage": "lm",
+  "audit.read": "ur",
+  "users.read.all": "usr",
+  "payments.read": "pr",
+  "payments.manage": "pm",
+  "reminders.read": "mr",
+  "reminders.create": "mc",
+  "reminders.update.own": "muo",
+  "reminders.update.any": "mua",
+  "reminders.delete.own": "mdo",
+  "reminders.delete.any": "mda",
+};
+
+const CAP_BY_CODE: Record<string, Capability> = Object.fromEntries(
+  (Object.entries(CAP_CODES) as Array<[Capability, string]>).map(
+    ([name, code]) => [code, name]
+  )
+);
+
+export function encodeCaps(caps: ReadonlyArray<Capability>): string[] {
+  return caps.map((c) => CAP_CODES[c]);
+}
+
+export function decodeCaps(codes: ReadonlyArray<string>): Capability[] {
+  const out: Capability[] = [];
+  for (const code of codes) {
+    const cap = CAP_BY_CODE[code];
+    if (cap) out.push(cap);
+  }
+  return out;
+}
+
+export function capCode(cap: Capability): string {
+  return CAP_CODES[cap];
+}

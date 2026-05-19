@@ -12,6 +12,9 @@ export {
   type Capability,
   capabilitySchema,
   isCapability,
+  encodeCaps,
+  decodeCaps,
+  capCode,
 } from "./domain/caps/registry.js";
 export { CAPABILITY_LABELS } from "./domain/caps/labels.js";
 

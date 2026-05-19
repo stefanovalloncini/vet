@@ -42,13 +42,13 @@ export function Dialog({
       aria-modal="true"
       aria-labelledby={labelledBy}
       aria-describedby={describedBy}
-      className="fixed inset-0 z-40 flex items-start sm:items-center justify-center p-4 sm:p-8 bg-(--color-overlay)"
+      className="fixed inset-0 z-40 flex items-start sm:items-center justify-center p-4 sm:p-8 bg-(--color-overlay) animate-fade-in-soft"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`w-full ${sizeMap[size]} bg-(--color-surface) border border-(--color-border) rounded-lg shadow-xl ${className}`}
+        className={`w-full ${sizeMap[size]} bg-(--color-surface) border border-(--color-border) rounded-lg shadow-xl animate-scale-in ${className}`}
       >
         {children}
       </div>

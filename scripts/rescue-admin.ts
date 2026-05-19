@@ -1,7 +1,7 @@
 import { cert, getApps, initializeApp, applicationDefault } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
-import { CAPABILITIES, type Capability } from "@vet/shared";
+import { CAPABILITIES, encodeCaps, type Capability } from "@vet/shared";
 
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID ?? "vet-app";
 const EMAIL = process.env.RESCUE_EMAIL;
@@ -93,8 +93,9 @@ async function main(): Promise<void> {
     await auth.setCustomUserClaims(user.uid, {
       vet: true,
       roleId: "admin",
-      caps: adminCaps,
+      caps: encodeCaps(adminCaps),
       capsVer: Date.now(),
+      name: user.displayName ?? EMAIL!.split("@")[0],
     });
     await auth.revokeRefreshTokens(user.uid);
     process.stdout.write(`claims set + tokens revoked for uid=${user.uid}\n`);

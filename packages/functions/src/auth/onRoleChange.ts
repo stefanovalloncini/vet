@@ -1,6 +1,7 @@
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
 import type { Capability } from "@vet/shared";
+import { encodeCaps } from "@vet/shared";
 
 interface ComputeInput {
   roleId: string;
@@ -12,7 +13,7 @@ export function computeClaimsForUser(input: ComputeInput) {
   return {
     vet: true as const,
     roleId: input.roleId,
-    caps: input.capabilities,
+    caps: encodeCaps(input.capabilities),
     capsVer: input.capsVer,
   };
 }
@@ -35,11 +36,15 @@ export const onRoleChange = onDocumentWritten(
     const ops: Array<Promise<unknown>> = [];
 
     for (const userDoc of usersQuery.docs) {
-      const claims = computeClaimsForUser({
-        roleId,
-        capabilities: after.capabilities,
-        capsVer,
-      });
+      const data = userDoc.data() as { displayName?: string };
+      const claims = {
+        ...computeClaimsForUser({
+          roleId,
+          capabilities: after.capabilities,
+          capsVer,
+        }),
+        ...(data.displayName ? { name: data.displayName } : {}),
+      };
       ops.push(adminAuth.setCustomUserClaims(userDoc.id, claims));
       ops.push(adminAuth.revokeRefreshTokens(userDoc.id));
       ops.push(

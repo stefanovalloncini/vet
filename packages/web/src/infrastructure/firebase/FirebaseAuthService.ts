@@ -18,8 +18,8 @@ import type {
   ActorContext,
   AuthService,
   AuthStateSubscriber,
-  Capability,
 } from "@vet/shared";
+import { decodeCaps } from "@vet/shared";
 
 const EMAIL_LINK_STORAGE_KEY = "vet.signInEmail";
 
@@ -106,7 +106,7 @@ export class FirebaseAuthService implements AuthService {
       email: fbUser.email ?? "",
       displayName,
       roleId: claims.roleId ?? "",
-      caps: new Set((claims.caps as Capability[] | undefined) ?? []),
+      caps: new Set(decodeCaps(claims.caps ?? [])),
     };
   }
 }

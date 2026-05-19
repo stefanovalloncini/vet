@@ -21,6 +21,7 @@ describe("allowlist rules", () => {
         defaultRoleId: "vet",
         invitedBy: "admin",
         invitedAt: new Date(),
+        schemaVersion: 1,
       });
     });
     await assertFails(getDoc(doc(authedAs(env, "u"), "allowlist/x@y.com")));
@@ -38,6 +39,7 @@ describe("allowlist rules", () => {
         defaultRoleId: "vet",
         invitedBy: "admin",
         invitedAt: serverTimestamp(),
+        schemaVersion: 1,
       })
     );
     await assertFails(
@@ -46,6 +48,37 @@ describe("allowlist rules", () => {
         defaultRoleId: "vet",
         invitedBy: "admin",
         invitedAt: new Date(0),
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("create denied with oversized notes", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin");
+    await assertFails(
+      setDoc(doc(db, "allowlist/big@x.com"), {
+        email: "big@x.com",
+        defaultRoleId: "vet",
+        invitedBy: "admin",
+        invitedAt: serverTimestamp(),
+        notes: "x".repeat(501),
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("create denied with unknown extra field", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin");
+    await assertFails(
+      setDoc(doc(db, "allowlist/extra@x.com"), {
+        email: "extra@x.com",
+        defaultRoleId: "vet",
+        invitedBy: "admin",
+        invitedAt: serverTimestamp(),
+        schemaVersion: 1,
+        attacker: "pwn",
       })
     );
   });
@@ -58,6 +91,7 @@ describe("allowlist rules", () => {
         defaultRoleId: "vet",
         invitedBy: "admin",
         invitedAt: new Date(),
+        schemaVersion: 1,
       });
     });
     await assertFails(deleteDoc(doc(authedAs(env, "u"), "allowlist/d@x.com")));

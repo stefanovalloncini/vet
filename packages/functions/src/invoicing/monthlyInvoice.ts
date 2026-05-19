@@ -77,11 +77,10 @@ export const monthlyInvoicePush = onSchedule(
         at: FieldValue.serverTimestamp(),
         actorUid: "system",
         actorEmail: "scheduled@vet",
-        action: "attivita.purge.auto",
+        action: "invoicing.monthly.push",
         targetType: "azienda",
         targetId: doc.id,
         details: {
-          kind: "monthly-invoice",
           period: period.label,
           count: items.length,
           total: Math.round(total * 100) / 100,

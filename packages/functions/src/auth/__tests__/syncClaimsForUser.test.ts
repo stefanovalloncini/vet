@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { computeClaimsForUser } from "../onRoleChange.js";
 
 describe("computeClaimsForUser", () => {
-  it("returns claims with the role's current capabilities", () => {
+  it("encodes caps as short codes", () => {
     const claims = computeClaimsForUser({
       roleId: "vet",
       capabilities: ["activities.read.all"],
@@ -11,7 +11,7 @@ describe("computeClaimsForUser", () => {
     expect(claims).toEqual({
       vet: true,
       roleId: "vet",
-      caps: ["activities.read.all"],
+      caps: ["ara"],
       capsVer: 999,
     });
   });

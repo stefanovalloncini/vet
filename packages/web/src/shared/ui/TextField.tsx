@@ -19,9 +19,10 @@ export function TextField({
     "w-full rounded-xl border bg-(--color-surface) px-4 py-3 text-sm text-(--color-text)",
     "placeholder:text-(--color-text-subtle)",
     "focus:outline-none focus:ring-2 disabled:opacity-50",
+    "transition-[border-color,box-shadow,background-color] duration-(--motion-base) ease-(--ease-out-quart)",
     error
       ? "border-(--color-danger) focus:border-(--color-danger) focus:ring-(--color-danger)/20"
-      : "border-(--color-border) focus:border-(--color-accent) focus:ring-(--color-accent)/20",
+      : "border-(--color-border) hover:border-(--color-border-strong) focus:border-(--color-accent) focus:ring-(--color-accent)/20",
     className,
   ].join(" ");
 

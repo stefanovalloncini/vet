@@ -68,7 +68,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className={[
-              "flex items-center gap-3 pl-4 pr-2 py-2 rounded-xl shadow-lg text-sm border max-w-xs animate-[fadeIn_0.15s_ease-out]",
+              "flex items-center gap-3 pl-4 pr-2 py-2 rounded-xl shadow-lg text-sm border max-w-xs animate-toast-in",
               t.kind === "success"
                 ? "bg-(--color-accent-soft) text-(--color-text) border-(--color-accent)/30"
                 : t.kind === "error"

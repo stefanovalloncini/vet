@@ -41,7 +41,7 @@ export function Tabs<T extends string>({
             onClick={() => onChange(item.value)}
             className={[
               padding,
-              "inline-flex items-center gap-2 -mb-px border-b-2 transition-colors",
+              "inline-flex items-center gap-2 -mb-px border-b-2 transition-[color,border-color] duration-(--motion-base) ease-(--ease-out-quart)",
               active
                 ? "border-(--color-accent) text-(--color-text) font-medium"
                 : "border-transparent text-(--color-text-muted) hover:text-(--color-text)",

@@ -42,9 +42,10 @@ describe("App routing", () => {
     });
   });
 
-  it("throws when used without RepositoriesProvider", () => {
+  it("renders fallback when used without RepositoriesProvider", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => render(<App />)).toThrow(/RepositoriesProvider/);
+    render(<App />);
+    expect(screen.getByText(/Qualcosa è andato storto/)).toBeInTheDocument();
     spy.mockRestore();
   });
 });
