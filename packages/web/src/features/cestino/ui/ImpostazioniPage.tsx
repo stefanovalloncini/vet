@@ -43,8 +43,10 @@ export function ImpostazioniPage() {
       link.click();
       document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(url), 0);
-    } catch {
-      setError("Export non riuscito.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Export non riuscito: ${msg}`);
+      console.error("export failed", err);
     } finally {
       setExporting(false);
     }
