@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../hooks/useAuthState";
+import { isUnauthorizedEmailError } from "../lib/authErrors";
 
 export function EmailLinkCompletePage() {
   const { auth } = useRepositories();
@@ -17,6 +18,8 @@ export function EmailLinkCompletePage() {
       console.error("email link sign-in failed", err);
       if (msg.includes("email not remembered")) {
         setNeedsEmail(true);
+      } else if (isUnauthorizedEmailError(err)) {
+        setError("Email non autorizzata. Contatta l'amministratore.");
       } else {
         setError(msg);
       }
@@ -30,9 +33,10 @@ export function EmailLinkCompletePage() {
     try {
       await auth.completeEmailSignIn(window.location.href, email);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
       console.error("email link sign-in failed", err);
-      setError(msg);
+      setError(isUnauthorizedEmailError(err)
+        ? "Email non autorizzata. Contatta l'amministratore."
+        : (err instanceof Error ? err.message : String(err)));
       setSubmitting(false);
     }
   }

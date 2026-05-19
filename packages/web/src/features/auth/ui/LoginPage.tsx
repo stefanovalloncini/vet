@@ -10,6 +10,7 @@ import {
   TextField,
 } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
+import { isUnauthorizedEmailError } from "../lib/authErrors";
 
 export function LoginPage() {
   const { auth } = useRepositories();
@@ -24,8 +25,11 @@ export function LoginPage() {
     setBusy(true);
     try {
       await auth.signInWithGoogle();
-    } catch {
-      setError("Accesso non riuscito. Riprova.");
+    } catch (err) {
+      console.error("google sign-in failed", err);
+      setError(isUnauthorizedEmailError(err)
+        ? "Email non autorizzata. Contatta l'amministratore."
+        : "Accesso non riuscito. Riprova.");
     } finally {
       setBusy(false);
     }
@@ -38,7 +42,8 @@ export function LoginPage() {
     try {
       await auth.sendEmailSignInLink(email);
       setEmailSent(true);
-    } catch {
+    } catch (err) {
+      console.error("send email link failed", err);
       setError("Invio link non riuscito.");
     } finally {
       setBusy(false);
