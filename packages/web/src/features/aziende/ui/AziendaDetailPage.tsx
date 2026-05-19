@@ -9,6 +9,7 @@ import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { useTags } from "../hooks/useTags";
+import { sanitizeTel } from "../lib/sanitizeTel";
 import { formatDate, formatEuro } from "../../attivita/lib/format";
 import type { Attivita, Azienda, Payment } from "@vet/shared";
 
@@ -139,9 +140,16 @@ export function AziendaDetailPage() {
                 Telefono
               </dt>
               <dd className="text-(--color-text) mt-1">
-                <a href={`tel:${a.telefono}`} className="hover:underline">
-                  {a.telefono}
-                </a>
+                {(() => {
+                  const tel = sanitizeTel(a.telefono);
+                  return tel ? (
+                    <a href={`tel:${tel}`} className="hover:underline">
+                      {a.telefono}
+                    </a>
+                  ) : (
+                    <span>{a.telefono}</span>
+                  );
+                })()}
               </dd>
             </div>
           ) : null}
