@@ -3,6 +3,7 @@ import {
   AppShell,
   Button,
   Card,
+  EmptyState,
   Select,
   TextArea,
   TextField,
@@ -181,11 +182,7 @@ export function RemindersPage() {
       {loading ? (
         <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
       ) : reminders.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            {t.emptyAll}
-          </p>
-        </Card>
+        <EmptyState title={t.emptyAll} />
       ) : (
         <ul className="space-y-2">
           {reminders.map((r) => (

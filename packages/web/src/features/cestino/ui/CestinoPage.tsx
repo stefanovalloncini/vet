@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AppShell, Button, Card } from "../../../shared/ui";
+import { AppShell, Button, Card, EmptyState } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useTrash } from "../hooks/useTrash";
@@ -99,11 +99,7 @@ export function CestinoPage() {
       ) : error ? (
         <p className="text-sm text-(--color-danger)">{t.loadError}</p>
       ) : items.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            {t.empty}
-          </p>
-        </Card>
+        <EmptyState title={t.empty} />
       ) : (
         <ul className="space-y-2">
           {items.map((a) => (

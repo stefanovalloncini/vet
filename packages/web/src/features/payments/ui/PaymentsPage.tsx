@@ -3,6 +3,7 @@ import {
   AppShell,
   Button,
   Card,
+  EmptyState,
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { usePaymentsData } from "../hooks/usePaymentsData";
@@ -36,11 +37,7 @@ export function PaymentsPage() {
       ) : error ? (
         <p className="text-sm text-(--color-danger)">{t.loadError}</p>
       ) : aziende.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            {t.emptyAziende}
-          </p>
-        </Card>
+        <EmptyState title={t.emptyAziende} />
       ) : (
         <ul className="space-y-2">
           {arrears.map((row) => (

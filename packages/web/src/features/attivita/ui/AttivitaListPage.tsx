@@ -4,6 +4,7 @@ import {
   AppShell,
   Button,
   Card,
+  EmptyState,
   Select,
   TextField,
 } from "../../../shared/ui";
@@ -227,11 +228,9 @@ export function AttivitaListPage() {
       ) : error ? (
         <p className="text-sm text-(--color-danger)">{t.loadError}</p>
       ) : items.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            {Object.keys(filters).length > 0 ? t.emptyFiltered : t.emptyAll}
-          </p>
-        </Card>
+        <EmptyState
+          title={Object.keys(filters).length > 0 ? t.emptyFiltered : t.emptyAll}
+        />
       ) : (
         <div className="space-y-6">
           {groups.map((g) => (

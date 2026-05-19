@@ -5,6 +5,7 @@ import {
   AppShell,
   Button,
   Card,
+  EmptyState,
   TextField,
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
@@ -89,11 +90,7 @@ export function AziendeListPage() {
       ) : error ? (
         <p className="text-sm text-(--color-danger)">{t.erroreSalvataggio}</p>
       ) : filtered.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            {search.trim() ? t.emptySearch : t.empty}
-          </p>
-        </Card>
+        <EmptyState title={search.trim() ? t.emptySearch : t.empty} />
       ) : (
         <ul className="space-y-3">
           {filtered.map((a) => (
