@@ -1,40 +1,24 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import {
-  AppShell,
-  Button,
-  Card,
-  Select,
-  TextArea,
-  TextField,
-  useToast,
-} from "../../../shared/ui";
+import { AppShell, Button, useToast } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
+import { useGinecologiaSuggestion } from "../hooks/useGinecologiaSuggestion";
 import { attivitaI18n as t } from "../i18n";
 import {
   attivitaInputSchema,
   computeTotale,
-  GINECOLOGIA_TIPO_ID,
   type AttivitaInput,
   type Attivita,
 } from "@vet/shared";
-import { dateInputValue, formatEuro, parseDateInput } from "../lib/format";
+import { dateInputValue, parseDateInput } from "../lib/format";
+import {
+  AttivitaFormFields,
+  type AttivitaFormState,
+} from "./AttivitaFormFields";
 
-interface FormState {
-  data: string;
-  aziendaId: string;
-  tipoId: string;
-  oraria: boolean;
-  tariffa: string;
-  ore: string;
-  note: string;
-  reminderAt: string;
-  reminderTitle: string;
-}
-
-function emptyForm(): FormState {
+function emptyForm(): AttivitaFormState {
   return {
     data: dateInputValue(new Date()),
     aziendaId: "",
@@ -60,12 +44,13 @@ export function AttivitaFormPage() {
   const ref = useReferenceData();
   const { notify } = useToast();
 
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [form, setForm] = useState<AttivitaFormState>(emptyForm);
   const [loaded, setLoaded] = useState<Attivita | null>(null);
   const [loading, setLoading] = useState<boolean>(isEdit || cloneId !== null);
   const [busy, setBusy] = useState(false);
-  const [tariffaSuggested, setTariffaSuggested] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof AttivitaFormState, string>>
+  >({});
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -105,29 +90,14 @@ export function AttivitaFormPage() {
     };
   }, [id, cloneId, isEdit, presetDate, navigate, repo]);
 
-  useEffect(() => {
-    if (isEdit) return;
-    if (!form.aziendaId || form.tipoId !== GINECOLOGIA_TIPO_ID) {
-      setTariffaSuggested(false);
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      const last = await repo.findLastByAziendaAndTipo(form.aziendaId, GINECOLOGIA_TIPO_ID);
-      if (cancelled) return;
-      if (last) {
-        setForm((s) =>
-          s.tariffa === "" ? { ...s, tariffa: String(last.tariffa) } : s
-        );
-        setTariffaSuggested(true);
-      } else {
-        setTariffaSuggested(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [form.aziendaId, form.tipoId, isEdit, repo]);
+  const { suggested: tariffaSuggested, clear: clearTariffaSuggestion } =
+    useGinecologiaSuggestion({
+      aziendaId: form.aziendaId,
+      tipoId: form.tipoId,
+      isEdit,
+      currentTariffa: form.tariffa,
+      onSuggest: (value) => setForm((s) => ({ ...s, tariffa: value })),
+    });
 
   const totaleLive = useMemo(() => {
     const tariffa = Number(form.tariffa);
@@ -156,9 +126,17 @@ export function AttivitaFormPage() {
     [ref.tipi]
   );
 
-  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
+  function update<K extends keyof AttivitaFormState>(
+    key: K,
+    value: AttivitaFormState[K]
+  ) {
     setForm((s) => ({ ...s, [key]: value }));
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+  }
+
+  function onTariffaInput(value: string) {
+    update("tariffa", value);
+    clearTariffaSuggestion();
   }
 
   function buildInput(): AttivitaInput | null {
@@ -180,9 +158,9 @@ export function AttivitaFormPage() {
 
     const parsed = attivitaInputSchema.safeParse(candidate);
     if (!parsed.success) {
-      const fieldErrors: Partial<Record<keyof FormState, string>> = {};
+      const fieldErrors: Partial<Record<keyof AttivitaFormState, string>> = {};
       for (const issue of parsed.error.issues) {
-        const path = issue.path[0] as keyof FormState;
+        const path = issue.path[0] as keyof AttivitaFormState;
         if (path && !fieldErrors[path]) fieldErrors[path] = issue.message;
       }
       setErrors(fieldErrors);
@@ -251,7 +229,10 @@ export function AttivitaFormPage() {
     }
   }
 
-  const canDelete = isEdit && (user?.caps.has("activities.delete.own") ?? false) && loaded?.ownerUid === user?.uid;
+  const canDelete =
+    isEdit &&
+    (user?.caps.has("activities.delete.own") ?? false) &&
+    loaded?.ownerUid === user?.uid;
 
   if (loading || ref.loading) {
     return (
@@ -277,142 +258,18 @@ export function AttivitaFormPage() {
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
-        <Card>
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <TextField
-                id="data"
-                type="date"
-                label={t.campoData}
-                value={form.data}
-                onChange={(e) => update("data", e.target.value)}
-                required
-                error={errors.data}
-                disabled={busy}
-              />
-              <Select
-                id="azienda"
-                label={t.campoAzienda}
-                value={form.aziendaId}
-                onChange={(e) => update("aziendaId", e.target.value)}
-                options={aziendaOptions}
-                error={errors.aziendaId}
-                disabled={busy}
-              />
-            </div>
-            <Select
-              id="tipo"
-              label={t.campoTipo}
-              value={form.tipoId}
-              onChange={(e) => update("tipoId", e.target.value)}
-              options={tipoOptions}
-              error={errors.tipoId}
-              disabled={busy}
-            />
-
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.oraria}
-                onChange={(e) => {
-                  update("oraria", e.target.checked);
-                  if (!e.target.checked) update("ore", "");
-                }}
-                disabled={busy}
-                className="w-4 h-4 accent-(--color-accent)"
-              />
-              <span className="text-sm text-(--color-text)">
-                {t.campoOraria}
-              </span>
-            </label>
-            <p className="text-xs text-(--color-text-subtle) -mt-3 ml-7">
-              {t.campoOrariaHint}
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <TextField
-                id="tariffa"
-                type="number"
-                step="0.01"
-                min="0.01"
-                max="100000"
-                label={t.campoTariffa}
-                value={form.tariffa}
-                onChange={(e) => {
-                  update("tariffa", e.target.value);
-                  setTariffaSuggested(false);
-                }}
-                required
-                error={errors.tariffa}
-                disabled={busy}
-                hint={tariffaSuggested ? t.ginecologiaSuggerita : undefined}
-              />
-              {form.oraria ? (
-                <TextField
-                  id="ore"
-                  type="number"
-                  step="0.25"
-                  min="0.25"
-                  max="24"
-                  label={t.campoOre}
-                  value={form.ore}
-                  onChange={(e) => update("ore", e.target.value)}
-                  required
-                  error={errors.ore}
-                  disabled={busy}
-                />
-              ) : null}
-            </div>
-
-            <TextArea
-              id="note"
-              label={t.campoNote}
-              value={form.note}
-              onChange={(e) => update("note", e.target.value)}
-              error={errors.note}
-              disabled={busy}
-              maxLength={2000}
-            />
-
-            {!isEdit ? (
-              <div className="pt-3 border-t border-(--color-border)">
-                <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
-                  Prossimo richiamo (opzionale)
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <TextField
-                    id="reminder-title"
-                    label="Titolo promemoria"
-                    value={form.reminderTitle}
-                    onChange={(e) => update("reminderTitle", e.target.value)}
-                    placeholder="Es. Richiamo vaccino"
-                    disabled={busy}
-                    maxLength={120}
-                  />
-                  <TextField
-                    id="reminder-at"
-                    type="date"
-                    label="Quando"
-                    value={form.reminderAt}
-                    onChange={(e) => update("reminderAt", e.target.value)}
-                    disabled={busy}
-                  />
-                </div>
-              </div>
-            ) : null}
-
-            {totaleLive !== null ? (
-              <div className="flex items-baseline justify-between pt-2 border-t border-(--color-border)">
-                <span className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-                  {t.totale}
-                </span>
-                <span className="text-2xl font-medium text-(--color-text) tabular-nums">
-                  {formatEuro(totaleLive)}
-                </span>
-              </div>
-            ) : null}
-          </div>
-        </Card>
+        <AttivitaFormFields
+          form={form}
+          errors={errors}
+          busy={busy}
+          isEdit={isEdit}
+          tariffaSuggested={tariffaSuggested}
+          totaleLive={totaleLive}
+          aziendaOptions={aziendaOptions}
+          tipoOptions={tipoOptions}
+          onUpdate={update}
+          onTariffaInput={onTariffaInput}
+        />
 
         {globalError ? (
           <p role="alert" className="text-sm text-(--color-danger)">
