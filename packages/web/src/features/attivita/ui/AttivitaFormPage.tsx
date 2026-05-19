@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { AppShell, Button, useToast } from "../../../shared/ui";
+import { AppShell, Button, ConfirmDialog, useToast } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
@@ -328,51 +328,25 @@ export function AttivitaFormPage() {
         <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
           <div>
             {canDelete ? (
-              confirmDelete ? (
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-(--color-text-muted)">
-                    {t.confermaEliminazione}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    onClick={handleDelete}
-                    disabled={busy}
-                  >
-                    {t.elimina}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setConfirmDelete(false)}
-                    disabled={busy}
-                  >
-                    {t.annulla}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/attivita/nuova?clone=${id}`)}
-                    disabled={busy}
-                  >
-                    Duplica
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setConfirmDelete(true)}
-                    disabled={busy}
-                  >
-                    {t.elimina}
-                  </Button>
-                </div>
-              )
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(`/attivita/nuova?clone=${id}`)}
+                  disabled={busy}
+                >
+                  Duplica
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={busy}
+                >
+                  {t.elimina}
+                </Button>
+              </div>
             ) : null}
           </div>
           <div className="flex items-center gap-3">
@@ -390,6 +364,20 @@ export function AttivitaFormPage() {
           </div>
         </div>
       </form>
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Eliminare questa attività?"
+        message={t.confermaEliminazione}
+        confirmLabel={t.elimina}
+        cancelLabel={t.annulla}
+        variant="danger"
+        busy={busy}
+        onConfirm={() => {
+          void handleDelete();
+          setConfirmDelete(false);
+        }}
+        onClose={() => setConfirmDelete(false)}
+      />
     </AppShell>
   );
 }

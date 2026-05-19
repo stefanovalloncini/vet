@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   AppShell,
   Button,
+  ConfirmDialog,
   useToast,
 } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
@@ -209,40 +210,14 @@ export function AziendaFormPage() {
         <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
           <div>
             {canDelete ? (
-              confirmDelete ? (
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-(--color-text-muted)">
-                    {t.confermaEliminazione}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    onClick={handleDelete}
-                    disabled={busy}
-                  >
-                    {t.elimina}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setConfirmDelete(false)}
-                    disabled={busy}
-                  >
-                    {t.annulla}
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setConfirmDelete(true)}
-                  disabled={busy}
-                >
-                  {t.elimina}
-                </Button>
-              )
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setConfirmDelete(true)}
+                disabled={busy}
+              >
+                {t.elimina}
+              </Button>
             ) : null}
           </div>
           <div className="flex items-center gap-3">
@@ -260,6 +235,20 @@ export function AziendaFormPage() {
           </div>
         </div>
       </form>
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Archiviare questa azienda?"
+        message={t.confermaEliminazioneDescr}
+        confirmLabel={t.elimina}
+        cancelLabel={t.annulla}
+        variant="danger"
+        busy={busy}
+        onConfirm={() => {
+          void handleDelete();
+          setConfirmDelete(false);
+        }}
+        onClose={() => setConfirmDelete(false)}
+      />
     </AppShell>
   );
 }
