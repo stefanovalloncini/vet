@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Check, ChevronRight } from "lucide-react";
 import { Card } from "../../shared/ui";
 
 const STORAGE_KEY = "vet.onboardingDismissed";
@@ -46,13 +47,15 @@ export function OnboardingBanner({ hasAziende, hasAttivita }: OnboardingBannerPr
               <li key={s.title} className="flex items-center gap-3 text-sm">
                 <span
                   className={[
-                    "w-5 h-5 rounded-full flex items-center justify-center text-[10px] flex-shrink-0",
+                    "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0",
                     s.done
                       ? "bg-(--color-accent) text-white"
-                      : "border border-(--color-border) text-(--color-text-muted)",
+                      : "border border-(--color-border)",
                   ].join(" ")}
                 >
-                  {s.done ? "✓" : ""}
+                  {s.done ? (
+                    <Check size={12} strokeWidth={2.5} aria-hidden="true" />
+                  ) : null}
                 </span>
                 <span
                   className={
@@ -64,9 +67,10 @@ export function OnboardingBanner({ hasAziende, hasAttivita }: OnboardingBannerPr
                 {!s.done ? (
                   <Link
                     to={s.to}
-                    className="ml-auto text-xs text-(--color-accent) hover:underline"
+                    className="ml-auto inline-flex items-center gap-1 text-xs text-(--color-accent) hover:underline"
                   >
-                    {s.cta} →
+                    {s.cta}
+                    <ChevronRight size={12} strokeWidth={2} aria-hidden="true" />
                   </Link>
                 ) : null}
               </li>

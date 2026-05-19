@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import {
   AppShell,
   Button,
@@ -195,9 +196,10 @@ export function AziendaDetailPage() {
           <div className="mt-4 pt-4 border-t border-(--color-border)">
             <Link
               to={`/aziende/${a.id}/riepilogo`}
-              className="text-sm text-(--color-accent) hover:underline"
+              className="inline-flex items-center gap-1 text-sm text-(--color-accent) hover:underline"
             >
-              Apri riepilogo stampabile →
+              Apri riepilogo stampabile
+              <ChevronRight size={14} strokeWidth={2} aria-hidden="true" />
             </Link>
           </div>
         ) : null}

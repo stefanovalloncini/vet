@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import { AppShell, Card } from "../../../shared/ui";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
 import { usePaymentsData } from "../../payments/hooks/usePaymentsData";
@@ -118,9 +119,10 @@ export function DashboardPage() {
               </p>
               <Link
                 to="/promemoria"
-                className="text-xs text-(--color-accent) hover:underline"
+                className="inline-flex items-center gap-1 text-xs text-(--color-accent) hover:underline"
               >
-                Tutti →
+                Tutti
+                <ChevronRight size={12} strokeWidth={2} aria-hidden="true" />
               </Link>
             </div>
             <ul className="space-y-1.5">

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "../../shared/ui";
+import { Dialog } from "../../shared/ui";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../auth";
 import type { Attivita, Azienda } from "@vet/shared";
@@ -19,13 +19,11 @@ export function SearchPalette() {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setOpen((o) => !o);
-      } else if (e.key === "Escape" && open) {
-        setOpen(false);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -81,25 +79,16 @@ export function SearchPalette() {
 
   const totalResults = filteredAziende.length + filteredAtt.length;
 
-  if (!open) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 pt-24"
-      onClick={() => setOpen(false)}
-    >
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg">
-        <Card elevated padded={false} className="overflow-hidden">
-          <input
-            type="text"
-            autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cerca un'azienda…"
-            className="w-full bg-transparent px-5 py-4 text-base text-(--color-text) placeholder:text-(--color-text-subtle) focus:outline-none border-b border-(--color-border)"
-          />
+    <Dialog open={open} onClose={() => setOpen(false)} size="lg" className="overflow-hidden">
+        <input
+          type="text"
+          autoFocus
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Cerca un'azienda…"
+          className="w-full bg-transparent px-5 py-4 text-base text-(--color-text) placeholder:text-(--color-text-subtle) focus:outline-none border-b border-(--color-border)"
+        />
           {totalResults === 0 ? (
             <p className="text-sm text-(--color-text-muted) text-center py-8">
               Nessun risultato.
@@ -177,14 +166,16 @@ export function SearchPalette() {
               ) : null}
             </div>
           )}
-          <div className="px-5 py-2 bg-(--color-surface-muted) text-xs text-(--color-text-subtle) text-right">
-            <kbd className="px-1.5 py-0.5 rounded bg-(--color-surface) border border-(--color-border) font-mono">
-              ⌘K
-            </kbd>{" "}
-            apre · <kbd className="px-1.5 py-0.5 rounded bg-(--color-surface) border border-(--color-border) font-mono">Esc</kbd> chiude
-          </div>
-        </Card>
-      </div>
-    </div>
+        <div className="px-5 py-2 bg-(--color-surface-muted) text-xs text-(--color-text-subtle) text-right">
+          <kbd className="px-1.5 py-0.5 rounded bg-(--color-surface) border border-(--color-border) font-mono">
+            ⌘K
+          </kbd>{" "}
+          apre ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-(--color-surface) border border-(--color-border) font-mono">
+            Esc
+          </kbd>{" "}
+          chiude
+        </div>
+    </Dialog>
   );
 }

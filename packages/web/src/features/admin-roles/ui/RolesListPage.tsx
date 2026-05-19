@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import { AppShell, Button, Card } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useRoles } from "../hooks/useRoles";
@@ -65,9 +66,12 @@ export function RolesListPage() {
                           : `${role.capabilities.length} ${t.capability.toLowerCase()}`}
                       </p>
                     </div>
-                    <span className="text-xs text-(--color-text-subtle) flex-shrink-0 mt-1">
-                      →
-                    </span>
+                    <ChevronRight
+                      size={14}
+                      strokeWidth={1.75}
+                      className="text-(--color-text-subtle) flex-shrink-0 mt-1"
+                      aria-hidden="true"
+                    />
                   </div>
                 </Card>
               </Link>

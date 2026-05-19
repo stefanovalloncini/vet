@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import {
   Button,
-  Card,
+  Dialog,
   Select,
   TextArea,
   TextField,
@@ -80,85 +80,81 @@ export function PaymentDialog({
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md">
-        <Card elevated>
-          <h2 className="text-lg font-medium text-(--color-text)">
-            {row.azienda.nome}
-          </h2>
-          <p className="text-sm text-(--color-text-muted) mt-1">
-            {t.segnaPagato}
-          </p>
-          <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+    <Dialog open onClose={onClose} labelledBy="payment-dialog-title" size="md">
+      <div className="p-5">
+        <h2
+          id="payment-dialog-title"
+          className="text-base font-medium text-(--color-text)"
+        >
+          {row.azienda.nome}
+        </h2>
+        <p className="text-sm text-(--color-text-muted) mt-1">
+          {t.segnaPagato}
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+          <TextField
+            id="pay-periodo"
+            type="date"
+            label={t.campoPeriodoFinoA}
+            value={periodo}
+            onChange={(e) => setPeriodo(e.target.value)}
+            required
+            disabled={busy}
+          />
+          <div className="grid grid-cols-2 gap-3">
             <TextField
-              id="pay-periodo"
-              type="date"
-              label={t.campoPeriodoFinoA}
-              value={periodo}
-              onChange={(e) => setPeriodo(e.target.value)}
-              required
+              id="pay-importo"
+              type="number"
+              step="0.01"
+              min="0"
+              label={t.campoImporto}
+              value={importo}
+              onChange={(e) => setImporto(e.target.value)}
               disabled={busy}
             />
-            <div className="grid grid-cols-2 gap-3">
-              <TextField
-                id="pay-importo"
-                type="number"
-                step="0.01"
-                min="0"
-                label={t.campoImporto}
-                value={importo}
-                onChange={(e) => setImporto(e.target.value)}
-                disabled={busy}
-              />
-              <Select
-                id="pay-metodo"
-                label={t.campoMetodo}
-                value={metodo}
-                onChange={(e) =>
-                  setMetodo(
-                    METODI_PAGAMENTO.includes(e.target.value as MetodoPagamento)
-                      ? (e.target.value as MetodoPagamento)
-                      : ""
-                  )
-                }
-                options={METODI_OPTIONS}
-                disabled={busy}
-              />
-            </div>
-            <TextArea
-              id="pay-note"
-              label={t.campoNote}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
+            <Select
+              id="pay-metodo"
+              label={t.campoMetodo}
+              value={metodo}
+              onChange={(e) =>
+                setMetodo(
+                  METODI_PAGAMENTO.includes(e.target.value as MetodoPagamento)
+                    ? (e.target.value as MetodoPagamento)
+                    : ""
+                )
+              }
+              options={METODI_OPTIONS}
               disabled={busy}
-              maxLength={500}
             />
-            {error ? (
-              <p role="alert" className="text-sm text-(--color-danger)">
-                {error}
-              </p>
-            ) : null}
-            <div className="flex items-center justify-end gap-3">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-                disabled={busy}
-              >
-                {t.annulla}
-              </Button>
-              <Button type="submit" variant="primary" disabled={busy}>
-                {t.salva}
-              </Button>
-            </div>
-          </form>
-        </Card>
+          </div>
+          <TextArea
+            id="pay-note"
+            label={t.campoNote}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            disabled={busy}
+            maxLength={500}
+          />
+          {error ? (
+            <p role="alert" className="text-sm text-(--color-danger)">
+              {error}
+            </p>
+          ) : null}
+          <div className="flex items-center justify-end gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              disabled={busy}
+            >
+              {t.annulla}
+            </Button>
+            <Button type="submit" variant="primary" disabled={busy}>
+              {t.salva}
+            </Button>
+          </div>
+        </form>
       </div>
-    </div>
+    </Dialog>
   );
 }
