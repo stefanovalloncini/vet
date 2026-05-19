@@ -11,13 +11,9 @@ import { WeekdayChart } from "./WeekdayChart";
 import { ZonePanel } from "./ZonePanel";
 import { Sparkline } from "../../dashboard/ui/Sparkline";
 import { formatEuro } from "../../attivita/lib/format";
+import { SHORT_MONTHS } from "../../dashboard/lib/stats";
 
 type Range = "12m" | "ytd" | "all";
-
-const SHORT_MONTHS = [
-  "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
-  "Lug", "Ago", "Set", "Ott", "Nov", "Dic",
-];
 
 export function StatistichePage() {
   const now = useMemo(() => new Date(), []);
@@ -124,20 +120,19 @@ export function StatistichePage() {
 
   const funnel = useMemo(() => {
     const all = items.length;
-    const paidByAzienda = new Map<string, number>();
+    const latestPaidUpTo = new Map<string, number>();
     for (const p of payments) {
-      const cur = paidByAzienda.get(p.aziendaId);
+      const cur = latestPaidUpTo.get(p.aziendaId);
       const t = p.periodoFinoA.getTime();
-      if (cur === undefined || t > cur) paidByAzienda.set(p.aziendaId, t);
+      if (cur === undefined || t > cur) latestPaidUpTo.set(p.aziendaId, t);
     }
+    const aziendaById = new Map(aziende.map((a) => [a.id, a]));
     let paidCount = 0;
     let invoicedCount = 0;
-    const now12 = items[0]?.data ?? new Date();
-    void now12;
     for (const a of items) {
-      const paidUpTo = paidByAzienda.get(a.aziendaId);
+      const paidUpTo = latestPaidUpTo.get(a.aziendaId);
       if (paidUpTo !== undefined && a.data.getTime() <= paidUpTo) paidCount++;
-      const az = aziende.find((x) => x.id === a.aziendaId);
+      const az = aziendaById.get(a.aziendaId);
       if (az?.cadenzaFatturazione) invoicedCount++;
     }
     return [

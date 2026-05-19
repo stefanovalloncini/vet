@@ -39,10 +39,7 @@ export function Funnel({ stages, formatValue }: FunnelProps) {
                 className="h-full rounded-full"
                 style={{
                   width: `${pct}%`,
-                  background:
-                    "color-mix(in oklab, var(--color-accent) " +
-                    (95 - i * 18) +
-                    "%, transparent)",
+                  background: `color-mix(in oklab, var(--color-accent) ${95 - i * 18}%, transparent)`,
                 }}
               />
             </div>

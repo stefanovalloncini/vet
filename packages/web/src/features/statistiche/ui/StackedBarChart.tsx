@@ -12,7 +12,6 @@ interface StackedBar {
 
 interface StackedBarChartProps {
   bars: ReadonlyArray<StackedBar>;
-  paletteSeed?: Record<string, string>;
   formatValue?: (n: number) => string;
 }
 
@@ -44,7 +43,7 @@ export function StackedBarChart({
   const orderedKeys = [...allKeys.entries()]
     .sort((a, b) => b[1].total - a[1].total)
     .map(([k, v], i) => {
-      colorByKey.set(k, PALETTE[i % PALETTE.length] ?? PALETTE[0]!);
+      colorByKey.set(k, PALETTE[i % PALETTE.length]!);
       return { key: k, label: v.label, total: v.total };
     });
 

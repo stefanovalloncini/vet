@@ -74,7 +74,7 @@ export function percentDiff(current: number, previous: number): number | null {
   return Math.round(((current - previous) / previous) * 100);
 }
 
-const SHORT_MONTHS = [
+export const SHORT_MONTHS = [
   "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
   "Lug", "Ago", "Set", "Ott", "Nov", "Dic",
 ];

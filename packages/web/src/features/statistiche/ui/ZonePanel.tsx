@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { groupByZone } from "../lib/zones";
 import type { Azienda } from "@vet/shared";
@@ -7,7 +8,7 @@ interface ZonePanelProps {
 }
 
 export function ZonePanel({ aziende }: ZonePanelProps) {
-  const zones = groupByZone(aziende).slice(0, 8);
+  const zones = useMemo(() => groupByZone(aziende).slice(0, 8), [aziende]);
   if (zones.length === 0) return null;
 
   return (
