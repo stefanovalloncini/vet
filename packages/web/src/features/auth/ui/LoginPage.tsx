@@ -68,9 +68,6 @@ export function LoginPage() {
           <h1 className="text-3xl text-(--color-text)">
             Accedi al gestionale
           </h1>
-          <p className="text-(--color-text-muted) mt-3 text-sm max-w-xs">
-            Registra le visite negli allevamenti, gestisci le fatture, esporta in un click.
-          </p>
         </div>
 
         <Card elevated>
