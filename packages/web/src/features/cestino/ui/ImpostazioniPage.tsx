@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AppShell, Button, Card } from "../../../shared/ui";
+import { AppShell, Button, Card, PageHeader } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { impostazioniI18n as t } from "../i18n";
@@ -92,12 +92,7 @@ export function ImpostazioniPage() {
 
   return (
     <AppShell>
-      <header className="mb-8 max-w-2xl">
-        <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
-          {t.title}
-        </h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
-      </header>
+      <PageHeader title={t.title} subtitle={t.subtitle} />
 
       <div className="max-w-2xl">
         <Card>

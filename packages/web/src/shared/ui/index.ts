@@ -14,3 +14,5 @@ export { Dialog } from "./Dialog";
 export { EmptyState } from "./EmptyState";
 export { Tabs } from "./Tabs";
 export { Badge } from "./Badge";
+export { PageHeader } from "./PageHeader";
+export { DataLoader } from "./DataLoader";

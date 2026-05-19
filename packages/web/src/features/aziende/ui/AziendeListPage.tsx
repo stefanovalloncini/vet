@@ -5,7 +5,9 @@ import {
   AppShell,
   Button,
   Card,
+  DataLoader,
   EmptyState,
+  PageHeader,
   TextField,
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
@@ -47,17 +49,11 @@ export function AziendeListPage() {
 
   return (
     <AppShell>
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
-            {t.title}
-          </h1>
-          <p className="text-(--color-text-muted) mt-2 text-sm">
-            {t.subtitle}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {canCreate ? (
+      <PageHeader
+        title={t.title}
+        subtitle={t.subtitle}
+        actions={
+          canCreate ? (
             <>
               <Link
                 to="/aziende/importa"
@@ -71,9 +67,9 @@ export function AziendeListPage() {
                 </Button>
               </Link>
             </>
-          ) : null}
-        </div>
-      </header>
+          ) : null
+        }
+      />
 
       <div className="mb-6 max-w-md">
         <TextField
@@ -85,13 +81,14 @@ export function AziendeListPage() {
         />
       </div>
 
-      {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
-      ) : error ? (
-        <p className="text-sm text-(--color-danger)">{t.erroreSalvataggio}</p>
-      ) : filtered.length === 0 ? (
-        <EmptyState title={search.trim() ? t.emptySearch : t.empty} />
-      ) : (
+      <DataLoader
+        loading={loading}
+        error={error ? t.erroreSalvataggio : null}
+        empty={filtered.length === 0}
+        emptyState={
+          <EmptyState title={search.trim() ? t.emptySearch : t.empty} />
+        }
+      >
         <ul className="space-y-3">
           {filtered.map((a) => (
             <li key={a.id}>
@@ -104,7 +101,7 @@ export function AziendeListPage() {
             </li>
           ))}
         </ul>
-      )}
+      </DataLoader>
     </AppShell>
   );
 }
