@@ -18,3 +18,4 @@ export { PageHeader } from "./PageHeader";
 export { DataLoader } from "./DataLoader";
 export { RouteBoundary } from "./RouteBoundary";
 export { VersionBadge } from "./VersionBadge";
+export { Spinner } from "./Spinner";

@@ -5,7 +5,7 @@ import {
   EmailLinkCompletePage,
   RequireAuth,
 } from "./features/auth";
-import { Brand, RouteBoundary } from "./shared/ui";
+import { Brand, RouteBoundary, Spinner } from "./shared/ui";
 
 const AziendeListPage = lazy(() =>
   import("./features/aziende").then((m) => ({ default: m.AziendeListPage }))
@@ -90,9 +90,9 @@ const HomePage = lazy(() =>
 function RouteFallback() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-(--color-background)">
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-5">
         <Brand size="md" />
-        <p className="text-xs text-(--color-text-subtle)">Caricamento…</p>
+        <Spinner size={22} label="Caricamento…" />
       </div>
     </main>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { Brand, Button, Card, TextField } from "../../../shared/ui";
+import { Brand, Button, Card, Spinner, TextField } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
 import { getAuthErrorMessage } from "../lib/authErrors";
 
@@ -89,9 +89,9 @@ export function EmailLinkCompletePage() {
               </p>
             </div>
           ) : (
-            <p className="text-sm text-(--color-text-muted) text-center py-2">
-              Accesso in corso...
-            </p>
+            <div className="flex justify-center py-2">
+              <Spinner size={22} label="Accesso in corso…" />
+            </div>
           )}
         </Card>
       </div>
