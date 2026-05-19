@@ -38,12 +38,13 @@ export function InstallBanner() {
   return (
     <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:max-w-sm z-30 print:hidden">
       <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl p-4 shadow-lg flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-(--color-accent) text-white flex items-center justify-center flex-shrink-0">
-          M
-        </div>
+        <div
+          aria-hidden="true"
+          className="w-10 h-10 rounded-xl bg-(--color-accent) flex-shrink-0"
+        />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-(--color-text)">
-            Installa Marinoni sul telefono
+            Installa l'app sul telefono
           </p>
           <p className="text-xs text-(--color-text-muted) mt-1">
             Apri come app, anche offline.

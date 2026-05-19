@@ -9,7 +9,7 @@ export function useTitleBadge() {
   useEffect(() => {
     if (!user?.caps.has("reminders.read")) return;
     let cancelled = false;
-    const baseTitle = "Marinoni — Studio veterinario";
+    const baseTitle = "Studio veterinario";
     void (async () => {
       try {
         const list = await reminders.list({ onlyOpen: true });

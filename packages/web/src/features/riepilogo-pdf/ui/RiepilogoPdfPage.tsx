@@ -114,7 +114,7 @@ export function RiepilogoPdfPage() {
             <div className="flex items-baseline justify-between">
               <div>
                 <h1 className="text-3xl text-(--color-text)">
-                  Studio Marinoni
+                  Studio veterinario
                 </h1>
                 <p className="text-xs text-(--color-text-muted) mt-1">
                   Veterinaria per allevamenti

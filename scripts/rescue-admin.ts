@@ -3,7 +3,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { CAPABILITIES, type Capability } from "@vet/shared";
 
-const PROJECT_ID = process.env.FIREBASE_PROJECT_ID ?? "vet-marinoni";
+const PROJECT_ID = process.env.FIREBASE_PROJECT_ID ?? "vet-app";
 const EMAIL = process.env.RESCUE_EMAIL;
 
 if (!EMAIL) {

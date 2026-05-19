@@ -28,8 +28,8 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: "Marinoni — Studio veterinario",
-        short_name: "Marinoni",
+        name: "Studio veterinario",
+        short_name: "Studio",
         description: "Gestionale per attività di studio veterinario.",
         theme_color: "#688a68",
         background_color: "#f7f3eb",
