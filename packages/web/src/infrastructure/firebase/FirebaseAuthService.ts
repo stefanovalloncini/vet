@@ -67,11 +67,12 @@ export class FirebaseAuthService implements AuthService {
     window.localStorage.setItem(EMAIL_LINK_STORAGE_KEY, email);
   }
 
-  async completeEmailSignIn(emailLinkUrl: string): Promise<void> {
+  async completeEmailSignIn(emailLinkUrl: string, providedEmail?: string): Promise<void> {
     if (!isSignInWithEmailLink(this.auth, emailLinkUrl)) {
       throw new Error("invalid sign-in link");
     }
-    const email = window.localStorage.getItem(EMAIL_LINK_STORAGE_KEY);
+    const stored = window.localStorage.getItem(EMAIL_LINK_STORAGE_KEY);
+    const email = providedEmail ?? stored;
     if (!email) throw new Error("email not remembered for sign-in");
     await signInWithEmailLink(this.auth, email, emailLinkUrl);
     window.localStorage.removeItem(EMAIL_LINK_STORAGE_KEY);

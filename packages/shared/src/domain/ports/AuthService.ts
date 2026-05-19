@@ -9,6 +9,6 @@ export interface AuthService {
   subscribe(cb: AuthStateSubscriber): () => void;
   signInWithGoogle(): Promise<void>;
   sendEmailSignInLink(email: string): Promise<void>;
-  completeEmailSignIn(emailLinkUrl: string): Promise<void>;
+  completeEmailSignIn(emailLinkUrl: string, providedEmail?: string): Promise<void>;
   signOut(): Promise<void>;
 }
