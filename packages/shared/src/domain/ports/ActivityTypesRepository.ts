@@ -7,4 +7,5 @@ export interface ActivityTypesRepository {
   getById(id: string): Promise<ActivityType | null>;
   upsert(id: string, input: ActivityTypeInput): Promise<void>;
   setActive(id: string, attivo: boolean): Promise<void>;
+  setStandardTariff(id: string, tariffa: number | null): Promise<void>;
 }

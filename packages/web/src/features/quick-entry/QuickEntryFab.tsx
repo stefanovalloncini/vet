@@ -15,11 +15,20 @@ import {
   type AttivitaInput,
 } from "@vet/shared";
 
+function todayIsoDate(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export function QuickEntryFab() {
   const { user } = useAuthState();
   const { attivita } = useRepositories();
   const ref = useReferenceData();
   const [open, setOpen] = useState(false);
+  const [data, setData] = useState<string>(todayIsoDate());
   const [aziendaId, setAziendaId] = useState("");
   const [tipoId, setTipoId] = useState("");
   const [tariffa, setTariffa] = useState("");
@@ -53,22 +62,29 @@ export function QuickEntryFab() {
   }, [open, attivita]);
 
   useEffect(() => {
-    if (!open) return;
-    if (!aziendaId || tipoId !== GINECOLOGIA_TIPO_ID || tariffa) return;
-    let cancelled = false;
-    void (async () => {
-      const last = await attivita.findLastByAziendaAndTipo(aziendaId, GINECOLOGIA_TIPO_ID);
-      if (cancelled || !last) return;
-      setTariffa(String(last.tariffa));
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [aziendaId, tipoId, tariffa, open, attivita]);
+    if (!open || !tipoId || tariffa) return;
+    if (tipoId === GINECOLOGIA_TIPO_ID) {
+      if (!aziendaId) return;
+      let cancelled = false;
+      void (async () => {
+        const last = await attivita.findLastByAziendaAndTipo(aziendaId, GINECOLOGIA_TIPO_ID);
+        if (cancelled || !last) return;
+        setTariffa(String(last.tariffa));
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+    const tipo = ref.tipi.find((t) => t.id === tipoId);
+    if (tipo?.tariffaStandard !== undefined) {
+      setTariffa(String(tipo.tariffaStandard));
+    }
+  }, [aziendaId, tipoId, tariffa, open, attivita, ref.tipi]);
 
   if (!canCreate) return null;
 
   function reset() {
+    setData(todayIsoDate());
     setAziendaId("");
     setTipoId("");
     setTariffa("");
@@ -79,7 +95,7 @@ export function QuickEntryFab() {
     e.preventDefault();
     if (!user) return;
     const candidate: Record<string, unknown> = {
-      data: new Date(),
+      data: new Date(`${data}T00:00:00`),
       aziendaId,
       tipoId,
       oraria: false,
@@ -155,10 +171,15 @@ export function QuickEntryFab() {
           <h2 id="quick-entry-title" className="text-base font-medium text-(--color-text)">
             Voce rapida
           </h2>
-          <p className="text-xs text-(--color-text-muted) mt-1">
-            La data è impostata su oggi.
-          </p>
           <form onSubmit={handleSubmit} className="space-y-3 mt-5">
+            <TextField
+              id="qe-data"
+              type="date"
+              label="Data"
+              value={data}
+              onChange={(e) => setData(e.target.value)}
+              required
+            />
             <Select
               id="qe-azienda"
               label="Azienda"

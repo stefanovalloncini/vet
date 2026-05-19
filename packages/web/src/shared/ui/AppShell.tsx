@@ -9,6 +9,7 @@ import { InstallBanner, useTitleBadge } from "../../features/pwa-install";
 import { useTheme } from "../theme/useTheme";
 import { Brand } from "./Brand";
 import { MobileNav } from "./MobileNav";
+import { VersionBadge } from "./VersionBadge";
 
 interface NavItem {
   to: string;
@@ -169,8 +170,11 @@ export function AppShell({ children }: AppShellProps) {
           </button>
         </div>
 
-        <div className="border-t border-(--color-border) px-5 py-3 text-[11px] text-(--color-text-subtle) truncate">
-          {user?.email}
+        <div className="border-t border-(--color-border) px-5 py-3 space-y-1">
+          <p className="text-[11px] text-(--color-text-subtle) truncate">
+            {user?.email}
+          </p>
+          <VersionBadge />
         </div>
       </aside>
 

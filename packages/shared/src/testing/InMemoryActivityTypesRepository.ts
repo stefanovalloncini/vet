@@ -25,12 +25,17 @@ export class InMemoryActivityTypesRepository implements ActivityTypesRepository 
   async upsert(id: string, input: ActivityTypeInput): Promise<void> {
     const now = this.clock();
     const existing = this.map.get(id);
+    const tariffaPart =
+      input.tariffaStandard !== undefined
+        ? { tariffaStandard: input.tariffaStandard }
+        : {};
     if (existing) {
       this.map.set(id, {
         ...existing,
         nome: input.nome,
         ordine: input.ordine,
         attivo: input.attivo,
+        ...tariffaPart,
         updatedAt: now,
       });
     } else {
@@ -39,6 +44,7 @@ export class InMemoryActivityTypesRepository implements ActivityTypesRepository 
         nome: input.nome,
         ordine: input.ordine,
         attivo: input.attivo,
+        ...tariffaPart,
         createdAt: now,
         updatedAt: now,
         schemaVersion: 1,
@@ -50,5 +56,16 @@ export class InMemoryActivityTypesRepository implements ActivityTypesRepository 
     const existing = this.map.get(id);
     if (!existing) throw new Error("not-found");
     this.map.set(id, { ...existing, attivo, updatedAt: this.clock() });
+  }
+
+  async setStandardTariff(id: string, tariffa: number | null): Promise<void> {
+    const existing = this.map.get(id);
+    if (!existing) throw new Error("not-found");
+    if (tariffa === null) {
+      const { tariffaStandard: _ignored, ...rest } = existing;
+      this.map.set(id, { ...rest, updatedAt: this.clock() });
+    } else {
+      this.map.set(id, { ...existing, tariffaStandard: tariffa, updatedAt: this.clock() });
+    }
   }
 }

@@ -4,7 +4,7 @@ import { AppShell, Button, useToast } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
-import { useGinecologiaSuggestion } from "../hooks/useGinecologiaSuggestion";
+import { useTariffaSuggestion } from "../hooks/useTariffaSuggestion";
 import { attivitaI18n as t } from "../i18n";
 import {
   attivitaInputSchema,
@@ -91,9 +91,10 @@ export function AttivitaFormPage() {
   }, [id, cloneId, isEdit, presetDate, navigate, repo]);
 
   const { suggested: tariffaSuggested, clear: clearTariffaSuggestion } =
-    useGinecologiaSuggestion({
+    useTariffaSuggestion({
       aziendaId: form.aziendaId,
       tipoId: form.tipoId,
+      tipi: ref.tipi,
       isEdit,
       currentTariffa: form.tariffa,
       onSuggest: (value) => setForm((s) => ({ ...s, tariffa: value })),

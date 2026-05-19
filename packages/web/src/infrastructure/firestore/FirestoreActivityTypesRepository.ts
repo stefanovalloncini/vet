@@ -8,6 +8,7 @@ import {
   query,
   orderBy,
   where,
+  deleteField,
   type Firestore,
 } from "firebase/firestore";
 import type {
@@ -44,18 +45,18 @@ export class FirestoreActivityTypesRepository
   }
 
   async upsert(id: string, input: ActivityTypeInput): Promise<void> {
-    await setDoc(
-      doc(this.db, "activity_types", id),
-      {
-        nome: input.nome,
-        ordine: input.ordine,
-        attivo: input.attivo,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        schemaVersion: 1,
-      },
-      { merge: true }
-    );
+    const payload: Record<string, unknown> = {
+      nome: input.nome,
+      ordine: input.ordine,
+      attivo: input.attivo,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      schemaVersion: 1,
+    };
+    if (input.tariffaStandard !== undefined) {
+      payload["tariffaStandard"] = input.tariffaStandard;
+    }
+    await setDoc(doc(this.db, "activity_types", id), payload, { merge: true });
   }
 
   async setActive(id: string, attivo: boolean): Promise<void> {
@@ -65,14 +66,27 @@ export class FirestoreActivityTypesRepository
       { merge: true }
     );
   }
+
+  async setStandardTariff(id: string, tariffa: number | null): Promise<void> {
+    await setDoc(
+      doc(this.db, "activity_types", id),
+      {
+        tariffaStandard: tariffa === null ? deleteField() : tariffa,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  }
 }
 
 function fromSnap(id: string, data: Record<string, unknown>): ActivityType {
+  const tariffa = data.tariffaStandard;
   return {
     id,
     nome: data.nome as string,
     ordine: (data.ordine as number) ?? 0,
     attivo: (data.attivo as boolean) ?? true,
+    ...(typeof tariffa === "number" ? { tariffaStandard: tariffa } : {}),
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),
     schemaVersion: 1,

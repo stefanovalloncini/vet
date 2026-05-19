@@ -20,6 +20,7 @@ export const activityTypeInputSchema = z
     nome: nomeSchema,
     ordine: z.number().int().min(0).max(1000),
     attivo: z.boolean().default(true),
+    tariffaStandard: z.number().min(0).max(100000).optional(),
   })
   .strict();
 
@@ -28,6 +29,7 @@ export const activityTypeDocSchema = z
     nome: z.string().min(1).max(80),
     ordine: z.number().int().min(0).max(1000),
     attivo: z.boolean(),
+    tariffaStandard: z.number().min(0).max(100000).optional(),
     createdAt: z.date(),
     updatedAt: z.date(),
     schemaVersion: z.literal(1),
