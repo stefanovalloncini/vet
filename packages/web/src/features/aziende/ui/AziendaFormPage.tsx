@@ -3,10 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   AppShell,
   Button,
-  Card,
-  Select,
-  TextArea,
-  TextField,
   useToast,
 } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
@@ -16,53 +12,13 @@ import {
   aziendaInputSchema,
   normalizeAziendaNome,
   type AziendaInput,
-  type CadenzaFatturazione,
-  type TipoAllevamento,
   type Azienda,
 } from "@vet/shared";
-
-interface FormState {
-  nome: string;
-  indirizzo: string;
-  telefono: string;
-  piva: string;
-  emailFatturazione: string;
-  cadenzaFatturazione: CadenzaFatturazione | "";
-  tipoAllevamento: TipoAllevamento | "";
-  numeroCapi: string;
-  note: string;
-}
-
-const empty: FormState = {
-  nome: "",
-  indirizzo: "",
-  telefono: "",
-  piva: "",
-  emailFatturazione: "",
-  cadenzaFatturazione: "",
-  tipoAllevamento: "",
-  numeroCapi: "",
-  note: "",
-};
-
-const CADENZA_OPTIONS = [
-  { value: "", label: t.campoCadenzaNessuna },
-  { value: "monthly", label: t.campoCadenzaMensile },
-  { value: "quarterly", label: t.campoCadenzaTrimestrale },
-  { value: "semiannual", label: t.campoCadenzaSemestrale },
-];
-
-const TIPO_OPTIONS = [
-  { value: "", label: t.campoTipoNessuno },
-  { value: "bovini", label: t.tipoBovini },
-  { value: "ovini", label: t.tipoOvini },
-  { value: "caprini", label: t.tipoCaprini },
-  { value: "suini", label: t.tipoSuini },
-  { value: "avicoli", label: t.tipoAvicoli },
-  { value: "equini", label: t.tipoEquini },
-  { value: "misto", label: t.tipoMisto },
-  { value: "altro", label: t.tipoAltro },
-];
+import {
+  AziendaFormFields,
+  emptyAziendaForm,
+  type AziendaFormState,
+} from "./AziendaFormFields";
 
 export function AziendaFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -72,11 +28,13 @@ export function AziendaFormPage() {
   const { aziende: repo } = useRepositories();
   const { notify } = useToast();
 
-  const [form, setForm] = useState<FormState>(empty);
+  const [form, setForm] = useState<AziendaFormState>(emptyAziendaForm);
   const [loadedAzienda, setLoadedAzienda] = useState<Azienda | null>(null);
   const [loading, setLoading] = useState<boolean>(isEdit);
   const [busy, setBusy] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof AziendaFormState, string>>
+  >({});
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -111,7 +69,10 @@ export function AziendaFormPage() {
 
   const title = isEdit ? t.titoloModifica : t.titoloNuova;
 
-  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
+  function update<K extends keyof AziendaFormState>(
+    key: K,
+    value: AziendaFormState[K]
+  ) {
     setForm((s) => ({ ...s, [key]: value }));
     if (errors[key]) {
       setErrors((e) => ({ ...e, [key]: undefined }));
@@ -135,9 +96,9 @@ export function AziendaFormPage() {
 
     const parsed = aziendaInputSchema.safeParse(candidate);
     if (!parsed.success) {
-      const fieldErrors: Partial<Record<keyof FormState, string>> = {};
+      const fieldErrors: Partial<Record<keyof AziendaFormState, string>> = {};
       for (const issue of parsed.error.issues) {
-        const path = issue.path[0] as keyof FormState;
+        const path = issue.path[0] as keyof AziendaFormState;
         if (path === "piva") fieldErrors.piva = t.errorePivaNonValida;
         else if (path === "emailFatturazione")
           fieldErrors.emailFatturazione = t.erroreEmailNonValida;
@@ -232,113 +193,12 @@ export function AziendaFormPage() {
     <AppShell>
       {heading}
       <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
-        <Card>
-          <div className="space-y-5">
-            <TextField
-              id="nome"
-              label={t.campoNome}
-              value={form.nome}
-              onChange={(e) => update("nome", e.target.value)}
-              required
-              hint={t.campoNomeHint}
-              error={errors.nome}
-              disabled={busy}
-              autoFocus
-              maxLength={200}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <TextField
-                id="indirizzo"
-                label={t.campoIndirizzo}
-                value={form.indirizzo}
-                onChange={(e) => update("indirizzo", e.target.value)}
-                error={errors.indirizzo}
-                disabled={busy}
-                maxLength={300}
-              />
-              <TextField
-                id="telefono"
-                label={t.campoTelefono}
-                value={form.telefono}
-                onChange={(e) => update("telefono", e.target.value)}
-                error={errors.telefono}
-                disabled={busy}
-                maxLength={40}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <Select
-                id="tipo-allevamento"
-                label={t.campoTipoAllevamento}
-                value={form.tipoAllevamento}
-                onChange={(e) =>
-                  update(
-                    "tipoAllevamento",
-                    (e.target.value as TipoAllevamento | "") ?? ""
-                  )
-                }
-                options={TIPO_OPTIONS}
-                disabled={busy}
-              />
-              <TextField
-                id="numero-capi"
-                type="number"
-                min="0"
-                max="100000"
-                step="1"
-                label={t.campoNumeroCapi}
-                value={form.numeroCapi}
-                onChange={(e) => update("numeroCapi", e.target.value)}
-                error={errors.numeroCapi}
-                disabled={busy}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <TextField
-                id="piva"
-                label={t.campoPiva}
-                value={form.piva}
-                onChange={(e) => update("piva", e.target.value)}
-                error={errors.piva}
-                disabled={busy}
-                maxLength={13}
-                placeholder="12345678903"
-              />
-              <Select
-                id="cadenza"
-                label={t.campoCadenza}
-                value={form.cadenzaFatturazione}
-                onChange={(e) =>
-                  update(
-                    "cadenzaFatturazione",
-                    (e.target.value as CadenzaFatturazione | "") ?? ""
-                  )
-                }
-                options={CADENZA_OPTIONS}
-                disabled={busy}
-              />
-            </div>
-            <TextField
-              id="email-fatturazione"
-              type="email"
-              label={t.campoEmailFatturazione}
-              value={form.emailFatturazione}
-              onChange={(e) => update("emailFatturazione", e.target.value)}
-              error={errors.emailFatturazione}
-              disabled={busy}
-              maxLength={120}
-            />
-            <TextArea
-              id="note"
-              label={t.campoNote}
-              value={form.note}
-              onChange={(e) => update("note", e.target.value)}
-              error={errors.note}
-              disabled={busy}
-              maxLength={1000}
-            />
-          </div>
-        </Card>
+        <AziendaFormFields
+          form={form}
+          errors={errors}
+          busy={busy}
+          onUpdate={update}
+        />
 
         {globalError ? (
           <p role="alert" className="text-sm text-(--color-danger)">
