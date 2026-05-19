@@ -4,7 +4,7 @@ import { useAuthState } from "../hooks/useAuthState";
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { loading, user } = useAuthState();
+  if (user) return <>{children}</>;
   if (loading) return <p>Caricamento...</p>;
-  if (!user) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+  return <Navigate to="/login" replace />;
 }

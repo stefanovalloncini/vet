@@ -9,9 +9,9 @@ export interface AuthState {
 
 export function useAuthState(): AuthState {
   const { auth } = useRepositories();
-  const [state, setState] = useState<AuthState>({
-    loading: true,
-    user: auth.getCurrentUser(),
+  const [state, setState] = useState<AuthState>(() => {
+    const user = auth.getCurrentUser();
+    return { loading: user === null, user };
   });
 
   useEffect(() => {
