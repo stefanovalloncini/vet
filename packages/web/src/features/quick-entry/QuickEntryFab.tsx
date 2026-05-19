@@ -344,7 +344,7 @@ export function QuickEntryFab() {
             ) : null}
             {duplicateExists ? (
               <p className="text-xs text-(--color-danger)">
-                Esiste già un'attività con lo stesso cliente, tipo e data.
+                Esiste già un&apos;attività con lo stesso cliente, tipo e data.
               </p>
             ) : null}
             {error ? (

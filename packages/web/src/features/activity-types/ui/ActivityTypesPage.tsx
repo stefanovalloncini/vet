@@ -230,7 +230,7 @@ function TypeRow({
       ) : null}
       {isGinecologia ? (
         <p className="mt-3 text-xs text-(--color-text-subtle)">
-          Ginecologia: tariffa per cliente, ricordata dall'ultima visita.
+          Ginecologia: tariffa per cliente, ricordata dall&apos;ultima visita.
         </p>
       ) : null}
     </Card>

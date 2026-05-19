@@ -94,6 +94,24 @@ body {
   border-radius: 4px;
 }
 
+/* iOS Safari/Brave: native date/time inputs ignore width:100% and have a
+   minimum intrinsic width that overflows the parent. Force them to behave. */
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="month"],
+input[type="week"] {
+  min-width: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="date"]::-webkit-date-and-time-value,
+input[type="datetime-local"]::-webkit-date-and-time-value,
+input[type="time"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.25rem;
+}
+
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }

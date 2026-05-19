@@ -36,7 +36,7 @@ export function InstallBanner() {
   if (!event || hidden) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:max-w-sm z-30 print:hidden">
+    <div className="fixed bottom-20 sm:bottom-4 left-4 right-4 sm:left-auto sm:max-w-sm z-30 print:hidden">
       <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl p-4 shadow-lg flex items-start gap-3">
         <div
           aria-hidden="true"
@@ -44,7 +44,7 @@ export function InstallBanner() {
         />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-(--color-text)">
-            Installa l'app sul telefono
+            Installa l&apos;app sul telefono
           </p>
           <p className="text-xs text-(--color-text-muted) mt-1">
             Apri come app, anche offline.

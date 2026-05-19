@@ -54,7 +54,7 @@ export function EmailLinkCompletePage() {
                   Conferma la tua email
                 </h1>
                 <p className="text-sm text-(--color-text-muted) mt-1">
-                  Inserisci l'email a cui è stato inviato il link.
+                  Inserisci l&apos;email a cui è stato inviato il link.
                 </p>
               </div>
               <TextField

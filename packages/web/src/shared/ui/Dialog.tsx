@@ -48,7 +48,7 @@ export function Dialog({
       }}
     >
       <div
-        className={`w-full ${sizeMap[size]} bg-(--color-surface) border border-(--color-border) rounded-lg shadow-xl animate-scale-in ${className}`}
+        className={`w-full min-w-0 ${sizeMap[size]} bg-(--color-surface) border border-(--color-border) rounded-lg shadow-xl animate-scale-in overflow-hidden ${className}`}
       >
         {children}
       </div>
