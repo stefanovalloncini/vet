@@ -17,12 +17,35 @@ export function ImpostazioniPage() {
     setExporting(true);
     setError(null);
     try {
-      const [az, at, pa, re] = await Promise.all([
-        aziende.list(),
-        attivita.list(),
-        payments.list(),
-        reminders.list(),
-      ]);
+      const calls = [
+        { name: "aziende", run: () => aziende.list() },
+        { name: "attivita", run: () => attivita.list() },
+        { name: "payments", run: () => payments.list() },
+        { name: "reminders", run: () => reminders.list() },
+      ] as const;
+      const results = await Promise.all(
+        calls.map(async (c) => {
+          try {
+            return { name: c.name, ok: true as const, value: await c.run() };
+          } catch (e) {
+            return { name: c.name, ok: false as const, err: e };
+          }
+        })
+      );
+      const failed = results.filter((r) => !r.ok);
+      if (failed.length > 0) {
+        const detail = failed
+          .map((f) => `${f.name}: ${f.err instanceof Error ? f.err.message : String(f.err)}`)
+          .join("; ");
+        console.error("export failed", failed);
+        setError(`Export non riuscito (${detail})`);
+        setExporting(false);
+        return;
+      }
+      const az = (results[0] as { ok: true; value: Awaited<ReturnType<typeof aziende.list>> }).value;
+      const at = (results[1] as { ok: true; value: Awaited<ReturnType<typeof attivita.list>> }).value;
+      const pa = (results[2] as { ok: true; value: Awaited<ReturnType<typeof payments.list>> }).value;
+      const re = (results[3] as { ok: true; value: Awaited<ReturnType<typeof reminders.list>> }).value;
       const payload = {
         exportedAt: new Date().toISOString(),
         exportedBy: user?.email ?? "",

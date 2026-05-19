@@ -85,6 +85,22 @@
         { "fieldPath": "attivo", "order": "ASCENDING" },
         { "fieldPath": "ordine", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "payments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "aziendaId", "order": "ASCENDING" },
+        { "fieldPath": "periodoFinoA", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reminders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "aziendaId", "order": "ASCENDING" },
+        { "fieldPath": "dueAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

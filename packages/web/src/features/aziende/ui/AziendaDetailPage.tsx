@@ -28,6 +28,7 @@ export function AziendaDetailPage() {
   const [items, setItems] = useState<Attivita[]>([]);
   const [pays, setPays] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const { reminders } = useReminders();
   const { tagsFor, setForAzienda } = useTags();
 
@@ -35,20 +36,27 @@ export function AziendaDetailPage() {
     if (!id) return;
     let cancelled = false;
     void (async () => {
-      const [az, list, pa] = await Promise.all([
-        aziende.getById(id),
-        attivita.list({ aziendaId: id }),
-        payments.listForAzienda(id),
-      ]);
-      if (cancelled) return;
-      if (!az) {
-        navigate("/aziende", { replace: true });
-        return;
+      try {
+        const [az, list, pa] = await Promise.all([
+          aziende.getById(id),
+          attivita.list({ aziendaId: id }),
+          payments.listForAzienda(id),
+        ]);
+        if (cancelled) return;
+        if (!az) {
+          navigate("/aziende", { replace: true });
+          return;
+        }
+        setA(az);
+        setItems(list);
+        setPays(pa);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("azienda detail load failed", err);
+        setLoadError(err instanceof Error ? err.message : String(err));
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setA(az);
-      setItems(list);
-      setPays(pa);
-      setLoading(false);
     })();
     return () => {
       cancelled = true;
@@ -68,6 +76,16 @@ export function AziendaDetailPage() {
     () => pays.reduce((s, x) => s + (x.importoPagato ?? 0), 0),
     [pays]
   );
+
+  if (loadError) {
+    return (
+      <AppShell>
+        <p role="alert" className="text-sm text-(--color-danger)">
+          Errore caricamento azienda: {loadError}
+        </p>
+      </AppShell>
+    );
+  }
 
   if (loading || !a) {
     return (
