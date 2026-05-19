@@ -5,6 +5,8 @@ import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
 import { useTariffaSuggestion } from "../hooks/useTariffaSuggestion";
+import { QuickAddAziendaDialog } from "../../aziende/ui/QuickAddAziendaDialog";
+import { QuickAddTipoDialog } from "../../activity-types/ui/QuickAddTipoDialog";
 import { attivitaI18n as t } from "../i18n";
 import {
   attivitaInputSchema,
@@ -234,6 +236,12 @@ export function AttivitaFormPage() {
     isEdit &&
     (user?.caps.has("activities.delete.own") ?? false) &&
     loaded?.ownerUid === user?.uid;
+  const canCreateAzienda = user?.caps.has("aziende.create") ?? false;
+  const canCreateTipo = user?.caps.has("activity_types.manage") ?? false;
+  const [addAziendaOpen, setAddAziendaOpen] = useState(false);
+  const [addTipoOpen, setAddTipoOpen] = useState(false);
+  const nextTipoOrdine =
+    (ref.tipi.reduce((m, t) => Math.max(m, t.ordine), 0) || 0) + 10;
 
   if (loading || ref.loading) {
     return (
@@ -268,8 +276,47 @@ export function AttivitaFormPage() {
           totaleLive={totaleLive}
           aziendaOptions={aziendaOptions}
           tipoOptions={tipoOptions}
+          aziendaAction={
+            canCreateAzienda ? (
+              <button
+                type="button"
+                onClick={() => setAddAziendaOpen(true)}
+                className="text-(--color-accent) hover:underline font-medium"
+              >
+                + Nuova
+              </button>
+            ) : null
+          }
+          tipoAction={
+            canCreateTipo ? (
+              <button
+                type="button"
+                onClick={() => setAddTipoOpen(true)}
+                className="text-(--color-accent) hover:underline font-medium"
+              >
+                + Nuovo
+              </button>
+            ) : null
+          }
           onUpdate={update}
           onTariffaInput={onTariffaInput}
+        />
+        <QuickAddAziendaDialog
+          open={addAziendaOpen}
+          onClose={() => setAddAziendaOpen(false)}
+          onCreated={(a) => {
+            ref.addAzienda(a);
+            update("aziendaId", a.id);
+          }}
+        />
+        <QuickAddTipoDialog
+          open={addTipoOpen}
+          onClose={() => setAddTipoOpen(false)}
+          nextOrdine={nextTipoOrdine}
+          onCreated={(tp) => {
+            ref.addTipo(tp);
+            update("tipoId", tp.id);
+          }}
         />
 
         {globalError ? (

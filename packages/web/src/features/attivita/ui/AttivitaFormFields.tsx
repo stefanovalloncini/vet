@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   Card,
   Select,
@@ -29,6 +30,8 @@ interface AttivitaFormFieldsProps {
   totaleLive: number | null;
   aziendaOptions: ReadonlyArray<{ value: string; label: string }>;
   tipoOptions: ReadonlyArray<{ value: string; label: string }>;
+  aziendaAction?: ReactNode;
+  tipoAction?: ReactNode;
   onUpdate: <K extends keyof AttivitaFormState>(
     key: K,
     value: AttivitaFormState[K]
@@ -45,6 +48,8 @@ export function AttivitaFormFields({
   totaleLive,
   aziendaOptions,
   tipoOptions,
+  aziendaAction,
+  tipoAction,
   onUpdate,
   onTariffaInput,
 }: AttivitaFormFieldsProps) {
@@ -70,6 +75,7 @@ export function AttivitaFormFields({
             options={aziendaOptions}
             error={errors.aziendaId}
             disabled={busy}
+            action={aziendaAction}
           />
         </div>
         <Select
@@ -80,6 +86,7 @@ export function AttivitaFormFields({
           options={tipoOptions}
           error={errors.tipoId}
           disabled={busy}
+          action={tipoAction}
         />
 
         <label className="flex items-center gap-3 cursor-pointer">

@@ -1,4 +1,4 @@
-import type { SelectHTMLAttributes } from "react";
+import type { ReactNode, SelectHTMLAttributes } from "react";
 
 interface SelectOption {
   value: string;
@@ -11,6 +11,7 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   options: ReadonlyArray<SelectOption>;
   error?: string | undefined;
   hint?: string | undefined;
+  action?: ReactNode;
 }
 
 export function Select({
@@ -19,6 +20,7 @@ export function Select({
   options,
   error,
   hint,
+  action,
   className = "",
   ...rest
 }: SelectProps) {
@@ -34,12 +36,15 @@ export function Select({
 
   return (
     <div>
-      <label
-        htmlFor={id}
-        className="block text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-2"
-      >
-        {label}
-      </label>
+      <div className="flex items-baseline justify-between mb-2 gap-3">
+        <label
+          htmlFor={id}
+          className="block text-xs uppercase tracking-wider font-medium text-(--color-text-muted)"
+        >
+          {label}
+        </label>
+        {action ? <div className="text-xs">{action}</div> : null}
+      </div>
       <select id={id} {...rest} className={cls}>
         {options.map((o) => (
           <option key={o.value} value={o.value}>

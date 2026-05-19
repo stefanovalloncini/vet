@@ -9,6 +9,8 @@ import {
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../auth";
 import { useReferenceData } from "../attivita/hooks/useReferenceData";
+import { QuickAddAziendaDialog } from "../aziende/ui/QuickAddAziendaDialog";
+import { QuickAddTipoDialog } from "../activity-types/ui/QuickAddTipoDialog";
 import {
   attivitaInputSchema,
   GINECOLOGIA_TIPO_ID,
@@ -36,8 +38,12 @@ export function QuickEntryFab() {
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [recentIds, setRecentIds] = useState<string[]>([]);
+  const [addAziendaOpen, setAddAziendaOpen] = useState(false);
+  const [addTipoOpen, setAddTipoOpen] = useState(false);
 
   const canCreate = user?.caps.has("activities.create") ?? false;
+  const canCreateAzienda = user?.caps.has("aziende.create") ?? false;
+  const canCreateTipo = user?.caps.has("activity_types.manage") ?? false;
 
   useEffect(() => {
     if (!open) return;
@@ -186,6 +192,17 @@ export function QuickEntryFab() {
               value={aziendaId}
               options={aziendaOptions}
               onChange={(e) => setAziendaId(e.target.value)}
+              action={
+                canCreateAzienda ? (
+                  <button
+                    type="button"
+                    onClick={() => setAddAziendaOpen(true)}
+                    className="text-(--color-accent) hover:underline font-medium"
+                  >
+                    + Nuova
+                  </button>
+                ) : null
+              }
             />
             <Select
               id="qe-tipo"
@@ -193,6 +210,17 @@ export function QuickEntryFab() {
               value={tipoId}
               options={tipoOptions}
               onChange={(e) => setTipoId(e.target.value)}
+              action={
+                canCreateTipo ? (
+                  <button
+                    type="button"
+                    onClick={() => setAddTipoOpen(true)}
+                    className="text-(--color-accent) hover:underline font-medium"
+                  >
+                    + Nuovo
+                  </button>
+                ) : null
+              }
             />
             <TextField
               id="qe-tariffa"
@@ -228,6 +256,25 @@ export function QuickEntryFab() {
           </form>
         </div>
       </Dialog>
+      <QuickAddAziendaDialog
+        open={addAziendaOpen}
+        onClose={() => setAddAziendaOpen(false)}
+        onCreated={(a) => {
+          ref.addAzienda(a);
+          setAziendaId(a.id);
+        }}
+      />
+      <QuickAddTipoDialog
+        open={addTipoOpen}
+        onClose={() => setAddTipoOpen(false)}
+        nextOrdine={
+          (ref.tipi.reduce((m, t) => Math.max(m, t.ordine), 0) || 0) + 10
+        }
+        onCreated={(t) => {
+          ref.addTipo(t);
+          setTipoId(t.id);
+        }}
+      />
     </>
   );
 }
