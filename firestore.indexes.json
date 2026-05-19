@@ -77,6 +77,14 @@
         { "fieldPath": "isDeleted", "order": "ASCENDING" },
         { "fieldPath": "deletedAt", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "activity_types",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "attivo", "order": "ASCENDING" },
+        { "fieldPath": "ordine", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
