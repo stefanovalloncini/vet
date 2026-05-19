@@ -33,12 +33,17 @@ const vetCaps: Capability[] = [
   "trash.restore.own",
   "payments.read",
   "payments.manage",
+  "reminders.read",
+  "reminders.create",
+  "reminders.update.own",
+  "reminders.delete.own",
 ];
 const viewerCaps: Capability[] = [
   "activities.read.all",
   "aziende.read",
   "activity_types.read",
   "trash.read.own",
+  "reminders.read",
 ];
 
 interface Seed {

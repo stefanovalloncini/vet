@@ -7,7 +7,7 @@ export function useTitleBadge() {
   const { reminders } = useRepositories();
 
   useEffect(() => {
-    if (!user?.caps.has("aziende.read")) return;
+    if (!user?.caps.has("reminders.read")) return;
     let cancelled = false;
     const baseTitle = "Marinoni — Studio veterinario";
     void (async () => {

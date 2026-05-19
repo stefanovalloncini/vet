@@ -132,6 +132,24 @@ service cloud.firestore {
       allow delete: if hasCap("payments.manage");
     }
 
+    match /reminders/{reminderId} {
+      allow read: if hasCap("reminders.read");
+      allow create: if hasCap("reminders.create")
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.done == false
+        && isServerStamped("createdAt")
+        && isServerStamped("updatedAt");
+      allow update: if (
+          (hasCap("reminders.update.own") && resource.data.createdBy == request.auth.uid)
+          || hasCap("reminders.update.any")
+        )
+        && isImmutable("createdAt")
+        && isImmutable("createdBy")
+        && isServerStamped("updatedAt");
+      allow delete: if (hasCap("reminders.delete.own") && resource.data.createdBy == request.auth.uid)
+        || hasCap("reminders.delete.any");
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

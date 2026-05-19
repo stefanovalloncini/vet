@@ -27,7 +27,15 @@ export function RemindersPage() {
   const ref = useReferenceData();
   const { reminders, loading, refresh } = useReminders();
 
-  const canManage = user?.caps.has("aziende.update") ?? false;
+  const canCreate = user?.caps.has("reminders.create") ?? false;
+  const canUpdateAny = user?.caps.has("reminders.update.any") ?? false;
+  const canUpdateOwn = user?.caps.has("reminders.update.own") ?? false;
+  const canDeleteAny = user?.caps.has("reminders.delete.any") ?? false;
+  const canDeleteOwn = user?.caps.has("reminders.delete.own") ?? false;
+  const canUpdate = (r: Reminder) =>
+    canUpdateAny || (canUpdateOwn && r.createdBy === user?.uid);
+  const canDelete = (r: Reminder) =>
+    canDeleteAny || (canDeleteOwn && r.createdBy === user?.uid);
 
   const [adding, setAdding] = useState(false);
   const [aziendaId, setAziendaId] = useState("");
@@ -78,13 +86,13 @@ export function RemindersPage() {
   }
 
   async function toggleDone(r: Reminder) {
-    if (!canManage) return;
+    if (!canUpdate(r)) return;
     await repo.markDone(r.id, !r.done);
     await refresh();
   }
 
   async function handleDelete(r: Reminder) {
-    if (!canManage) return;
+    if (!canDelete(r)) return;
     await repo.delete(r.id);
     await refresh();
   }
@@ -101,7 +109,7 @@ export function RemindersPage() {
           <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
           <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
         </div>
-        {canManage && !adding ? (
+        {canCreate && !adding ? (
           <Button
             type="button"
             variant="primary"
@@ -184,7 +192,8 @@ export function RemindersPage() {
             <li key={r.id}>
               <ReminderRow
                 reminder={r}
-                canManage={canManage}
+                canUpdate={canUpdate(r)}
+                canDelete={canDelete(r)}
                 onToggle={() => toggleDone(r)}
                 onDelete={() => handleDelete(r)}
               />
@@ -198,12 +207,14 @@ export function RemindersPage() {
 
 function ReminderRow({
   reminder: r,
-  canManage,
+  canUpdate,
+  canDelete,
   onToggle,
   onDelete,
 }: {
   reminder: Reminder;
-  canManage: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
   onToggle: () => void;
   onDelete: () => void;
 }) {
@@ -214,7 +225,7 @@ function ReminderRow({
       className={overdue ? "border-(--color-danger)/40" : undefined}
     >
       <div className="flex items-start gap-3">
-        {canManage ? (
+        {canUpdate ? (
           <input
             type="checkbox"
             checked={r.done}
@@ -253,7 +264,7 @@ function ReminderRow({
             <p className="text-xs text-(--color-text-subtle) mt-2">{r.note}</p>
           ) : null}
         </div>
-        {canManage ? (
+        {canDelete ? (
           <Button
             type="button"
             variant="ghost"

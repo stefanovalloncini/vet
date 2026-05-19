@@ -28,4 +28,10 @@ export const CAPABILITY_LABELS: Record<Capability, string> = {
   "users.read.all": "Leggi profili di tutti gli utenti",
   "payments.read": "Vedi pagamenti",
   "payments.manage": "Segna pagamenti",
+  "reminders.read": "Leggi promemoria",
+  "reminders.create": "Crea promemoria",
+  "reminders.update.own": "Modifica i propri promemoria",
+  "reminders.update.any": "Modifica qualsiasi promemoria",
+  "reminders.delete.own": "Cancella i propri promemoria",
+  "reminders.delete.any": "Cancella qualsiasi promemoria",
 };

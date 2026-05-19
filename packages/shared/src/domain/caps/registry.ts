@@ -28,6 +28,12 @@ export const CAPABILITIES = [
   "users.read.all",
   "payments.read",
   "payments.manage",
+  "reminders.read",
+  "reminders.create",
+  "reminders.update.own",
+  "reminders.update.any",
+  "reminders.delete.own",
+  "reminders.delete.any",
 ] as const;
 
 export type Capability = (typeof CAPABILITIES)[number];

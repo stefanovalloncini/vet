@@ -25,7 +25,7 @@ const NAV: NavItem[] = [
   { to: "/agenda", label: "Agenda", requiredCap: "activities.read.all" },
   { to: "/attivita", label: "Attività", requiredCap: "activities.read.all" },
   { to: "/aziende", label: "Aziende", requiredCap: "aziende.read" },
-  { to: "/promemoria", label: "Promemoria", requiredCap: "aziende.read" },
+  { to: "/promemoria", label: "Promemoria", requiredCap: "reminders.read" },
   { to: "/pagamenti", label: "Pagamenti", requiredCap: "payments.read" },
   { to: "/cestino", label: "Cestino", requiredCap: "trash.read.own" },
 ];
