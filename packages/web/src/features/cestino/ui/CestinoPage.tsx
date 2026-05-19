@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AppShell, Button, Card, EmptyState } from "../../../shared/ui";
+import { AppShell, Button, Card, EmptyState, Tabs } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useTrash } from "../hooks/useTrash";
@@ -70,21 +70,15 @@ export function CestinoPage() {
           </p>
         </div>
         {canSeeAny ? (
-          <div
-            role="tablist"
-            className="inline-flex rounded-xl bg-(--color-surface-muted) p-1 border border-(--color-border)"
-          >
-            <ViewToggle
-              active={view === "mine"}
-              onClick={() => setView("mine")}
-              label={t.viewMine}
-            />
-            <ViewToggle
-              active={view === "all"}
-              onClick={() => setView("all")}
-              label={t.viewAll}
-            />
-          </div>
+          <Tabs
+            items={[
+              { value: "mine", label: t.viewMine },
+              { value: "all", label: t.viewAll },
+            ]}
+            value={view}
+            onChange={setView}
+            size="sm"
+          />
         ) : null}
       </header>
 
@@ -122,33 +116,6 @@ export function CestinoPage() {
         </ul>
       )}
     </AppShell>
-  );
-}
-
-function ViewToggle({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      onClick={onClick}
-      className={[
-        "px-3 py-1 text-xs font-medium rounded-lg transition-colors",
-        active
-          ? "bg-(--color-surface) text-(--color-text) shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-          : "text-(--color-text-muted) hover:text-(--color-text)",
-      ].join(" ")}
-    >
-      {label}
-    </button>
   );
 }
 

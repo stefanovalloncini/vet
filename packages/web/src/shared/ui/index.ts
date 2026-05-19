@@ -12,3 +12,5 @@ export { MobileNav } from "./MobileNav";
 export { ToastProvider, useToast } from "./Toast";
 export { Dialog } from "./Dialog";
 export { EmptyState } from "./EmptyState";
+export { Tabs } from "./Tabs";
+export { Badge } from "./Badge";

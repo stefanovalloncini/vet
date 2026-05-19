@@ -5,6 +5,7 @@ import {
   AppShell,
   Button,
   Card,
+  Tabs,
 } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
@@ -205,32 +206,16 @@ export function AziendaDetailPage() {
         ) : null}
       </Card>
 
-      <div
-        role="tablist"
-        className="inline-flex rounded-xl bg-(--color-surface-muted) p-1 border border-(--color-border) mb-4"
-      >
-        {tabs.map((tt) => (
-          <button
-            key={tt.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === tt.id}
-            onClick={() => setTab(tt.id)}
-            className={[
-              "px-3 py-1.5 text-sm font-medium rounded-lg transition-colors",
-              tab === tt.id
-                ? "bg-(--color-surface) text-(--color-text) shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-                : "text-(--color-text-muted) hover:text-(--color-text)",
-            ].join(" ")}
-          >
-            {tt.label}
-            {tt.count !== undefined ? (
-              <span className="ml-2 text-xs text-(--color-text-subtle) tabular-nums">
-                {tt.count}
-              </span>
-            ) : null}
-          </button>
-        ))}
+      <div className="mb-4">
+        <Tabs
+          items={tabs.map((tt) => ({
+            value: tt.id,
+            label: tt.label,
+            ...(tt.count !== undefined ? { badge: tt.count } : {}),
+          }))}
+          value={tab}
+          onChange={setTab}
+        />
       </div>
 
       {tab === "storico" ? (
