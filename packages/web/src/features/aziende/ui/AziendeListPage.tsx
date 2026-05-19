@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, ChevronRight } from "lucide-react";
+import { Star, ChevronRight, Building2 } from "lucide-react";
 import {
   AppShell,
   Button,
@@ -86,7 +86,10 @@ export function AziendeListPage() {
         error={error ? t.erroreSalvataggio : null}
         empty={filtered.length === 0}
         emptyState={
-          <EmptyState title={search.trim() ? t.emptySearch : t.empty} />
+          <EmptyState
+            title={search.trim() ? t.emptySearch : t.empty}
+            icon={<Building2 size={32} strokeWidth={1.5} />}
+          />
         }
       >
         <ul className="space-y-3">

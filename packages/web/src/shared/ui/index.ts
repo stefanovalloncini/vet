@@ -5,7 +5,7 @@ export { Select } from "./Select";
 export { Card } from "./Card";
 export { Divider } from "./Divider";
 export { GoogleIcon } from "./GoogleIcon";
-export { Brand } from "./Brand";
+export { Brand, BrandMark } from "./Brand";
 export { AppShell } from "./AppShell";
 export { Skeleton, CardSkeleton, ListSkeleton } from "./Skeleton";
 export { MobileNav } from "./MobileNav";

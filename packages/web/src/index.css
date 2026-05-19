@@ -16,9 +16,9 @@
   --color-text-muted: oklch(46% 0.010 240);
   --color-text-subtle: oklch(62% 0.008 240);
 
-  --color-accent: oklch(48% 0.12 240);
-  --color-accent-hover: oklch(40% 0.13 240);
-  --color-accent-soft: oklch(95% 0.025 240);
+  --color-accent: oklch(50% 0.10 195);
+  --color-accent-hover: oklch(42% 0.11 195);
+  --color-accent-soft: oklch(95% 0.022 195);
 
   --color-danger: oklch(50% 0.18 25);
   --color-success: oklch(50% 0.12 150);
@@ -44,9 +44,9 @@ html[data-theme="dark"] {
   --color-text-muted: oklch(70% 0.010 240);
   --color-text-subtle: oklch(54% 0.012 240);
 
-  --color-accent: oklch(72% 0.11 240);
-  --color-accent-hover: oklch(80% 0.11 240);
-  --color-accent-soft: oklch(28% 0.06 240);
+  --color-accent: oklch(72% 0.10 195);
+  --color-accent-hover: oklch(80% 0.10 195);
+  --color-accent-soft: oklch(28% 0.05 195);
 
   --color-danger: oklch(70% 0.18 25);
   --color-success: oklch(70% 0.12 150);

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ClipboardList, Euro, Bell } from "lucide-react";
 import { Card, EmptyState } from "../../../shared/ui";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { formatDate, formatEuro } from "../../attivita/lib/format";
@@ -6,7 +7,13 @@ import type { Attivita, Payment } from "@vet/shared";
 
 export function StoricoTab({ items }: { items: Attivita[] }) {
   if (items.length === 0) {
-    return <EmptyState title="Nessuna attività registrata." size="sm" />;
+    return (
+      <EmptyState
+        title="Nessuna attività registrata."
+        size="sm"
+        icon={<ClipboardList size={28} strokeWidth={1.5} />}
+      />
+    );
   }
   return (
     <ul className="space-y-2">
@@ -42,7 +49,13 @@ export function StoricoTab({ items }: { items: Attivita[] }) {
 
 export function PagamentiTab({ payments }: { payments: Payment[] }) {
   if (payments.length === 0) {
-    return <EmptyState title="Nessun pagamento registrato." size="sm" />;
+    return (
+      <EmptyState
+        title="Nessun pagamento registrato."
+        size="sm"
+        icon={<Euro size={28} strokeWidth={1.5} />}
+      />
+    );
   }
   return (
     <ul className="space-y-2">
@@ -76,7 +89,13 @@ export function PromemoriaTab({ aziendaId }: { aziendaId: string }) {
   const { reminders } = useReminders();
   const filtered = reminders.filter((r) => r.aziendaId === aziendaId);
   if (filtered.length === 0) {
-    return <EmptyState title="Nessun promemoria attivo." size="sm" />;
+    return (
+      <EmptyState
+        title="Nessun promemoria attivo."
+        size="sm"
+        icon={<Bell size={28} strokeWidth={1.5} />}
+      />
+    );
   }
   return (
     <ul className="space-y-2">
