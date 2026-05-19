@@ -24,6 +24,7 @@ import { RemindersPage } from "./features/reminders";
 import { RiepilogoPdfPage } from "./features/riepilogo-pdf";
 import { ImportAziendePage } from "./features/import-aziende";
 import { VetStatsPage } from "./features/admin-vet-stats";
+import { StatistichePage } from "./features/statistiche";
 import { AppShell, Card } from "./shared/ui";
 
 function Home() {
@@ -301,6 +302,14 @@ export function App() {
           element={
             <RequireAuth>
               <VetStatsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/statistiche"
+          element={
+            <RequireAuth>
+              <StatistichePage />
             </RequireAuth>
           }
         />
