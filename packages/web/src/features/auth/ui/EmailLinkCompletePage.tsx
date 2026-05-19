@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { Brand, Button, Card, TextField } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
 import { getAuthErrorMessage } from "../lib/authErrors";
 
@@ -39,39 +40,61 @@ export function EmailLinkCompletePage() {
 
   if (user) return <Navigate to="/" replace />;
 
-  if (needsEmail) {
-    return (
-      <main className="min-h-screen flex items-center justify-center px-4 py-16">
-        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-          <p className="text-sm">Conferma la tua email per completare l'accesso:</p>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={submitting}
-            placeholder="tua.email@studio.it"
-            className="w-full border rounded p-2"
-          />
-          <button type="submit" disabled={submitting || email.length === 0} className="w-full bg-blue-600 text-white p-2 rounded">
-            {submitting ? "Accesso..." : "Conferma"}
-          </button>
-          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-        </form>
-      </main>
-    );
-  }
-
-  if (error) {
-    return (
-      <main className="min-h-screen flex items-center justify-center px-4 py-16">
-        <p role="alert" className="text-sm text-red-600">{error}</p>
-      </main>
-    );
-  }
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-16">
-      <p>Accesso in corso...</p>
+    <main className="min-h-screen flex items-center justify-center px-4 py-16 bg-(--color-background)">
+      <div className="w-full max-w-md">
+        <div className="flex justify-center mb-8">
+          <Brand size="lg" />
+        </div>
+        <Card elevated>
+          {needsEmail ? (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <h1 className="text-base font-medium text-(--color-text)">
+                  Conferma la tua email
+                </h1>
+                <p className="text-sm text-(--color-text-muted) mt-1">
+                  Inserisci l'email a cui è stato inviato il link.
+                </p>
+              </div>
+              <TextField
+                id="confirm-email"
+                type="email"
+                label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus
+                disabled={submitting}
+                placeholder="tua.email@studio.it"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                disabled={submitting || email.length === 0}
+              >
+                {submitting ? "Accesso..." : "Conferma"}
+              </Button>
+              {error ? (
+                <p role="alert" className="text-sm text-(--color-danger)">
+                  {error}
+                </p>
+              ) : null}
+            </form>
+          ) : error ? (
+            <div className="text-center py-2">
+              <p role="alert" className="text-sm text-(--color-danger)">
+                {error}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-(--color-text-muted) text-center py-2">
+              Accesso in corso...
+            </p>
+          )}
+        </Card>
+      </div>
     </main>
   );
 }

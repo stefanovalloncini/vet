@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import { AppShell, Card } from "../../../shared/ui";
+import { AppShell, Card, CardSkeleton } from "../../../shared/ui";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
 import { usePaymentsData } from "../../payments/hooks/usePaymentsData";
 import { computeArrears } from "../../payments/lib/arrears";
@@ -102,7 +102,7 @@ export function DashboardPage() {
       />
 
       {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <CardSkeleton rows={4} />
       ) : items.length === 0 ? (
         <Card>
           <p className="text-sm text-(--color-text-muted) text-center py-4">

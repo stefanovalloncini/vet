@@ -25,17 +25,19 @@ export function DataLoader({
     return (
       <div
         role="alert"
-        className="bg-(--color-surface) border border-(--color-danger)/30 rounded-lg p-6 text-sm"
+        className="bg-(--color-surface) border border-(--color-danger)/30 rounded-2xl p-6"
       >
-        <p className="font-medium text-(--color-danger) mb-2">
+        <p className="text-sm font-medium text-(--color-danger) mb-1.5">
           Caricamento non riuscito
         </p>
-        <p className="text-(--color-text-muted) mb-3">{error}</p>
+        <p className="text-xs text-(--color-text-muted) mb-4 break-words">
+          {error}
+        </p>
         {onRetry ? (
           <button
             type="button"
             onClick={onRetry}
-            className="text-(--color-accent) hover:underline text-sm"
+            className="text-xs font-medium text-(--color-accent) hover:underline"
           >
             Riprova
           </button>
