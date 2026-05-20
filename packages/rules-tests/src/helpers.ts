@@ -37,6 +37,7 @@ export function authedAs(
 export function adminAs(env: RulesTestEnvironment, uid: string) {
   return authedAs(env, uid, [
     "users.read.all",
+    "users.approve",
     "roles.read",
     "roles.manage",
     "roles.assign",

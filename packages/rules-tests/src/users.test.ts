@@ -60,9 +60,15 @@ describe("users rules", () => {
     );
   });
 
-  it("user without vet claim cannot read", async () => {
+  it("user without vet claim can still read own doc (for pending approval flow)", async () => {
     const env = await getEnv();
     const db = env.authenticatedContext("uid-1", {}).firestore();
+    await assertSucceeds(getDoc(doc(db, "users/uid-1")));
+  });
+
+  it("user without vet claim cannot read other users", async () => {
+    const env = await getEnv();
+    const db = env.authenticatedContext("uid-2", {}).firestore();
     await assertFails(getDoc(doc(db, "users/uid-1")));
   });
 });

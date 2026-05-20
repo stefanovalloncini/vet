@@ -28,7 +28,7 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow read: if isSelf(uid) || hasCap("usr");
+      allow read: if (request.auth != null && request.auth.uid == uid) || hasCap("usr");
       allow create: if false;
       allow update: if (
           (isSelf(uid) && request.resource.data.diff(resource.data).changedKeys().hasOnly(["displayName", "updatedAt"])
@@ -40,11 +40,21 @@ service cloud.firestore {
             && request.resource.data.roleId is string
             && request.resource.data.roleId.size() >= 1
             && request.resource.data.roleId.size() <= 60)
+          || (hasCap("uap")
+            && request.resource.data.diff(resource.data).changedKeys().hasOnly(["approved", "roleId", "approvedAt", "approvedBy", "updatedAt"])
+            && request.resource.data.approved is bool
+            && request.resource.data.roleId is string
+            && request.resource.data.roleId.size() >= 1
+            && request.resource.data.roleId.size() <= 60
+            && request.resource.data.approvedBy is string
+            && request.resource.data.approvedBy.size() >= 1
+            && request.resource.data.approvedBy.size() <= 128
+            && request.resource.data.approvedAt == request.time)
         )
         && isImmutable("email")
         && isImmutable("createdAt")
         && isServerStamped("updatedAt");
-      allow delete: if false;
+      allow delete: if hasCap("uap");
     }
 
     match /roles/{roleId} {
