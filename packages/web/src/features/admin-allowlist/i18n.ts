@@ -13,6 +13,7 @@ export const allowlistI18n = {
   invitedAt: "Aggiunta il",
   invitedBy: "da",
   elimina: "Rimuovi",
+  confermaRimozioneTitolo: "Rimuovere questa email?",
   confermaRimozione: "Rimuovere l'accesso a questa email? L'utente esistente verrà disconnesso al prossimo refresh.",
   annulla: "Annulla",
 } as const;

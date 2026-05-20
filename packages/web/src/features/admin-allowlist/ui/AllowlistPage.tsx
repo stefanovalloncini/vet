@@ -3,6 +3,7 @@ import {
   AppShell,
   Button,
   Card,
+  ConfirmDialog,
   Select,
   TextField,
 } from "../../../shared/ui";
@@ -187,50 +188,37 @@ export function AllowlistPage() {
                     ) : null}
                   </div>
                   {canManage ? (
-                    confirmingRemove === entry.emailNorm ? (
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleRemove(entry)}
-                          disabled={busy}
-                        >
-                          {t.elimina}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setConfirmingRemove(null)}
-                          disabled={busy}
-                        >
-                          {t.annulla}
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setConfirmingRemove(entry.emailNorm)}
-                        disabled={busy}
-                      >
-                        {t.elimina}
-                      </Button>
-                    )
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setConfirmingRemove(entry.emailNorm)}
+                      disabled={busy}
+                    >
+                      {t.elimina}
+                    </Button>
                   ) : null}
                 </div>
-                {confirmingRemove === entry.emailNorm ? (
-                  <p className="text-xs text-(--color-danger) mt-3">
-                    {t.confermaRimozione}
-                  </p>
-                ) : null}
               </Card>
             </li>
           ))}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={confirmingRemove !== null}
+        title={t.confermaRimozioneTitolo}
+        message={t.confermaRimozione}
+        confirmLabel={t.elimina}
+        cancelLabel={t.annulla}
+        variant="danger"
+        busy={busy}
+        onConfirm={() => {
+          const target = entries.find((e) => e.emailNorm === confirmingRemove);
+          if (target) void handleRemove(target);
+        }}
+        onClose={() => setConfirmingRemove(null)}
+      />
     </AppShell>
   );
 }

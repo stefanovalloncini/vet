@@ -12,6 +12,8 @@ export const remindersI18n = {
   fatto: "Fatto",
   nonFatto: "Non fatto",
   elimina: "Elimina",
+  confermaEliminazioneTitolo: "Eliminare questo promemoria?",
+  confermaEliminazione: "L'operazione non si può annullare.",
   nuovo: "Nuovo promemoria",
   campoTitolo: "Titolo",
   campoTitoloHint: "Es. Richiamo vaccinazione, controllo gravidanza",

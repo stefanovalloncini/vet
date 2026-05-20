@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AppShell, Button, Card, PageHeader } from "../../../shared/ui";
+import { AppShell, Button, Card, ConfirmDialog, PageHeader } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { impostazioniI18n as t } from "../i18n";
@@ -90,6 +90,22 @@ export function ImpostazioniPage() {
     }
   }
 
+  function renderGdprAction() {
+    if (done) {
+      return <p className="text-sm text-(--color-text) mt-5">{t.gdprDone}</p>;
+    }
+    if (busy) {
+      return <p className="text-sm text-(--color-text-muted) mt-5">{t.gdprBusy}</p>;
+    }
+    return (
+      <div className="mt-5">
+        <Button type="button" variant="danger" onClick={() => setConfirming(true)}>
+          {t.gdprButton}
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <AppShell>
       <PageHeader title={t.title} subtitle={t.subtitle} />
@@ -148,43 +164,7 @@ export function ImpostazioniPage() {
             {t.gdprDescr}
           </p>
 
-          {done ? (
-            <p className="text-sm text-(--color-text) mt-5">{t.gdprDone}</p>
-          ) : busy ? (
-            <p className="text-sm text-(--color-text-muted) mt-5">{t.gdprBusy}</p>
-          ) : confirming ? (
-            <div className="mt-5 flex flex-col gap-3">
-              <p className="text-sm text-(--color-danger)">{t.gdprConferma}</p>
-              <div className="flex items-center gap-3">
-                <Button
-                  type="button"
-                  variant="danger"
-                  onClick={handleDelete}
-                  disabled={busy}
-                >
-                  {t.gdprButton}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setConfirming(false)}
-                  disabled={busy}
-                >
-                  Annulla
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-5">
-              <Button
-                type="button"
-                variant="danger"
-                onClick={() => setConfirming(true)}
-              >
-                {t.gdprButton}
-              </Button>
-            </div>
-          )}
+          {renderGdprAction()}
 
           {error ? (
             <p role="alert" className="text-sm text-(--color-danger) mt-3">
@@ -193,6 +173,21 @@ export function ImpostazioniPage() {
           ) : null}
         </Card>
       </div>
+
+      <ConfirmDialog
+        open={confirming}
+        title={t.gdprConfermaTitolo}
+        message={t.gdprConferma}
+        confirmLabel={t.gdprButton}
+        cancelLabel={t.gdprAnnulla}
+        variant="danger"
+        busy={busy}
+        onConfirm={() => {
+          setConfirming(false);
+          void handleDelete();
+        }}
+        onClose={() => setConfirming(false)}
+      />
     </AppShell>
   );
 }

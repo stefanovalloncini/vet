@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AppShell, Button, Card, EmptyState, Tabs } from "../../../shared/ui";
+import { AppShell, Button, Card, ConfirmDialog, EmptyState, Tabs } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useTrash } from "../hooks/useTrash";
@@ -101,20 +101,31 @@ export function CestinoPage() {
               <TrashRow
                 attivita={a}
                 busy={busyId === a.id}
-                confirmingPurge={confirmingPurgeId === a.id}
                 canRestore={
                   canRestoreAny || (canRestoreOwn && a.ownerUid === user?.uid)
                 }
                 canPurge={canPurge}
                 onRestore={() => handleRestore(a)}
                 onPurgeAsk={() => setConfirmingPurgeId(a.id)}
-                onPurgeCancel={() => setConfirmingPurgeId(null)}
-                onPurgeConfirm={() => handlePurge(a)}
               />
             </li>
           ))}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={confirmingPurgeId !== null}
+        title={t.confermaPurgeTitolo}
+        message={t.confermaPurge}
+        confirmLabel={t.elimina}
+        variant="danger"
+        busy={confirmingPurgeId !== null && busyId === confirmingPurgeId}
+        onConfirm={() => {
+          const target = items.find((i) => i.id === confirmingPurgeId);
+          if (target) void handlePurge(target);
+        }}
+        onClose={() => setConfirmingPurgeId(null)}
+      />
     </AppShell>
   );
 }
@@ -122,23 +133,17 @@ export function CestinoPage() {
 function TrashRow({
   attivita: a,
   busy,
-  confirmingPurge,
   canRestore,
   canPurge,
   onRestore,
   onPurgeAsk,
-  onPurgeCancel,
-  onPurgeConfirm,
 }: {
   attivita: Attivita;
   busy: boolean;
-  confirmingPurge: boolean;
   canRestore: boolean;
   canPurge: boolean;
   onRestore: () => void;
   onPurgeAsk: () => void;
-  onPurgeCancel: () => void;
-  onPurgeConfirm: () => void;
 }) {
   return (
     <Card className="hover:border-(--color-border-strong) transition-colors">
@@ -162,14 +167,9 @@ function TrashRow({
             {a.ownerName}
             {a.deletedAt ? ` · ${t.deletedAt} ${formatDate(a.deletedAt)}` : ""}
           </p>
-          {confirmingPurge ? (
-            <p className="text-xs text-(--color-danger) mt-2">
-              {t.confermaPurge}
-            </p>
-          ) : null}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {canRestore && !confirmingPurge ? (
+          {canRestore ? (
             <Button
               type="button"
               variant="secondary"
@@ -181,38 +181,15 @@ function TrashRow({
             </Button>
           ) : null}
           {canPurge ? (
-            confirmingPurge ? (
-              <>
-                <Button
-                  type="button"
-                  variant="danger"
-                  size="sm"
-                  onClick={onPurgeConfirm}
-                  disabled={busy}
-                >
-                  {t.elimina}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={onPurgeCancel}
-                  disabled={busy}
-                >
-                  Annulla
-                </Button>
-              </>
-            ) : (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onPurgeAsk}
-                disabled={busy}
-              >
-                {t.elimina}
-              </Button>
-            )
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onPurgeAsk}
+              disabled={busy}
+            >
+              {t.elimina}
+            </Button>
           ) : null}
         </div>
       </div>

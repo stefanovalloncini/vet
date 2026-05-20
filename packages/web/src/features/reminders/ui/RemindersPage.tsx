@@ -3,6 +3,7 @@ import {
   AppShell,
   Button,
   Card,
+  ConfirmDialog,
   EmptyState,
   Select,
   TextArea,
@@ -45,6 +46,7 @@ export function RemindersPage() {
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Reminder | null>(null);
 
   async function handleAdd() {
     if (!user) return;
@@ -192,12 +194,27 @@ export function RemindersPage() {
                 canUpdate={canUpdate(r)}
                 canDelete={canDelete(r)}
                 onToggle={() => toggleDone(r)}
-                onDelete={() => handleDelete(r)}
+                onDelete={() => setPendingDelete(r)}
               />
             </li>
           ))}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={t.confermaEliminazioneTitolo}
+        message={t.confermaEliminazione}
+        confirmLabel={t.elimina}
+        cancelLabel={t.annulla}
+        variant="danger"
+        onConfirm={() => {
+          const r = pendingDelete;
+          setPendingDelete(null);
+          if (r) void handleDelete(r);
+        }}
+        onClose={() => setPendingDelete(null)}
+      />
     </AppShell>
   );
 }

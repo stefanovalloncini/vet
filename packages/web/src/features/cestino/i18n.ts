@@ -9,6 +9,7 @@ export const cestinoI18n = {
   viewAll: "Di tutti",
   ripristina: "Ripristina",
   elimina: "Elimina ora",
+  confermaPurgeTitolo: "Eliminare definitivamente?",
   confermaPurge: "Eliminare definitivamente questa voce? Non si può recuperare.",
   successRestore: "Ripristinato.",
   successPurge: "Cancellato.",
@@ -26,7 +27,9 @@ export const impostazioniI18n = {
   gdprDescr:
     "Eliminerai tutte le tue attività e il tuo profilo. Le attività di altri utenti non saranno toccate. Non si può annullare.",
   gdprButton: "Cancella tutto e disconnetti",
+  gdprConfermaTitolo: "Cancellare tutti i tuoi dati?",
   gdprConferma: "Confermi la cancellazione totale dei tuoi dati?",
+  gdprAnnulla: "Annulla",
   gdprBusy: "Cancellazione in corso…",
   gdprDone: "Dati cancellati. Ci dispiace vederti andare.",
   gdprErrore: "Cancellazione non riuscita.",
