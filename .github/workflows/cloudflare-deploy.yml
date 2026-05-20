@@ -1,0 +1,45 @@
+name: Cloudflare deploy
+
+on:
+  push:
+    branches: ["**"]
+
+concurrency:
+  group: cf-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  trigger-cloudflare-build:
+    name: Trigger Cloudflare Workers Builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Select trigger
+        id: trigger
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            echo "uuid=a277768d-d5ab-4b7d-8008-c774aeb9dda7" >> "$GITHUB_OUTPUT"
+            echo "label=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "uuid=ddbbe74d-a1e0-4fd8-9f30-898846f0f9f2" >> "$GITHUB_OUTPUT"
+            echo "label=preview" >> "$GITHUB_OUTPUT"
+          fi
+      - name: POST to Cloudflare Builds trigger
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          ACCOUNT=1ae8dd0fed233eb17d9013def4feced1
+          UUID="${{ steps.trigger.outputs.uuid }}"
+          LABEL="${{ steps.trigger.outputs.label }}"
+          echo "Branch: $GITHUB_REF_NAME  Trigger: $LABEL ($UUID)  SHA: $GITHUB_SHA"
+          RESPONSE=$(curl -sS -X POST \
+            -H "Authorization: Bearer $CF_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/builds/triggers/$UUID/builds" \
+            -d "$(printf '{"branch":"%s","commit_hash":"%s"}' "$GITHUB_REF_NAME" "$GITHUB_SHA")")
+          echo "$RESPONSE" | python3 -m json.tool
+          OK=$(echo "$RESPONSE" | python3 -c "import json,sys; print(json.load(sys.stdin).get('success', False))")
+          if [ "$OK" != "True" ]; then
+            echo "::error::Cloudflare API returned success=false"
+            exit 1
+          fi
