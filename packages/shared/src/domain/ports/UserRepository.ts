@@ -7,4 +7,7 @@ export interface UserRepository {
   touchLastSignIn(uid: string, at: Date): Promise<void>;
   setDisabled(uid: string, disabled: boolean, actor: string): Promise<void>;
   listByRole(roleId: string): Promise<User[]>;
+  listPending(): Promise<User[]>;
+  approve(uid: string, roleId: string): Promise<void>;
+  delete(uid: string): Promise<void>;
 }

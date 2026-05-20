@@ -34,6 +34,7 @@ describe("App routing", () => {
       displayName: "Stefano",
       roleId: "vet",
       caps: new Set(["aziende.read"]),
+      approved: true,
     };
     (repos.auth as InMemoryAuthService).setSimulatedUser(actor);
     withRepos(repos);

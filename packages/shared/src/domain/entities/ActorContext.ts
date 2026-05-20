@@ -6,4 +6,5 @@ export interface ActorContext {
   displayName: string;
   roleId: string;
   caps: ReadonlySet<Capability>;
+  approved: boolean;
 }

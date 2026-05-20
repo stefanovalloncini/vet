@@ -117,6 +117,7 @@ describe("userDocSchema and roleDocSchema", () => {
       email: "x@y.com",
       displayName: "X",
       roleId: "vet",
+      approved: true,
       disabled: false,
       createdAt: now,
       updatedAt: now,

@@ -17,10 +17,13 @@ export class InMemoryUserRepository implements UserRepository {
       email: input.email,
       displayName: input.displayName,
       roleId: input.roleId,
+      approved: existing?.approved ?? true,
       disabled: existing?.disabled ?? false,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       ...(existing?.lastSignInAt ? { lastSignInAt: existing.lastSignInAt } : {}),
+      ...(existing?.approvedAt ? { approvedAt: existing.approvedAt } : {}),
+      ...(existing?.approvedBy ? { approvedBy: existing.approvedBy } : {}),
       schemaVersion: 1,
     };
     this.map.set(uid, user);
@@ -40,5 +43,31 @@ export class InMemoryUserRepository implements UserRepository {
 
   async listByRole(roleId: string): Promise<User[]> {
     return [...this.map.values()].filter((u) => u.roleId === roleId);
+  }
+
+  async listPending(): Promise<User[]> {
+    return [...this.map.values()].filter((u) => !u.approved);
+  }
+
+  async approve(uid: string, roleId: string): Promise<void> {
+    const u = this.map.get(uid);
+    if (!u) return;
+    const now = new Date();
+    this.map.set(uid, {
+      ...u,
+      approved: true,
+      roleId,
+      approvedAt: now,
+      approvedBy: "test",
+      updatedAt: now,
+    });
+  }
+
+  async delete(uid: string): Promise<void> {
+    this.map.delete(uid);
+  }
+
+  setForTest(uid: string, user: User): void {
+    this.map.set(uid, user);
   }
 }

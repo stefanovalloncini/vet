@@ -110,6 +110,7 @@ export class FirebaseAuthService implements AuthService {
       displayName,
       roleId: claims.roleId ?? "",
       caps: new Set(decodeCaps(claims.caps ?? [])),
+      approved: claims.vet === true,
     };
   }
 }
