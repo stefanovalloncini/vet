@@ -9,24 +9,28 @@ import {
   TextField,
 } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
-import { getAuthErrorMessage, isUserCancelledPopup } from "../lib/authErrors";
+import {
+  classifyAuthError,
+  type ClassifiedAuthError,
+} from "../lib/authErrors";
 
 export function LoginPage() {
   const { auth } = useRepositories();
   const { loading, user } = useAuthState();
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ClassifiedAuthError | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function handleGoogle() {
+  async function googleSignIn(selectAccount = false) {
     setError(null);
     setBusy(true);
     try {
-      await auth.signInWithGoogle();
+      await auth.signInWithGoogle({ selectAccount });
     } catch (err) {
       console.error("google sign-in failed", err);
-      if (!isUserCancelledPopup(err)) setError(getAuthErrorMessage(err));
+      const classified = classifyAuthError(err);
+      if (classified.kind !== "userCancelled") setError(classified);
     } finally {
       setBusy(false);
     }
@@ -41,7 +45,7 @@ export function LoginPage() {
       setEmailSent(true);
     } catch (err) {
       console.error("send email link failed", err);
-      setError("Invio link non riuscito.");
+      setError(classifyAuthError(err));
     } finally {
       setBusy(false);
     }
@@ -74,7 +78,7 @@ export function LoginPage() {
             variant="secondary"
             fullWidth
             disabled={busy}
-            onClick={handleGoogle}
+            onClick={() => googleSignIn(false)}
             leadingIcon={<GoogleIcon />}
           >
             Continua con Google
@@ -110,9 +114,20 @@ export function LoginPage() {
           )}
 
           {error ? (
-            <p role="alert" className="mt-4 text-sm text-(--color-danger)">
-              {error}
-            </p>
+            <div className="mt-4 space-y-2" role="alert">
+              <p className="text-sm text-(--color-danger)">{error.message}</p>
+              {error.kind === "unauthorizedEmail" ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => googleSignIn(true)}
+                >
+                  Cambia account Google
+                </Button>
+              ) : null}
+            </div>
           ) : null}
         </Card>
 

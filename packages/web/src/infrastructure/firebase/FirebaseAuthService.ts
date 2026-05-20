@@ -53,8 +53,11 @@ export class FirebaseAuthService implements AuthService {
     };
   }
 
-  async signInWithGoogle(): Promise<void> {
+  async signInWithGoogle(options?: { selectAccount?: boolean }): Promise<void> {
     const provider = new GoogleAuthProvider();
+    if (options?.selectAccount) {
+      provider.setCustomParameters({ prompt: "select_account" });
+    }
     await signInWithPopup(this.auth, provider);
   }
 

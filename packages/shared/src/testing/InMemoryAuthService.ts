@@ -17,7 +17,7 @@ export class InMemoryAuthService implements AuthService {
     };
   }
 
-  async signInWithGoogle(): Promise<void> {
+  async signInWithGoogle(_options?: { selectAccount?: boolean }): Promise<void> {
     throw new Error("InMemoryAuthService.signInWithGoogle: use setSimulatedUser in tests");
   }
 
