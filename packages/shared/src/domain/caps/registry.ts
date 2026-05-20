@@ -95,7 +95,7 @@ export function encodeCaps(caps: ReadonlyArray<Capability>): string[] {
 export function decodeCaps(codes: ReadonlyArray<string>): Capability[] {
   const out: Capability[] = [];
   for (const code of codes) {
-    const cap = CAP_BY_CODE[code];
+    const cap = CAP_BY_CODE[code] ?? (isCapability(code) ? code : undefined);
     if (cap) out.push(cap);
   }
   return out;

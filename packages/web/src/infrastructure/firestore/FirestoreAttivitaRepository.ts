@@ -6,6 +6,7 @@ import {
   setDoc,
   updateDoc,
   serverTimestamp,
+  deleteField,
   query,
   where,
   orderBy,
@@ -113,9 +114,9 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
       tipoNome: denorm.tipoNome,
       oraria: input.oraria,
       tariffa: input.tariffa,
-      ore: input.ore ?? null,
+      ore: input.ore !== undefined ? input.ore : deleteField(),
       totale: computeTotale(input),
-      note: input.note ?? null,
+      note: input.note !== undefined ? input.note : deleteField(),
       updatedAt: serverTimestamp(),
     });
   }

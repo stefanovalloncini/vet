@@ -33,7 +33,12 @@ export const purgeAttivita = onCall(
 
     ensureCanPurge(caller);
 
-    const { id } = inputSchema.parse(request.data);
+    let id: string;
+    try {
+      ({ id } = inputSchema.parse(request.data));
+    } catch {
+      throw new HttpsError("invalid-argument", "");
+    }
 
     const ref = adminDb.collection("attivita").doc(id);
     const snap = await ref.get();

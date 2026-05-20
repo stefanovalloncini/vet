@@ -27,7 +27,12 @@ export const revokeUserSession = onCall(
 
     ensureCanRevoke(caller);
 
-    const { uid } = inputSchema.parse(request.data);
+    let uid: string;
+    try {
+      ({ uid } = inputSchema.parse(request.data));
+    } catch {
+      throw new HttpsError("invalid-argument", "");
+    }
 
     await adminAuth.revokeRefreshTokens(uid);
     await adminAuth.updateUser(uid, { disabled: true });

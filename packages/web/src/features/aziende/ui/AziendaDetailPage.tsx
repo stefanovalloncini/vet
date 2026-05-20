@@ -118,7 +118,7 @@ export function AziendaDetailPage() {
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(a.indirizzo)}`}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="text-sm text-(--color-text-muted) hover:text-(--color-accent) mt-1 inline-block"
               >
                 {a.indirizzo} ↗

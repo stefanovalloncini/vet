@@ -27,15 +27,19 @@ export const restoreAttivita = onCall(
   { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
     const auth = request.auth;
-    const caller: Caller | null = auth
-      ? {
-          uid: auth.uid,
-          email: (auth.token.email as string) ?? "",
-          caps: decodeCaps((auth.token.caps as string[]) ?? []),
-        }
-      : null;
+    if (!auth) throw new HttpsError("unauthenticated", "");
+    const caller: Caller = {
+      uid: auth.uid,
+      email: (auth.token.email as string) ?? "",
+      caps: decodeCaps((auth.token.caps as string[]) ?? []),
+    };
 
-    const { id } = inputSchema.parse(request.data);
+    let id: string;
+    try {
+      ({ id } = inputSchema.parse(request.data));
+    } catch {
+      throw new HttpsError("invalid-argument", "");
+    }
 
     const ref = adminDb.collection("attivita").doc(id);
     const snap = await ref.get();
@@ -55,8 +59,8 @@ export const restoreAttivita = onCall(
 
     await adminDb.collection("audit").add({
       at: FieldValue.serverTimestamp(),
-      actorUid: caller!.uid,
-      actorEmail: caller!.email,
+      actorUid: caller.uid,
+      actorEmail: caller.email,
       action: "attivita.restore",
       targetType: "attivita",
       targetId: id,

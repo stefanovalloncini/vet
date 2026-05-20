@@ -23,13 +23,13 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
   async (event) => {
     const email = event.data?.email;
     if (!email) {
-      throw new HttpsError("permission-denied", "missing email");
+      throw new HttpsError("permission-denied", "");
     }
 
     const norm = normalizeEmail(email);
     const allowSnap = await adminDb.collection("allowlist").doc(norm).get();
     if (!allowSnap.exists) {
-      throw new HttpsError("permission-denied", "email not allowed");
+      throw new HttpsError("permission-denied", "");
     }
     const allow = allowSnap.data() as { defaultRoleId: string };
 
@@ -52,7 +52,7 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
 
     const roleSnap = await adminDb.collection("roles").doc(roleId).get();
     if (!roleSnap.exists) {
-      throw new HttpsError("permission-denied", "role not found");
+      throw new HttpsError("permission-denied", "");
     }
     const role = roleSnap.data() as { capabilities: Capability[] };
 
