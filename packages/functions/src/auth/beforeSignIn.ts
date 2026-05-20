@@ -95,10 +95,11 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
     }
     const allow = allowSnap.data() as { defaultRoleId: string };
 
-    let existingUser: { approved?: boolean; roleId?: string; displayName?: string } | null = null;
+    type ExistingUser = { approved?: boolean; roleId?: string; displayName?: string };
+    let existingUser: ExistingUser | null = null;
     if (uid) {
       const userSnap = await adminDb.collection("users").doc(uid).get();
-      existingUser = userSnap.exists ? ((userSnap.data() ?? null) as typeof existingUser) : null;
+      existingUser = userSnap.exists ? ((userSnap.data() ?? null) as ExistingUser | null) : null;
     }
 
     const roleId = existingUser?.roleId ?? allow.defaultRoleId;
@@ -110,7 +111,8 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
 
     const displayName = existingUser?.displayName
       ?? event.data?.displayName
-      ?? email.split("@")[0];
+      ?? email.split("@")[0]
+      ?? email;
     const now = new Date();
     const decision = decideAuthResult({
       allow,
