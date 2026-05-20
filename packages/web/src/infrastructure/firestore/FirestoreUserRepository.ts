@@ -6,7 +6,6 @@ import {
   collection,
   getDocs,
   setDoc,
-  deleteDoc,
   serverTimestamp,
   type Firestore,
 } from "firebase/firestore";
@@ -72,7 +71,8 @@ export class FirestoreUserRepository implements UserRepository {
   }
 
   async delete(uid: string): Promise<void> {
-    await deleteDoc(doc(this.db, "users", uid));
+    const fn = httpsCallable(getFunctions(undefined, "europe-west8"), "rejectUser");
+    await fn({ uid });
   }
 
   private fromSnap(uid: string, data: Record<string, unknown>): User {

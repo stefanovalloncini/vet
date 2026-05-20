@@ -47,14 +47,13 @@ service cloud.firestore {
             && request.resource.data.roleId.size() >= 1
             && request.resource.data.roleId.size() <= 60
             && request.resource.data.approvedBy is string
-            && request.resource.data.approvedBy.size() >= 1
-            && request.resource.data.approvedBy.size() <= 128
+            && request.resource.data.approvedBy == request.auth.uid
             && request.resource.data.approvedAt == request.time)
         )
         && isImmutable("email")
         && isImmutable("createdAt")
         && isServerStamped("updatedAt");
-      allow delete: if hasCap("uap");
+      allow delete: if false;
     }
 
     match /roles/{roleId} {

@@ -17,7 +17,7 @@ interface PendingUsersTabProps {
 
 export function PendingUsersTab({ roles }: PendingUsersTabProps) {
   const { users } = useRepositories();
-  const { items, loading, refresh } = usePendingUsers();
+  const { items, loading, error: loadError, refresh } = usePendingUsers();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<User | null>(null);
@@ -55,6 +55,14 @@ export function PendingUsersTab({ roles }: PendingUsersTabProps) {
 
   if (loading) {
     return <p className="text-sm text-(--color-text-muted)">{t.loading}</p>;
+  }
+
+  if (loadError) {
+    return (
+      <p role="alert" className="text-sm text-(--color-danger)">
+        {t.loadError}
+      </p>
+    );
   }
 
   return (

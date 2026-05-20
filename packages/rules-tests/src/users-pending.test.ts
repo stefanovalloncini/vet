@@ -111,19 +111,25 @@ describe("users — pending approval", () => {
     );
   });
 
-  it("admin with users.approve can delete a pending user", async () => {
+  it("client deletion of user doc is denied even with admin caps (must use rejectUser callable)", async () => {
     const env = await getEnv();
     const db = adminAs(env, "admin");
-    await assertSucceeds(
+    await assertFails(
       (await import("firebase/firestore")).deleteDoc(doc(db, "users/pending-1"))
     );
   });
 
-  it("user without users.approve cannot delete a user doc", async () => {
+  it("admin cannot spoof approvedBy with another uid", async () => {
     const env = await getEnv();
-    const db = authedAs(env, "uid-x", ["roles.assign", "users.read.all"]);
+    const db = adminAs(env, "admin");
     await assertFails(
-      (await import("firebase/firestore")).deleteDoc(doc(db, "users/pending-1"))
+      updateDoc(doc(db, "users/pending-1"), {
+        approved: true,
+        roleId: "vet",
+        approvedAt: serverTimestamp(),
+        approvedBy: "someone-else",
+        updatedAt: serverTimestamp(),
+      })
     );
   });
 });

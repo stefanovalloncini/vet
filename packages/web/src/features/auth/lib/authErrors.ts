@@ -109,8 +109,7 @@ function matchesAppCheck(code: string, msg: string, inner: string): boolean {
 function matchesAllowlistDeny(code: string, msg: string, inner: string): boolean {
   if (
     code.includes("blocking-cloud-function-error") ||
-    code.includes("admin-restricted") ||
-    code === "auth/internal-error"
+    code.includes("admin-restricted")
   ) {
     return true;
   }

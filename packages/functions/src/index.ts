@@ -4,6 +4,7 @@ export { beforeSignIn } from "./auth/beforeSignIn.js";
 export { onRoleChange } from "./auth/onRoleChange.js";
 export { revokeUserSession } from "./auth/revokeUserSession.js";
 export { approveUser } from "./auth/approveUser.js";
+export { rejectUser } from "./auth/rejectUser.js";
 export { killSwitchOnBudget } from "./billing/killSwitch.js";
 export { restoreAttivita } from "./attivita/restore.js";
 export { purgeAttivita } from "./attivita/purge.js";
