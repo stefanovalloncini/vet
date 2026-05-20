@@ -116,19 +116,23 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+const euroFormatter = new Intl.NumberFormat("it-IT", {
+  style: "currency",
+  currency: "EUR",
+});
+
+const dateFormatter = new Intl.DateTimeFormat("it-IT", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
 function formatEuro(n: number): string {
-  return new Intl.NumberFormat("it-IT", {
-    style: "currency",
-    currency: "EUR",
-  }).format(n);
+  return euroFormatter.format(n);
 }
 
 function formatDate(ts: Timestamp | { toDate(): Date } | Date | undefined): string {
   if (!ts) return "";
   const d = ts instanceof Date ? ts : (ts as { toDate(): Date }).toDate();
-  return new Intl.DateTimeFormat("it-IT", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(d);
+  return dateFormatter.format(d);
 }

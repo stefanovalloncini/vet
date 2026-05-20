@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export function slugifyActivityType(nome: string): string {
-  return nome
+export function slugify(value: string): string {
+  return value
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()

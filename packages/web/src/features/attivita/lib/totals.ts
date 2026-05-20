@@ -1,4 +1,12 @@
 import type { Attivita } from "@vet/shared";
+import { dateInputValue } from "./format";
+
+const dayLabelFormatter = new Intl.DateTimeFormat("it-IT", {
+  weekday: "long",
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
 
 export interface Totals {
   count: number;
@@ -64,16 +72,5 @@ export function groupAttivita(items: Attivita[], by: GroupKey): Group[] {
 function groupKeyFor(a: Attivita, by: GroupKey): { key: string; label: string } {
   if (by === "azienda") return { key: a.aziendaId, label: a.aziendaNome };
   if (by === "vet") return { key: a.ownerUid, label: a.ownerName };
-  const d = a.data;
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const key = `${yyyy}-${mm}-${dd}`;
-  const label = new Intl.DateTimeFormat("it-IT", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(d);
-  return { key, label };
+  return { key: dateInputValue(a.data), label: dayLabelFormatter.format(a.data) };
 }

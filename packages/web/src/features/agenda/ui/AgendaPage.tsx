@@ -11,7 +11,7 @@ import {
   sameDay,
   startOfMonth,
 } from "../lib/calendar";
-import { formatEuro } from "../../attivita/lib/format";
+import { dateInputValue, formatEuro } from "../../attivita/lib/format";
 import type { Attivita } from "@vet/shared";
 
 export function AgendaPage() {
@@ -30,7 +30,7 @@ export function AgendaPage() {
   const byDay = useMemo(() => {
     const m = new Map<string, Attivita[]>();
     for (const a of items) {
-      const k = dayKey(a.data);
+      const k = dateInputValue(a.data);
       const arr = m.get(k) ?? [];
       arr.push(a);
       m.set(k, arr);
@@ -38,7 +38,7 @@ export function AgendaPage() {
     return m;
   }, [items]);
 
-  const todaysItems = byDay.get(dayKey(selected)) ?? [];
+  const todaysItems = byDay.get(dateInputValue(selected)) ?? [];
 
   const canCreate = user?.caps.has("activities.create") ?? false;
 
@@ -97,7 +97,7 @@ export function AgendaPage() {
           </div>
           <div className="grid grid-cols-7 gap-0.5">
             {days.map((d) => {
-              const count = byDay.get(dayKey(d.date))?.length ?? 0;
+              const count = byDay.get(dateInputValue(d.date))?.length ?? 0;
               const isSelected = sameDay(d.date, selected);
               return (
                 <button
@@ -161,7 +161,7 @@ export function AgendaPage() {
               ) : null}
               {canCreate ? (
                 <Link
-                  to={`/attivita/nuova?data=${dayKey(selected)}`}
+                  to={`/attivita/nuova?data=${dateInputValue(selected)}`}
                   className="text-sm text-(--color-accent) hover:underline print:hidden"
                 >
                   + Nuova
@@ -206,8 +206,4 @@ export function AgendaPage() {
       </div>
     </AppShell>
   );
-}
-
-function dayKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }

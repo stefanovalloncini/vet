@@ -53,13 +53,13 @@ export function RemindersPage() {
       setError(t.saveError);
       return;
     }
-    const candidate: Record<string, unknown> = {
+    const noteTrim = note.trim();
+    const parsed = reminderInputSchema.safeParse({
       aziendaId,
       titolo: titolo.trim(),
       dueAt: due,
-    };
-    if (note.trim()) candidate["note"] = note.trim();
-    const parsed = reminderInputSchema.safeParse(candidate);
+      ...(noteTrim ? { note: noteTrim } : {}),
+    });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? t.saveError);
       return;

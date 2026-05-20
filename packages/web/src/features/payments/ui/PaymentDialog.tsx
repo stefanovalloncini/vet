@@ -52,14 +52,15 @@ export function PaymentDialog({
       setError(t.saveError);
       return;
     }
-    const candidate: Record<string, unknown> = {
+    const importoTrim = importo.trim();
+    const noteTrim = note.trim();
+    const parsed = paymentInputSchema.safeParse({
       aziendaId: row.azienda.id,
       periodoFinoA: date,
-    };
-    if (importo.trim()) candidate["importoPagato"] = Number(importo);
-    if (metodo) candidate["metodoPagamento"] = metodo;
-    if (note.trim()) candidate["note"] = note.trim();
-    const parsed = paymentInputSchema.safeParse(candidate);
+      ...(importoTrim ? { importoPagato: Number(importoTrim) } : {}),
+      ...(metodo ? { metodoPagamento: metodo } : {}),
+      ...(noteTrim ? { note: noteTrim } : {}),
+    });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? t.saveError);
       return;

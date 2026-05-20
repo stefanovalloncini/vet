@@ -90,13 +90,19 @@ export function DashboardPage() {
   }, [items]);
 
   const hasContent = !loading && items.length > 0;
+  const hasRightRail =
+    urgentReminders.length > 0 || recentAziende.length > 0;
 
-  const rightRailItems = [
-    urgentReminders.length > 0,
-    recentAziende.length > 0,
-  ].some(Boolean);
+  const topTipoBars = useMemo(
+    () =>
+      [...thisMonth.byTipo.values()]
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 8)
+        .map((v) => ({ label: v.nome, value: v.total })),
+    [thisMonth.byTipo]
+  );
 
-  const rightRail = hasContent && rightRailItems ? (
+  const rightRail = hasContent && hasRightRail ? (
     <>
       {urgentReminders.length > 0 ? (
         <Card className="border-(--color-accent)/40">
@@ -235,13 +241,7 @@ export function DashboardPage() {
               <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
                 Attività del mese per tipo
               </p>
-              <BarChart
-                bars={[...thisMonth.byTipo.values()]
-                  .sort((a, b) => b.total - a.total)
-                  .slice(0, 8)
-                  .map((v) => ({ label: v.nome, value: v.total }))}
-                formatValue={formatEuro}
-              />
+              <BarChart bars={topTipoBars} formatValue={formatEuro} />
             </Card>
           ) : null}
         </>

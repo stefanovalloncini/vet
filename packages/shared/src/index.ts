@@ -60,7 +60,7 @@ export {
 export {
   activityTypeInputSchema,
   activityTypeDocSchema,
-  slugifyActivityType,
+  slugify,
   ACTIVITY_TYPE_SEEDS,
   GINECOLOGIA_TIPO_ID,
   type ActivityTypeInput,

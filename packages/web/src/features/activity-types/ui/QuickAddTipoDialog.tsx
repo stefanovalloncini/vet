@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Button, Dialog, TextField } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { activityTypeInputSchema, slugifyActivityType, type ActivityType } from "@vet/shared";
+import { activityTypeInputSchema, slugify, type ActivityType } from "@vet/shared";
 
 interface Props {
   open: boolean;
@@ -30,18 +30,17 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
       setError("Tariffa non valida");
       return;
     }
-    const id = slugifyActivityType(trimmedNome);
+    const id = slugify(trimmedNome);
     if (!id) {
       setError("Nome non valido");
       return;
     }
-    const candidate: Record<string, unknown> = {
+    const parsed = activityTypeInputSchema.safeParse({
       nome: trimmedNome,
       ordine: nextOrdine,
       attivo: true,
-    };
-    if (tariffaNum !== undefined) candidate["tariffaStandard"] = tariffaNum;
-    const parsed = activityTypeInputSchema.safeParse(candidate);
+      ...(tariffaNum !== undefined ? { tariffaStandard: tariffaNum } : {}),
+    });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Dati non validi");
       return;

@@ -12,21 +12,14 @@ import { useAuthState } from "../auth";
 import { useReferenceData } from "../attivita/hooks/useReferenceData";
 import { QuickAddAziendaDialog } from "../aziende/ui/QuickAddAziendaDialog";
 import { QuickAddTipoDialog } from "../activity-types/ui/QuickAddTipoDialog";
-import { formatEuro } from "../attivita/lib/format";
+import { nextOrdine } from "../activity-types/lib/ordine";
+import { dateInputValue, formatEuro } from "../attivita/lib/format";
 import {
   attivitaInputSchema,
   GINECOLOGIA_TIPO_ID,
   type Attivita,
   type AttivitaInput,
 } from "@vet/shared";
-
-function todayIsoDate(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
 
 function isSameDay(a: Date, b: Date): boolean {
   return (
@@ -58,7 +51,7 @@ export function QuickEntryFab() {
   const ref = useReferenceData();
   const { notify } = useToast();
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState<string>(todayIsoDate());
+  const [data, setData] = useState<string>(() => dateInputValue(new Date()));
   const [aziendaId, setAziendaId] = useState("");
   const [tipoId, setTipoId] = useState("");
   const [tariffa, setTariffa] = useState("");
@@ -146,10 +139,36 @@ export function QuickEntryFab() {
     );
   }, [items, aziendaId, tipoId, candidateDate]);
 
+  const aziendaOptions = useMemo(() => {
+    const sorted = [...ref.aziende].sort((a, b) => {
+      const ai = recentIds.indexOf(a.id);
+      const bi = recentIds.indexOf(b.id);
+      if (ai === -1 && bi === -1) return a.nome.localeCompare(b.nome, "it");
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+    return [
+      { value: "", label: "Scegli azienda" },
+      ...sorted.map((a) => ({
+        value: a.id,
+        label: recentIds.includes(a.id) ? `★ ${a.nome}` : a.nome,
+      })),
+    ];
+  }, [ref.aziende, recentIds]);
+  const tipoOptions = useMemo(
+    () => [
+      { value: "", label: "Scegli tipo" },
+      ...ref.tipi.map((t) => ({ value: t.id, label: t.nome })),
+    ],
+    [ref.tipi]
+  );
+  const nextTipoOrdine = useMemo(() => nextOrdine(ref.tipi), [ref.tipi]);
+
   if (!canCreate) return null;
 
   function reset(opts: { keepDate?: boolean } = {}) {
-    if (!opts.keepDate) setData(todayIsoDate());
+    if (!opts.keepDate) setData(dateInputValue(new Date()));
     setAziendaId("");
     setTipoId("");
     setTariffa("");
@@ -159,14 +178,13 @@ export function QuickEntryFab() {
 
   async function performSave(): Promise<string | null> {
     if (!user) return null;
-    const candidate: Record<string, unknown> = {
+    const parsed = attivitaInputSchema.safeParse({
       data: candidateDate,
       aziendaId,
       tipoId,
       oraria: false,
       tariffa: Number(tariffa),
-    };
-    const parsed = attivitaInputSchema.safeParse(candidate);
+    });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Dati non validi");
       return null;
@@ -237,26 +255,6 @@ export function QuickEntryFab() {
     notifySavedWithUndo(id);
     reset({ keepDate: true });
   }
-
-  const sortedAziende = [...ref.aziende].sort((a, b) => {
-    const ai = recentIds.indexOf(a.id);
-    const bi = recentIds.indexOf(b.id);
-    if (ai === -1 && bi === -1) return a.nome.localeCompare(b.nome, "it");
-    if (ai === -1) return 1;
-    if (bi === -1) return -1;
-    return ai - bi;
-  });
-  const aziendaOptions = [
-    { value: "", label: "Scegli azienda" },
-    ...sortedAziende.map((a) => ({
-      value: a.id,
-      label: recentIds.includes(a.id) ? `★ ${a.nome}` : a.nome,
-    })),
-  ];
-  const tipoOptions = [
-    { value: "", label: "Scegli tipo" },
-    ...ref.tipi.map((t) => ({ value: t.id, label: t.nome })),
-  ];
 
   return (
     <>
@@ -389,9 +387,7 @@ export function QuickEntryFab() {
       <QuickAddTipoDialog
         open={addTipoOpen}
         onClose={() => setAddTipoOpen(false)}
-        nextOrdine={
-          (ref.tipi.reduce((m, t) => Math.max(m, t.ordine), 0) || 0) + 10
-        }
+        nextOrdine={nextTipoOrdine}
         onCreated={(t) => {
           ref.addTipo(t);
           setTipoId(t.id);

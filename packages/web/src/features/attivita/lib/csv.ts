@@ -1,4 +1,4 @@
-import type { Attivita } from "@vet/shared";
+import { slugify, type Attivita } from "@vet/shared";
 
 const HEADER = [
   "Data",
@@ -72,7 +72,7 @@ export function csvFilename(opts: {
   to?: Date;
 }): string {
   const parts: string[] = ["attivita"];
-  if (opts.aziendaNome) parts.push(slug(opts.aziendaNome));
+  if (opts.aziendaNome) parts.push(slugify(opts.aziendaNome));
   if (opts.from) parts.push(formatDataCompact(opts.from));
   if (opts.to) parts.push(formatDataCompact(opts.to));
   return parts.join("_") + ".csv";
@@ -83,13 +83,4 @@ function formatDataCompact(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}${m}${day}`;
-}
-
-function slug(s: string): string {
-  return s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }

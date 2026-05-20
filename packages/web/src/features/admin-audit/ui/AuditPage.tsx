@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell, Card, Select } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { ACTION_LABELS, auditI18n as t } from "../i18n";
-import type { AuditAction, AuditEvent } from "@vet/shared";
+import type { AuditAction, AuditEvent, AuditFilters } from "@vet/shared";
 
-const TARGET_TYPES = [
+type TargetType = NonNullable<AuditFilters["targetType"]>;
+
+const TARGET_TYPES: Array<{ value: TargetType | ""; label: string }> = [
   { value: "", label: t.filtroTutti },
   { value: "role", label: "Ruolo" },
   { value: "user", label: "Utente" },
@@ -27,17 +29,18 @@ export function AuditPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterAction, setFilterAction] = useState<AuditAction | "">("");
-  const [filterTarget, setFilterTarget] = useState("");
+  const [filterTarget, setFilterTarget] = useState<TargetType | "">("");
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       setLoading(true);
       try {
-        const filters: Record<string, unknown> = { limit: 200 };
-        if (filterAction) filters["action"] = filterAction;
-        if (filterTarget) filters["targetType"] = filterTarget;
-        const list = await audit.list(filters);
+        const list = await audit.list({
+          limit: 200,
+          ...(filterAction ? { action: filterAction } : {}),
+          ...(filterTarget ? { targetType: filterTarget } : {}),
+        });
         if (!cancelled) {
           setEvents(list);
           setLoading(false);
@@ -90,7 +93,7 @@ export function AuditPage() {
             id="filter-target"
             label={t.filtroTarget}
             value={filterTarget}
-            onChange={(e) => setFilterTarget(e.target.value)}
+            onChange={(e) => setFilterTarget(e.target.value as TargetType | "")}
             options={TARGET_TYPES}
           />
         </div>

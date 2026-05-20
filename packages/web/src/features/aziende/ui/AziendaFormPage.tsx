@@ -81,21 +81,25 @@ export function AziendaFormPage() {
   }
 
   function buildInput(): { ok: true; input: AziendaInput } | { ok: false } {
-    const candidate: Record<string, unknown> = { nome: form.nome };
-    if (form.indirizzo.trim()) candidate["indirizzo"] = form.indirizzo.trim();
-    if (form.telefono.trim()) candidate["telefono"] = form.telefono.trim();
-    if (form.piva.trim()) candidate["piva"] = form.piva.trim();
-    if (form.emailFatturazione.trim())
-      candidate["emailFatturazione"] = form.emailFatturazione.trim();
-    if (form.cadenzaFatturazione)
-      candidate["cadenzaFatturazione"] = form.cadenzaFatturazione;
-    if (form.tipoAllevamento)
-      candidate["tipoAllevamento"] = form.tipoAllevamento;
-    if (form.numeroCapi.trim())
-      candidate["numeroCapi"] = Number(form.numeroCapi);
-    if (form.note.trim()) candidate["note"] = form.note.trim();
-
-    const parsed = aziendaInputSchema.safeParse(candidate);
+    const indirizzo = form.indirizzo.trim();
+    const telefono = form.telefono.trim();
+    const piva = form.piva.trim();
+    const emailFatturazione = form.emailFatturazione.trim();
+    const numeroCapiStr = form.numeroCapi.trim();
+    const note = form.note.trim();
+    const parsed = aziendaInputSchema.safeParse({
+      nome: form.nome,
+      ...(indirizzo ? { indirizzo } : {}),
+      ...(telefono ? { telefono } : {}),
+      ...(piva ? { piva } : {}),
+      ...(emailFatturazione ? { emailFatturazione } : {}),
+      ...(form.cadenzaFatturazione
+        ? { cadenzaFatturazione: form.cadenzaFatturazione }
+        : {}),
+      ...(form.tipoAllevamento ? { tipoAllevamento: form.tipoAllevamento } : {}),
+      ...(numeroCapiStr ? { numeroCapi: Number(numeroCapiStr) } : {}),
+      ...(note ? { note } : {}),
+    });
     if (!parsed.success) {
       const fieldErrors: Partial<Record<keyof AziendaFormState, string>> = {};
       for (const issue of parsed.error.issues) {

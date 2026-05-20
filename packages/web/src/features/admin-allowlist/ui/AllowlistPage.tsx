@@ -33,12 +33,12 @@ export function AllowlistPage() {
   async function handleAdd(e: FormEvent) {
     e.preventDefault();
     if (!user || !canManage) return;
-    const candidate: Record<string, unknown> = {
+    const notesTrim = notes.trim();
+    const parsed = allowlistEntryInputSchema.safeParse({
       email: email.trim(),
       defaultRoleId: roleId,
-    };
-    if (notes.trim()) candidate["notes"] = notes.trim();
-    const parsed = allowlistEntryInputSchema.safeParse(candidate);
+      ...(notesTrim ? { notes: notesTrim } : {}),
+    });
     if (!parsed.success) {
       setErrorMsg(parsed.error.issues[0]?.message ?? t.saveError);
       return;

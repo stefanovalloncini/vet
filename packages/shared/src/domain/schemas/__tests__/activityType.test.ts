@@ -4,7 +4,7 @@ import {
   activityTypeDocSchema,
   ACTIVITY_TYPE_SEEDS,
   GINECOLOGIA_TIPO_ID,
-  slugifyActivityType,
+  slugify,
 } from "../activityType.js";
 
 describe("activityTypeInputSchema", () => {
@@ -94,23 +94,23 @@ describe("activityTypeDocSchema", () => {
   });
 });
 
-describe("slugifyActivityType", () => {
+describe("slugify", () => {
   it("lowercases, replaces spaces with dashes", () => {
-    expect(slugifyActivityType("Visita di controllo")).toBe(
+    expect(slugify("Visita di controllo")).toBe(
       "visita-di-controllo"
     );
   });
 
   it("strips accents", () => {
-    expect(slugifyActivityType("Profilàssi")).toBe("profilassi");
+    expect(slugify("Profilàssi")).toBe("profilassi");
   });
 
   it("trims and collapses whitespace", () => {
-    expect(slugifyActivityType("  Visita   ")).toBe("visita");
+    expect(slugify("  Visita   ")).toBe("visita");
   });
 
   it("strips non-alphanumeric except dashes", () => {
-    expect(slugifyActivityType("Vis. di / controllo!")).toBe(
+    expect(slugify("Vis. di / controllo!")).toBe(
       "vis-di-controllo"
     );
   });
@@ -122,7 +122,7 @@ describe("ACTIVITY_TYPE_SEEDS", () => {
   });
 
   it("has ginecologia slug matching GINECOLOGIA_TIPO_ID constant", () => {
-    expect(slugifyActivityType("Ginecologia")).toBe(GINECOLOGIA_TIPO_ID);
+    expect(slugify("Ginecologia")).toBe(GINECOLOGIA_TIPO_ID);
   });
 
   it("has unique slug ids", () => {

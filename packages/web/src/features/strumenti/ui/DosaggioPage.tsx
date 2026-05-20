@@ -7,6 +7,11 @@ import {
 } from "../../../shared/ui";
 import { DOSAGE_PRESETS, strumentiI18n as t } from "../i18n";
 
+const mlFormatter = new Intl.NumberFormat("it-IT", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export function DosaggioPage() {
   const [presetId, setPresetId] = useState("custom");
   const [peso, setPeso] = useState("");
@@ -155,8 +160,5 @@ export function DosaggioPage() {
 }
 
 function formatMl(n: number): string {
-  return new Intl.NumberFormat("it-IT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
+  return mlFormatter.format(n);
 }

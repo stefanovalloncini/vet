@@ -7,6 +7,7 @@ import { useReferenceData } from "../hooks/useReferenceData";
 import { useTariffaSuggestion } from "../hooks/useTariffaSuggestion";
 import { QuickAddAziendaDialog } from "../../aziende/ui/QuickAddAziendaDialog";
 import { QuickAddTipoDialog } from "../../activity-types/ui/QuickAddTipoDialog";
+import { nextOrdine } from "../../activity-types/lib/ordine";
 import { attivitaI18n as t } from "../i18n";
 import {
   attivitaInputSchema,
@@ -148,18 +149,16 @@ export function AttivitaFormPage() {
       setErrors((e) => ({ ...e, data: "Data non valida" }));
       return null;
     }
-    const tariffa = Number(form.tariffa);
-    const candidate: Record<string, unknown> = {
+    const note = form.note.trim();
+    const parsed = attivitaInputSchema.safeParse({
       data: date,
       aziendaId: form.aziendaId,
       tipoId: form.tipoId,
       oraria: form.oraria,
-      tariffa,
-    };
-    if (form.oraria) candidate["ore"] = Number(form.ore);
-    if (form.note.trim()) candidate["note"] = form.note.trim();
-
-    const parsed = attivitaInputSchema.safeParse(candidate);
+      tariffa: Number(form.tariffa),
+      ...(form.oraria ? { ore: Number(form.ore) } : {}),
+      ...(note ? { note } : {}),
+    });
     if (!parsed.success) {
       const fieldErrors: Partial<Record<keyof AttivitaFormState, string>> = {};
       for (const issue of parsed.error.issues) {
@@ -240,8 +239,7 @@ export function AttivitaFormPage() {
   const canCreateTipo = user?.caps.has("activity_types.manage") ?? false;
   const [addAziendaOpen, setAddAziendaOpen] = useState(false);
   const [addTipoOpen, setAddTipoOpen] = useState(false);
-  const nextTipoOrdine =
-    (ref.tipi.reduce((m, t) => Math.max(m, t.ordine), 0) || 0) + 10;
+  const nextTipoOrdine = useMemo(() => nextOrdine(ref.tipi), [ref.tipi]);
 
   if (loading || ref.loading) {
     return (
