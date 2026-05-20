@@ -6,7 +6,8 @@
   "scripts": {
     "seed:roles": "tsx seed-roles.ts",
     "seed:activity-types": "tsx seed-activity-types.ts",
-    "rescue:admin": "tsx rescue-admin.ts"
+    "rescue:admin": "tsx rescue-admin.ts",
+    "migrate:approved": "tsx migrate-approved.ts"
   },
   "dependencies": {
     "@vet/shared": "workspace:*",
