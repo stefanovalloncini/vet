@@ -1,4 +1,5 @@
 import { beforeUserSignedIn, HttpsError } from "firebase-functions/v2/identity";
+import { logger } from "firebase-functions/v2";
 import { adminDb } from "../admin/firebaseAdmin.js";
 import type { Capability } from "@vet/shared";
 import { encodeCaps, normalizeEmail } from "@vet/shared";
@@ -18,22 +19,34 @@ export function composeClaims(input: ComposeInput) {
   };
 }
 
+type DenyReason =
+  | "missing-email"
+  | "allowlist-miss"
+  | "role-missing";
+
+function denyAndThrow(reason: DenyReason, context: Record<string, unknown>): never {
+  logger.warn("auth.beforeSignIn.deny", { reason, ...context });
+  throw new HttpsError("permission-denied", "");
+}
+
 export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSignedIn(
   { region: "europe-west8" },
   async (event) => {
     const email = event.data?.email;
+    const uid = event.data?.uid;
+    const eventType = event.eventType;
+
     if (!email) {
-      throw new HttpsError("permission-denied", "");
+      denyAndThrow("missing-email", { uid, eventType });
     }
 
     const norm = normalizeEmail(email);
     const allowSnap = await adminDb.collection("allowlist").doc(norm).get();
     if (!allowSnap.exists) {
-      throw new HttpsError("permission-denied", "");
+      denyAndThrow("allowlist-miss", { email: norm, uid, eventType });
     }
     const allow = allowSnap.data() as { defaultRoleId: string };
 
-    const uid = event.data?.uid;
     let roleId = allow.defaultRoleId;
     interface ExistingUser {
       roleId?: string;
@@ -52,7 +65,7 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
 
     const roleSnap = await adminDb.collection("roles").doc(roleId).get();
     if (!roleSnap.exists) {
-      throw new HttpsError("permission-denied", "");
+      denyAndThrow("role-missing", { email: norm, uid, roleId, eventType });
     }
     const role = roleSnap.data() as { capabilities: Capability[] };
 
@@ -86,6 +99,14 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
         { merge: true }
       );
     }
+
+    logger.info("auth.beforeSignIn.allow", {
+      email: norm,
+      uid,
+      roleId,
+      isFirst,
+      eventType,
+    });
 
     return {
       customClaims: claims,
