@@ -22,7 +22,7 @@ export const scheduledFirestoreBackup = onSchedule(
   {
     schedule: "0 3 * * *",
     timeZone: "Europe/Rome",
-    region: "europe-west8",
+    region: "europe-west1",
   },
   async () => {
     const project = process.env.GCLOUD_PROJECT ?? "vet-marinoni";

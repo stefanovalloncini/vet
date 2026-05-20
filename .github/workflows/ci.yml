@@ -58,6 +58,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - run: pnpm install --frozen-lockfile
+      - run: pnpm -F @vet/shared build
       - name: Start Firestore emulator
         run: |
           pnpm exec firebase emulators:start --only firestore &
