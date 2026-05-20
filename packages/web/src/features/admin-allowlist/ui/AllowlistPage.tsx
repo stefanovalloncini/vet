@@ -5,6 +5,7 @@ import {
   Card,
   ConfirmDialog,
   Select,
+  Tabs,
   TextField,
 } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
@@ -15,6 +16,7 @@ import {
   allowlistEntryInputSchema,
   type AllowlistEntry,
 } from "@vet/shared";
+import { PendingUsersTab } from "./PendingUsersTab";
 
 export function AllowlistPage() {
   const { user } = useAuthState();
@@ -22,6 +24,8 @@ export function AllowlistPage() {
   const { entries, roles, loading, error, refresh } = useAllowlist();
 
   const canManage = user?.caps.has("allowlist.manage") ?? false;
+  const canApprove = user?.caps.has("users.approve") ?? false;
+  const [view, setView] = useState<"allowlist" | "pending">("allowlist");
 
   const [adding, setAdding] = useState(false);
   const [email, setEmail] = useState("");
@@ -75,16 +79,14 @@ export function AllowlistPage() {
     }
   }
 
-  const roleOptions = roles.map((r) => ({ value: r.id, label: r.name }));
-
   return (
     <AppShell>
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
           <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
         </div>
-        {canManage && !adding ? (
+        {canManage && view === "allowlist" && !adding ? (
           <Button
             type="button"
             variant="primary"
@@ -95,6 +97,99 @@ export function AllowlistPage() {
         ) : null}
       </header>
 
+      {canApprove ? (
+        <div className="mb-6">
+          <Tabs
+            items={[
+              { value: "allowlist", label: t.tabAllowlist },
+              { value: "pending", label: t.tabPending },
+            ]}
+            value={view}
+            onChange={setView}
+            size="sm"
+          />
+        </div>
+      ) : null}
+
+      {view === "pending" ? (
+        <PendingUsersTab roles={roles} />
+      ) : (
+        <AllowlistTabContent
+          adding={adding}
+          email={email}
+          roleId={roleId}
+          notes={notes}
+          busy={busy}
+          errorMsg={errorMsg}
+          entries={entries}
+          roles={roles}
+          loading={loading}
+          error={error}
+          canManage={canManage}
+          confirmingRemove={confirmingRemove}
+          handleAdd={handleAdd}
+          handleRemove={handleRemove}
+          setAdding={setAdding}
+          setEmail={setEmail}
+          setRoleId={setRoleId}
+          setNotes={setNotes}
+          setErrorMsg={setErrorMsg}
+          setConfirmingRemove={setConfirmingRemove}
+        />
+      )}
+    </AppShell>
+  );
+}
+
+interface AllowlistTabContentProps {
+  adding: boolean;
+  email: string;
+  roleId: string;
+  notes: string;
+  busy: boolean;
+  errorMsg: string | null;
+  entries: AllowlistEntry[];
+  roles: { id: string; name: string }[];
+  loading: boolean;
+  error: unknown;
+  canManage: boolean;
+  confirmingRemove: string | null;
+  handleAdd: (e: FormEvent) => void;
+  handleRemove: (entry: AllowlistEntry) => void;
+  setAdding: (v: boolean) => void;
+  setEmail: (v: string) => void;
+  setRoleId: (v: string) => void;
+  setNotes: (v: string) => void;
+  setErrorMsg: (v: string | null) => void;
+  setConfirmingRemove: (v: string | null) => void;
+}
+
+function AllowlistTabContent(props: AllowlistTabContentProps) {
+  const {
+    adding,
+    email,
+    roleId,
+    notes,
+    busy,
+    errorMsg,
+    entries,
+    roles,
+    loading,
+    error,
+    canManage,
+    confirmingRemove,
+    handleAdd,
+    handleRemove,
+    setAdding,
+    setEmail,
+    setRoleId,
+    setNotes,
+    setErrorMsg,
+    setConfirmingRemove,
+  } = props;
+  const roleOptions = roles.map((r) => ({ value: r.id, label: r.name }));
+  return (
+    <>
       {errorMsg ? (
         <p role="alert" className="text-sm text-(--color-danger) mb-4">
           {errorMsg}
@@ -219,6 +314,6 @@ export function AllowlistPage() {
         }}
         onClose={() => setConfirmingRemove(null)}
       />
-    </AppShell>
+    </>
   );
 }

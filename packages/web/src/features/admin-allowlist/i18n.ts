@@ -16,4 +16,16 @@ export const allowlistI18n = {
   confermaRimozioneTitolo: "Rimuovere questa email?",
   confermaRimozione: "Rimuovere l'accesso a questa email? L'utente esistente verrà disconnesso al prossimo refresh.",
   annulla: "Annulla",
+  tabAllowlist: "Email autorizzate",
+  tabPending: "In attesa",
+  pendingEmpty: "Nessun utente in attesa di approvazione.",
+  pendingApprova: "Approva",
+  pendingRifiuta: "Rifiuta",
+  pendingRuolo: "Ruolo",
+  pendingConfermaRifiutoTitolo: "Rifiutare questo utente?",
+  pendingConfermaRifiuto:
+    "Il profilo verrà rimosso. Potrà richiedere accesso al prossimo login se l'email rimane in allowlist.",
+  pendingApprovaErrore: "Approvazione non riuscita.",
+  pendingRifiutaErrore: "Rifiuto non riuscito.",
+  pendingSignedUpAt: "Registrato il",
 } as const;
