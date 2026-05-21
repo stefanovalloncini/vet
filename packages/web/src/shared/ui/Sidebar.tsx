@@ -285,18 +285,20 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
             />
           ))}
         </ul>
-        <SidebarActionRow
-          onClick={onThemeToggle}
-          icon={theme === "dark" ? Sun : Moon}
-          label={theme === "dark" ? "Tema chiaro" : "Tema scuro"}
-          collapsed={collapsed}
-        />
-        <SidebarActionRow
-          onClick={onLogoutClick}
-          icon={LogOut}
-          label="Esci"
-          collapsed={collapsed}
-        />
+        <div className="border-t border-(--color-border) pt-1 mt-1">
+          <SidebarActionRow
+            onClick={onThemeToggle}
+            icon={theme === "dark" ? Sun : Moon}
+            label={theme === "dark" ? "Tema chiaro" : "Tema scuro"}
+            collapsed={collapsed}
+          />
+          <SidebarActionRow
+            onClick={onLogoutClick}
+            icon={LogOut}
+            label="Esci"
+            collapsed={collapsed}
+          />
+        </div>
       </div>
 
       <div className="border-t border-(--color-border) px-3 py-2.5 flex items-center gap-2">

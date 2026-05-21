@@ -111,35 +111,34 @@ export function AuditPage() {
               </h2>
               <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
                 {dayEvents.map((e) => (
-                  <li key={e.id} className="px-5 py-3">
-                    <div className="flex items-start gap-3">
-                      <span
-                        className="w-1.5 h-1.5 rounded-full bg-(--color-accent) mt-2 flex-shrink-0"
-                        aria-hidden
-                      />
+                  <li key={e.id} className="px-5 py-4">
+                    <div className="flex items-baseline gap-4">
+                      <span className="text-xs text-(--color-text-subtle) tabular-nums shrink-0 w-12">
+                        {e.at.toLocaleTimeString("it-IT", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                       <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                          <span className="text-sm font-medium text-(--color-text)">
-                            {ACTION_LABELS[e.action] ?? e.action}
-                          </span>
-                          <span className="text-xs text-(--color-text-subtle) tabular-nums">
-                            {e.at.toLocaleTimeString("it-IT", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                        <p className="text-xs text-(--color-text-muted) mt-1">
-                          <span>{e.actorEmail || e.actorUid}</span>
-                          {" · "}
-                          <span className="font-mono">
-                            {e.targetType}/{e.targetId}
+                        <p className="text-sm text-(--color-text)">
+                          {ACTION_LABELS[e.action] ?? e.action}
+                          <span className="text-(--color-text-muted)">
+                            {" · "}
+                            {e.actorEmail || e.actorUid}
                           </span>
                         </p>
+                        <p className="text-xs text-(--color-text-subtle) mt-1 font-mono">
+                          {e.targetType}/{e.targetId}
+                        </p>
                         {e.details ? (
-                          <pre className="text-[11px] text-(--color-text-subtle) mt-2 overflow-x-auto whitespace-pre-wrap bg-(--color-surface-muted) rounded-md p-2 font-mono">
-                            {JSON.stringify(e.details, null, 0)}
-                          </pre>
+                          <details className="mt-2">
+                            <summary className="text-[11px] text-(--color-text-subtle) cursor-pointer hover:text-(--color-text-muted)">
+                              Dettagli
+                            </summary>
+                            <pre className="text-[11px] text-(--color-text-subtle) mt-2 overflow-x-auto whitespace-pre-wrap bg-(--color-surface-muted) rounded-md p-2 font-mono">
+                              {JSON.stringify(e.details, null, 0)}
+                            </pre>
+                          </details>
                         ) : null}
                       </div>
                     </div>

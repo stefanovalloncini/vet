@@ -11,17 +11,19 @@ interface AuthLayoutProps {
 export function AuthLayout({ eyebrow, title, children, footer }: AuthLayoutProps) {
   return (
     <main className="min-h-screen bg-(--color-background) text-(--color-text) lg:grid lg:grid-cols-12">
-      <aside className="bg-(--color-accent-soft) px-6 py-5 sm:px-10 sm:py-6 lg:col-span-5 lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-14 lg:min-h-screen">
+      <aside className="bg-(--color-accent-soft) px-6 py-5 sm:px-10 sm:py-6 lg:col-span-5 lg:flex lg:flex-col lg:gap-10 lg:px-12 lg:py-14 lg:min-h-screen">
         <Brand size="lg" />
 
-        <p className="hidden lg:block max-w-sm mt-10 text-base leading-relaxed text-(--color-text)">
-          Registro attività dello studio. Visite, ore, tariffe e totali per azienda.
-          <span className="block mt-3 text-sm text-(--color-text-muted)">
+        <div className="hidden lg:block max-w-sm">
+          <p className="text-base leading-relaxed text-(--color-text)">
+            Registro attività dello studio. Visite, ore, tariffe e totali per azienda.
+          </p>
+          <p className="mt-3 text-sm text-(--color-text-muted) leading-relaxed">
             Accesso solo nominale, dati conservati in Italia, esportazione CSV su richiesta.
-          </span>
-        </p>
+          </p>
+        </div>
 
-        <div className="hidden lg:block">
+        <div className="hidden lg:block mt-auto">
           <VersionBadge />
         </div>
       </aside>
