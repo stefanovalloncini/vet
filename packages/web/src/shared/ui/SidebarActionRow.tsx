@@ -14,7 +14,7 @@ export function SidebarActionRow({ onClick, icon: Icon, label, collapsed }: Side
       onClick={onClick}
       title={collapsed ? label : undefined}
       aria-label={label}
-      className="w-full flex items-center h-8 gap-2.5 px-2 rounded-md text-[13px] text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-[color,background-color] duration-(--motion-fast) ease-(--ease-out-quart)"
+      className="w-full flex items-center h-9 gap-2.5 pl-3 pr-2 text-[13px] text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart)"
     >
       <Icon size={15} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
       <div

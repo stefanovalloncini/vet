@@ -45,14 +45,25 @@ export function MobileNav() {
             <Link
               key={it.to}
               to={it.to}
+              aria-current={active ? "page" : undefined}
               className={[
-                "flex-1 flex flex-col items-center gap-1 py-2 text-[11px]",
-                active
-                  ? "text-(--color-accent)"
-                  : "text-(--color-text-muted)",
+                "relative flex-1 flex flex-col items-center gap-1 py-2 text-[11px]",
+                "transition-colors duration-(--motion-fast) ease-(--ease-out-quart)",
+                active ? "text-(--color-text) font-medium" : "text-(--color-text-muted)",
               ].join(" ")}
             >
-              <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+              {active ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-0 left-4 right-4 h-[2px] bg-(--color-accent) rounded-b-sm"
+                />
+              ) : null}
+              <Icon
+                size={18}
+                strokeWidth={1.75}
+                aria-hidden="true"
+                className={active ? "text-(--color-accent)" : ""}
+              />
               {it.label}
             </Link>
           );
