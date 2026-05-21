@@ -19,7 +19,7 @@
     "seed:roles": "pnpm -F vet-scripts seed:roles",
     "seed:activity-types": "pnpm -F vet-scripts seed:activity-types",
     "rescue:admin": "pnpm -F vet-scripts rescue:admin",
-    "dev": "pnpm -F @vet/shared build && pnpm -F @vet/functions build && concurrently -k -n 'emulator,web' -c 'magenta,cyan' 'firebase emulators:start' 'pnpm -F @vet/web dev'"
+    "dev": "pnpm -F @vet/shared build && pnpm -F @vet/functions build && concurrently -k -n 'emulator,web' -c 'magenta,cyan' 'firebase emulators:start --project=vet-dev' 'pnpm -F @vet/web dev'"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
