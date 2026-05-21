@@ -1,24 +1,20 @@
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import {
-  Button,
-  Card,
-  Divider,
-  GoogleIcon,
-  TextField,
-} from "../../../shared/ui";
+import { Button, GoogleIcon, TextField } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
 import {
   classifyAuthError,
   type ClassifiedAuthError,
 } from "../lib/authErrors";
+import { AuthLayout } from "./AuthLayout";
 
 export function LoginPage() {
   const { auth } = useRepositories();
   const { loading, user } = useAuthState();
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
   const [error, setError] = useState<ClassifiedAuthError | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -54,7 +50,7 @@ export function LoginPage() {
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-(--color-background)">
-        <p className="text-sm text-(--color-text-muted)">Caricamento...</p>
+        <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
       </main>
     );
   }
@@ -64,75 +60,95 @@ export function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-16 bg-(--color-background)">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl text-(--color-text)">Accedi</h1>
-        </div>
-
-        <Card elevated>
-          <Button
-            type="button"
-            variant="secondary"
-            fullWidth
-            disabled={busy}
-            onClick={() => googleSignIn(false)}
-            leadingIcon={<GoogleIcon />}
-          >
-            Continua con Google
-          </Button>
-
-          <Divider className="my-6">oppure</Divider>
-
-          {emailSent ? (
-            <div className="rounded-xl bg-(--color-accent-soft) border border-(--color-accent)/20 p-4 text-sm text-(--color-text)">
-              Controlla la tua email. Ti abbiamo inviato un link per accedere.
-            </div>
-          ) : (
-            <form onSubmit={handleEmail} className="space-y-4">
-              <TextField
-                id="email"
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={busy}
-                placeholder="tua.email@studio.it"
-              />
-              <Button
-                type="submit"
-                variant="primary"
-                fullWidth
-                disabled={busy || email.length === 0}
-              >
-                Inviami il link
-              </Button>
-            </form>
-          )}
-
-          {error ? (
-            <div className="mt-4 space-y-2" role="alert">
-              <p className="text-sm text-(--color-danger)">{error.message}</p>
-              {error.kind === "unauthorizedEmail" ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={busy}
-                  onClick={() => googleSignIn(true)}
-                >
-                  Cambia account Google
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </Card>
-
-        <p className="text-center text-xs text-(--color-text-subtle) mt-8">
-          Solo email autorizzate possono accedere.
+    <AuthLayout
+      eyebrow="Accesso"
+      title="Entra con il tuo account"
+      footer={
+        <p>
+          L&apos;ingresso è riservato alle persone nell&apos;elenco abilitato dallo studio.
         </p>
-      </div>
-    </main>
+      }
+    >
+      <Button
+        type="button"
+        variant="primary"
+        fullWidth
+        disabled={busy}
+        onClick={() => googleSignIn(false)}
+        leadingIcon={<GoogleIcon />}
+      >
+        Entra con Google
+      </Button>
+
+      {emailSent ? (
+        <p className="mt-6 text-sm text-(--color-text)" role="status">
+          Link inviato a{" "}
+          <span className="font-mono text-(--color-text)">{email}</span>.
+          Aprilo dallo stesso dispositivo per completare l&apos;accesso.
+        </p>
+      ) : showEmail ? (
+        <form onSubmit={handleEmail} className="mt-8 space-y-4">
+          <TextField
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoFocus
+            disabled={busy}
+            placeholder="nome.cognome@studio.it"
+            hint="Ti arriva un link a tempo. Apri dallo stesso dispositivo."
+          />
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={busy}
+              onClick={() => setShowEmail(false)}
+            >
+              Annulla
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={busy || email.length === 0}
+            >
+              Inviami il link
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <div className="mt-6 flex items-center gap-3 text-sm text-(--color-text-muted)">
+          <span>Niente Google?</span>
+          <button
+            type="button"
+            onClick={() => setShowEmail(true)}
+            disabled={busy}
+            className="font-medium text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline disabled:opacity-50"
+          >
+            Ricevi un link via email
+          </button>
+        </div>
+      )}
+
+      {error ? (
+        <div className="mt-6 border-t border-(--color-border) pt-4 space-y-3" role="alert">
+          <p className="text-sm text-(--color-danger)">{error.message}</p>
+          {error.kind === "unauthorizedEmail" ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={busy}
+              onClick={() => googleSignIn(true)}
+            >
+              Cambia account Google
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+    </AuthLayout>
   );
 }
