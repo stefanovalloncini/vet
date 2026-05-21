@@ -35,12 +35,12 @@ service cloud.firestore {
             && request.resource.data.displayName is string
             && request.resource.data.displayName.size() >= 1
             && request.resource.data.displayName.size() <= 80)
-          || (hasCap("rsg")
+          || (hasCap("rsg") && uid != request.auth.uid
             && request.resource.data.diff(resource.data).changedKeys().hasOnly(["roleId", "updatedAt"])
             && request.resource.data.roleId is string
             && request.resource.data.roleId.size() >= 1
             && request.resource.data.roleId.size() <= 60)
-          || (hasCap("uap")
+          || (hasCap("uap") && uid != request.auth.uid
             && request.resource.data.diff(resource.data).changedKeys().hasOnly(["approved", "roleId", "approvedAt", "approvedBy", "updatedAt"])
             && request.resource.data.approved is bool
             && request.resource.data.roleId is string
@@ -150,9 +150,7 @@ service cloud.firestore {
         || (resource.data.isDeleted == true
             && ((hasCap("hro") && resource.data.ownerUid == request.auth.uid)
                 || hasCap("hra")));
-      allow list: if hasCap("ara")
-        || hasCap("hro")
-        || hasCap("hra");
+      allow list: if hasCap("ara");
       allow create: if hasCap("ac")
         && validCreate()
         && request.resource.data.ownerUid == request.auth.uid

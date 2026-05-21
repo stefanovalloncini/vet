@@ -1,10 +1,13 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
+import { z } from "zod";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
 import { decodeCaps } from "@vet/shared";
 
+const inputSchema = z.object({ uid: z.string().min(1).max(128) }).strict();
+
 export const rejectUser = onCall(
-  { region: "europe-west8" },
+  { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
     const actorUid = request.auth?.uid;
     const rawCaps = (request.auth?.token?.caps as string[] | undefined) ?? [];
@@ -12,8 +15,10 @@ export const rejectUser = onCall(
       throw new HttpsError("permission-denied", "");
     }
 
-    const targetUid = String(request.data?.uid ?? "");
-    if (!targetUid) {
+    let targetUid: string;
+    try {
+      ({ uid: targetUid } = inputSchema.parse(request.data));
+    } catch {
       throw new HttpsError("invalid-argument", "");
     }
     if (targetUid === actorUid) {

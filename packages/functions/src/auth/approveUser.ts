@@ -1,7 +1,15 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
+import { z } from "zod";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
 import { decodeCaps, encodeCaps, type Capability } from "@vet/shared";
+
+const inputSchema = z
+  .object({
+    uid: z.string().min(1).max(128),
+    roleId: z.string().min(1).max(60),
+  })
+  .strict();
 
 interface BuildInput {
   actorUid: string;
@@ -20,7 +28,7 @@ export function buildApprovePatch(input: BuildInput) {
 }
 
 export const approveUser = onCall(
-  { region: "europe-west8" },
+  { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
     const actorUid = request.auth?.uid;
     const rawCaps = (request.auth?.token?.caps as string[] | undefined) ?? [];
@@ -28,10 +36,15 @@ export const approveUser = onCall(
       throw new HttpsError("permission-denied", "");
     }
 
-    const targetUid = String(request.data?.uid ?? "");
-    const roleId = String(request.data?.roleId ?? "");
-    if (!targetUid || !roleId) {
+    let targetUid: string;
+    let roleId: string;
+    try {
+      ({ uid: targetUid, roleId } = inputSchema.parse(request.data));
+    } catch {
       throw new HttpsError("invalid-argument", "");
+    }
+    if (targetUid === actorUid) {
+      throw new HttpsError("permission-denied", "");
     }
 
     const [userSnap, roleSnap] = await Promise.all([

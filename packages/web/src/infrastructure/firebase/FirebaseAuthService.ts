@@ -57,11 +57,24 @@ export class FirebaseAuthService implements AuthService {
 
   subscribeRevocation(uid: string, cb: SessionRevokedSubscriber): () => void {
     const userRef = doc(this.firestore, "users", uid);
-    return onSnapshot(userRef, (snap) => {
-      if (!snap.exists()) return;
-      const data = snap.data();
-      if (data["disabled"] === true) cb("disabled");
-    });
+    let firstSnapshot = true;
+    return onSnapshot(
+      userRef,
+      (snap) => {
+        if (!snap.exists()) {
+          if (!firstSnapshot) cb("claims-cleared");
+          firstSnapshot = false;
+          return;
+        }
+        firstSnapshot = false;
+        const data = snap.data();
+        if (data["disabled"] === true) cb("disabled");
+      },
+      (err) => {
+        console.error("subscribeRevocation snapshot error", err);
+        cb("claims-cleared");
+      }
+    );
   }
 
   async signInWithGoogle(options?: { selectAccount?: boolean }): Promise<void> {
