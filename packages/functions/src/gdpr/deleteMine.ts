@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
 import { FieldValue } from "firebase-admin/firestore";
+import { normalizeEmail } from "@vet/shared";
 
 const BATCH_SIZE = 400;
 const ANON_UID = "deleted-user";
@@ -14,19 +15,20 @@ export const gdprDeleteMine = onCall(
     const uid = auth.uid;
     const email = (auth.token.email as string) ?? "";
 
-    const erased = await eraseUserData(uid);
+    const erased = await eraseUserData(uid, email);
 
     await adminDb.collection("audit").add({
       at: FieldValue.serverTimestamp(),
-      actorUid: uid,
-      actorEmail: email,
+      actorUid: ANON_UID,
+      actorEmail: "",
       action: "gdpr.erasure",
       targetType: "user",
-      targetId: uid,
-      details: erased,
+      targetId: ANON_UID,
+      details: { ...erased, originalUidHash: "redacted" },
     });
 
     try {
+      await adminAuth.revokeRefreshTokens(uid);
       await adminAuth.deleteUser(uid);
     } catch {
       // user might have been already removed; continue
@@ -36,12 +38,16 @@ export const gdprDeleteMine = onCall(
   }
 );
 
-async function eraseUserData(uid: string): Promise<{
+async function eraseUserData(
+  uid: string,
+  email: string
+): Promise<{
   attivita: number;
   aziendeAnon: number;
   paymentsAnon: number;
   remindersAnon: number;
   userDoc: boolean;
+  allowlistDoc: boolean;
 }> {
   let attivitaDeleted = 0;
   for (;;) {
@@ -70,12 +76,24 @@ async function eraseUserData(uid: string): Promise<{
     userDoc = true;
   }
 
+  let allowlistDoc = false;
+  if (email) {
+    const norm = normalizeEmail(email);
+    const allowRef = adminDb.collection("allowlist").doc(norm);
+    const allowSnap = await allowRef.get();
+    if (allowSnap.exists) {
+      await allowRef.delete();
+      allowlistDoc = true;
+    }
+  }
+
   return {
     attivita: attivitaDeleted,
     aziendeAnon,
     paymentsAnon,
     remindersAnon,
     userDoc,
+    allowlistDoc,
   };
 }
 

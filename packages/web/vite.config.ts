@@ -43,17 +43,6 @@ export default defineConfig({
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/__\//, /^\/api\//],
         cleanupOutdatedCaches: true,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "firestore-api",
-              networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
-            },
-          },
-        ],
       },
       manifest: {
         name: "Veterinario",

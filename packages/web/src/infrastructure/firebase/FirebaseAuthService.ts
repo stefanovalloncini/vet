@@ -106,7 +106,20 @@ export class FirebaseAuthService implements AuthService {
   }
 
   async signOut(): Promise<void> {
+    try {
+      window.localStorage?.removeItem(EMAIL_LINK_STORAGE_KEY);
+    } catch {
+      // ignore localStorage failures
+    }
     await fbSignOut(this.auth);
+    if (typeof caches !== "undefined") {
+      try {
+        const names = await caches.keys();
+        await Promise.all(names.map((n) => caches.delete(n)));
+      } catch {
+        // ignore cache failures
+      }
+    }
   }
 
   private async toActor(fbUser: FbUser): Promise<ActorContext> {
