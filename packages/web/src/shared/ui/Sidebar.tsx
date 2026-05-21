@@ -119,6 +119,18 @@ interface SidebarProps {
   onLogoutClick: () => void;
 }
 
+function sectionContainsPath(
+  section: NavSection,
+  pathname: string,
+  caps?: ReadonlySet<string>
+): boolean {
+  return section.items.some(
+    (item) =>
+      (!item.requiredCap || caps?.has(item.requiredCap)) &&
+      isActive(pathname, item.to)
+  );
+}
+
 export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
   const { user } = useAuthState();
   const location = useLocation();
@@ -126,6 +138,20 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
   const [collapsedSections, setCollapsedSections] = useState<ReadonlySet<string>>(
     readCollapsedSections
   );
+
+  useEffect(() => {
+    const caps = user?.caps as ReadonlySet<string> | undefined;
+    const containingSection = SECTIONS.find((s) =>
+      sectionContainsPath(s, location.pathname, caps)
+    );
+    if (!containingSection) return;
+    if (!collapsedSections.has(containingSection.title)) return;
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      next.delete(containingSection.title);
+      return next;
+    });
+  }, [location.pathname, user, collapsedSections]);
 
   useEffect(() => {
     try {

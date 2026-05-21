@@ -73,7 +73,7 @@ export function AziendeListPage() {
       <div className="mb-6 max-w-md">
         <TextField
           id="cerca-aziende"
-          label={t.cercaPlaceholder}
+          label="Cerca"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.cercaPlaceholder}

@@ -11,7 +11,7 @@ interface AuthLayoutProps {
 export function AuthLayout({ eyebrow, title, children, footer }: AuthLayoutProps) {
   return (
     <main className="min-h-screen bg-(--color-background) text-(--color-text) lg:grid lg:grid-cols-12">
-      <aside className="bg-(--color-accent-soft) px-6 pt-10 pb-12 sm:px-10 lg:col-span-5 lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-14 lg:min-h-screen">
+      <aside className="bg-(--color-accent-soft) px-6 py-5 sm:px-10 sm:py-6 lg:col-span-5 lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-14 lg:min-h-screen">
         <Brand size="lg" />
 
         <p className="hidden lg:block max-w-sm mt-10 text-base leading-relaxed text-(--color-text)">
@@ -26,7 +26,7 @@ export function AuthLayout({ eyebrow, title, children, footer }: AuthLayoutProps
         </div>
       </aside>
 
-      <section className="px-6 pt-12 pb-16 sm:px-10 lg:col-span-7 lg:flex lg:flex-col lg:justify-center lg:px-16 lg:py-16">
+      <section className="px-6 pt-8 pb-12 sm:px-10 lg:col-span-7 lg:flex lg:flex-col lg:justify-center lg:px-16 lg:py-16">
         <div className="w-full max-w-sm lg:mx-0 mx-auto">
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-(--color-text-muted)">
             {eyebrow}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AppShell, Card, Select } from "../../../shared/ui";
+import { AppShell, EmptyState, PageHeader, Select } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { ACTION_LABELS, auditI18n as t } from "../i18n";
 import type { AuditAction, AuditEvent, AuditFilters } from "@vet/shared";
@@ -75,12 +75,9 @@ export function AuditPage() {
 
   return (
     <AppShell>
-      <header className="mb-8">
-        <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
-      </header>
+      <PageHeader title={t.title} subtitle={t.subtitle} />
 
-      <Card className="mb-6">
+      <div className="border-y border-(--color-border) py-4 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Select
             id="filter-action"
@@ -97,18 +94,14 @@ export function AuditPage() {
             options={TARGET_TYPES}
           />
         </div>
-      </Card>
+      </div>
 
       {loading ? (
         <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
       ) : error ? (
         <p className="text-sm text-(--color-danger)">{t.loadError}</p>
       ) : events.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            {t.empty}
-          </p>
-        </Card>
+        <EmptyState title={t.empty} />
       ) : (
         <div className="space-y-6">
           {grouped.map(([day, dayEvents]) => (
@@ -116,42 +109,40 @@ export function AuditPage() {
               <h2 className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
                 {day}
               </h2>
-              <ul className="space-y-2">
+              <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
                 {dayEvents.map((e) => (
-                  <li key={e.id}>
-                    <Card padded={false} className="px-5 py-3">
-                      <div className="flex items-start gap-3">
-                        <span
-                          className="w-1.5 h-1.5 rounded-full bg-(--color-accent) mt-2 flex-shrink-0"
-                          aria-hidden
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                            <span className="text-sm font-medium text-(--color-text)">
-                              {ACTION_LABELS[e.action] ?? e.action}
-                            </span>
-                            <span className="text-xs text-(--color-text-subtle) tabular-nums">
-                              {e.at.toLocaleTimeString("it-IT", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </div>
-                          <p className="text-xs text-(--color-text-muted) mt-1">
-                            <span>{e.actorEmail || e.actorUid}</span>
-                            {" · "}
-                            <span className="font-mono">
-                              {e.targetType}/{e.targetId}
-                            </span>
-                          </p>
-                          {e.details ? (
-                            <pre className="text-[11px] text-(--color-text-subtle) mt-2 overflow-x-auto whitespace-pre-wrap bg-(--color-surface-muted) rounded-md p-2 font-mono">
-                              {JSON.stringify(e.details, null, 0)}
-                            </pre>
-                          ) : null}
+                  <li key={e.id} className="px-5 py-3">
+                    <div className="flex items-start gap-3">
+                      <span
+                        className="w-1.5 h-1.5 rounded-full bg-(--color-accent) mt-2 flex-shrink-0"
+                        aria-hidden
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                          <span className="text-sm font-medium text-(--color-text)">
+                            {ACTION_LABELS[e.action] ?? e.action}
+                          </span>
+                          <span className="text-xs text-(--color-text-subtle) tabular-nums">
+                            {e.at.toLocaleTimeString("it-IT", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
                         </div>
+                        <p className="text-xs text-(--color-text-muted) mt-1">
+                          <span>{e.actorEmail || e.actorUid}</span>
+                          {" · "}
+                          <span className="font-mono">
+                            {e.targetType}/{e.targetId}
+                          </span>
+                        </p>
+                        {e.details ? (
+                          <pre className="text-[11px] text-(--color-text-subtle) mt-2 overflow-x-auto whitespace-pre-wrap bg-(--color-surface-muted) rounded-md p-2 font-mono">
+                            {JSON.stringify(e.details, null, 0)}
+                          </pre>
+                        ) : null}
                       </div>
-                    </Card>
+                    </div>
                   </li>
                 ))}
               </ul>
