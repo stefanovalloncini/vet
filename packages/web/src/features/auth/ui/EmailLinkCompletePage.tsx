@@ -1,12 +1,13 @@
 import { useState, type FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { Brand, Button, Card, Spinner, TextField } from "../../../shared/ui";
+import { Button, Spinner, TextField } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
 import {
   useEmailLinkSignIn,
   type EmailLinkSignInState,
 } from "../hooks/useEmailLinkSignIn";
+import { AuthLayout } from "./AuthLayout";
 
 export function EmailLinkCompletePage() {
   const { auth } = useRepositories();
@@ -24,61 +25,55 @@ export function EmailLinkCompletePage() {
 
   if (user) return <Navigate to="/" replace />;
 
-  return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-16 bg-(--color-background)">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-8">
-          <Brand size="lg" />
-        </div>
-        <Card elevated>
-          <EmailLinkBody
-            state={state}
-            email={email}
-            onEmailChange={setEmail}
-            onSubmit={handleSubmit}
-          />
-        </Card>
-      </div>
-    </main>
-  );
-}
-
-interface EmailLinkBodyProps {
-  state: EmailLinkSignInState;
-  email: string;
-  onEmailChange: (next: string) => void;
-  onSubmit: (e: FormEvent) => void;
-}
-
-function EmailLinkBody({
-  state,
-  email,
-  onEmailChange,
-  onSubmit,
-}: EmailLinkBodyProps) {
   if (state.kind === "needsEmail" || state.kind === "submittingWithEmail") {
     return (
-      <EmailConfirmationForm
-        email={email}
-        onEmailChange={onEmailChange}
-        onSubmit={onSubmit}
-        submitting={state.kind === "submittingWithEmail"}
-      />
+      <AuthLayout eyebrow="Accesso · verifica" title="Conferma l'indirizzo email">
+        <p className="text-sm text-(--color-text-muted) mb-6">
+          Per sicurezza, ridigita l&apos;indirizzo a cui è stato spedito il link.
+        </p>
+        <EmailConfirmationForm
+          email={email}
+          onEmailChange={setEmail}
+          onSubmit={handleSubmit}
+          submitting={state.kind === "submittingWithEmail"}
+          errorMessage={null}
+        />
+      </AuthLayout>
     );
   }
+
   if (state.kind === "error") {
     return (
-      <div className="text-center py-2">
-        <p role="alert" className="text-sm text-(--color-danger)">
+      <AuthLayout eyebrow="Accesso · errore" title="Link non valido">
+        <p role="alert" className="text-sm text-(--color-text)">
           {state.message}
         </p>
-      </div>
+        <p className="mt-4 text-sm text-(--color-text-muted)">
+          Richiedi un nuovo link dalla pagina di accesso.
+        </p>
+        <div className="mt-6">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-2 text-sm font-medium text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
+          >
+            Torna all&apos;accesso
+          </Link>
+        </div>
+      </AuthLayout>
     );
   }
+
+  return <VerifyingState />;
+}
+
+function VerifyingState() {
   return (
-    <div className="flex justify-center py-2">
-      <Spinner size={22} label="Accesso in corso…" />
-    </div>
+    <AuthLayout eyebrow="Accesso · verifica" title="Verifica del link in corso">
+      <Spinner size={18} label="Verifica del link" />
+      <p className="mt-6 text-xs text-(--color-text-subtle)">
+        Non chiudere questa scheda. L&apos;app apre la sessione appena la verifica si completa.
+      </p>
+    </AuthLayout>
   );
 }
 
@@ -87,6 +82,7 @@ interface EmailConfirmationFormProps {
   onEmailChange: (next: string) => void;
   onSubmit: (e: FormEvent) => void;
   submitting: boolean;
+  errorMessage: string | null;
 }
 
 function EmailConfirmationForm({
@@ -94,17 +90,10 @@ function EmailConfirmationForm({
   onEmailChange,
   onSubmit,
   submitting,
+  errorMessage,
 }: EmailConfirmationFormProps) {
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
-      <div>
-        <h1 className="text-base font-medium text-(--color-text)">
-          Conferma la tua email
-        </h1>
-        <p className="text-sm text-(--color-text-muted) mt-1">
-          Inserisci l&apos;email a cui è stato inviato il link.
-        </p>
-      </div>
+    <form onSubmit={onSubmit} className="space-y-4">
       <TextField
         id="confirm-email"
         type="email"
@@ -114,7 +103,7 @@ function EmailConfirmationForm({
         required
         autoFocus
         disabled={submitting}
-        placeholder="tua.email@studio.it"
+        placeholder="nome.cognome@studio.it"
       />
       <Button
         type="submit"
@@ -122,8 +111,15 @@ function EmailConfirmationForm({
         fullWidth
         disabled={submitting || email.length === 0}
       >
-        {submitting ? "Accesso..." : "Conferma"}
+        {submitting ? "Verifica in corso…" : "Conferma e accedi"}
       </Button>
+      {errorMessage ? (
+        <p role="alert" className="text-sm text-(--color-danger)">
+          {errorMessage}
+        </p>
+      ) : null}
     </form>
   );
 }
+
+export type { EmailLinkSignInState };
