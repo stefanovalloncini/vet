@@ -16,6 +16,7 @@ export { EmptyState } from "./EmptyState";
 export { Tabs } from "./Tabs";
 export { Badge } from "./Badge";
 export { PageHeader } from "./PageHeader";
+export { FormFooter } from "./FormFooter";
 export { DataLoader } from "./DataLoader";
 export { RouteBoundary } from "./RouteBoundary";
 export { VersionBadge } from "./VersionBadge";
