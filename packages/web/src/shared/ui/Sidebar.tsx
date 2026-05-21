@@ -78,6 +78,7 @@ const FOOTER_ITEMS: NavItem[] = [
 ];
 
 const COLLAPSED_STORAGE_KEY = "vet.sidebarCollapsed";
+const SECTIONS_STORAGE_KEY = "vet.sidebarSectionsCollapsed";
 
 function readCollapsed(): boolean {
   if (typeof window === "undefined") return false;
@@ -85,6 +86,21 @@ function readCollapsed(): boolean {
     return window.localStorage?.getItem(COLLAPSED_STORAGE_KEY) === "1";
   } catch {
     return false;
+  }
+}
+
+function readCollapsedSections(): ReadonlySet<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage?.getItem(SECTIONS_STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw) as unknown;
+    if (Array.isArray(parsed)) {
+      return new Set(parsed.filter((x): x is string => typeof x === "string"));
+    }
+    return new Set();
+  } catch {
+    return new Set();
   }
 }
 
@@ -107,6 +123,9 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
   const { user } = useAuthState();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(readCollapsed);
+  const [collapsedSections, setCollapsedSections] = useState<ReadonlySet<string>>(
+    readCollapsedSections
+  );
 
   useEffect(() => {
     try {
@@ -115,6 +134,26 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
       // ignore (e.g. jsdom test env)
     }
   }, [collapsed]);
+
+  useEffect(() => {
+    try {
+      window.localStorage?.setItem(
+        SECTIONS_STORAGE_KEY,
+        JSON.stringify([...collapsedSections])
+      );
+    } catch {
+      // ignore (e.g. jsdom test env)
+    }
+  }, [collapsedSections]);
+
+  function toggleSection(title: string) {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(title)) next.delete(title);
+      else next.add(title);
+      return next;
+    });
+  }
 
   const caps = user?.caps as ReadonlySet<string> | undefined;
   const visibleSections = SECTIONS.map((s) => ({
@@ -166,26 +205,45 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
         aria-label="Navigazione"
         className="flex-1 overflow-y-auto overflow-x-hidden"
       >
-        {visibleSections.map((section, sIdx) => (
-          <div
-            key={section.title}
-            className={sIdx === 0 ? "" : "border-t border-(--color-border)"}
-          >
-            <SidebarSectionHeader title={section.title} collapsed={collapsed} />
-            <ul>
-              {section.items.map((item) => (
-                <SidebarNavLink
-                  key={item.to}
-                  to={item.to}
-                  label={item.label}
-                  icon={item.icon}
-                  active={isActive(location.pathname, item.to)}
-                  collapsed={collapsed}
-                />
-              ))}
-            </ul>
-          </div>
-        ))}
+        {visibleSections.map((section, sIdx) => {
+          const expanded = !collapsedSections.has(section.title);
+          return (
+            <div
+              key={section.title}
+              className={sIdx === 0 ? "" : "border-t border-(--color-border)"}
+            >
+              <SidebarSectionHeader
+                title={section.title}
+                collapsed={collapsed}
+                expanded={expanded}
+                {...(collapsed
+                  ? {}
+                  : { onToggle: () => toggleSection(section.title) })}
+              />
+              <div
+                className="grid overflow-hidden"
+                style={{
+                  gridTemplateRows: collapsed || expanded ? "1fr" : "0fr",
+                  transition:
+                    "grid-template-rows var(--motion-layout) var(--ease-out-quint)",
+                }}
+              >
+                <ul className="min-h-0 overflow-hidden">
+                  {section.items.map((item) => (
+                    <SidebarNavLink
+                      key={item.to}
+                      to={item.to}
+                      label={item.label}
+                      icon={item.icon}
+                      active={isActive(location.pathname, item.to)}
+                      collapsed={collapsed}
+                    />
+                  ))}
+                </ul>
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       <div className="border-t border-(--color-border)">
