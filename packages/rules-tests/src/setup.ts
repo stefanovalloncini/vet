@@ -8,7 +8,7 @@ export async function getEnv(): Promise<RulesTestEnvironment> {
   if (env) return env;
   const rulesPath = resolve(import.meta.dirname, "../../../firestore.rules");
   env = await initializeTestEnvironment({
-    projectId: "vet-dev",
+    projectId: "demo-vet-rules-test",
     firestore: {
       rules: readFileSync(rulesPath, "utf8"),
       host: "127.0.0.1",

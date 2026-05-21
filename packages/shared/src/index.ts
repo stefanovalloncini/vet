@@ -5,6 +5,12 @@ export type { Repositories } from "./domain/ports/Repositories.js";
 
 export { SystemClock } from "./infrastructure/SystemClock.js";
 
+export {
+  decideScriptTarget,
+  type DecideScriptTargetInput,
+  type ScriptTargetDecision,
+} from "./infrastructure/scriptSafety.js";
+
 export { isoNow } from "./domain/services/timestamps.js";
 
 export {

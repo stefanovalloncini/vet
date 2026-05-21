@@ -1,14 +1,6 @@
-import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { CAPABILITIES, type Capability } from "@vet/shared";
-
-if (!getApps().length) {
-  initializeApp({
-    projectId: process.env["FIREBASE_PROJECT_ID"] ?? "vet-dev",
-  });
-}
-
-const db = getFirestore();
+import { runScript } from "./lib/runScript.js";
 
 const adminCaps: Capability[] = [...CAPABILITIES];
 const vetCaps: Capability[] = [
@@ -39,29 +31,33 @@ const viewerCaps: Capability[] = [
   "reminders.read",
 ];
 
-const seed = [
+const SEEDS: ReadonlyArray<{
+  id: string;
+  name: string;
+  caps: Capability[];
+  locked: boolean;
+}> = [
   { id: "admin", name: "Amministratore", caps: adminCaps, locked: true },
   { id: "vet", name: "Veterinario", caps: vetCaps, locked: false },
   { id: "viewer", name: "Sola lettura", caps: viewerCaps, locked: false },
 ];
 
-async function main() {
-  for (const r of seed) {
-    await db.collection("roles").doc(r.id).set({
-      name: r.name,
-      capabilities: r.caps,
-      locked: r.locked,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-      createdBy: "seed",
-      updatedBy: "seed",
-      schemaVersion: 1,
-    });
-    process.stdout.write(`seeded role ${r.id}\n`);
-  }
-}
-
-main().catch((err) => {
-  process.stderr.write(String(err) + "\n");
-  process.exit(1);
+await runScript({
+  scriptName: "seed-roles",
+  run: async () => {
+    const db = getFirestore();
+    for (const r of SEEDS) {
+      await db.collection("roles").doc(r.id).set({
+        name: r.name,
+        capabilities: r.caps,
+        locked: r.locked,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        createdBy: "seed",
+        updatedBy: "seed",
+        schemaVersion: 1,
+      });
+      process.stdout.write(`seeded role ${r.id}\n`);
+    }
+  },
 });
