@@ -1,6 +1,8 @@
 import { useLocation } from "react-router-dom";
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
+import { useAuthState } from "../../features/auth";
+import { useSessionGuard } from "../../features/auth/hooks/useSessionGuard";
 import { QuickEntryFab } from "../../features/quick-entry";
 import { SearchPalette } from "../../features/search";
 import { InstallBanner, useTitleBadge } from "../../features/pwa-install";
@@ -9,6 +11,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { MobileHeader } from "./MobileHeader";
 import { MobileNav } from "./MobileNav";
 import { Sidebar } from "./Sidebar";
+import { useToast } from "./Toast";
 
 interface AppShellProps {
   children: ReactNode;
@@ -18,10 +21,22 @@ interface AppShellProps {
 
 export function AppShell({ children, rightRail, wide = false }: AppShellProps) {
   const { auth } = useRepositories();
+  const { user } = useAuthState();
   const location = useLocation();
   const { theme, toggle } = useTheme();
+  const { notify } = useToast();
   const [confirmLogout, setConfirmLogout] = useState(false);
   useTitleBadge();
+
+  const onRevoked = useCallback(() => {
+    notify(
+      "Accesso revocato. La sessione è stata chiusa.",
+      "error"
+    );
+    void auth.signOut();
+  }, [auth, notify]);
+
+  useSessionGuard({ auth, uid: user?.uid ?? null, onRevoked });
 
   const askLogout = () => setConfirmLogout(true);
   const maxW = wide ? "max-w-[1400px]" : "max-w-6xl";

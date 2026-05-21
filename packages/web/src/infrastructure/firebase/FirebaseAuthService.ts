@@ -12,12 +12,14 @@ import {
 import {
   doc,
   getDoc,
+  onSnapshot,
   type Firestore,
 } from "firebase/firestore";
 import type {
   ActorContext,
   AuthService,
   AuthStateSubscriber,
+  SessionRevokedSubscriber,
 } from "@vet/shared";
 import { decodeCaps } from "@vet/shared";
 
@@ -51,6 +53,15 @@ export class FirebaseAuthService implements AuthService {
     return () => {
       this.subscribers.delete(cb);
     };
+  }
+
+  subscribeRevocation(uid: string, cb: SessionRevokedSubscriber): () => void {
+    const userRef = doc(this.firestore, "users", uid);
+    return onSnapshot(userRef, (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      if (data["disabled"] === true) cb("disabled");
+    });
   }
 
   async signInWithGoogle(options?: { selectAccount?: boolean }): Promise<void> {

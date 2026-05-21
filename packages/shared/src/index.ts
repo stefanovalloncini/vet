@@ -122,5 +122,7 @@ export {
 export type {
   AuthService,
   AuthStateSubscriber,
+  SessionRevokedReason,
+  SessionRevokedSubscriber,
   SignInMethod,
 } from "./domain/ports/AuthService.js";

@@ -1,9 +1,18 @@
 import type { ActorContext } from "../domain/entities/ActorContext.js";
-import type { AuthService, AuthStateSubscriber } from "../domain/ports/AuthService.js";
+import type {
+  AuthService,
+  AuthStateSubscriber,
+  SessionRevokedReason,
+  SessionRevokedSubscriber,
+} from "../domain/ports/AuthService.js";
 
 export class InMemoryAuthService implements AuthService {
   private current: ActorContext | null = null;
   private readonly subscribers = new Set<AuthStateSubscriber>();
+  private readonly revocationSubscribers = new Map<
+    string,
+    Set<SessionRevokedSubscriber>
+  >();
 
   getCurrentUser(): ActorContext | null {
     return this.current;
@@ -15,6 +24,22 @@ export class InMemoryAuthService implements AuthService {
     return () => {
       this.subscribers.delete(cb);
     };
+  }
+
+  subscribeRevocation(uid: string, cb: SessionRevokedSubscriber): () => void {
+    const set = this.revocationSubscribers.get(uid) ?? new Set();
+    set.add(cb);
+    this.revocationSubscribers.set(uid, set);
+    return () => {
+      set.delete(cb);
+      if (set.size === 0) this.revocationSubscribers.delete(uid);
+    };
+  }
+
+  simulateRevocation(uid: string, reason: SessionRevokedReason = "disabled"): void {
+    const set = this.revocationSubscribers.get(uid);
+    if (!set) return;
+    for (const cb of set) cb(reason);
   }
 
   async signInWithGoogle(_options?: { selectAccount?: boolean }): Promise<void> {
