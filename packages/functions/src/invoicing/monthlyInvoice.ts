@@ -25,7 +25,7 @@ export const monthlyInvoicePush = onSchedule(
   {
     schedule: "0 9 10 * *",
     timeZone: "Europe/Rome",
-    region: "europe-west1",
+    region: "europe-west8",
   },
   async () => {
     const runAt = new Date();

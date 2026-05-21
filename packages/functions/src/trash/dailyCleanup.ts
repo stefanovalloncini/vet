@@ -15,7 +15,7 @@ export const dailyTrashCleanup = onSchedule(
   {
     schedule: "0 3 * * *",
     timeZone: "Europe/Rome",
-    region: "europe-west1",
+    region: "europe-west8",
   },
   async () => {
     const cutoff = computeTrashCutoff(new Date());
