@@ -1,7 +1,7 @@
 export const remindersI18n = {
   title: "Promemoria",
   subtitle: "Scadenze e promemoria operativi.",
-  emptyAll: "Nessun promemoria registrato.",
+  emptyAll: "Nessun promemoria.",
   emptyOpen: "Nessun promemoria aperto.",
   loading: "Caricamento…",
   scaduto: "Scaduto",

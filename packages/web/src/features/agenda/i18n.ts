@@ -4,7 +4,7 @@ export const agendaI18n = {
   meseScorso: "Mese precedente",
   meseProssimo: "Mese successivo",
   oggi: "Oggi",
-  emptyDay: "Nessuna attività registrata.",
+  emptyDay: "Nessuna attività in agenda.",
   loading: "Caricamento…",
 } as const;
 

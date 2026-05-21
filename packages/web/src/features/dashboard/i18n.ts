@@ -11,5 +11,5 @@ export const dashboardI18n = {
   topTipo: "Tipo più frequente",
   loading: "Caricamento…",
   diff: "vs mese scorso",
-  noActivity: "Nessuna attività registrata.",
+  noActivity: "Ancora nessuna attività registrata.",
 } as const;

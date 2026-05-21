@@ -172,11 +172,9 @@ export function AgendaPage() {
           {loading ? (
             <p className="text-sm text-(--color-text-muted) px-1">{t.loading}</p>
           ) : todaysItems.length === 0 ? (
-            <Card>
-              <p className="text-sm text-(--color-text-muted) text-center py-4">
-                {t.emptyDay}
-              </p>
-            </Card>
+            <p className="text-sm text-(--color-text-muted) px-1 py-2">
+              {t.emptyDay}
+            </p>
           ) : (
             <ul className="space-y-2">
               {todaysItems.map((a) => (

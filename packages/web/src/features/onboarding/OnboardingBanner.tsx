@@ -1,7 +1,5 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Check, ChevronRight } from "lucide-react";
-import { Card } from "../../shared/ui";
 
 const STORAGE_KEY = "vet.onboardingDismissed";
 
@@ -17,77 +15,58 @@ export function OnboardingBanner({ hasAziende, hasAttivita }: OnboardingBannerPr
 
   if (dismissed || (hasAziende && hasAttivita)) return null;
 
-  const steps = [
-    {
-      done: hasAziende,
-      title: "Registra la prima azienda",
-      to: "/aziende/nuova",
-      cta: "Apri",
-    },
-    {
-      done: hasAttivita,
-      title: "Registra la prima attività",
-      to: "/attivita/nuova",
-      cta: "Apri",
-    },
-  ];
-
   return (
-    <Card className="mb-4 border-(--color-accent)/40">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-            Configurazione iniziale
-          </p>
-          <h2 className="text-base font-medium text-(--color-text) mt-1">
-            Passi suggeriti
-          </h2>
-          <ol className="space-y-2 mt-3">
-            {steps.map((s) => (
-              <li key={s.title} className="flex items-center gap-3 text-sm">
-                <span
-                  className={[
-                    "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0",
-                    s.done
-                      ? "bg-(--color-accent) text-white"
-                      : "border border-(--color-border)",
-                  ].join(" ")}
-                >
-                  {s.done ? (
-                    <Check size={12} strokeWidth={2.5} aria-hidden="true" />
-                  ) : null}
-                </span>
-                <span
-                  className={
-                    s.done ? "text-(--color-text-muted) line-through" : "text-(--color-text)"
-                  }
-                >
-                  {s.title}
-                </span>
-                {!s.done ? (
-                  <Link
-                    to={s.to}
-                    className="ml-auto inline-flex items-center gap-1 text-xs text-(--color-accent) hover:underline"
-                  >
-                    {s.cta}
-                    <ChevronRight size={12} strokeWidth={2} aria-hidden="true" />
-                  </Link>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            window.localStorage.setItem(STORAGE_KEY, "1");
-            setDismissed(true);
-          }}
-          className="text-xs text-(--color-text-muted) hover:text-(--color-text) flex-shrink-0"
-        >
-          Nascondi
-        </button>
-      </div>
-    </Card>
+    <div className="mb-6 flex items-baseline justify-between gap-4">
+      <p className="text-sm text-(--color-text-muted)">
+        {renderCopy(hasAziende, hasAttivita)}
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          window.localStorage.setItem(STORAGE_KEY, "1");
+          setDismissed(true);
+        }}
+        className="text-xs text-(--color-text-subtle) hover:text-(--color-text) flex-shrink-0"
+      >
+        Nascondi
+      </button>
+    </div>
+  );
+}
+
+function renderCopy(hasAziende: boolean, hasAttivita: boolean): ReactNode {
+  if (!hasAziende && !hasAttivita) {
+    return (
+      <>
+        Per iniziare,{" "}
+        <InlineLink to="/aziende/nuova">{"crea un'azienda"}</InlineLink>, poi{" "}
+        <InlineLink to="/attivita/nuova">
+          {"registra un'attività"}
+        </InlineLink>
+        .
+      </>
+    );
+  }
+  if (!hasAziende) {
+    return (
+      <>
+        {"Manca l'anagrafica: "}
+        <InlineLink to="/aziende/nuova">{"crea un'azienda"}</InlineLink>.
+      </>
+    );
+  }
+  return (
+    <>
+      Nessuna attività ancora:{" "}
+      <InlineLink to="/attivita/nuova">registra la prima</InlineLink>.
+    </>
+  );
+}
+
+function InlineLink({ to, children }: { to: string; children: ReactNode }) {
+  return (
+    <Link to={to} className="text-(--color-accent) hover:underline">
+      {children}
+    </Link>
   );
 }
