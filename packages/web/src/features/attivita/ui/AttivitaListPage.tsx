@@ -149,17 +149,13 @@ export function AttivitaListPage() {
       ) : error ? (
         <p className="text-sm text-(--color-danger)">{t.loadError}</p>
       ) : items.length === 0 ? (
-        <EmptyState
-          title={
-            Object.keys(filters).length > 0 ? t.emptyFiltered : t.emptyAll
-          }
-        />
+        renderEmpty(Object.keys(filters).length > 0, canCreate)
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {groups.map((g) => (
             <section key={g.key}>
               {g.label ? (
-                <header className="flex items-baseline justify-between mb-3 px-1">
+                <header className="flex items-baseline justify-between mb-2 px-1">
                   <h2 className="text-sm font-medium text-(--color-text)">
                     {g.label}
                   </h2>
@@ -168,7 +164,7 @@ export function AttivitaListPage() {
                   </span>
                 </header>
               ) : null}
-              <ul className="space-y-2">
+              <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
                 {g.items.map((a) => (
                   <li key={a.id}>
                     <AttivitaRow attivita={a} />
@@ -184,5 +180,23 @@ export function AttivitaListPage() {
         <ExportDialog onClose={() => setShowExport(false)} />
       ) : null}
     </AppShell>
+  );
+}
+
+function renderEmpty(filtered: boolean, canCreate: boolean) {
+  if (filtered) return <EmptyState title={t.emptyFiltered} />;
+  if (!canCreate) return <EmptyState title={t.emptyAll} />;
+  return (
+    <EmptyState
+      title={t.emptyAll}
+      action={
+        <Link
+          to="/attivita/nuova"
+          className="text-sm text-(--color-accent) hover:underline"
+        >
+          {t.nuovaAttivita}
+        </Link>
+      }
+    />
   );
 }

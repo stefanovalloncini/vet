@@ -3,7 +3,7 @@ export const paymentsI18n = {
   subtitle: "Incassi registrati e arretrati.",
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
-  emptyAziende: "Nessuna azienda in anagrafica.",
+  emptyAziende: "Nessuna azienda da seguire.",
   pagatoFinoA: "Pagato fino al",
   daSaldare: "Da saldare",
   inRegola: "In regola",

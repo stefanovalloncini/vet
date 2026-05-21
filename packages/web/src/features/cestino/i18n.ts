@@ -1,7 +1,7 @@
 export const cestinoI18n = {
   title: "Cestino",
   subtitle: "Attività eliminate negli ultimi 7 giorni. Dopo verranno cancellate definitivamente.",
-  empty: "Nessuna attività nel cestino.",
+  empty: "Il cestino è vuoto.",
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   view: "Mostra",

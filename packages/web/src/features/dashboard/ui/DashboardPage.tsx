@@ -180,11 +180,9 @@ export function DashboardPage() {
       {loading ? (
         <CardSkeleton rows={4} />
       ) : items.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            {t.noActivity}
-          </p>
-        </Card>
+        <p className="text-sm text-(--color-text-muted) py-2">
+          {t.noActivity}
+        </p>
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 auto-rows-fr">

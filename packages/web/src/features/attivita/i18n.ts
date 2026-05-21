@@ -2,8 +2,8 @@ export const attivitaI18n = {
   title: "Attività",
   subtitle: "Elenco attività registrate.",
   nuovaAttivita: "Nuova attività",
-  emptyAll: "Nessuna attività registrata.",
-  emptyFiltered: "Nessuna attività corrisponde ai filtri.",
+  emptyAll: "Nessuna attività.",
+  emptyFiltered: "Nessun risultato per i filtri scelti.",
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   // form

@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, ChevronRight, Building2 } from "lucide-react";
+import { Star, ChevronRight } from "lucide-react";
 import {
   AppShell,
   Button,
-  Card,
   DataLoader,
   EmptyState,
   PageHeader,
@@ -85,14 +84,9 @@ export function AziendeListPage() {
         loading={loading}
         error={error ? t.erroreSalvataggio : null}
         empty={filtered.length === 0}
-        emptyState={
-          <EmptyState
-            title={search.trim() ? t.emptySearch : t.empty}
-            icon={<Building2 size={32} strokeWidth={1.5} />}
-          />
-        }
+        emptyState={renderEmpty(search.trim().length > 0, canCreate)}
       >
-        <ul className="space-y-3">
+        <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
           {filtered.map((a) => (
             <li key={a.id}>
               <AziendaRow
@@ -120,72 +114,61 @@ function AziendaRow({
   pinned: boolean;
   onTogglePin: () => void;
 }) {
-  const chips = [
+  const meta = [
     a.tipoAllevamento ? capitalize(a.tipoAllevamento) : null,
     a.numeroCapi !== undefined ? `${a.numeroCapi} capi` : null,
-    a.telefono ?? null,
-    a.piva ? `P.IVA ${a.piva}` : null,
     a.cadenzaFatturazione ? CADENZA_LABEL[a.cadenzaFatturazione] : null,
-    a.emailFatturazione ?? null,
+    a.telefono ?? null,
   ].filter(Boolean) as string[];
 
   const inner = (
-    <Card className="hover:border-(--color-border-strong) transition-colors">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-medium text-(--color-text) truncate">
-            {a.nome}
-          </h2>
-          {a.indirizzo ? (
-            <p className="text-sm text-(--color-text-muted) mt-1 truncate">
-              {a.indirizzo}
-            </p>
-          ) : null}
-          {chips.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mt-3">
-              {chips.map((c) => (
-                <span
-                  key={c}
-                  className="px-2 py-0.5 rounded-md text-xs bg-(--color-surface-muted) text-(--color-text-muted)"
-                >
-                  {c}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onTogglePin();
-            }}
-            aria-label={pinned ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
-            className={[
-              "p-1 rounded-md hover:bg-(--color-surface-muted)",
-              pinned ? "text-(--color-accent)" : "text-(--color-text-subtle)",
-            ].join(" ")}
-          >
-            <Star
-              size={16}
-              strokeWidth={1.75}
-              fill={pinned ? "currentColor" : "none"}
-              aria-hidden="true"
-            />
-          </button>
-          {canEdit ? (
-            <ChevronRight
-              size={16}
-              strokeWidth={1.75}
-              className="text-(--color-text-subtle)"
-              aria-hidden="true"
-            />
-          ) : null}
-        </div>
+    <div className="flex items-start justify-between gap-4 px-4 py-3 min-h-[56px] hover:bg-(--color-surface-muted) transition-colors">
+      <div className="min-w-0 flex-1">
+        <h2 className="text-base font-medium text-(--color-text) truncate">
+          {a.nome}
+        </h2>
+        {a.indirizzo ? (
+          <p className="text-xs text-(--color-text-subtle) mt-0.5 truncate">
+            {a.indirizzo}
+          </p>
+        ) : null}
+        {meta.length > 0 ? (
+          <p className="text-xs text-(--color-text-muted) mt-1 truncate">
+            {meta.join(" · ")}
+          </p>
+        ) : null}
       </div>
-    </Card>
+      <div className="flex items-center gap-1 flex-shrink-0 self-center">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onTogglePin();
+          }}
+          aria-label={pinned ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
+          className={[
+            "p-2 rounded-md hover:bg-(--color-surface)",
+            pinned ? "text-(--color-accent)" : "text-(--color-text-subtle)",
+          ].join(" ")}
+        >
+          <Star
+            size={16}
+            strokeWidth={1.75}
+            fill={pinned ? "currentColor" : "none"}
+            aria-hidden="true"
+          />
+        </button>
+        {canEdit ? (
+          <ChevronRight
+            size={16}
+            strokeWidth={1.75}
+            className="text-(--color-text-subtle)"
+            aria-hidden="true"
+          />
+        ) : null}
+      </div>
+    </div>
   );
 
   return canEdit ? (
@@ -194,5 +177,23 @@ function AziendaRow({
     </Link>
   ) : (
     inner
+  );
+}
+
+function renderEmpty(searching: boolean, canCreate: boolean) {
+  if (searching) return <EmptyState title={t.emptySearch} />;
+  if (!canCreate) return <EmptyState title={t.empty} />;
+  return (
+    <EmptyState
+      title={t.empty}
+      action={
+        <Link
+          to="/aziende/nuova"
+          className="text-sm text-(--color-accent) hover:underline"
+        >
+          {t.nuovaAzienda}
+        </Link>
+      }
+    />
   );
 }
