@@ -67,9 +67,7 @@ export function LoginPage() {
     <main className="min-h-screen flex items-center justify-center px-4 py-16 bg-(--color-background)">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <h1 className="text-3xl text-(--color-text)">
-            Accedi al gestionale
-          </h1>
+          <h1 className="text-3xl text-(--color-text)">Accedi</h1>
         </div>
 
         <Card elevated>

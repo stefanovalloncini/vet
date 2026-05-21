@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("unauthenticated visit to / redirects to /login", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Accedi al gestionale");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Accedi");
 });
 
 test("login page exposes Google and email-link affordances", async ({ page }) => {
