@@ -19,7 +19,7 @@ export function MobileHeader({ theme, onThemeToggle, onLogoutClick }: MobileHead
           type="button"
           onClick={onThemeToggle}
           aria-label={theme === "dark" ? "Tema chiaro" : "Tema scuro"}
-          className="p-2 text-(--color-text-muted) hover:text-(--color-text) transition-colors"
+          className="p-2 text-(--color-text-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart)"
         >
           {theme === "dark" ? (
             <Sun size={16} strokeWidth={1.75} aria-hidden="true" />
@@ -30,7 +30,7 @@ export function MobileHeader({ theme, onThemeToggle, onLogoutClick }: MobileHead
         <Link
           to="/impostazioni"
           aria-label="Impostazioni"
-          className="p-2 text-(--color-text-muted) hover:text-(--color-text) transition-colors"
+          className="p-2 text-(--color-text-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart)"
         >
           <Settings size={16} strokeWidth={1.75} aria-hidden="true" />
         </Link>
@@ -38,7 +38,7 @@ export function MobileHeader({ theme, onThemeToggle, onLogoutClick }: MobileHead
           type="button"
           onClick={onLogoutClick}
           aria-label="Esci"
-          className="p-2 text-(--color-text-muted) hover:text-(--color-text) transition-colors"
+          className="p-2 text-(--color-text-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart)"
         >
           <LogOut size={16} strokeWidth={1.75} aria-hidden="true" />
         </button>

@@ -147,38 +147,32 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
               transition: "grid-template-columns var(--motion-layout) var(--ease-out-quint)",
             }}
           >
-            <div className="min-w-0">
-              <div
-                className="flex flex-col leading-tight"
-                style={{
-                  opacity: collapsed ? 0 : 1,
-                  transform: `translateX(${collapsed ? "-4px" : "0"})`,
-                  transition:
-                    "opacity var(--motion-fast) var(--ease-out-quart), transform var(--motion-base) var(--ease-out-quart)",
-                }}
-              >
-                <span className="text-[13px] font-semibold uppercase tracking-[0.14em] text-(--color-text) truncate">
-                  Veterinario
-                </span>
-                {user?.displayName ? (
-                  <span className="text-[11px] text-(--color-text-muted) truncate mt-0.5">
-                    {user.displayName}
-                  </span>
-                ) : null}
-              </div>
-            </div>
+            <span
+              className="min-w-0 block text-[13px] font-semibold uppercase tracking-[0.14em] text-(--color-text) truncate"
+              style={{
+                opacity: collapsed ? 0 : 1,
+                transform: `translateX(${collapsed ? "-4px" : "0"})`,
+                transition:
+                  "opacity var(--motion-fast) var(--ease-out-quart), transform var(--motion-base) var(--ease-out-quart)",
+              }}
+            >
+              Veterinario
+            </span>
           </div>
         </Link>
       </div>
 
       <nav
         aria-label="Navigazione"
-        className="flex-1 overflow-y-auto overflow-x-hidden py-2 px-1.5 space-y-1"
+        className="flex-1 overflow-y-auto overflow-x-hidden"
       >
         {visibleSections.map((section, sIdx) => (
-          <div key={section.title} className="space-y-0.5">
-            <SidebarSectionHeader title={section.title} collapsed={collapsed} first={sIdx === 0} />
-            <ul className="space-y-0.5">
+          <div
+            key={section.title}
+            className={sIdx === 0 ? "" : "border-t border-(--color-border)"}
+          >
+            <SidebarSectionHeader title={section.title} collapsed={collapsed} />
+            <ul>
               {section.items.map((item) => (
                 <SidebarNavLink
                   key={item.to}
@@ -194,17 +188,19 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="border-t border-(--color-border) px-1.5 py-2 space-y-0.5">
-        {visibleFooter.map((item) => (
-          <SidebarNavLink
-            key={item.to}
-            to={item.to}
-            label={item.label}
-            icon={item.icon}
-            active={isActive(location.pathname, item.to)}
-            collapsed={collapsed}
-          />
-        ))}
+      <div className="border-t border-(--color-border)">
+        <ul>
+          {visibleFooter.map((item) => (
+            <SidebarNavLink
+              key={item.to}
+              to={item.to}
+              label={item.label}
+              icon={item.icon}
+              active={isActive(location.pathname, item.to)}
+              collapsed={collapsed}
+            />
+          ))}
+        </ul>
         <SidebarActionRow
           onClick={onThemeToggle}
           icon={theme === "dark" ? Sun : Moon}
@@ -219,13 +215,13 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
         />
       </div>
 
-      <div className="border-t border-(--color-border) px-2 py-2 flex items-center gap-2">
+      <div className="border-t border-(--color-border) px-3 py-2.5 flex items-center gap-2">
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? "Espandi menu" : "Riduci menu"}
           title={collapsed ? "Espandi" : "Riduci"}
-          className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-md text-(--color-text-subtle) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-[background-color,color] duration-(--motion-fast) ease-(--ease-out-quart)"
+          className="shrink-0 inline-flex items-center justify-center w-7 h-7 text-(--color-text-subtle) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart)"
         >
           <span
             className="inline-flex"
@@ -244,18 +240,14 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
             transition: "grid-template-columns var(--motion-layout) var(--ease-out-quint)",
           }}
         >
-          <div className="min-w-0">
-            <div
-              style={{
-                opacity: collapsed ? 0 : 1,
-                transition: "opacity var(--motion-fast) var(--ease-out-quart)",
-              }}
-            >
-              <p className="text-[10.5px] text-(--color-text-subtle) truncate leading-tight">
-                {user?.email}
-              </p>
-              <VersionBadge />
-            </div>
+          <div
+            className="min-w-0"
+            style={{
+              opacity: collapsed ? 0 : 1,
+              transition: "opacity var(--motion-fast) var(--ease-out-quart)",
+            }}
+          >
+            <VersionBadge email={user?.email} />
           </div>
         </div>
       </div>

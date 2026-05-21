@@ -53,18 +53,27 @@ export function BrandMark({ size = 24, className = "" }: BrandMarkProps) {
         y="0.5"
         width="23"
         height="23"
-        rx="6.5"
+        rx="5.5"
         className="fill-(--color-accent)"
       />
       <path
-        d="M7 8.5 L12 16.5 L17 8.5"
+        d="M6.5 9 L12 17 L17.5 9"
         fill="none"
         stroke="white"
-        strokeWidth="2.2"
+        strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="8.5" cy="6.5" r="1.1" fill="white" opacity="0.75" />
+      <line
+        x1="12"
+        y1="6.25"
+        x2="12"
+        y2="9"
+        stroke="white"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        opacity="0.85"
+      />
     </svg>
   );
 }
