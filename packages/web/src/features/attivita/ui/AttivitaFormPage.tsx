@@ -1,39 +1,21 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { AppShell, Button, ConfirmDialog, useToast } from "../../../shared/ui";
+import { AppShell, Button, ConfirmDialog, FormFooter, PageHeader } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
 import { useTariffaSuggestion } from "../hooks/useTariffaSuggestion";
+import { useAttivitaFormLoader } from "../hooks/useAttivitaFormLoader";
+import { useAttivitaFormSubmit } from "../hooks/useAttivitaFormSubmit";
 import { QuickAddAziendaDialog } from "../../aziende/ui/QuickAddAziendaDialog";
 import { QuickAddTipoDialog } from "../../activity-types/ui/QuickAddTipoDialog";
 import { nextOrdine } from "../../activity-types/lib/ordine";
 import { attivitaI18n as t } from "../i18n";
-import {
-  attivitaInputSchema,
-  computeTotale,
-  type AttivitaInput,
-  type Attivita,
-} from "@vet/shared";
-import { dateInputValue, parseDateInput } from "../lib/format";
+import { computeTotale } from "@vet/shared";
 import {
   AttivitaFormFields,
   type AttivitaFormState,
 } from "./AttivitaFormFields";
-
-function emptyForm(): AttivitaFormState {
-  return {
-    data: dateInputValue(new Date()),
-    aziendaId: "",
-    tipoId: "",
-    oraria: false,
-    tariffa: "",
-    ore: "",
-    note: "",
-    reminderAt: "",
-    reminderTitle: "",
-  };
-}
 
 export function AttivitaFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,53 +27,27 @@ export function AttivitaFormPage() {
   const { user } = useAuthState();
   const { attivita: repo, reminders } = useRepositories();
   const ref = useReferenceData();
-  const { notify } = useToast();
-
-  const [form, setForm] = useState<AttivitaFormState>(emptyForm);
-  const [loaded, setLoaded] = useState<Attivita | null>(null);
-  const [loading, setLoading] = useState<boolean>(isEdit || cloneId !== null);
-  const [busy, setBusy] = useState(false);
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof AttivitaFormState, string>>
-  >({});
-  const [globalError, setGlobalError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [addAziendaOpen, setAddAziendaOpen] = useState(false);
+  const [addTipoOpen, setAddTipoOpen] = useState(false);
 
-  useEffect(() => {
-    if (!isEdit && !cloneId) {
-      if (presetDate) {
-        setForm((s) => ({ ...s, data: presetDate }));
-      }
-      return;
-    }
-    const targetId = id ?? cloneId;
-    if (!targetId) return;
-    let cancelled = false;
-    void (async () => {
-      const a = await repo.getById(targetId);
-      if (cancelled) return;
-      if (!a) {
-        navigate("/attivita", { replace: true });
-        return;
-      }
-      if (isEdit) setLoaded(a);
-      setForm({
-        data: isEdit ? dateInputValue(a.data) : dateInputValue(new Date()),
-        aziendaId: a.aziendaId,
-        tipoId: a.tipoId,
-        oraria: a.oraria,
-        tariffa: String(a.tariffa),
-        ore: a.ore !== undefined ? String(a.ore) : "",
-        note: isEdit ? a.note ?? "" : "",
-        reminderAt: "",
-        reminderTitle: "",
-      });
-      setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [id, cloneId, isEdit, presetDate, navigate, repo]);
+  const { form, setForm, loaded, loading } = useAttivitaFormLoader({
+    id,
+    cloneId,
+    presetDate,
+    repo,
+  });
+
+  const submitState = useAttivitaFormSubmit({
+    isEdit,
+    id,
+    user,
+    form,
+    aziende: ref.aziende,
+    tipi: ref.tipi,
+    repo,
+    reminders,
+  });
 
   const { suggested: tariffaSuggested, clear: clearTariffaSuggestion } =
     useTariffaSuggestion({
@@ -130,105 +86,19 @@ export function AttivitaFormPage() {
     [ref.tipi]
   );
 
+  const nextTipoOrdine = useMemo(() => nextOrdine(ref.tipi), [ref.tipi]);
+
   function update<K extends keyof AttivitaFormState>(
     key: K,
     value: AttivitaFormState[K]
   ) {
     setForm((s) => ({ ...s, [key]: value }));
-    if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+    submitState.clearFieldError(key);
   }
 
   function onTariffaInput(value: string) {
     update("tariffa", value);
     clearTariffaSuggestion();
-  }
-
-  function buildInput(): AttivitaInput | null {
-    const date = parseDateInput(form.data);
-    if (!date) {
-      setErrors((e) => ({ ...e, data: "Data non valida" }));
-      return null;
-    }
-    const note = form.note.trim();
-    const parsed = attivitaInputSchema.safeParse({
-      data: date,
-      aziendaId: form.aziendaId,
-      tipoId: form.tipoId,
-      oraria: form.oraria,
-      tariffa: Number(form.tariffa),
-      ...(form.oraria ? { ore: Number(form.ore) } : {}),
-      ...(note ? { note } : {}),
-    });
-    if (!parsed.success) {
-      const fieldErrors: Partial<Record<keyof AttivitaFormState, string>> = {};
-      for (const issue of parsed.error.issues) {
-        const path = issue.path[0] as keyof AttivitaFormState;
-        if (path && !fieldErrors[path]) fieldErrors[path] = issue.message;
-      }
-      setErrors(fieldErrors);
-      return null;
-    }
-    return parsed.data;
-  }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!user) return;
-    setGlobalError(null);
-    const input = buildInput();
-    if (!input) return;
-    const azienda = ref.aziende.find((a) => a.id === input.aziendaId);
-    const tipo = ref.tipi.find((tp) => tp.id === input.tipoId);
-    if (!azienda || !tipo) {
-      setGlobalError(t.erroreSalvataggio);
-      return;
-    }
-    setBusy(true);
-    try {
-      const denorm = { aziendaNome: azienda.nome, tipoNome: tipo.nome };
-      if (isEdit && id) {
-        await repo.update(id, input, denorm, user);
-        notify("Attività aggiornata", "success");
-      } else {
-        await repo.create(input, denorm, user);
-        notify("Attività registrata", "success");
-        const dueDate = parseDateInput(form.reminderAt);
-        if (dueDate && form.reminderTitle.trim()) {
-          try {
-            await reminders.create(
-              {
-                aziendaId: azienda.id,
-                titolo: form.reminderTitle.trim(),
-                dueAt: dueDate,
-              },
-              { aziendaNome: azienda.nome },
-              user
-            );
-            notify("Promemoria creato", "success");
-          } catch {
-            // reminder creation is best-effort
-          }
-        }
-      }
-      navigate("/attivita");
-    } catch {
-      setGlobalError(t.erroreSalvataggio);
-      notify(t.erroreSalvataggio, "error");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!isEdit || !id || !user) return;
-    setBusy(true);
-    try {
-      await repo.softDelete(id, user);
-      navigate("/attivita");
-    } catch {
-      setGlobalError(t.erroreSalvataggio);
-      setBusy(false);
-    }
   }
 
   const canDelete =
@@ -237,9 +107,6 @@ export function AttivitaFormPage() {
     loaded?.ownerUid === user?.uid;
   const canCreateAzienda = user?.caps.has("aziende.create") ?? false;
   const canCreateTipo = user?.caps.has("activity_types.manage") ?? false;
-  const [addAziendaOpen, setAddAziendaOpen] = useState(false);
-  const [addTipoOpen, setAddTipoOpen] = useState(false);
-  const nextTipoOrdine = useMemo(() => nextOrdine(ref.tipi), [ref.tipi]);
 
   if (loading || ref.loading) {
     return (
@@ -251,24 +118,16 @@ export function AttivitaFormPage() {
 
   return (
     <AppShell>
-      <header className="mb-8">
-        <button
-          type="button"
-          onClick={() => navigate("/attivita")}
-          className="text-sm text-(--color-text-muted) hover:text-(--color-text) mb-3"
-        >
-          ← {t.back}
-        </button>
-        <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
-          {isEdit ? t.titoloModifica : t.titoloNuova}
-        </h1>
-      </header>
+      <PageHeader
+        title={isEdit ? t.titoloModifica : t.titoloNuova}
+        back={{ to: "/attivita", label: t.back }}
+      />
 
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+      <form onSubmit={submitState.submit} className="space-y-6 max-w-2xl">
         <AttivitaFormFields
           form={form}
-          errors={errors}
-          busy={busy}
+          errors={submitState.errors}
+          busy={submitState.busy}
           isEdit={isEdit}
           tariffaSuggested={tariffaSuggested}
           totaleLive={totaleLive}
@@ -317,50 +176,21 @@ export function AttivitaFormPage() {
           }}
         />
 
-        {globalError ? (
+        {submitState.globalError ? (
           <p role="alert" className="text-sm text-(--color-danger)">
-            {globalError}
+            {submitState.globalError}
           </p>
         ) : null}
 
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            {canDelete ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(`/attivita/nuova?clone=${id}`)}
-                  disabled={busy}
-                >
-                  Duplica
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setConfirmDelete(true)}
-                  disabled={busy}
-                >
-                  {t.elimina}
-                </Button>
-              </div>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => navigate("/attivita")}
-              disabled={busy}
-            >
-              {t.annulla}
-            </Button>
-            <Button type="submit" variant="primary" disabled={busy}>
-              {t.salva}
-            </Button>
-          </div>
-        </div>
+        <FormActions
+          isEdit={isEdit}
+          canDelete={canDelete}
+          busy={submitState.busy}
+          id={id}
+          onDuplicate={() => navigate(`/attivita/nuova?clone=${id}`)}
+          onDelete={() => setConfirmDelete(true)}
+          onCancel={() => navigate("/attivita")}
+        />
       </form>
       <ConfirmDialog
         open={confirmDelete}
@@ -369,13 +199,64 @@ export function AttivitaFormPage() {
         confirmLabel={t.elimina}
         cancelLabel={t.annulla}
         variant="danger"
-        busy={busy}
+        busy={submitState.busy}
         onConfirm={() => {
-          void handleDelete();
+          void submitState.deleteEntry();
           setConfirmDelete(false);
         }}
         onClose={() => setConfirmDelete(false)}
       />
     </AppShell>
+  );
+}
+
+interface FormActionsProps {
+  isEdit: boolean;
+  canDelete: boolean;
+  busy: boolean;
+  id: string | undefined;
+  onDuplicate: () => void;
+  onDelete: () => void;
+  onCancel: () => void;
+}
+
+function FormActions({
+  canDelete,
+  busy,
+  onDuplicate,
+  onDelete,
+  onCancel,
+}: FormActionsProps) {
+  return (
+    <FormFooter
+      destructive={
+        canDelete ? (
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onDuplicate}
+              disabled={busy}
+            >
+              Duplica
+            </Button>
+            <Button type="button" variant="ghost" onClick={onDelete} disabled={busy}>
+              {t.elimina}
+            </Button>
+          </div>
+        ) : null
+      }
+      actions={
+        <>
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={busy}>
+            {t.annulla}
+          </Button>
+          <Button type="submit" variant="primary" disabled={busy}>
+            {t.salva}
+          </Button>
+        </>
+      }
+    />
   );
 }
