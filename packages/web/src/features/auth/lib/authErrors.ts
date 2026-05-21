@@ -20,6 +20,10 @@ export type AuthErrorKind =
   | "expiredLink"
   | "accountExists"
   | "operationNotAllowed"
+  | "userDisabled"
+  | "storageBlocked"
+  | "requiresRecentLogin"
+  | "unauthorizedDomain"
   | "unknown";
 
 export interface ClassifiedAuthError {
@@ -39,18 +43,128 @@ const MESSAGES: Record<Exclude<AuthErrorKind, "userCancelled">, string> = {
   invalidLink: "Link non valido.",
   expiredLink: "Link scaduto. Richiedi un nuovo link.",
   accountExists: "Account già esistente con un altro metodo di accesso.",
-  operationNotAllowed: "Metodo di accesso non abilitato. Contatta l'amministratore.",
+  operationNotAllowed:
+    "Metodo di accesso non abilitato. Contatta l'amministratore.",
+  userDisabled:
+    "Account disabilitato dall'amministratore. Contatta l'amministratore per riattivarlo.",
+  storageBlocked:
+    "Il browser blocca cookie o memoria locale. Disattiva la modalità privata o le protezioni anti-tracciamento per questo sito.",
+  requiresRecentLogin:
+    "Sessione scaduta. Effettua di nuovo l'accesso per continuare.",
+  unauthorizedDomain:
+    "Dominio non autorizzato per l'accesso. Contatta l'amministratore.",
   unknown: "Accesso non riuscito. Riprova o contatta l'amministratore.",
 };
+
+const CANCEL_CODES: ReadonlySet<string> = new Set([
+  "auth/popup-closed-by-user",
+  "auth/cancelled-popup-request",
+  "auth/user-cancelled",
+]);
+
+const DIRECT_CODE_MAP: Readonly<
+  Record<string, Exclude<AuthErrorKind, "userCancelled">>
+> = {
+  "auth/popup-blocked": "popupBlocked",
+  "auth/network-request-failed": "network",
+  "auth/account-exists-with-different-credential": "accountExists",
+  "auth/invalid-action-code": "invalidLink",
+  "auth/expired-action-code": "expiredLink",
+  "auth/invalid-email": "invalidEmail",
+  "auth/missing-email": "invalidEmail",
+  "auth/too-many-requests": "tooManyRequests",
+  "auth/quota-exceeded": "tooManyRequests",
+  "auth/operation-not-allowed": "operationNotAllowed",
+  "auth/admin-restricted-operation": "unauthorizedEmail",
+  "auth/user-disabled": "userDisabled",
+  "auth/web-storage-unsupported": "storageBlocked",
+  "auth/requires-recent-login": "requiresRecentLogin",
+  "auth/unauthorized-domain": "unauthorizedDomain",
+  "auth/firebase-app-check-token-is-invalid": "appCheckFailed",
+};
+
+interface ErrorShape {
+  code: string;
+  message: string;
+  innerMessage: string;
+}
+
+type Matcher = (e: ErrorShape) => Exclude<AuthErrorKind, "userCancelled"> | null;
+
+function matchAppCheck({ code, message, innerMessage }: ErrorShape) {
+  if (code.includes("app-check") || code.includes("appcheck")) {
+    return "appCheckFailed" as const;
+  }
+  const haystack = `${message} ${innerMessage}`;
+  if (
+    haystack.includes("app check") ||
+    haystack.includes("app-check") ||
+    haystack.includes("app_check") ||
+    haystack.includes("firebase-app-check") ||
+    haystack.includes("firebase_app_check")
+  ) {
+    return "appCheckFailed" as const;
+  }
+  return null;
+}
+
+function matchAllowlistDeny({ code, message, innerMessage }: ErrorShape) {
+  if (
+    code.includes("blocking-cloud-function-error") ||
+    code.includes("admin-restricted")
+  ) {
+    return "unauthorizedEmail" as const;
+  }
+  const haystack = `${message} ${innerMessage}`;
+  if (
+    haystack.includes("email not allowed") ||
+    haystack.includes("permission_denied") ||
+    haystack.includes("permission-denied") ||
+    haystack.includes("blocking function") ||
+    haystack.includes("blocking_function_error_response") ||
+    haystack.includes("http error: 403")
+  ) {
+    return "unauthorizedEmail" as const;
+  }
+  return null;
+}
+
+function matchDirectCode({ code }: ErrorShape) {
+  return DIRECT_CODE_MAP[code] ?? null;
+}
+
+const MATCHERS: ReadonlyArray<Matcher> = [
+  matchAppCheck,
+  matchAllowlistDeny,
+  matchDirectCode,
+];
+
+function toErrorShape(err: unknown): ErrorShape | null {
+  if (!err || typeof err !== "object") return null;
+  const e = err as MaybeFirebaseError;
+  return {
+    code: (e.code ?? "").toLowerCase(),
+    message: (e.message ?? "").toLowerCase(),
+    innerMessage: (e.customData?._tokenResponse?.error?.message ?? "").toLowerCase(),
+  };
+}
 
 export function isUserCancelledPopup(err: unknown): boolean {
   if (!err || typeof err !== "object") return false;
   const code = (err as MaybeFirebaseError).code ?? "";
-  return (
-    code === "auth/popup-closed-by-user" ||
-    code === "auth/cancelled-popup-request" ||
-    code === "auth/user-cancelled"
-  );
+  return CANCEL_CODES.has(code);
+}
+
+function detectKind(
+  err: unknown
+): Exclude<AuthErrorKind, "userCancelled"> {
+  const shape = toErrorShape(err);
+  if (!shape) return "unknown";
+  for (const matcher of MATCHERS) {
+    const kind = matcher(shape);
+    if (kind) return kind;
+  }
+  return "unknown";
 }
 
 export function classifyAuthError(err: unknown): ClassifiedAuthError {
@@ -67,59 +181,4 @@ export function getAuthErrorMessage(err: unknown): string {
 
 export function isUnauthorizedEmailError(err: unknown): boolean {
   return detectKind(err) === "unauthorizedEmail";
-}
-
-function detectKind(err: unknown): Exclude<AuthErrorKind, "userCancelled"> {
-  if (!err || typeof err !== "object") return "unknown";
-  const e = err as MaybeFirebaseError;
-  const code = (e.code ?? "").toLowerCase();
-  const msg = (e.message ?? "").toLowerCase();
-  const innerMsg = (e.customData?._tokenResponse?.error?.message ?? "").toLowerCase();
-
-  if (matchesAppCheck(code, msg, innerMsg)) return "appCheckFailed";
-  if (matchesAllowlistDeny(code, msg, innerMsg)) return "unauthorizedEmail";
-
-  const direct: Record<string, Exclude<AuthErrorKind, "userCancelled">> = {
-    "auth/popup-blocked": "popupBlocked",
-    "auth/network-request-failed": "network",
-    "auth/account-exists-with-different-credential": "accountExists",
-    "auth/invalid-action-code": "invalidLink",
-    "auth/expired-action-code": "expiredLink",
-    "auth/invalid-email": "invalidEmail",
-    "auth/too-many-requests": "tooManyRequests",
-    "auth/operation-not-allowed": "operationNotAllowed",
-  };
-  if (direct[code]) return direct[code];
-
-  return "unknown";
-}
-
-function matchesAppCheck(code: string, msg: string, inner: string): boolean {
-  if (code.includes("app-check") || code.includes("appcheck")) return true;
-  const haystack = `${msg} ${inner}`;
-  return (
-    haystack.includes("app check") ||
-    haystack.includes("app-check") ||
-    haystack.includes("app_check") ||
-    haystack.includes("firebase-app-check") ||
-    haystack.includes("firebase_app_check")
-  );
-}
-
-function matchesAllowlistDeny(code: string, msg: string, inner: string): boolean {
-  if (
-    code.includes("blocking-cloud-function-error") ||
-    code.includes("admin-restricted")
-  ) {
-    return true;
-  }
-  const haystack = `${msg} ${inner}`;
-  return (
-    haystack.includes("email not allowed") ||
-    haystack.includes("permission_denied") ||
-    haystack.includes("permission-denied") ||
-    haystack.includes("blocking function") ||
-    haystack.includes("blocking_function_error_response") ||
-    haystack.includes("http error: 403")
-  );
 }

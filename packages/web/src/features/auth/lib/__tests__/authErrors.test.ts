@@ -9,7 +9,9 @@ describe("classifyAuthError", () => {
   });
 
   it("classifies App Check token failures", () => {
-    const r = classifyAuthError({ code: "auth/firebase-app-check-token-is-invalid" });
+    const r = classifyAuthError({
+      code: "auth/firebase-app-check-token-is-invalid",
+    });
     expect(r.kind).toBe("appCheckFailed");
     expect(r.message).toMatch(/estensioni|browser/i);
   });
@@ -63,6 +65,39 @@ describe("classifyAuthError", () => {
     expect(r.kind).toBe("operationNotAllowed");
   });
 
+  it("classifies user-disabled", () => {
+    const r = classifyAuthError({ code: "auth/user-disabled" });
+    expect(r.kind).toBe("userDisabled");
+    expect(r.message).toMatch(/disabilitato|amministratore/i);
+  });
+
+  it("classifies web-storage-unsupported", () => {
+    const r = classifyAuthError({ code: "auth/web-storage-unsupported" });
+    expect(r.kind).toBe("storageBlocked");
+    expect(r.message).toMatch(/cookie|privato|browser/i);
+  });
+
+  it("classifies missing-email as invalidEmail", () => {
+    const r = classifyAuthError({ code: "auth/missing-email" });
+    expect(r.kind).toBe("invalidEmail");
+  });
+
+  it("classifies quota-exceeded as tooManyRequests", () => {
+    const r = classifyAuthError({ code: "auth/quota-exceeded" });
+    expect(r.kind).toBe("tooManyRequests");
+  });
+
+  it("classifies requires-recent-login", () => {
+    const r = classifyAuthError({ code: "auth/requires-recent-login" });
+    expect(r.kind).toBe("requiresRecentLogin");
+  });
+
+  it("classifies unauthorized-domain", () => {
+    const r = classifyAuthError({ code: "auth/unauthorized-domain" });
+    expect(r.kind).toBe("unauthorizedDomain");
+    expect(r.message).toMatch(/dominio|amministratore/i);
+  });
+
   it("falls through to unknown for an unrecognized error", () => {
     const r = classifyAuthError({ code: "auth/something-new" });
     expect(r.kind).toBe("unknown");
@@ -73,6 +108,14 @@ describe("classifyAuthError", () => {
     expect(classifyAuthError(undefined).kind).toBe("unknown");
     expect(classifyAuthError("oops").kind).toBe("unknown");
     expect(classifyAuthError(null).kind).toBe("unknown");
+  });
+
+  it("returns the same kind for unauthorizedEmail via permission_denied msg", () => {
+    const r = classifyAuthError({
+      code: "auth/internal-error",
+      message: "PERMISSION_DENIED",
+    });
+    expect(r.kind).toBe("unauthorizedEmail");
   });
 });
 
