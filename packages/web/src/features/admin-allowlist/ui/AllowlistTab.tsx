@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Card, ConfirmDialog } from "../../../shared/ui";
+import { Button, ConfirmDialog, EmptyState } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { allowlistI18n as t } from "../i18n";
@@ -84,13 +84,9 @@ export function AllowlistTab({
       ) : error ? (
         <p className="text-sm text-(--color-danger)">{t.loadError}</p>
       ) : entries.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            {t.empty}
-          </p>
-        </Card>
+        <EmptyState title={t.empty} />
       ) : (
-        <ul className="space-y-2">
+        <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
           {entries.map((entry) => (
             <AllowlistEntryRow
               key={entry.emailNorm}

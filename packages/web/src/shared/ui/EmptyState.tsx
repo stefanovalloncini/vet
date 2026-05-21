@@ -5,7 +5,6 @@ interface EmptyStateProps {
   description?: string;
   icon?: ReactNode;
   action?: ReactNode;
-  size?: "sm" | "md";
 }
 
 export function EmptyState({
@@ -13,25 +12,21 @@ export function EmptyState({
   description,
   icon,
   action,
-  size = "md",
 }: EmptyStateProps) {
-  const padding = size === "sm" ? "py-8 px-4" : "py-12 px-6";
   return (
-    <div
-      className={`bg-(--color-surface) border border-(--color-border) rounded-lg ${padding} flex flex-col items-center text-center`}
-    >
+    <div className="py-10 flex flex-col items-start gap-2 text-(--color-text)">
       {icon ? (
-        <div className="text-(--color-text-subtle) mb-3" aria-hidden="true">
+        <div className="text-(--color-text-subtle)" aria-hidden="true">
           {icon}
         </div>
       ) : null}
-      <p className="text-sm font-medium text-(--color-text)">{title}</p>
+      <p className="text-sm text-(--color-text)">{title}</p>
       {description ? (
-        <p className="text-xs text-(--color-text-muted) mt-1 max-w-prose">
+        <p className="text-xs text-(--color-text-muted) max-w-prose">
           {description}
         </p>
       ) : null}
-      {action ? <div className="mt-4">{action}</div> : null}
+      {action ? <div className="mt-1">{action}</div> : null}
     </div>
   );
 }

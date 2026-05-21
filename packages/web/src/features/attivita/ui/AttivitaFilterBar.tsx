@@ -1,4 +1,4 @@
-import { Card, Select, TextField } from "../../../shared/ui";
+import { Select, TextField } from "../../../shared/ui";
 import { attivitaI18n as t } from "../i18n";
 import { dateInputValue } from "../lib/format";
 import type { GroupKey } from "../lib/totals";
@@ -108,7 +108,7 @@ export function AttivitaQuickRanges({
 
 export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
   return (
-    <Card className="mb-6">
+    <div className="border-y border-(--color-border) py-4 mb-6">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <TextField
           id="from"
@@ -146,6 +146,6 @@ export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
           onChange={(e) => props.onChange("group", e.target.value)}
         />
       </div>
-    </Card>
+    </div>
   );
 }

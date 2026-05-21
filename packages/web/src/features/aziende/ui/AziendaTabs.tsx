@@ -10,7 +10,6 @@ export function StoricoTab({ items }: { items: Attivita[] }) {
     return (
       <EmptyState
         title="Nessuna attività registrata."
-        size="sm"
         icon={<ClipboardList size={28} strokeWidth={1.5} />}
       />
     );
@@ -52,7 +51,6 @@ export function PagamentiTab({ payments }: { payments: Payment[] }) {
     return (
       <EmptyState
         title="Nessun pagamento registrato."
-        size="sm"
         icon={<Euro size={28} strokeWidth={1.5} />}
       />
     );
@@ -92,7 +90,6 @@ export function PromemoriaTab({ aziendaId }: { aziendaId: string }) {
     return (
       <EmptyState
         title="Nessun promemoria attivo."
-        size="sm"
         icon={<Bell size={28} strokeWidth={1.5} />}
       />
     );
