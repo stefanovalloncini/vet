@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { Button, GoogleIcon, TextField } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
@@ -146,6 +146,14 @@ export function LoginPage() {
             >
               Cambia account Google
             </Button>
+          ) : null}
+          {error.kind === "appCheckFailed" || error.kind === "storageBlocked" ? (
+            <Link
+              to="/sicurezza"
+              className="inline-flex items-center text-xs font-medium text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
+            >
+              Esegui la verifica di sicurezza
+            </Link>
           ) : null}
         </div>
       ) : null}

@@ -21,6 +21,7 @@ import {
   ReCaptchaEnterpriseProvider,
   type AppCheck,
 } from "firebase/app-check";
+import { probeAppCheckOnInit, reportAppCheckFailure } from "./appCheckReporter";
 
 interface VetFirebaseConfig {
   apiKey: string;
@@ -37,6 +38,10 @@ let firestore: Firestore | undefined;
 let auth: Auth | undefined;
 let functions: Functions | undefined;
 let appCheck: AppCheck | undefined;
+
+export function getAppCheckInstance(): AppCheck | undefined {
+  return appCheck;
+}
 
 export function initFirebase(config: VetFirebaseConfig): {
   app: FirebaseApp;
@@ -64,10 +69,16 @@ export function initFirebase(config: VetFirebaseConfig): {
           "App Check site key missing: refusing to start without App Check"
         );
       }
-      appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(config.appCheckSiteKey),
-        isTokenAutoRefreshEnabled: true,
-      });
+      try {
+        appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(config.appCheckSiteKey),
+          isTokenAutoRefreshEnabled: true,
+        });
+        void probeAppCheckOnInit(appCheck, app);
+      } catch (err) {
+        const reason = err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200);
+        void reportAppCheckFailure(app, { stage: "init", reason });
+      }
     }
 
     firestore = initializeFirestore(app, {

@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import {
   LoginPage,
@@ -7,6 +7,10 @@ import {
 } from "./features/auth";
 import { Brand, RouteBoundary, Spinner } from "./shared/ui";
 import { PROTECTED_ROUTES } from "./routes";
+
+const SicurezzaPage = lazy(() =>
+  import("./features/diagnostics").then((m) => ({ default: m.SicurezzaPage }))
+);
 
 function RouteFallback() {
   return (
@@ -37,6 +41,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/login/complete" element={<EmailLinkCompletePage />} />
+          <Route path="/sicurezza" element={<SicurezzaPage />} />
           {PROTECTED_ROUTES.map(({ path, Component }) => (
             <Route
               key={path}
