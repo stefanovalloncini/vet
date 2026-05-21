@@ -35,10 +35,34 @@ export class FirebaseAuthService implements AuthService {
     private readonly firestore: Firestore
   ) {
     onIdTokenChanged(this.auth, async (fbUser) => {
-      this.current = fbUser ? await this.toActor(fbUser) : null;
+      if (!fbUser) {
+        this.current = null;
+        this.initialized = true;
+        for (const cb of this.subscribers) cb(this.current);
+        return;
+      }
+      this.current = await this.toActorFromToken(fbUser);
       this.initialized = true;
       for (const cb of this.subscribers) cb(this.current);
+      void this.refreshDisplayName(fbUser);
     });
+  }
+
+  private async refreshDisplayName(fbUser: FbUser): Promise<void> {
+    if (!this.current || this.current.uid !== fbUser.uid) return;
+    if (!this.current.approved) return;
+    try {
+      const userSnap = await getDoc(doc(this.firestore, "users", fbUser.uid));
+      const stored = userSnap.exists()
+        ? (userSnap.data()["displayName"] as string | undefined)
+        : undefined;
+      if (!stored || !this.current || this.current.uid !== fbUser.uid) return;
+      if (stored === this.current.displayName) return;
+      this.current = { ...this.current, displayName: stored };
+      for (const cb of this.subscribers) cb(this.current);
+    } catch {
+      // displayName remains the token fallback
+    }
   }
 
   getCurrentUser(): ActorContext | null {
@@ -122,25 +146,16 @@ export class FirebaseAuthService implements AuthService {
     }
   }
 
-  private async toActor(fbUser: FbUser): Promise<ActorContext> {
+  private async toActorFromToken(fbUser: FbUser): Promise<ActorContext> {
     const tokenResult = await fbUser.getIdTokenResult();
     const claims = tokenResult.claims as {
       vet?: boolean;
       roleId?: string;
       caps?: string[];
+      name?: string;
     };
-    let displayName = fbUser.displayName ?? fbUser.email ?? fbUser.uid;
-    if (claims.vet) {
-      try {
-        const userSnap = await getDoc(doc(this.firestore, "users", fbUser.uid));
-        const stored = userSnap.exists()
-          ? (userSnap.data()["displayName"] as string | undefined)
-          : undefined;
-        if (stored) displayName = stored;
-      } catch {
-        // fall back to fbUser.displayName
-      }
-    }
+    const displayName =
+      claims.name ?? fbUser.displayName ?? fbUser.email ?? fbUser.uid;
     return {
       uid: fbUser.uid,
       email: fbUser.email ?? "",

@@ -69,6 +69,34 @@ export function LoginPage() {
         </p>
       }
     >
+      {error ? (
+        <div
+          className="mb-6 rounded-lg border border-(--color-danger)/40 bg-(--color-danger)/5 p-3 space-y-2"
+          role="alert"
+        >
+          <p className="text-sm text-(--color-danger)">{error.message}</p>
+          {error.kind === "unauthorizedEmail" ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={busy}
+              onClick={() => googleSignIn(true)}
+            >
+              Cambia account Google
+            </Button>
+          ) : null}
+          {error.kind === "appCheckFailed" || error.kind === "storageBlocked" ? (
+            <Link
+              to="/sicurezza"
+              className="inline-flex items-center text-xs font-medium text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
+            >
+              Esegui la verifica di sicurezza
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+
       <Button
         type="button"
         variant="primary"
@@ -77,7 +105,7 @@ export function LoginPage() {
         onClick={() => googleSignIn(false)}
         leadingIcon={<GoogleIcon />}
       >
-        Entra con Google
+        {busy ? "Accesso in corso…" : "Entra con Google"}
       </Button>
 
       {emailSent ? (
@@ -132,31 +160,6 @@ export function LoginPage() {
           </button>
         </div>
       )}
-
-      {error ? (
-        <div className="mt-6 border-t border-(--color-border) pt-4 space-y-3" role="alert">
-          <p className="text-sm text-(--color-danger)">{error.message}</p>
-          {error.kind === "unauthorizedEmail" ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={busy}
-              onClick={() => googleSignIn(true)}
-            >
-              Cambia account Google
-            </Button>
-          ) : null}
-          {error.kind === "appCheckFailed" || error.kind === "storageBlocked" ? (
-            <Link
-              to="/sicurezza"
-              className="inline-flex items-center text-xs font-medium text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
-            >
-              Esegui la verifica di sicurezza
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
     </AuthLayout>
   );
 }
