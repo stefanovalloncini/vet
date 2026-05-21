@@ -50,7 +50,7 @@ export function AppShell({ children, rightRail, wide = false }: AppShellProps) {
 
         <main
           key={location.pathname}
-          className={`flex-1 w-full ${maxW} px-5 py-6 pb-24 sm:pb-6 sm:px-7 animate-fade-in`}
+          className={`flex-1 w-full ${maxW} px-4 py-5 pb-32 sm:py-6 sm:pb-6 sm:px-7 animate-fade-in`}
         >
           {rightRail ? (
             <div className="lg:grid lg:grid-cols-3 lg:gap-6">
