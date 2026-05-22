@@ -1,83 +1,49 @@
-import { useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import {
-  AppShell,
-  Button,
-  ConfirmDialog,
-  FormFooter,
-  InlineError,
-  LoadingHint,
-  PageHeader,
-} from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { useMemo, useState, type ReactNode } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { AppShell, Button, ConfirmDialog, FormFooter, PageHeader } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
 import { useTariffaSuggestion } from "../hooks/useTariffaSuggestion";
-import { useAttivitaFormLoader } from "../hooks/useAttivitaFormLoader";
-import { useAttivitaFormSubmit } from "../hooks/useAttivitaFormSubmit";
+import { useAttivitaForm } from "../hooks/useAttivitaForm";
 import { QuickAddAziendaDialog } from "../../aziende/ui/QuickAddAziendaDialog";
 import { QuickAddTipoDialog } from "../../activity-types/ui/QuickAddTipoDialog";
 import { nextOrdine } from "../../activity-types/lib/ordine";
 import { attivitaI18n as t } from "../i18n";
 import { computeTotale } from "@vet/shared";
-import {
-  AttivitaFormFields,
-  type AttivitaFormState,
-} from "./AttivitaFormFields";
+import { AttivitaFormFields } from "./AttivitaFormFields";
 
 export function AttivitaFormPage() {
   const { id } = useParams<{ id: string }>();
-  const [params] = useSearchParams();
-  const cloneId = params.get("clone");
-  const presetDate = params.get("data");
-  const isEdit = id !== undefined;
   const navigate = useNavigate();
   const { user } = useAuthState();
-  const { attivita: repo, reminders } = useRepositories();
   const ref = useReferenceData();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addAziendaOpen, setAddAziendaOpen] = useState(false);
   const [addTipoOpen, setAddTipoOpen] = useState(false);
 
-  const { form, setForm, loaded, loading } = useAttivitaFormLoader({
-    id,
-    cloneId,
-    presetDate,
-    repo,
-  });
-
-  const submitState = useAttivitaFormSubmit({
-    isEdit,
-    id,
-    user,
-    form,
-    aziende: ref.aziende,
-    tipi: ref.tipi,
-    repo,
-    reminders,
-  });
+  const f = useAttivitaForm({ id, user, aziende: ref.aziende, tipi: ref.tipi });
 
   const { suggested: tariffaSuggested, clear: clearTariffaSuggestion } =
     useTariffaSuggestion({
-      aziendaId: form.aziendaId,
-      tipoId: form.tipoId,
+      aziendaId: f.form.aziendaId,
+      tipoId: f.form.tipoId,
       tipi: ref.tipi,
-      isEdit,
-      currentTariffa: form.tariffa,
-      onSuggest: (value) => setForm((s) => ({ ...s, tariffa: value })),
+      isEdit: f.isEdit,
+      currentTariffa: f.form.tariffa,
+      onSuggest: (value) => f.setForm((s) => ({ ...s, tariffa: value })),
     });
 
   const totaleLive = useMemo(() => {
-    const tariffa = Number(form.tariffa);
-    const ore = Number(form.ore);
+    const tariffa = Number(f.form.tariffa);
+    const ore = Number(f.form.ore);
     if (!Number.isFinite(tariffa) || tariffa <= 0) return null;
-    if (form.oraria && (!Number.isFinite(ore) || ore <= 0)) return null;
+    if (f.form.oraria && (!Number.isFinite(ore) || ore <= 0)) return null;
     return computeTotale({
-      oraria: form.oraria,
+      oraria: f.form.oraria,
       tariffa,
-      ...(form.oraria ? { ore } : {}),
+      ...(f.form.oraria ? { ore } : {}),
     });
-  }, [form.tariffa, form.ore, form.oraria]);
+  }, [f.form.tariffa, f.form.ore, f.form.oraria]);
 
   const aziendaOptions = useMemo(
     () => [
@@ -93,33 +59,19 @@ export function AttivitaFormPage() {
     ],
     [ref.tipi]
   );
-
   const nextTipoOrdine = useMemo(() => nextOrdine(ref.tipi), [ref.tipi]);
 
-  function update<K extends keyof AttivitaFormState>(
-    key: K,
-    value: AttivitaFormState[K]
-  ) {
-    setForm((s) => ({ ...s, [key]: value }));
-    submitState.clearFieldError(key);
-  }
-
-  function onTariffaInput(value: string) {
-    update("tariffa", value);
-    clearTariffaSuggestion();
-  }
-
   const canDelete =
-    isEdit &&
+    f.isEdit &&
     (user?.caps.has("activities.delete.own") ?? false) &&
-    loaded?.ownerUid === user?.uid;
+    f.loaded?.ownerUid === user?.uid;
   const canCreateAzienda = user?.caps.has("aziende.create") ?? false;
   const canCreateTipo = user?.caps.has("activity_types.manage") ?? false;
 
-  if (loading || ref.loading) {
+  if (f.initialLoading || ref.loading) {
     return (
       <AppShell>
-        <LoadingHint label={t.loading} />
+        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
       </AppShell>
     );
   }
@@ -127,51 +79,37 @@ export function AttivitaFormPage() {
   return (
     <AppShell>
       <PageHeader
-        title={isEdit ? t.titoloModifica : t.titoloNuova}
+        title={f.isEdit ? t.titoloModifica : t.titoloNuova}
         back={{ to: "/attivita", label: t.back }}
       />
-
-      <form onSubmit={submitState.submit} className="space-y-6 max-w-2xl">
+      <form onSubmit={f.submit} className="space-y-6 max-w-2xl">
         <AttivitaFormFields
-          form={form}
-          errors={submitState.errors}
-          busy={submitState.busy}
-          isEdit={isEdit}
+          form={f.form}
+          errors={f.errors}
+          busy={f.busy}
+          isEdit={f.isEdit}
           tariffaSuggested={tariffaSuggested}
           totaleLive={totaleLive}
           aziendaOptions={aziendaOptions}
           tipoOptions={tipoOptions}
           aziendaAction={
-            canCreateAzienda ? (
-              <button
-                type="button"
-                onClick={() => setAddAziendaOpen(true)}
-                className="text-(--color-accent) hover:underline font-medium"
-              >
-                + Nuova
-              </button>
-            ) : null
+            canCreateAzienda ? <AddLink onClick={() => setAddAziendaOpen(true)} label="+ Nuova" /> : null
           }
           tipoAction={
-            canCreateTipo ? (
-              <button
-                type="button"
-                onClick={() => setAddTipoOpen(true)}
-                className="text-(--color-accent) hover:underline font-medium"
-              >
-                + Nuovo
-              </button>
-            ) : null
+            canCreateTipo ? <AddLink onClick={() => setAddTipoOpen(true)} label="+ Nuovo" /> : null
           }
-          onUpdate={update}
-          onTariffaInput={onTariffaInput}
+          onUpdate={f.update}
+          onTariffaInput={(v) => {
+            f.update("tariffa", v);
+            clearTariffaSuggestion();
+          }}
         />
         <QuickAddAziendaDialog
           open={addAziendaOpen}
           onClose={() => setAddAziendaOpen(false)}
           onCreated={(a) => {
             ref.addAzienda(a);
-            update("aziendaId", a.id);
+            f.update("aziendaId", a.id);
           }}
         />
         <QuickAddTipoDialog
@@ -180,21 +118,25 @@ export function AttivitaFormPage() {
           nextOrdine={nextTipoOrdine}
           onCreated={(tp) => {
             ref.addTipo(tp);
-            update("tipoId", tp.id);
+            f.update("tipoId", tp.id);
           }}
         />
-
-        {submitState.globalError ? (
-          <InlineError>{submitState.globalError}</InlineError>
+        {f.globalError ? (
+          <p role="alert" className="text-sm text-(--color-danger)">
+            {f.globalError}
+          </p>
         ) : null}
-
         <FormActions
-          isEdit={isEdit}
-          canDelete={canDelete}
-          busy={submitState.busy}
-          id={id}
-          onDuplicate={() => navigate(`/attivita/nuova?clone=${id}`)}
-          onDelete={() => setConfirmDelete(true)}
+          busy={f.busy}
+          destructive={
+            canDelete ? (
+              <DeleteActions
+                busy={f.busy}
+                onDuplicate={() => navigate(`/attivita/nuova?clone=${id}`)}
+                onDelete={() => setConfirmDelete(true)}
+              />
+            ) : null
+          }
           onCancel={() => navigate("/attivita")}
         />
       </form>
@@ -205,9 +147,9 @@ export function AttivitaFormPage() {
         confirmLabel={t.elimina}
         cancelLabel={t.annulla}
         variant="danger"
-        busy={submitState.busy}
+        busy={f.busy}
         onConfirm={() => {
-          void submitState.deleteEntry();
+          void f.remove();
           setConfirmDelete(false);
         }}
         onClose={() => setConfirmDelete(false)}
@@ -216,43 +158,47 @@ export function AttivitaFormPage() {
   );
 }
 
-interface FormActionsProps {
-  isEdit: boolean;
-  canDelete: boolean;
-  busy: boolean;
-  id: string | undefined;
-  onDuplicate: () => void;
-  onDelete: () => void;
-  onCancel: () => void;
+function AddLink({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button type="button" onClick={onClick} className="text-(--color-accent) hover:underline font-medium">
+      {label}
+    </button>
+  );
 }
 
-function FormActions({
-  canDelete,
+function DeleteActions({
   busy,
   onDuplicate,
   onDelete,
+}: {
+  busy: boolean;
+  onDuplicate: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Button type="button" variant="ghost" size="sm" onClick={onDuplicate} disabled={busy}>
+        Duplica
+      </Button>
+      <Button type="button" variant="ghost" onClick={onDelete} disabled={busy}>
+        {t.elimina}
+      </Button>
+    </div>
+  );
+}
+
+function FormActions({
+  busy,
+  destructive,
   onCancel,
-}: FormActionsProps) {
+}: {
+  busy: boolean;
+  destructive: ReactNode;
+  onCancel: () => void;
+}) {
   return (
     <FormFooter
-      destructive={
-        canDelete ? (
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onDuplicate}
-              disabled={busy}
-            >
-              Duplica
-            </Button>
-            <Button type="button" variant="ghost" onClick={onDelete} disabled={busy}>
-              {t.elimina}
-            </Button>
-          </div>
-        ) : null
-      }
+      destructive={destructive}
       actions={
         <>
           <Button type="button" variant="ghost" onClick={onCancel} disabled={busy}>
