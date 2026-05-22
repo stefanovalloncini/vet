@@ -15,6 +15,14 @@ const repositories = createFirestoreRepositories();
 
 registerSW({ immediate: true });
 
+const CHUNK_RELOAD_KEY = "vet.chunk-reloaded";
+window.addEventListener("vite:preloadError", (event) => {
+  event.preventDefault();
+  if (sessionStorage.getItem(CHUNK_RELOAD_KEY)) return;
+  sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+  window.location.reload();
+});
+
 createRoot(rootEl).render(
   <StrictMode>
     <QueryProvider>

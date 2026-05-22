@@ -43,8 +43,6 @@ export default defineConfig({
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/__\//, /^\/api\//, /^\/login/],
         cleanupOutdatedCaches: true,
-        skipWaiting: true,
-        clientsClaim: true,
       },
       manifest: {
         name: "Veterinario",
