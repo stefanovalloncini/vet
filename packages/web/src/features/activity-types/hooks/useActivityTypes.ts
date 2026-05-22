@@ -1,34 +1,69 @@
-import { useCallback, useEffect, useState } from "react";
-import type { ActivityType } from "@vet/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ActivityType, ActivityTypeInput } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 
-interface State {
-  loading: boolean;
-  error: string | null;
-  types: ActivityType[];
+export function useTipiAttivita() {
+  const { activityTypes: repo } = useRepositories();
+  return useQuery({
+    queryKey: queryKeys.tipiAttivita,
+    queryFn: () => repo.list(),
+  });
 }
 
-export function useActivityTypes() {
+interface UpsertVars {
+  id: string;
+  input: ActivityTypeInput;
+}
+
+export function useCreateTipoAttivita() {
   const { activityTypes: repo } = useRepositories();
-  const [state, setState] = useState<State>({
-    loading: true,
-    error: null,
-    types: [],
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, input }: UpsertVars): Promise<ActivityType> => {
+      await repo.upsert(id, input);
+      const created = await repo.getById(id);
+      if (!created) throw new Error("not-found");
+      return created;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.tipiAttivita }),
   });
+}
 
-  const refresh = useCallback(async () => {
-    setState((s) => ({ ...s, loading: true, error: null }));
-    try {
-      const list = await repo.list();
-      setState({ loading: false, error: null, types: list });
-    } catch {
-      setState({ loading: false, error: "load-failed", types: [] });
-    }
-  }, [repo]);
+export function useUpdateTipoAttivita() {
+  const { activityTypes: repo } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: UpsertVars) => repo.upsert(id, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.tipiAttivita }),
+  });
+}
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+interface ToggleVars {
+  id: string;
+  attivo: boolean;
+}
 
-  return { ...state, refresh };
+export function useToggleTipoAttivitaActive() {
+  const { activityTypes: repo } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, attivo }: ToggleVars) => repo.setActive(id, attivo),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.tipiAttivita }),
+  });
+}
+
+interface TariffaVars {
+  id: string;
+  tariffa: number | null;
+}
+
+export function useSaveTipoTariffa() {
+  const { activityTypes: repo } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, tariffa }: TariffaVars) =>
+      repo.setStandardTariff(id, tariffa),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.tipiAttivita }),
+  });
 }
