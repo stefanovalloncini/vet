@@ -17,8 +17,7 @@ import { PaymentDialog } from "./PaymentDialog";
 
 export function PaymentsPage() {
   const { user } = useAuthState();
-  const { aziende, attivita, payments, loading, error, refresh } =
-    usePaymentsData();
+  const { aziende, attivita, payments, loading, error } = usePaymentsData();
   const [paying, setPaying] = useState<AziendaArrears | null>(null);
 
   const canManage = user?.caps.has("payments.manage") ?? false;
@@ -56,10 +55,7 @@ export function PaymentsPage() {
         <PaymentDialog
           row={paying}
           onClose={() => setPaying(null)}
-          onSaved={async () => {
-            setPaying(null);
-            await refresh();
-          }}
+          onSaved={() => setPaying(null)}
         />
       ) : null}
     </AppShell>

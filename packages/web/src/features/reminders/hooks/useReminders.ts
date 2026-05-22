@@ -1,34 +1,73 @@
-import { useCallback, useEffect, useState } from "react";
-import type { Reminder } from "@vet/shared";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type {
+  ActorContext,
+  Reminder,
+  ReminderInput,
+} from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 
-interface State {
+export interface UseRemindersResult {
+  reminders: Reminder[];
   loading: boolean;
   error: string | null;
-  reminders: Reminder[];
 }
 
-export function useReminders(opts: { onlyOpen?: boolean } = {}) {
+export function useReminders(
+  opts: { onlyOpen?: boolean } = {}
+): UseRemindersResult {
   const { reminders: repo } = useRepositories();
-  const [state, setState] = useState<State>({
-    loading: true,
-    error: null,
-    reminders: [],
+  const filters = opts.onlyOpen ? { onlyOpen: true } : {};
+  const query = useQuery<Reminder[]>({
+    queryKey: queryKeys.reminders(filters),
+    queryFn: () => repo.list(opts),
   });
+  return {
+    reminders: query.data ?? [],
+    loading: query.isPending,
+    error: query.error ? "load-failed" : null,
+  };
+}
 
-  const refresh = useCallback(async () => {
-    setState((s) => ({ ...s, loading: true, error: null }));
-    try {
-      const list = await repo.list(opts);
-      setState({ loading: false, error: null, reminders: list });
-    } catch {
-      setState({ loading: false, error: "load-failed", reminders: [] });
-    }
-  }, [repo, opts.onlyOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+interface CreateReminderInput {
+  input: ReminderInput;
+  denorm: { aziendaNome: string };
+  actor: ActorContext;
+}
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+export function useCreateReminder() {
+  const { reminders: repo } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ input, denorm, actor }: CreateReminderInput) =>
+      repo.create(input, denorm, actor),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["reminders"] }),
+  });
+}
 
-  return { ...state, refresh };
+interface UpdateReminderInput {
+  id: string;
+  done: boolean;
+}
+
+export function useUpdateReminder() {
+  const { reminders: repo } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, done }: UpdateReminderInput) => repo.markDone(id, done),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["reminders"] }),
+  });
+}
+
+export function useDeleteReminder() {
+  const { reminders: repo } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => repo.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["reminders"] }),
+  });
 }

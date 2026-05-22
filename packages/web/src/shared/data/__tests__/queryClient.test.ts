@@ -42,4 +42,17 @@ describe("queryKeys", () => {
     expect(queryKeys.attivita()).toEqual(["attivita", {}]);
     expect(queryKeys.azienda("az1")).toEqual(["aziende", "az1"]);
   });
+
+  it("exposes payments and reminders keys with and without filters", () => {
+    expect(queryKeys.payments()).toEqual(["payments", {}]);
+    expect(queryKeys.payments({ aziendaId: "az1" })).toEqual([
+      "payments",
+      { aziendaId: "az1" },
+    ]);
+    expect(queryKeys.reminders()).toEqual(["reminders", {}]);
+    expect(queryKeys.reminders({ onlyOpen: true })).toEqual([
+      "reminders",
+      { onlyOpen: true },
+    ]);
+  });
 });

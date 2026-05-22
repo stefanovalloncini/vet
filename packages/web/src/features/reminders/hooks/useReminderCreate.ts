@@ -3,17 +3,15 @@ import {
   reminderInputSchema,
   type ActorContext,
   type Azienda,
-  type RemindersRepository,
 } from "@vet/shared";
 import { dateInputValue, parseDateInput } from "../../attivita/lib/format";
 import { remindersI18n as t } from "../i18n";
 import { addDays } from "../lib/dates";
+import { useCreateReminder } from "./useReminders";
 
 interface UseReminderCreateArgs {
   user: ActorContext | null;
   aziende: ReadonlyArray<Azienda>;
-  repo: RemindersRepository;
-  onCreated: () => Promise<void>;
 }
 
 const DEFAULT_LEAD_DAYS = 7;
@@ -40,15 +38,13 @@ export interface ReminderCreateState {
 export function useReminderCreate({
   user,
   aziende,
-  repo,
-  onCreated,
 }: UseReminderCreateArgs): ReminderCreateState {
   const [aziendaId, setAziendaId] = useState("");
   const [titolo, setTitolo] = useState("");
   const [data, setData] = useState<string>(emptyDate);
   const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const create = useCreateReminder();
 
   function reset(): void {
     setAziendaId("");
@@ -81,18 +77,18 @@ export function useReminderCreate({
       setError(t.saveError);
       return false;
     }
-    setBusy(true);
     setError(null);
     try {
-      await repo.create(parsed.data, { aziendaNome: azienda.nome }, user);
+      await create.mutateAsync({
+        input: parsed.data,
+        denorm: { aziendaNome: azienda.nome },
+        actor: user,
+      });
       reset();
-      await onCreated();
       return true;
     } catch {
       setError(t.saveError);
       return false;
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -105,7 +101,7 @@ export function useReminderCreate({
     setData,
     note,
     setNote,
-    busy,
+    busy: create.isPending,
     error,
     submit,
     reset,
