@@ -1,4 +1,4 @@
-import type { ReactNode, SelectHTMLAttributes } from "react";
+import { forwardRef, type ReactNode, type SelectHTMLAttributes } from "react";
 
 interface SelectOption {
   value: string;
@@ -14,7 +14,7 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   action?: ReactNode;
 }
 
-export function Select({
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select({
   id,
   label,
   options,
@@ -23,7 +23,7 @@ export function Select({
   action,
   className = "",
   ...rest
-}: SelectProps) {
+}, ref) {
   const cls = [
     "w-full rounded-lg border bg-(--color-surface) px-3.5 py-2.5 text-sm text-(--color-text)",
     "focus:outline-none disabled:opacity-50 appearance-none",
@@ -46,7 +46,7 @@ export function Select({
         </label>
         {action ? <div className="text-xs">{action}</div> : null}
       </div>
-      <select id={id} {...rest} className={cls}>
+      <select ref={ref} id={id} {...rest} className={cls}>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -62,4 +62,4 @@ export function Select({
       ) : null}
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import type { TextareaHTMLAttributes } from "react";
+import { forwardRef, type TextareaHTMLAttributes } from "react";
 
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   id: string;
@@ -7,14 +7,14 @@ interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   hint?: string | undefined;
 }
 
-export function TextArea({
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea({
   id,
   label,
   error,
   hint,
   className = "",
   ...rest
-}: TextAreaProps) {
+}, ref) {
   const cls = [
     "w-full rounded-xl border bg-(--color-surface) px-4 py-3 text-sm text-(--color-text)",
     "placeholder:text-(--color-text-subtle) min-h-[6rem] resize-y",
@@ -33,7 +33,7 @@ export function TextArea({
       >
         {label}
       </label>
-      <textarea id={id} {...rest} className={cls} />
+      <textarea ref={ref} id={id} {...rest} className={cls} />
       {error ? (
         <p className="mt-2 text-xs text-(--color-danger)" role="alert">
           {error}
@@ -43,4 +43,4 @@ export function TextArea({
       ) : null}
     </div>
   );
-}
+});

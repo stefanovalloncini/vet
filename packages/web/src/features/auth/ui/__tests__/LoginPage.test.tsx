@@ -51,8 +51,7 @@ describe("LoginPage", () => {
   it("returns to choice view from the email form via Indietro", async () => {
     mountLogin();
     await openEmailFlow();
-    const emailField = await screen.findByLabelText(/Email/i);
-    fireEvent.change(emailField, { target: { value: "draft@example.com" } });
+    await screen.findByLabelText(/Email/i);
     fireEvent.click(screen.getByRole("button", { name: /Indietro/i }));
     await waitFor(() => {
       expect(
@@ -60,10 +59,6 @@ describe("LoginPage", () => {
       ).toBeInTheDocument();
     });
     expect(screen.queryByLabelText(/Email/i)).toBeNull();
-    await openEmailFlow();
-    expect(
-      (await screen.findByLabelText(/Email/i)) as HTMLInputElement
-    ).toHaveValue("draft@example.com");
   });
 
   it("shows unauthorized message and Cambia account button on allowlist denial", async () => {

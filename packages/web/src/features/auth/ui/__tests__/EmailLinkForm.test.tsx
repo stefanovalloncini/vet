@@ -1,44 +1,52 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { EmailLinkForm } from "../EmailLinkForm";
 
 describe("EmailLinkForm", () => {
-  it("disables submit while email is empty and fires submit when filled", () => {
-    const onSubmit = vi.fn((e: { preventDefault: () => void }) => e.preventDefault());
-    const onEmailChange = vi.fn();
-    const { rerender } = render(
+  it("rejects invalid email with a field-level error", async () => {
+    const onSubmit = vi.fn();
+    render(
       <EmailLinkForm
-        email=""
         busy={false}
-        onEmailChange={onEmailChange}
         onSubmit={onSubmit}
         onBack={() => {}}
       />
     );
-    const submit = screen.getByRole("button", { name: /Inviami il link/i });
-    expect(submit).toBeDisabled();
-    rerender(
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "not-an-email" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Inviami il link/i }));
+    expect(
+      await screen.findByText(/Inserisci un indirizzo email valido/i)
+    ).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("submits parsed values when email is valid", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(
       <EmailLinkForm
-        email="user@example.com"
         busy={false}
-        onEmailChange={onEmailChange}
         onSubmit={onSubmit}
         onBack={() => {}}
       />
     );
-    expect(submit).not.toBeDisabled();
-    fireEvent.click(submit);
-    expect(onSubmit).toHaveBeenCalledOnce();
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "vet@studio.it" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Inviami il link/i }));
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalled();
+    });
+    expect(onSubmit.mock.calls[0]?.[0]).toEqual({ email: "vet@studio.it" });
   });
 
   it("calls onBack when Indietro is clicked", () => {
     const onBack = vi.fn();
     render(
       <EmailLinkForm
-        email=""
         busy={false}
-        onEmailChange={() => {}}
-        onSubmit={(e) => e.preventDefault()}
+        onSubmit={vi.fn()}
         onBack={onBack}
       />
     );
@@ -49,15 +57,28 @@ describe("EmailLinkForm", () => {
   it("disables everything while busy", () => {
     render(
       <EmailLinkForm
-        email="user@example.com"
+        defaultEmail="user@example.com"
         busy={true}
-        onEmailChange={() => {}}
-        onSubmit={(e) => e.preventDefault()}
+        onSubmit={vi.fn()}
         onBack={() => {}}
       />
     );
     expect(screen.getByLabelText(/Email/i)).toBeDisabled();
     expect(screen.getByRole("button", { name: /Invio in corso/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /Indietro/i })).toBeDisabled();
+  });
+
+  it("respects defaultEmail prop", () => {
+    render(
+      <EmailLinkForm
+        defaultEmail="prefill@example.com"
+        busy={false}
+        onSubmit={vi.fn()}
+        onBack={() => {}}
+      />
+    );
+    expect(
+      (screen.getByLabelText(/Email/i) as HTMLInputElement).value
+    ).toBe("prefill@example.com");
   });
 });
