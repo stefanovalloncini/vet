@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import type {
   Attivita,
   AttivitaRepository,
@@ -16,12 +17,34 @@ interface UseAziendaDetailArgs {
   payments: PaymentsRepository;
 }
 
+interface AziendaDetailData {
+  azienda: Azienda | null;
+  items: Attivita[];
+  payments: Payment[];
+}
+
 export interface AziendaDetail {
   azienda: Azienda | null;
   items: Attivita[];
   payments: Payment[];
-  loading: boolean;
-  error: string | null;
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  refetch: () => void;
+}
+
+async function loadDetail(
+  id: string,
+  aziende: AziendeRepository,
+  attivita: AttivitaRepository,
+  payments: PaymentsRepository
+): Promise<AziendaDetailData> {
+  const [azienda, items, pays] = await Promise.all([
+    aziende.getById(id),
+    attivita.list({ aziendaId: id }),
+    payments.listForAzienda(id),
+  ]);
+  return { azienda, items, payments: pays };
 }
 
 export function useAziendaDetail({
@@ -31,42 +54,26 @@ export function useAziendaDetail({
   payments,
 }: UseAziendaDetailArgs): AziendaDetail {
   const navigate = useNavigate();
-  const [azienda, setAzienda] = useState<Azienda | null>(null);
-  const [items, setItems] = useState<Attivita[]>([]);
-  const [pays, setPays] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery<AziendaDetailData>({
+    queryKey: id ? ["aziende", id, "detail"] : ["aziende", "none", "detail"],
+    queryFn: () => loadDetail(id as string, aziende, attivita, payments),
+    enabled: id !== undefined,
+  });
 
+  const missing = query.isSuccess && query.data.azienda === null;
   useEffect(() => {
-    if (!id) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const [az, list, pa] = await Promise.all([
-          aziende.getById(id),
-          attivita.list({ aziendaId: id }),
-          payments.listForAzienda(id),
-        ]);
-        if (cancelled) return;
-        if (!az) {
-          navigate("/aziende", { replace: true });
-          return;
-        }
-        setAzienda(az);
-        setItems(list);
-        setPays(pa);
-      } catch (err) {
-        if (cancelled) return;
-        console.error("azienda detail load failed", err);
-        setError(err instanceof Error ? err.message : String(err));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [id, aziende, attivita, payments, navigate]);
+    if (missing) navigate("/aziende", { replace: true });
+  }, [missing, navigate]);
 
-  return { azienda, items, payments: pays, loading, error };
+  return {
+    azienda: query.data?.azienda ?? null,
+    items: query.data?.items ?? [],
+    payments: query.data?.payments ?? [],
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    refetch: () => {
+      void query.refetch();
+    },
+  };
 }

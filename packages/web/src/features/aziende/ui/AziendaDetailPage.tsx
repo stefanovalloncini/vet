@@ -40,17 +40,17 @@ export function AziendaDetailPage() {
   const canUpdate = user?.caps.has("aziende.update") ?? false;
   const canExport = user?.caps.has("activities.export") ?? false;
 
-  if (detail.error) {
+  if (detail.isError) {
     return (
       <AppShell>
         <p role="alert" className="text-sm text-(--color-danger)">
-          Errore caricamento azienda: {detail.error}
+          Errore caricamento azienda: {detail.error?.message ?? "errore"}
         </p>
       </AppShell>
     );
   }
 
-  if (detail.loading || !detail.azienda) {
+  if (detail.isLoading || !detail.azienda) {
     return (
       <AppShell>
         <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
