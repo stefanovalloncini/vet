@@ -1,7 +1,33 @@
-import { useState, type FormEvent } from "react";
-import { Button, Dialog, InlineError, TextField } from "../../../shared/ui";
+import { useEffect, useRef } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button, Dialog, InlineError } from "../../../shared/ui";
+import { RHFTextField } from "../../../shared/ui/rhf";
 import { activityTypeInputSchema, slugify, type ActivityType } from "@vet/shared";
 import { useCreateTipoAttivita } from "../hooks/useActivityTypes";
+
+const quickTipoFormSchema = z.object({
+  nome: z
+    .string()
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1, "Nome obbligatorio").max(80)),
+  tariffa: z.string().superRefine((value, ctx) => {
+    const trimmed = value.trim();
+    if (trimmed === "") return;
+    const num = Number(trimmed);
+    if (!Number.isFinite(num) || num < 0 || num > 100000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Tariffa non valida",
+      });
+    }
+  }),
+});
+
+type QuickTipoFormValues = z.infer<typeof quickTipoFormSchema>;
+
+const EMPTY: QuickTipoFormValues = { nome: "", tariffa: "" };
 
 interface Props {
   open: boolean;
@@ -12,103 +38,110 @@ interface Props {
 
 export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Props) {
   const createTipo = useCreateTipoAttivita();
-  const [nome, setNome] = useState("");
-  const [tariffa, setTariffa] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const busy = createTipo.isPending;
+  const form = useForm<QuickTipoFormValues>({
+    resolver: zodResolver(quickTipoFormSchema),
+    defaultValues: EMPTY,
+    mode: "onSubmit",
+  });
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const trimmedNome = nome.trim();
-    if (!trimmedNome) {
-      setError("Nome obbligatorio");
-      return;
-    }
-    const tariffaTrim = tariffa.trim();
+  const busy = createTipo.isPending;
+  const wasOpenRef = useRef(open);
+  useEffect(() => {
+    if (open && !wasOpenRef.current) form.reset(EMPTY);
+    wasOpenRef.current = open;
+  }, [open, form]);
+
+  async function onSubmit(values: QuickTipoFormValues) {
+    const tariffaTrim = values.tariffa.trim();
     const tariffaNum = tariffaTrim === "" ? undefined : Number(tariffaTrim);
-    if (tariffaNum !== undefined && (!Number.isFinite(tariffaNum) || tariffaNum < 0)) {
-      setError("Tariffa non valida");
-      return;
-    }
-    const id = slugify(trimmedNome);
+    const id = slugify(values.nome);
     if (!id) {
-      setError("Nome non valido");
+      form.setError("nome", { message: "Nome non valido" });
       return;
     }
     const parsed = activityTypeInputSchema.safeParse({
-      nome: trimmedNome,
+      nome: values.nome,
       ordine: nextOrdine,
       attivo: true,
       ...(tariffaNum !== undefined ? { tariffaStandard: tariffaNum } : {}),
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Dati non validi");
+      form.setError("root", {
+        message: parsed.error.issues[0]?.message ?? "Dati non validi",
+      });
       return;
     }
-    setError(null);
     try {
       const created = await createTipo.mutateAsync({ id, input: parsed.data });
       onCreated(created);
-      setNome("");
-      setTariffa("");
+      form.reset(EMPTY);
       onClose();
     } catch (err) {
       console.error("quick add tipo failed", err);
-      setError(err instanceof Error ? err.message : "Salvataggio non riuscito");
+      form.setError("root", {
+        message: err instanceof Error ? err.message : "Salvataggio non riuscito",
+      });
     }
   }
 
   function handleClose() {
     if (busy) return;
-    setNome("");
-    setTariffa("");
-    setError(null);
+    form.reset(EMPTY);
     onClose();
   }
 
+  const nomeWatch = form.watch("nome");
+  const rootError = form.formState.errors.root?.message;
+
   return (
     <Dialog open={open} onClose={handleClose} labelledBy="quick-tipo-title" size="sm">
-      <form onSubmit={handleSubmit} className="p-5 space-y-4">
-        <div>
-          <h2 id="quick-tipo-title" className="text-base font-medium text-(--color-text)">
-            Nuovo tipo di attività
-          </h2>
-          <p className="text-xs text-(--color-text-muted) mt-1">
-            Sarà disponibile in tutti i form. Puoi modificare ordine e tariffa dopo.
-          </p>
-        </div>
-        <TextField
-          id="quick-tipo-nome"
-          label="Nome"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          required
-          autoFocus
-          disabled={busy}
-          placeholder="Es. Cesareo"
-        />
-        <TextField
-          id="quick-tipo-tariffa"
-          type="number"
-          step="0.01"
-          min="0"
-          label="Tariffa standard (€)"
-          value={tariffa}
-          onChange={(e) => setTariffa(e.target.value)}
-          disabled={busy}
-          placeholder="opzionale"
-          hint="Lascia vuoto se la tariffa cambia di volta in volta."
-        />
-        {error ? <InlineError>{error}</InlineError> : null}
-        <div className="flex items-center justify-end gap-3 pt-1">
-          <Button type="button" variant="ghost" onClick={handleClose} disabled={busy}>
-            Annulla
-          </Button>
-          <Button type="submit" variant="primary" disabled={busy || !nome.trim()}>
-            Crea
-          </Button>
-        </div>
-      </form>
+      <FormProvider {...form}>
+        <form
+          noValidate
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="p-5 space-y-4"
+        >
+          <div>
+            <h2 id="quick-tipo-title" className="text-base font-medium text-(--color-text)">
+              Nuovo tipo di attività
+            </h2>
+            <p className="text-xs text-(--color-text-muted) mt-1">
+              Sarà disponibile in tutti i form. Puoi modificare ordine e tariffa dopo.
+            </p>
+          </div>
+          <RHFTextField<QuickTipoFormValues>
+            name="nome"
+            label="Nome"
+            required
+            autoFocus
+            disabled={busy}
+            placeholder="Es. Cesareo"
+          />
+          <RHFTextField<QuickTipoFormValues>
+            name="tariffa"
+            label="Tariffa standard (€)"
+            type="number"
+            step="0.01"
+            min="0"
+            disabled={busy}
+            placeholder="opzionale"
+            hint="Lascia vuoto se la tariffa cambia di volta in volta."
+          />
+          {rootError ? <InlineError>{rootError}</InlineError> : null}
+          <div className="flex items-center justify-end gap-3 pt-1">
+            <Button type="button" variant="ghost" onClick={handleClose} disabled={busy}>
+              Annulla
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={busy || !nomeWatch.trim()}
+            >
+              Crea
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
     </Dialog>
   );
 }
