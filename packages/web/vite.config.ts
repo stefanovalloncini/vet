@@ -40,8 +40,7 @@ export default defineConfig({
       includeAssets: ["icon.svg", "icon-maskable.svg"],
       workbox: {
         globPatterns: ["**/*.{html,svg,woff,woff2,ico,png}"],
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/__\//, /^\/api\//, /^\/login/],
+        navigateFallback: undefined,
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
