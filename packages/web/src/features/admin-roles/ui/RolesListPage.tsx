@@ -14,7 +14,7 @@ import { rolesI18n as t } from "../i18n";
 
 export function RolesListPage() {
   const { user } = useAuthState();
-  const { roles, loading, error } = useRoles();
+  const { data: roles = [], isLoading, isError } = useRoles();
 
   const canManage = user?.caps.has("roles.manage") ?? false;
 
@@ -36,9 +36,9 @@ export function RolesListPage() {
           : {})}
       />
 
-      {loading ? (
+      {isLoading ? (
         <LoadingHint label={t.loading} />
-      ) : error ? (
+      ) : isError ? (
         <InlineError>{t.loadError}</InlineError>
       ) : (
         <ul className="space-y-3">
