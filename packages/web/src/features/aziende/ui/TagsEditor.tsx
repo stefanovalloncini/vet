@@ -4,14 +4,19 @@ import { SectionLabel } from "../../../shared/ui";
 interface TagsEditorProps {
   tags: ReadonlyArray<string>;
   onChange: (next: string[]) => void;
+  disabled?: boolean;
 }
 
-export function TagsEditor({ tags, onChange }: TagsEditorProps) {
+export function TagsEditor({ tags, onChange, disabled = false }: TagsEditorProps) {
   const [input, setInput] = useState("");
 
   function commitInput() {
     const trimmed = input.trim();
     if (!trimmed) return;
+    if (tags.includes(trimmed)) {
+      setInput("");
+      return;
+    }
     onChange([...tags, trimmed]);
     setInput("");
   }
@@ -21,6 +26,7 @@ export function TagsEditor({ tags, onChange }: TagsEditorProps) {
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (disabled) return;
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       commitInput();
@@ -42,7 +48,8 @@ export function TagsEditor({ tags, onChange }: TagsEditorProps) {
             <button
               type="button"
               onClick={() => removeTag(tag)}
-              className="text-(--color-text-subtle) hover:text-(--color-danger)"
+              disabled={disabled}
+              className="text-(--color-text-subtle) hover:text-(--color-danger) disabled:opacity-50"
               aria-label="Rimuovi etichetta"
             >
               ×
@@ -54,8 +61,9 @@ export function TagsEditor({ tags, onChange }: TagsEditorProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          disabled={disabled}
           placeholder={tags.length === 0 ? "Aggiungi etichetta…" : ""}
-          className="text-xs bg-transparent text-(--color-text) focus:outline-none placeholder:text-(--color-text-subtle) min-w-[8ch]"
+          className="text-xs bg-transparent text-(--color-text) focus:outline-none placeholder:text-(--color-text-subtle) min-w-[8ch] disabled:opacity-50"
         />
       </div>
     </div>
