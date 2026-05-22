@@ -2,6 +2,7 @@ import type { ReactNode, FormEvent } from "react";
 import { createElement } from "react";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, beforeEach } from "vitest";
 import type {
   ActivityType,
@@ -51,6 +52,9 @@ function fakeEvent(): FormEvent {
 }
 
 function makeWrapper(repos: Repositories, initialEntries: string[]) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return function Wrapper({ children }: { children: ReactNode }) {
     const routes = createElement(Routes, null, [
       createElement(Route, {
@@ -68,9 +72,13 @@ function makeWrapper(repos: Repositories, initialEntries: string[]) {
       initialEntries,
       children: routes,
     });
-    return createElement(RepositoriesProvider, {
+    const repoTree = createElement(RepositoriesProvider, {
       value: repos,
       children: router,
+    });
+    return createElement(QueryClientProvider, {
+      client,
+      children: repoTree,
     });
   };
 }
