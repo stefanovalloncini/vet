@@ -27,7 +27,7 @@ import type { Reminder } from "@vet/shared";
 export function RemindersPage() {
   const { user } = useAuthState();
   const ref = useReferenceData();
-  const { reminders, loading } = useReminders();
+  const { reminders, loading, error: loadError } = useReminders();
   const update = useUpdateReminder();
   const remove = useDeleteReminder();
   const create = useReminderCreate({
@@ -98,6 +98,8 @@ export function RemindersPage() {
 
       {loading ? (
         <LoadingHint label={t.loading} />
+      ) : loadError ? (
+        <InlineError>{t.loadError}</InlineError>
       ) : reminders.length === 0 ? (
         <EmptyState title={t.emptyAll} />
       ) : (

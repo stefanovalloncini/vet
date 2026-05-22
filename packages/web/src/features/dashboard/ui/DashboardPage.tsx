@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { AppShell, Card, CardSkeleton, SectionLabel } from "../../../shared/ui";
+import { AppShell, Card, CardSkeleton, InlineError, SectionLabel } from "../../../shared/ui";
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../attivita/lib/format";
 import { RevenueBarChart } from "./RevenueBarChart";
@@ -40,6 +40,8 @@ export function DashboardPage() {
 
       {stats.loading ? (
         <CardSkeleton rows={4} />
+      ) : stats.isError ? (
+        <InlineError>{t.loadError}</InlineError>
       ) : stats.items.length === 0 ? (
         <p className="text-sm text-(--color-text-muted) py-2">{t.noActivity}</p>
       ) : (
