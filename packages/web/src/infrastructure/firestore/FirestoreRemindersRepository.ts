@@ -23,16 +23,17 @@ export class FirestoreRemindersRepository implements RemindersRepository {
   constructor(private readonly db: Firestore) {}
 
   async list(opts: { onlyOpen?: boolean } = {}): Promise<Reminder[]> {
+    const constraints = opts.onlyOpen
+      ? [where("done", "==", false)]
+      : [orderBy("dueAt", "asc")];
     const snap = await getDocs(
-      opts.onlyOpen
-        ? query(
-            collection(this.db, "reminders"),
-            where("done", "==", false),
-            orderBy("dueAt", "asc")
-          )
-        : query(collection(this.db, "reminders"), orderBy("dueAt", "asc"))
+      query(collection(this.db, "reminders"), ...constraints)
     );
-    return snap.docs.map((d) => fromSnap(d.id, d.data()));
+    const rows = snap.docs.map((d) => fromSnap(d.id, d.data()));
+    if (opts.onlyOpen) {
+      rows.sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime());
+    }
+    return rows;
   }
 
   async listForAzienda(aziendaId: string): Promise<Reminder[]> {
