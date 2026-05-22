@@ -5,23 +5,15 @@ import {
   EmailLinkCompletePage,
   RequireAuth,
 } from "./features/auth";
-import { Brand, RouteBoundary, Spinner } from "./shared/ui";
-import { PROTECTED_ROUTES } from "./routes";
+import {
+  PROTECTED_ROUTES,
+  RouteFallback,
+  RouteShell,
+} from "./routes";
 
 const SicurezzaPage = lazy(() =>
   import("./features/diagnostics").then((m) => ({ default: m.SicurezzaPage }))
 );
-
-function RouteFallback() {
-  return (
-    <main className="min-h-screen flex items-center justify-center bg-(--color-background)">
-      <div className="flex flex-col items-center gap-5">
-        <Brand size="md" />
-        <Spinner size={22} label="Caricamento…" />
-      </div>
-    </main>
-  );
-}
 
 export function App() {
   return (
@@ -34,27 +26,48 @@ export function App() {
 }
 
 function AppRoutes() {
-  const location = useLocation();
+  const { pathname } = useLocation();
   return (
-    <RouteBoundary key={location.pathname}>
-      <Suspense fallback={<RouteFallback />}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/login/complete" element={<EmailLinkCompletePage />} />
-          <Route path="/sicurezza" element={<SicurezzaPage />} />
-          {PROTECTED_ROUTES.map(({ path, Component }) => (
-            <Route
-              key={path}
-              path={path}
-              element={
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <RouteShell pathname={pathname}>
+              <LoginPage />
+            </RouteShell>
+          }
+        />
+        <Route
+          path="/login/complete"
+          element={
+            <RouteShell pathname={pathname}>
+              <EmailLinkCompletePage />
+            </RouteShell>
+          }
+        />
+        <Route
+          path="/sicurezza"
+          element={
+            <RouteShell pathname={pathname}>
+              <SicurezzaPage />
+            </RouteShell>
+          }
+        />
+        {PROTECTED_ROUTES.map(({ path, Component }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <RouteShell pathname={pathname}>
                 <RequireAuth>
                   <Component />
                 </RequireAuth>
-              }
-            />
-          ))}
-        </Routes>
-      </Suspense>
-    </RouteBoundary>
+              </RouteShell>
+            }
+          />
+        ))}
+      </Routes>
+    </Suspense>
   );
 }
