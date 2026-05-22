@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from "react";
+import { forwardRef, type InputHTMLAttributes } from "react";
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   id: string;
@@ -7,14 +7,14 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   hint?: string | undefined;
 }
 
-export function TextField({
+export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField({
   id,
   label,
   error,
   hint,
   className = "",
   ...rest
-}: TextFieldProps) {
+}, ref) {
   const isDateLike = rest.type === "date" || rest.type === "datetime-local" || rest.type === "time" || rest.type === "month" || rest.type === "week";
   const inputCls = [
     "block w-full min-w-0 box-border rounded-lg border bg-(--color-surface) px-3.5 py-2.5 text-sm text-(--color-text)",
@@ -36,7 +36,7 @@ export function TextField({
       >
         {label}
       </label>
-      <input id={id} {...rest} className={inputCls} />
+      <input ref={ref} id={id} {...rest} className={inputCls} />
       {error ? (
         <p className="mt-2 text-xs text-(--color-danger)" role="alert">
           {error}
@@ -46,4 +46,4 @@ export function TextField({
       ) : null}
     </div>
   );
-}
+});

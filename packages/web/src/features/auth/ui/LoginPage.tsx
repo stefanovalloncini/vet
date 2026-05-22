@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Mail } from "lucide-react";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
@@ -9,7 +9,7 @@ import {
   type ClassifiedAuthError,
 } from "../lib/authErrors";
 import { AuthLayout } from "./AuthLayout";
-import { EmailLinkForm } from "./EmailLinkForm";
+import { EmailLinkForm, type EmailFormValues } from "./EmailLinkForm";
 import { EmailLinkSent } from "./EmailLinkSent";
 
 type View = "choice" | "email" | "sent";
@@ -42,12 +42,12 @@ export function LoginPage() {
     }
   }
 
-  async function handleEmailSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function handleEmailSubmit(values: EmailFormValues) {
     setError(null);
     setBusy(true);
     try {
-      await auth.sendEmailSignInLink(email);
+      await auth.sendEmailSignInLink(values.email);
+      setEmail(values.email);
       setView("sent");
     } catch (err) {
       console.error("send email link failed", err);
@@ -120,9 +120,8 @@ export function LoginPage() {
 
       {view === "email" ? (
         <EmailLinkForm
-          email={email}
+          defaultEmail={email}
           busy={busy}
-          onEmailChange={setEmail}
           onSubmit={handleEmailSubmit}
           onBack={goToChoice}
         />

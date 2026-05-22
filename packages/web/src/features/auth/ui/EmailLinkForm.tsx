@@ -1,54 +1,70 @@
-import type { FormEvent } from "react";
 import { ArrowLeft } from "lucide-react";
-import { Button, TextField } from "../../../shared/ui";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "../../../shared/ui";
+import { RHFTextField } from "../../../shared/ui/rhf";
+
+const emailFormSchema = z.object({
+  email: z.string().email("Inserisci un indirizzo email valido"),
+});
+
+export type EmailFormValues = z.infer<typeof emailFormSchema>;
 
 interface EmailLinkFormProps {
-  email: string;
+  defaultEmail?: string;
   busy: boolean;
-  onEmailChange: (next: string) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (values: EmailFormValues) => Promise<void>;
   onBack: () => void;
 }
 
 export function EmailLinkForm({
-  email,
+  defaultEmail = "",
   busy,
-  onEmailChange,
   onSubmit,
   onBack,
 }: EmailLinkFormProps) {
+  const form = useForm<EmailFormValues>({
+    resolver: zodResolver(emailFormSchema),
+    defaultValues: { email: defaultEmail },
+    mode: "onSubmit",
+  });
+
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
-      <TextField
-        id="email"
-        label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => onEmailChange(e.target.value)}
-        required
-        autoFocus
-        disabled={busy}
-        placeholder="nome.cognome@studio.it"
-        hint="Ti arriva un link a tempo. Apri dallo stesso dispositivo."
-      />
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        fullWidth
-        disabled={busy || email.length === 0}
+    <FormProvider {...form}>
+      <form
+        noValidate
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-5"
       >
-        {busy ? "Invio in corso…" : "Inviami il link"}
-      </Button>
-      <button
-        type="button"
-        onClick={onBack}
-        disabled={busy}
-        className="inline-flex items-center gap-1.5 text-sm text-(--color-text-muted) hover:text-(--color-text) disabled:opacity-50 focus:outline-none focus-visible:underline underline-offset-4"
-      >
-        <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
-        Indietro
-      </button>
-    </form>
+        <RHFTextField<EmailFormValues>
+          name="email"
+          label="Email"
+          type="email"
+          autoFocus
+          disabled={busy}
+          placeholder="nome.cognome@studio.it"
+          hint="Ti arriva un link a tempo. Apri dallo stesso dispositivo."
+        />
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          fullWidth
+          disabled={busy}
+        >
+          {busy ? "Invio in corso…" : "Inviami il link"}
+        </Button>
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 text-sm text-(--color-text-muted) hover:text-(--color-text) disabled:opacity-50 focus:outline-none focus-visible:underline underline-offset-4"
+        >
+          <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
+          Indietro
+        </button>
+      </form>
+    </FormProvider>
   );
 }
