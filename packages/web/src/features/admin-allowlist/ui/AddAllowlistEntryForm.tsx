@@ -8,30 +8,28 @@ import {
 } from "../../../shared/ui";
 import {
   allowlistEntryInputSchema,
-  type AllowlistRepository,
   type ActorContext,
 } from "@vet/shared";
 import { allowlistI18n as t } from "../i18n";
+import { useAddAllowlistEntry } from "../hooks/useAllowlist";
 
 interface AddAllowlistEntryFormProps {
   roles: ReadonlyArray<{ id: string; name: string }>;
-  allowlist: AllowlistRepository;
   user: ActorContext;
-  onAdded: () => Promise<void>;
+  onAdded: () => void;
   onCancel: () => void;
 }
 
 export function AddAllowlistEntryForm({
   roles,
-  allowlist,
   user,
   onAdded,
   onCancel,
 }: AddAllowlistEntryFormProps) {
+  const add = useAddAllowlistEntry();
   const [email, setEmail] = useState("");
   const [roleId, setRoleId] = useState("vet");
   const [notes, setNotes] = useState("");
-  const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const roleOptions = roles.map((r) => ({ value: r.id, label: r.name }));
@@ -48,17 +46,16 @@ export function AddAllowlistEntryForm({
       setErrorMsg(parsed.error.issues[0]?.message ?? t.saveError);
       return;
     }
-    setBusy(true);
     setErrorMsg(null);
     try {
-      await allowlist.add(parsed.data, user.uid);
-      await onAdded();
+      await add.mutateAsync({ input: parsed.data, actor: user.uid });
+      onAdded();
     } catch {
       setErrorMsg(t.saveError);
-    } finally {
-      setBusy(false);
     }
   }
+
+  const busy = add.isPending;
 
   return (
     <Card className="mb-6">

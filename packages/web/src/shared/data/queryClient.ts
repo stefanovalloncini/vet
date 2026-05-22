@@ -25,12 +25,24 @@ export const queryKeys = {
   tipiAttivita: ["tipiAttivita"] as const,
   payments: (filters?: Readonly<Record<string, unknown>>) =>
     ["payments", filters ?? {}] as const,
+  reminders: (filters?: Readonly<Record<string, unknown>>) =>
+    ["reminders", filters ?? {}] as const,
   vetStats: (filters?: Readonly<Record<string, unknown>>) =>
     ["vetStats", filters ?? {}] as const,
   auditEvents: (filters?: Readonly<Record<string, unknown>>) =>
     ["auditEvents", filters ?? {}] as const,
   allowlist: ["allowlist"] as const,
   pendingUsers: ["pendingUsers"] as const,
+  accessRequests: ["accessRequests"] as const,
   roles: ["roles"] as const,
   role: (id: string) => ["roles", id] as const,
+  dashboardStats: (filters?: Readonly<Record<string, unknown>>) =>
+    ["dashboardStats", filters ?? {}] as const,
+  statistiche: (filters?: Readonly<Record<string, unknown>>) =>
+    ["statistiche", filters ?? {}] as const,
+  riepilogoPdf: (
+    aziendaId: string,
+    from: string | null,
+    to: string | null
+  ) => ["riepilogoPdf", aziendaId, from, to] as const,
 } as const;

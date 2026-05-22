@@ -8,10 +8,10 @@ import {
   LoadingHint,
   SectionLabel,
 } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { allowlistI18n as t } from "../i18n";
 import type { AllowlistEntry } from "@vet/shared";
+import { useRemoveAllowlistEntry } from "../hooks/useAllowlist";
 import { AddAllowlistEntryForm } from "./AddAllowlistEntryForm";
 import { AllowlistEntryRow } from "./AllowlistEntryRow";
 
@@ -20,7 +20,6 @@ interface AllowlistTabProps {
   roles: ReadonlyArray<{ id: string; name: string }>;
   loading: boolean;
   error: unknown;
-  refresh: () => Promise<void>;
 }
 
 function countLabel(n: number): string {
@@ -29,33 +28,22 @@ function countLabel(n: number): string {
   return t.countMany(n);
 }
 
-export function AllowlistTab({
-  entries,
-  roles,
-  loading,
-  error,
-  refresh,
-}: AllowlistTabProps) {
+export function AllowlistTab({ entries, roles, loading, error }: AllowlistTabProps) {
   const { user } = useAuthState();
-  const { allowlist } = useRepositories();
   const canManage = user?.caps.has("allowlist.manage") ?? false;
+  const remove = useRemoveAllowlistEntry();
   const [adding, setAdding] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [confirmingRemove, setConfirmingRemove] = useState<string | null>(null);
 
   async function handleRemove(entry: AllowlistEntry): Promise<void> {
     if (!canManage) return;
-    setBusy(true);
     setRemoveError(null);
     try {
-      await allowlist.remove(entry.email);
+      await remove.mutateAsync(entry.email);
       setConfirmingRemove(null);
-      await refresh();
     } catch {
       setRemoveError(t.saveError);
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -97,13 +85,9 @@ export function AllowlistTab({
           {adding && user ? (
             <AddAllowlistEntryForm
               roles={roles}
-              allowlist={allowlist}
               user={user}
               onCancel={() => setAdding(false)}
-              onAdded={async () => {
-                setAdding(false);
-                await refresh();
-              }}
+              onAdded={() => setAdding(false)}
             />
           ) : null}
         </div>
@@ -123,7 +107,7 @@ export function AllowlistTab({
               entry={entry}
               roles={roles}
               canManage={canManage}
-              busy={busy}
+              busy={remove.isPending}
               onRemove={(e) => setConfirmingRemove(e.emailNorm)}
             />
           ))}
@@ -137,7 +121,7 @@ export function AllowlistTab({
         confirmLabel={t.elimina}
         cancelLabel={t.annulla}
         variant="danger"
-        busy={busy}
+        busy={remove.isPending}
         onConfirm={() => {
           if (target) void handleRemove(target);
         }}

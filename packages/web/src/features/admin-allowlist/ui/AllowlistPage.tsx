@@ -12,7 +12,7 @@ type View = "allowlist" | "pending" | "requests";
 
 export function AllowlistPage() {
   const { user } = useAuthState();
-  const { entries, roles, loading, error, refresh } = useAllowlist();
+  const { entries, roles, loading, error } = useAllowlist();
   const canApprove = user?.caps.has("users.approve") ?? false;
   const canManageAllowlist = user?.caps.has("allowlist.manage") ?? false;
   const requestsState = useAccessRequests();
@@ -56,7 +56,6 @@ export function AllowlistPage() {
           roles={roles}
           loading={loading}
           error={error}
-          refresh={refresh}
         />
       )}
     </AppShell>
