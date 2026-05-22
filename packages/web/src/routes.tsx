@@ -1,4 +1,11 @@
-import { lazy, type LazyExoticComponent, type ComponentType } from "react";
+import {
+  Suspense,
+  lazy,
+  type LazyExoticComponent,
+  type ComponentType,
+  type ReactNode,
+} from "react";
+import { Brand, RouteBoundary, Spinner } from "./shared/ui";
 
 type LazyComp = LazyExoticComponent<ComponentType>;
 
@@ -113,3 +120,31 @@ export const PROTECTED_ROUTES: ReadonlyArray<AppRoute> = [
   { path: "/promemoria", Component: RemindersPage },
   { path: "/statistiche", Component: StatistichePage },
 ];
+
+interface RouteShellProps {
+  pathname: string;
+  children: ReactNode;
+}
+
+export function RouteShell({ pathname, children }: RouteShellProps) {
+  return (
+    <RouteBoundary resetKeys={[pathname]}>
+      <Suspense fallback={<RouteFallback />}>{children}</Suspense>
+    </RouteBoundary>
+  );
+}
+
+interface RouteFallbackProps {
+  label?: string;
+}
+
+export function RouteFallback({ label = "Caricamento…" }: RouteFallbackProps) {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-(--color-background)">
+      <div className="flex flex-col items-center gap-5">
+        <Brand size="md" />
+        <Spinner size={22} label={label} />
+      </div>
+    </main>
+  );
+}

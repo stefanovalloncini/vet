@@ -46,7 +46,9 @@ describe("App routing", () => {
   it("renders fallback when used without RepositoriesProvider", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(<App />);
-    expect(screen.getByText(/Qualcosa è andato storto/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Si è verificato un errore caricando questa pagina/i)
+    ).toBeInTheDocument();
     spy.mockRestore();
   });
 });
