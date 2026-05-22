@@ -1,38 +1,7 @@
-import {
-  Card,
-  Select,
-  TextArea,
-  TextField,
-} from "../../../shared/ui";
+import { Card } from "../../../shared/ui";
+import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { aziendeI18n as t } from "../i18n";
-import type {
-  CadenzaFatturazione,
-  TipoAllevamento,
-} from "@vet/shared";
-
-export interface AziendaFormState {
-  nome: string;
-  indirizzo: string;
-  telefono: string;
-  piva: string;
-  emailFatturazione: string;
-  cadenzaFatturazione: CadenzaFatturazione | "";
-  tipoAllevamento: TipoAllevamento | "";
-  numeroCapi: string;
-  note: string;
-}
-
-export const emptyAziendaForm: AziendaFormState = {
-  nome: "",
-  indirizzo: "",
-  telefono: "",
-  piva: "",
-  emailFatturazione: "",
-  cadenzaFatturazione: "",
-  tipoAllevamento: "",
-  numeroCapi: "",
-  note: "",
-};
+import type { AziendaFormValues } from "./aziendaFormSchema";
 
 const CADENZA_OPTIONS = [
   { value: "", label: t.campoCadenzaNessuna },
@@ -53,125 +22,75 @@ const TIPO_OPTIONS = [
   { value: "altro", label: t.tipoAltro },
 ];
 
-interface AziendaFormFieldsProps {
-  form: AziendaFormState;
-  errors: Partial<Record<keyof AziendaFormState, string>>;
-  busy: boolean;
-  onUpdate: <K extends keyof AziendaFormState>(
-    key: K,
-    value: AziendaFormState[K]
-  ) => void;
-}
-
-export function AziendaFormFields({
-  form,
-  errors,
-  busy,
-  onUpdate,
-}: AziendaFormFieldsProps) {
+export function AziendaFormFields({ busy }: { busy: boolean }) {
   return (
     <Card>
       <div className="space-y-5">
-        <TextField
-          id="nome"
+        <RHFTextField<AziendaFormValues>
+          name="nome"
           label={t.campoNome}
-          value={form.nome}
-          onChange={(e) => onUpdate("nome", e.target.value)}
-          required
           hint={t.campoNomeHint}
-          error={errors.nome}
+          required
           disabled={busy}
           autoFocus
           maxLength={200}
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <TextField
-            id="indirizzo"
+          <RHFTextField<AziendaFormValues>
+            name="indirizzo"
             label={t.campoIndirizzo}
-            value={form.indirizzo}
-            onChange={(e) => onUpdate("indirizzo", e.target.value)}
-            error={errors.indirizzo}
             disabled={busy}
             maxLength={300}
           />
-          <TextField
-            id="telefono"
+          <RHFTextField<AziendaFormValues>
+            name="telefono"
             label={t.campoTelefono}
-            value={form.telefono}
-            onChange={(e) => onUpdate("telefono", e.target.value)}
-            error={errors.telefono}
             disabled={busy}
             maxLength={40}
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <Select
-            id="tipo-allevamento"
+          <RHFSelect<AziendaFormValues>
+            name="tipoAllevamento"
             label={t.campoTipoAllevamento}
-            value={form.tipoAllevamento}
-            onChange={(e) =>
-              onUpdate(
-                "tipoAllevamento",
-                (e.target.value as TipoAllevamento | "") ?? ""
-              )
-            }
             options={TIPO_OPTIONS}
             disabled={busy}
           />
-          <TextField
-            id="numero-capi"
+          <RHFTextField<AziendaFormValues>
+            name="numeroCapi"
             type="number"
-            min="0"
-            max="100000"
-            step="1"
+            min={0}
+            max={100000}
+            step={1}
             label={t.campoNumeroCapi}
-            value={form.numeroCapi}
-            onChange={(e) => onUpdate("numeroCapi", e.target.value)}
-            error={errors.numeroCapi}
             disabled={busy}
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <TextField
-            id="piva"
+          <RHFTextField<AziendaFormValues>
+            name="piva"
             label={t.campoPiva}
-            value={form.piva}
-            onChange={(e) => onUpdate("piva", e.target.value)}
-            error={errors.piva}
             disabled={busy}
             maxLength={13}
             placeholder="12345678903"
           />
-          <Select
-            id="cadenza"
+          <RHFSelect<AziendaFormValues>
+            name="cadenzaFatturazione"
             label={t.campoCadenza}
-            value={form.cadenzaFatturazione}
-            onChange={(e) =>
-              onUpdate(
-                "cadenzaFatturazione",
-                (e.target.value as CadenzaFatturazione | "") ?? ""
-              )
-            }
             options={CADENZA_OPTIONS}
             disabled={busy}
           />
         </div>
-        <TextField
-          id="email-fatturazione"
+        <RHFTextField<AziendaFormValues>
+          name="emailFatturazione"
           type="email"
           label={t.campoEmailFatturazione}
-          value={form.emailFatturazione}
-          onChange={(e) => onUpdate("emailFatturazione", e.target.value)}
-          error={errors.emailFatturazione}
           disabled={busy}
           maxLength={120}
         />
-        <TextArea
-          id="note"
+        <RHFTextArea<AziendaFormValues>
+          name="note"
           label={t.campoNote}
-          value={form.note}
-          onChange={(e) => onUpdate("note", e.target.value)}
-          error={errors.note}
           disabled={busy}
           maxLength={1000}
         />
