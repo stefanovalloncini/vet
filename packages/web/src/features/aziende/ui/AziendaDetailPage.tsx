@@ -1,18 +1,12 @@
 import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import {
-  AppShell,
-  Button,
-  InlineError,
-  LoadingHint,
-  PageHeader,
-  Tabs,
-} from "../../../shared/ui";
+import { useNavigate, useParams } from "react-router-dom";
+import { AppShell, Tabs } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { useTags } from "../hooks/useTags";
 import { useAziendaDetail } from "../hooks/useAziendaDetail";
+import { AziendaDetailSummary } from "./AziendaDetailSummary";
 import { AziendaInfoCard } from "./AziendaInfoCard";
 import { PagamentiTab, PromemoriaTab, StoricoTab } from "./AziendaTabs";
 
@@ -20,6 +14,7 @@ type Tab = "storico" | "pagamenti" | "promemoria";
 
 export function AziendaDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { user } = useAuthState();
   const { aziende, attivita, payments } = useRepositories();
   const [tab, setTab] = useState<Tab>("storico");
@@ -48,7 +43,9 @@ export function AziendaDetailPage() {
   if (detail.error) {
     return (
       <AppShell>
-        <InlineError>Errore caricamento azienda: {detail.error}</InlineError>
+        <p role="alert" className="text-sm text-(--color-danger)">
+          Errore caricamento azienda: {detail.error}
+        </p>
       </AppShell>
     );
   }
@@ -56,7 +53,7 @@ export function AziendaDetailPage() {
   if (detail.loading || !detail.azienda) {
     return (
       <AppShell>
-        <LoadingHint />
+        <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
       </AppShell>
     );
   }
@@ -70,36 +67,11 @@ export function AziendaDetailPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={azienda.nome}
-        back={{ to: "/aziende", label: "Aziende" }}
-        {...(azienda.indirizzo
-          ? {
-              subtitle: (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(azienda.indirizzo)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-(--color-accent)"
-                >
-                  {azienda.indirizzo} ↗
-                </a>
-              ),
-            }
-          : {})}
-        {...(canUpdate
-          ? {
-              actions: (
-                <Link to={`/aziende/${azienda.id}/modifica`}>
-                  <Button type="button" variant="secondary">
-                    Modifica
-                  </Button>
-                </Link>
-              ),
-            }
-          : {})}
+      <AziendaDetailSummary
+        azienda={azienda}
+        canEdit={canUpdate}
+        onBack={() => navigate("/aziende")}
       />
-
       <AziendaInfoCard
         azienda={azienda}
         total={total}
@@ -108,7 +80,6 @@ export function AziendaDetailPage() {
         onTagsChange={(next) => setForAzienda(azienda.id, next)}
         canExport={canExport}
       />
-
       <div className="mb-4">
         <Tabs
           items={tabs.map((tt) => ({
@@ -120,7 +91,6 @@ export function AziendaDetailPage() {
           onChange={setTab}
         />
       </div>
-
       {tab === "storico" ? (
         <StoricoTab items={detail.items} />
       ) : tab === "pagamenti" ? (

@@ -1,59 +1,30 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  AppShell,
-  Button,
-  ConfirmDialog,
-  FormFooter,
-  InlineError,
-  LoadingHint,
-  PageHeader,
-} from "../../../shared/ui";
+import { AppShell, Button, ConfirmDialog, FormFooter, PageHeader } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
-import { useAziendaFormLoader } from "../hooks/useAziendaFormLoader";
-import { useAziendaFormSubmit } from "../hooks/useAziendaFormSubmit";
+import { useAziendaForm } from "../hooks/useAziendaForm";
 import { aziendeI18n as t } from "../i18n";
-import {
-  AziendaFormFields,
-  type AziendaFormState,
-} from "./AziendaFormFields";
+import { AziendaFormFields } from "./AziendaFormFields";
 
 export function AziendaFormPage() {
   const { id } = useParams<{ id: string }>();
-  const isEdit = id !== undefined;
   const navigate = useNavigate();
   const { user } = useAuthState();
   const { aziende: repo } = useRepositories();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const { form, setForm, loaded, loading } = useAziendaFormLoader({ id, repo });
-  const submitState = useAziendaFormSubmit({
-    isEdit,
-    id,
-    user,
-    form,
-    loaded,
-    repo,
-  });
+  const f = useAziendaForm({ id, user, repo });
 
-  function update<K extends keyof AziendaFormState>(
-    key: K,
-    value: AziendaFormState[K]
-  ) {
-    setForm((s) => ({ ...s, [key]: value }));
-    submitState.clearFieldError(key);
-  }
-
-  const canDelete = isEdit && (user?.caps.has("aziende.update") ?? false);
-  const title = isEdit ? t.titoloModifica : t.titoloNuova;
+  const canDelete = f.isEdit && (user?.caps.has("aziende.update") ?? false);
+  const title = f.isEdit ? t.titoloModifica : t.titoloNuova;
   const header = <PageHeader title={title} back={{ to: "/aziende", label: t.back }} />;
 
-  if (loading) {
+  if (f.loading) {
     return (
       <AppShell>
         {header}
-        <LoadingHint label={t.loading} />
+        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
       </AppShell>
     );
   }
@@ -61,21 +32,21 @@ export function AziendaFormPage() {
   return (
     <AppShell>
       {header}
-      <form onSubmit={submitState.submit} className="space-y-6 max-w-2xl">
+      <form onSubmit={f.submit} className="space-y-6 max-w-2xl">
         <AziendaFormFields
-          form={form}
-          errors={submitState.errors}
-          busy={submitState.busy}
-          onUpdate={update}
+          form={f.form}
+          errors={f.errors}
+          busy={f.busy}
+          onUpdate={f.update}
         />
-
-        {submitState.globalError ? (
-          <InlineError>{submitState.globalError}</InlineError>
+        {f.globalError ? (
+          <p role="alert" className="text-sm text-(--color-danger)">
+            {f.globalError}
+          </p>
         ) : null}
-
         <FormActions
           canDelete={canDelete}
-          busy={submitState.busy}
+          busy={f.busy}
           onDelete={() => setConfirmDelete(true)}
           onCancel={() => navigate("/aziende")}
         />
@@ -87,9 +58,9 @@ export function AziendaFormPage() {
         confirmLabel={t.elimina}
         cancelLabel={t.annulla}
         variant="danger"
-        busy={submitState.busy}
+        busy={f.busy}
         onConfirm={() => {
-          void submitState.deleteEntry();
+          void f.deleteEntry();
           setConfirmDelete(false);
         }}
         onClose={() => setConfirmDelete(false)}
