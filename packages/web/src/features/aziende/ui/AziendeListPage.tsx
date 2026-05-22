@@ -10,7 +10,7 @@ import { AziendeList } from "./AziendeList";
 
 export function AziendeListPage() {
   const { user } = useAuthState();
-  const { aziende, loading, error } = useAziende();
+  const { data: aziende = [], isLoading, isError } = useAziende();
   const { pinned, toggle: togglePin, isPinned } = usePinned();
   const [search, setSearch] = useState("");
 
@@ -65,8 +65,8 @@ export function AziendeListPage() {
 
       <AziendeList
         items={filtered}
-        loading={loading}
-        error={error ? t.erroreSalvataggio : null}
+        loading={isLoading}
+        error={isError ? t.erroreSalvataggio : null}
         canEdit={canUpdate}
         canCreate={canCreate}
         searching={search.trim().length > 0}

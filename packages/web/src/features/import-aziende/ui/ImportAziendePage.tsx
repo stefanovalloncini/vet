@@ -1,18 +1,58 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ActorContext, AziendeRepository } from "@vet/shared";
 import { AppShell, Button, Card, PageHeader, TextArea } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { parseAziendeCsv, type ParsedRow } from "../lib/parser";
 
+interface ImportInput {
+  rows: ReadonlyArray<ParsedRow>;
+  actor: ActorContext;
+}
+
+interface ImportOutcome {
+  created: number;
+  skipped: number;
+}
+
+async function runImport(
+  repo: AziendeRepository,
+  { rows, actor }: ImportInput
+): Promise<ImportOutcome> {
+  let created = 0;
+  let skipped = 0;
+  for (const row of rows) {
+    if (!row.ok || !row.input) { skipped++; continue; }
+    try {
+      const norm = row.input.nome.trim().toLowerCase();
+      const existing = await repo.findByNomeNorm(norm);
+      if (existing) { skipped++; continue; }
+      await repo.create(row.input, actor);
+      created++;
+    } catch {
+      skipped++;
+    }
+  }
+  return { created, skipped };
+}
+
 export function ImportAziendePage() {
   const { user } = useAuthState();
-  const { aziende } = useRepositories();
+  const { aziende: repo } = useRepositories();
+  const qc = useQueryClient();
+  const importer = useMutation({
+    mutationFn: (input: ImportInput) => runImport(repo, input),
+    onSuccess: (outcome) => {
+      if (outcome.created > 0) void qc.invalidateQueries({ queryKey: ["aziende"] });
+    },
+  });
   const [text, setText] = useState("");
   const [rows, setRows] = useState<ParsedRow[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ created: number; skipped: number } | null>(null);
+  const [result, setResult] = useState<ImportOutcome | null>(null);
 
   const canCreate = user?.caps.has("aziende.create") ?? false;
+  const busy = importer.isPending;
 
   function handleParse() {
     setResult(null);
@@ -21,31 +61,10 @@ export function ImportAziendePage() {
 
   async function handleImport() {
     if (!user || !canCreate) return;
-    setBusy(true);
     setResult(null);
-    let created = 0;
-    let skipped = 0;
-    for (const row of rows) {
-      if (!row.ok || !row.input) {
-        skipped++;
-        continue;
-      }
-      try {
-        const norm = row.input.nome.trim().toLowerCase();
-        const existing = await aziende.findByNomeNorm(norm);
-        if (existing) {
-          skipped++;
-          continue;
-        }
-        await aziende.create(row.input, user);
-        created++;
-      } catch {
-        skipped++;
-      }
-    }
-    setBusy(false);
-    setResult({ created, skipped });
-    if (created > 0) {
+    const outcome = await importer.mutateAsync({ rows, actor: user });
+    setResult(outcome);
+    if (outcome.created > 0) {
       setText("");
       setRows([]);
     }
@@ -59,7 +78,6 @@ export function ImportAziendePage() {
         title="Importa aziende"
         subtitle="Incolla un CSV (separatore ; o ,). Colonne supportate: nome, indirizzo, telefono, piva, tipoAllevamento, numeroCapi, note."
       />
-
       <Card className="mb-4">
         <TextArea
           id="csv"
@@ -92,7 +110,6 @@ export function ImportAziendePage() {
           </div>
         </div>
       </Card>
-
       {result ? (
         <Card className="mb-4 border-(--color-accent)/40">
           <p className="text-sm text-(--color-text)">
@@ -100,7 +117,6 @@ export function ImportAziendePage() {
           </p>
         </Card>
       ) : null}
-
       {rows.length > 0 ? (
         <Card padded={false}>
           <ul className="divide-y divide-(--color-border)">
@@ -109,9 +125,7 @@ export function ImportAziendePage() {
                 <div className="flex items-baseline justify-between gap-3">
                   <span
                     className={
-                      r.ok
-                        ? "text-(--color-text)"
-                        : "text-(--color-danger)"
+                      r.ok ? "text-(--color-text)" : "text-(--color-danger)"
                     }
                   >
                     {r.input?.nome ?? "?"}
@@ -121,9 +135,7 @@ export function ImportAziendePage() {
                   </span>
                 </div>
                 {r.error ? (
-                  <p className="text-xs text-(--color-danger) mt-1">
-                    {r.error}
-                  </p>
+                  <p className="text-xs text-(--color-danger) mt-1">{r.error}</p>
                 ) : null}
               </li>
             ))}
