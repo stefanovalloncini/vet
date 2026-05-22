@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ActorContext } from "@vet/shared";
 import { InMemoryAuthService } from "@vet/shared/testing";
@@ -7,10 +8,15 @@ import { RepositoriesProvider } from "../infrastructure/RepositoriesContext";
 import { createInMemoryRepositories } from "../infrastructure/composition/in-memory";
 
 function withRepos(repos = createInMemoryRepositories()) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: 0 } },
+  });
   return render(
-    <RepositoriesProvider value={repos}>
-      <App />
-    </RepositoriesProvider>
+    <QueryClientProvider client={client}>
+      <RepositoriesProvider value={repos}>
+        <App />
+      </RepositoriesProvider>
+    </QueryClientProvider>
   );
 }
 
