@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { useAttivita } from "../../attivita/hooks/useAttivita";
-import { usePaymentsData } from "../../payments/hooks/usePaymentsData";
-import { useReminders } from "../../reminders/hooks/useReminders";
+import { useQuery } from "@tanstack/react-query";
+import type { Attivita, Azienda, Payment, Reminder } from "@vet/shared";
+import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { computeArrears } from "../../payments/lib/arrears";
+import { queryKeys } from "../../../shared/data/queryClient";
 import {
   endOfMonthLocal,
   percentDiff,
@@ -11,7 +12,6 @@ import {
   topEntry,
   trailingMonths,
 } from "../lib/stats";
-import type { Attivita, Azienda, Reminder } from "@vet/shared";
 
 interface MonthStats {
   total: number;
@@ -22,6 +22,8 @@ interface MonthStats {
 
 export interface DashboardStats {
   loading: boolean;
+  isLoading: boolean;
+  isError: boolean;
   items: Attivita[];
   aziende: Azienda[];
   thisMonth: MonthStats;
@@ -44,6 +46,13 @@ const TOP_TIPO_LIMIT = 8;
 const TRAILING_MONTHS = 12;
 
 export function useDashboardStats(now: Date): DashboardStats {
+  const {
+    aziende: aziendeRepo,
+    attivita: attivitaRepo,
+    payments: paymentsRepo,
+    reminders: remindersRepo,
+  } = useRepositories();
+
   const monthStart = useMemo(() => startOfMonthLocal(now), [now]);
   const monthEnd = useMemo(() => endOfMonthLocal(now), [now]);
   const lastMonthStart = useMemo(
@@ -58,14 +67,48 @@ export function useDashboardStats(now: Date): DashboardStats {
     () => new Date(now.getFullYear() - 1, now.getMonth() + 1, 1),
     [now]
   );
-  const allRangeFilters = useMemo(
-    () => ({ from: trailingStart, to: monthEnd }),
+
+  const rangeFilters = useMemo(
+    () => ({ from: trailingStart.toISOString(), to: monthEnd.toISOString() }),
     [trailingStart, monthEnd]
   );
 
-  const { items, loading } = useAttivita(allRangeFilters);
-  const { aziende, payments } = usePaymentsData();
-  const { reminders: openReminders } = useReminders({ onlyOpen: true });
+  const attivitaQuery = useQuery<Attivita[]>({
+    queryKey: queryKeys.attivita(rangeFilters),
+    queryFn: () => attivitaRepo.list({ from: trailingStart, to: monthEnd }),
+  });
+
+  const arrearsQuery = useQuery<{
+    aziende: Azienda[];
+    attivita: Attivita[];
+    payments: Payment[];
+  }>({
+    queryKey: queryKeys.dashboardStats({ scope: "arrears" }),
+    queryFn: async () => {
+      const [a, t, p] = await Promise.all([
+        aziendeRepo.list(),
+        attivitaRepo.list(),
+        paymentsRepo.list(),
+      ]);
+      return { aziende: a, attivita: t, payments: p };
+    },
+  });
+
+  const remindersQuery = useQuery<Reminder[]>({
+    queryKey: queryKeys.reminders({ onlyOpen: true }),
+    queryFn: () => remindersRepo.list({ onlyOpen: true }),
+  });
+
+  const items = attivitaQuery.data ?? [];
+  const aziende = arrearsQuery.data?.aziende ?? [];
+  const allAttivita = arrearsQuery.data?.attivita ?? [];
+  const allPayments = arrearsQuery.data?.payments ?? [];
+  const openReminders = remindersQuery.data ?? [];
+
+  const loading =
+    attivitaQuery.isLoading || arrearsQuery.isLoading || remindersQuery.isLoading;
+  const isError =
+    attivitaQuery.isError || arrearsQuery.isError || remindersQuery.isError;
 
   const thisMonth = useMemo(
     () => statsForRange(items, monthStart, monthEnd),
@@ -81,11 +124,11 @@ export function useDashboardStats(now: Date): DashboardStats {
     [items, now]
   );
 
-  const arrears = useMemo(
-    () => computeArrears(aziende, items, payments, now),
-    [aziende, items, payments, now]
-  );
-  const arrearsTotal = arrears.reduce((s, a) => s + a.unpaidTotal, 0);
+  const arrearsTotal = useMemo(() => {
+    if (aziende.length === 0) return 0;
+    const arrears = computeArrears(aziende, allAttivita, allPayments, now);
+    return arrears.reduce((s, a) => s + a.unpaidTotal, 0);
+  }, [aziende, allAttivita, allPayments, now]);
 
   const urgentReminders = useMemo(
     () =>
@@ -118,6 +161,8 @@ export function useDashboardStats(now: Date): DashboardStats {
 
   return {
     loading,
+    isLoading: loading,
+    isError,
     items,
     aziende,
     thisMonth,

@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { useAttivita } from "../../attivita/hooks/useAttivita";
-import { usePaymentsData } from "../../payments/hooks/usePaymentsData";
-import { SHORT_MONTHS } from "../../dashboard/lib/stats";
+import { useQuery } from "@tanstack/react-query";
 import type { Attivita, Azienda, Payment } from "@vet/shared";
+import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
+import { SHORT_MONTHS } from "../../dashboard/lib/stats";
 
 export type StatistichePeriodo = "12m" | "ytd" | "all";
 
@@ -45,6 +46,8 @@ interface MonthlyComparison {
 
 export interface StatisticheData {
   loading: boolean;
+  isLoading: boolean;
+  isError: boolean;
   items: Attivita[];
   aziende: Azienda[];
   payments: Payment[];
@@ -193,9 +196,28 @@ function funnelOf(
   ];
 }
 
-export function useStatistiche(range: StatistichePeriodo, now: Date): StatisticheData {
+function rangeKey(range: StatistichePeriodo, now: Date): Record<string, unknown> {
+  if (range === "all") return { range: "all" };
+  if (range === "ytd") {
+    return { range: "ytd", year: now.getFullYear() };
+  }
+  return {
+    range: "12m",
+    anchor: `${now.getFullYear()}-${now.getMonth()}`,
+  };
+}
+
+export function useStatistiche(
+  range: StatistichePeriodo,
+  now: Date
+): StatisticheData {
+  const {
+    attivita: attivitaRepo,
+    aziende: aziendeRepo,
+    payments: paymentsRepo,
+  } = useRepositories();
+
   const filters = useMemo(() => filtersForRange(range, now), [range, now]);
-  const { items, loading } = useAttivita(filters);
   const lastYearFilters = useMemo(
     () => ({
       from: new Date(now.getFullYear() - 1, 0, 1),
@@ -203,8 +225,45 @@ export function useStatistiche(range: StatistichePeriodo, now: Date): Statistich
     }),
     [now]
   );
-  const { items: lastYearItems } = useAttivita(lastYearFilters);
-  const { aziende, payments } = usePaymentsData();
+
+  const rangeAttivitaQuery = useQuery<Attivita[]>({
+    queryKey: queryKeys.statistiche(rangeKey(range, now)),
+    queryFn: () => attivitaRepo.list(filters),
+  });
+
+  const lastYearQuery = useQuery<Attivita[]>({
+    queryKey: queryKeys.statistiche({
+      scope: "lastYear",
+      year: now.getFullYear() - 1,
+    }),
+    queryFn: () => attivitaRepo.list(lastYearFilters),
+  });
+
+  const aziendeQuery = useQuery<Azienda[]>({
+    queryKey: queryKeys.aziende,
+    queryFn: () => aziendeRepo.list(),
+  });
+
+  const paymentsQuery = useQuery<Payment[]>({
+    queryKey: queryKeys.statistiche({ scope: "payments" }),
+    queryFn: () => paymentsRepo.list(),
+  });
+
+  const items = rangeAttivitaQuery.data ?? [];
+  const lastYearItems = lastYearQuery.data ?? [];
+  const aziende = aziendeQuery.data ?? [];
+  const payments = paymentsQuery.data ?? [];
+
+  const loading =
+    rangeAttivitaQuery.isLoading ||
+    lastYearQuery.isLoading ||
+    aziendeQuery.isLoading ||
+    paymentsQuery.isLoading;
+  const isError =
+    rangeAttivitaQuery.isError ||
+    lastYearQuery.isError ||
+    aziendeQuery.isError ||
+    paymentsQuery.isError;
 
   const byTipo = useMemo(() => byTipoSlices(items), [items]);
   const topClients = useMemo(() => topClientsSlices(items), [items]);
@@ -232,6 +291,8 @@ export function useStatistiche(range: StatistichePeriodo, now: Date): Statistich
 
   return {
     loading,
+    isLoading: loading,
+    isError,
     items,
     aziende,
     payments,
