@@ -81,4 +81,22 @@ describe("EmailLinkForm", () => {
       (screen.getByLabelText(/Email/i) as HTMLInputElement).value
     ).toBe("prefill@example.com");
   });
+
+  it("calls onEmailChange as the user types", async () => {
+    const onEmailChange = vi.fn();
+    render(
+      <EmailLinkForm
+        busy={false}
+        onSubmit={vi.fn()}
+        onBack={() => {}}
+        onEmailChange={onEmailChange}
+      />
+    );
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "draft@example.com" },
+    });
+    await waitFor(() => {
+      expect(onEmailChange).toHaveBeenCalledWith("draft@example.com");
+    });
+  });
 });
