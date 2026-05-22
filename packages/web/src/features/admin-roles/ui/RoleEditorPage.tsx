@@ -11,7 +11,6 @@ import {
   TextField,
   TextArea,
 } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useRoleEditor } from "../hooks/useRoleEditor";
 import { CapabilityMatrix } from "./CapabilityMatrix";
@@ -21,10 +20,8 @@ export function RoleEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuthState();
-  const { roles: repo } = useRepositories();
 
   const editor = useRoleEditor({
-    repo,
     user,
     ...(id !== undefined ? { id } : {}),
   });
