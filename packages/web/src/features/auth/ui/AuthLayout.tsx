@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { Moon, Sun } from "lucide-react";
 import { Brand, VersionBadge } from "../../../shared/ui";
+import { useTheme } from "../../../shared/theme/useTheme";
 
 interface AuthLayoutProps {
   eyebrow: string;
@@ -9,16 +11,35 @@ interface AuthLayoutProps {
 }
 
 export function AuthLayout({ eyebrow, title, children, footer }: AuthLayoutProps) {
+  const { theme, toggle } = useTheme();
   return (
     <main
       className="
-        min-h-[100dvh] flex flex-col bg-(--color-background) text-(--color-text)
+        relative min-h-[100dvh] flex flex-col bg-(--color-background) text-(--color-text)
         px-6
         pt-[max(2rem,env(safe-area-inset-top))]
         pb-[max(1.5rem,env(safe-area-inset-bottom))]
         lg:grid lg:grid-cols-12 lg:p-0
       "
     >
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={theme === "dark" ? "Tema chiaro" : "Tema scuro"}
+        className="
+          absolute z-10 p-2 rounded-full text-(--color-text-muted)
+          hover:text-(--color-text) hover:bg-(--color-surface-muted)
+          transition-colors duration-(--motion-fast) ease-(--ease-out-quart)
+          top-[max(1rem,env(safe-area-inset-top))] right-4
+          lg:top-6 lg:right-6
+        "
+      >
+        {theme === "dark" ? (
+          <Sun size={18} strokeWidth={1.75} aria-hidden="true" />
+        ) : (
+          <Moon size={18} strokeWidth={1.75} aria-hidden="true" />
+        )}
+      </button>
       <aside
         className="
           hidden bg-(--color-accent-soft) lg:col-span-5 lg:flex lg:flex-col
