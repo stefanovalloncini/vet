@@ -1,22 +1,9 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import type {
-  Attivita,
-  AttivitaRepository,
-  Azienda,
-  AziendeRepository,
-  Payment,
-  PaymentsRepository,
-} from "@vet/shared";
+import type { Attivita, Azienda, Payment } from "@vet/shared";
+import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { queryKeys } from "../../../shared/data/queryClient";
-
-interface UseAziendaDetailArgs {
-  id: string | undefined;
-  aziende: AziendeRepository;
-  attivita: AttivitaRepository;
-  payments: PaymentsRepository;
-}
 
 export interface AziendaDetail {
   azienda: Azienda | null;
@@ -32,12 +19,8 @@ const NONE_KEY = ["aziende", "__none__"] as const;
 const EMPTY_ITEMS: Attivita[] = [];
 const EMPTY_PAYMENTS: Payment[] = [];
 
-export function useAziendaDetail({
-  id,
-  aziende,
-  attivita,
-  payments,
-}: UseAziendaDetailArgs): AziendaDetail {
+export function useAziendaDetail(id: string | undefined): AziendaDetail {
+  const { aziende, attivita, payments } = useRepositories();
   const navigate = useNavigate();
   const enabled = id !== undefined;
 
