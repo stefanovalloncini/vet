@@ -1,57 +1,64 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { ActivityType, Azienda } from "@vet/shared";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { useAziende } from "../../aziende/hooks/useAziende";
+import { useTipiAttivita } from "../../activity-types/hooks/useActivityTypes";
+import { queryKeys } from "../../../shared/data/queryClient";
 
-interface State {
+export interface ReferenceData {
   loading: boolean;
+  isError?: boolean;
   aziende: Azienda[];
   tipi: ActivityType[];
-}
-
-export interface ReferenceData extends State {
   addAzienda: (a: Azienda) => void;
   addTipo: (t: ActivityType) => void;
 }
 
 export function useReferenceData(): ReferenceData {
-  const { aziende: aziendeRepo, activityTypes } = useRepositories();
-  const [state, setState] = useState<State>({
-    loading: true,
-    aziende: [],
-    tipi: [],
-  });
+  const qc = useQueryClient();
+  const aziendeQuery = useAziende();
+  const tipiQuery = useTipiAttivita();
 
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const [aziende, tipi] = await Promise.all([
-        aziendeRepo.list(),
-        activityTypes.listActive(),
-      ]);
-      if (!cancelled) {
-        setState({ loading: false, aziende, tipi });
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [aziendeRepo, activityTypes]);
-
-  const addAzienda = useCallback((a: Azienda) => {
-    setState((s) => ({
-      ...s,
-      aziende: [...s.aziende, a].sort((x, y) =>
-        x.nome.localeCompare(y.nome, "it")
+  const aziende = useMemo(
+    () =>
+      [...(aziendeQuery.data ?? [])].sort((a, b) =>
+        a.nome.localeCompare(b.nome, "it")
       ),
-    }));
-  }, []);
+    [aziendeQuery.data]
+  );
 
-  const addTipo = useCallback((t: ActivityType) => {
-    setState((s) => ({
-      ...s,
-      tipi: [...s.tipi, t].sort((x, y) => x.ordine - y.ordine),
-    }));
-  }, []);
+  const tipi = useMemo(
+    () =>
+      [...(tipiQuery.data ?? [])]
+        .filter((t) => t.attivo)
+        .sort((a, b) => a.ordine - b.ordine),
+    [tipiQuery.data]
+  );
 
-  return { ...state, addAzienda, addTipo };
+  const addAzienda = useCallback(
+    (a: Azienda) => {
+      qc.setQueryData<Azienda[]>(queryKeys.aziende, (prev) =>
+        prev && prev.some((p) => p.id === a.id) ? prev : [...(prev ?? []), a]
+      );
+    },
+    [qc]
+  );
+
+  const addTipo = useCallback(
+    (t: ActivityType) => {
+      qc.setQueryData<ActivityType[]>(queryKeys.tipiAttivita, (prev) =>
+        prev && prev.some((p) => p.id === t.id) ? prev : [...(prev ?? []), t]
+      );
+    },
+    [qc]
+  );
+
+  return {
+    loading: aziendeQuery.isLoading || tipiQuery.isLoading,
+    isError: aziendeQuery.isError || tipiQuery.isError,
+    aziende,
+    tipi,
+    addAzienda,
+    addTipo,
+  };
 }

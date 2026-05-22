@@ -24,7 +24,8 @@ export function AttivitaListPage() {
   const ref = useReferenceData();
   const [showExport, setShowExport] = useState(false);
   const fs = useAttivitaFilters({ ownerUid: user?.uid });
-  const { items, loading, error } = useAttivita(fs.filters);
+  const attivitaQuery = useAttivita(fs.filters);
+  const items = attivitaQuery.data ?? [];
 
   const totals = useMemo(() => computeTotals(items), [items]);
   const groups = useMemo(() => groupAttivita(items, fs.group), [items, fs.group]);
@@ -70,8 +71,8 @@ export function AttivitaListPage() {
       />
       <AttivitaTotalsBar totals={totals} />
       <AttivitaGroups
-        loading={loading}
-        error={error}
+        isLoading={attivitaQuery.isLoading}
+        isError={attivitaQuery.isError}
         items={items}
         groups={groups}
         canCreate={canCreate}
