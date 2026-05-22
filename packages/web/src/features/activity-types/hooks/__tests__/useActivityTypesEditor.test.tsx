@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InMemoryActivityTypesRepository } from "@vet/shared/testing";
 import type { Repositories } from "@vet/shared";
 import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
@@ -13,12 +14,21 @@ function makeRepos(repo: InMemoryActivityTypesRepository): Repositories {
   return { activityTypes: repo } as unknown as Repositories;
 }
 
+function makeClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+}
+
 function wrapperFor(repo: InMemoryActivityTypesRepository) {
+  const client = makeClient();
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <RepositoriesProvider value={makeRepos(repo)}>
-        {children}
-      </RepositoriesProvider>
+      <QueryClientProvider client={client}>
+        <RepositoriesProvider value={makeRepos(repo)}>
+          {children}
+        </RepositoriesProvider>
+      </QueryClientProvider>
     );
   };
 }
@@ -79,7 +89,7 @@ describe("useActivityTypesEditor", () => {
     await act(async () => {
       await result.current.toggleActive(tipo);
     });
-    expect(result.current.active).toHaveLength(0);
+    await waitFor(() => expect(result.current.active).toHaveLength(0));
     expect(result.current.inactive.some((t) => t.id === "visita")).toBe(true);
     expect(result.current.globalError).toBeNull();
   });

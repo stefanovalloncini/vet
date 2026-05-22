@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import type { ActivityType } from "@vet/shared";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { useActivityTypes } from "./useActivityTypes";
+import {
+  useSaveTipoTariffa,
+  useTipiAttivita,
+  useToggleTipoAttivitaActive,
+} from "./useActivityTypes";
 
 export interface ActivityTypesEditor {
   items: ActivityType[];
@@ -21,27 +24,32 @@ const ERROR_SAVE = "Operazione non riuscita.";
 const ERROR_TARIFFA = "Tariffa non valida";
 
 export function useActivityTypesEditor(): ActivityTypesEditor {
-  const { activityTypes: repo } = useRepositories();
-  const { types, loading, error, refresh } = useActivityTypes();
+  const tipiQuery = useTipiAttivita();
+  const toggle = useToggleTipoAttivitaActive();
+  const tariffa = useSaveTipoTariffa();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [globalError, setGlobalError] = useState<string | null>(null);
 
-  const [active, inactive] = useMemo(() => splitByActive(types), [types]);
+  const items = useMemo(() => tipiQuery.data ?? [], [tipiQuery.data]);
+  const [active, inactive] = useMemo(() => splitByActive(items), [items]);
+
+  const refresh = useCallback(async () => {
+    await tipiQuery.refetch();
+  }, [tipiQuery]);
 
   const toggleActive = useCallback(
     async (tipo: ActivityType) => {
       setBusyId(tipo.id);
       setGlobalError(null);
       try {
-        await repo.setActive(tipo.id, !tipo.attivo);
-        await refresh();
+        await toggle.mutateAsync({ id: tipo.id, attivo: !tipo.attivo });
       } catch {
         setGlobalError(ERROR_SAVE);
       } finally {
         setBusyId(null);
       }
     },
-    [repo, refresh]
+    [toggle]
   );
 
   const saveTariffa = useCallback(
@@ -54,25 +62,24 @@ export function useActivityTypesEditor(): ActivityTypesEditor {
       setBusyId(tipo.id);
       setGlobalError(null);
       try {
-        await repo.setStandardTariff(tipo.id, parsed.value);
-        await refresh();
+        await tariffa.mutateAsync({ id: tipo.id, tariffa: parsed.value });
       } catch {
         setGlobalError(ERROR_SAVE);
       } finally {
         setBusyId(null);
       }
     },
-    [repo, refresh]
+    [tariffa]
   );
 
   const clearError = useCallback(() => setGlobalError(null), []);
 
   return {
-    items: types,
+    items,
     active,
     inactive,
-    loading,
-    loadError: Boolean(error),
+    loading: tipiQuery.isPending,
+    loadError: tipiQuery.isError,
     busyId,
     globalError,
     refresh,
