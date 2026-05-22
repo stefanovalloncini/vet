@@ -22,13 +22,38 @@ function mountLogin(reposOverride?: Repositories) {
 
 async function openEmailFlow() {
   fireEvent.click(
-    await screen.findByRole("button", { name: /Ricevi un link via email/i })
+    await screen.findByRole("button", { name: /Entra con email/i })
   );
 }
 
 describe("LoginPage", () => {
-  it("renders Google primary button and reveals email form on demand", async () => {
+  it("renders Google and Email as equal CTAs and switches to the email view on demand", async () => {
     mountLogin();
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Entra con Google/i })
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole("button", { name: /Entra con email/i })
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Email/i)).toBeNull();
+    await openEmailFlow();
+    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Inviami il link/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Entra con Google/i })
+    ).toBeNull();
+  });
+
+  it("returns to choice view from the email form via Indietro", async () => {
+    mountLogin();
+    await openEmailFlow();
+    const emailField = await screen.findByLabelText(/Email/i);
+    fireEvent.change(emailField, { target: { value: "draft@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: /Indietro/i }));
     await waitFor(() => {
       expect(
         screen.getByRole("button", { name: /Entra con Google/i })
@@ -36,10 +61,9 @@ describe("LoginPage", () => {
     });
     expect(screen.queryByLabelText(/Email/i)).toBeNull();
     await openEmailFlow();
-    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Inviami il link/i })
-    ).toBeInTheDocument();
+      (await screen.findByLabelText(/Email/i)) as HTMLInputElement
+    ).toHaveValue("draft@example.com");
   });
 
   it("shows unauthorized message and Cambia account button on allowlist denial", async () => {
