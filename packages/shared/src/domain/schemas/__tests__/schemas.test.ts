@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { userInputSchema, userDocSchema } from "../user.js";
-import { roleInputSchema } from "../role.js";
-import { allowlistEntryInputSchema } from "../allowlist.js";
+import { roleInputSchema, roleDocSchema } from "../role.js";
+import {
+  allowlistEntryInputSchema,
+  allowlistEntryDocSchema,
+} from "../allowlist.js";
 
 describe("userInputSchema", () => {
   it("accepts a minimal valid input", () => {
@@ -76,6 +79,63 @@ describe("roleInputSchema", () => {
     });
     expect(r.success).toBe(false);
   });
+
+  it("rejects name longer than 60 chars", () => {
+    expect(
+      roleInputSchema.safeParse({
+        name: "x".repeat(61),
+        capabilities: [],
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects more than 64 capabilities", () => {
+    expect(
+      roleInputSchema.safeParse({
+        name: "Big",
+        capabilities: new Array(65).fill("activities.read.all"),
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects extra fields", () => {
+    expect(
+      roleInputSchema.safeParse({
+        name: "X",
+        capabilities: [],
+        sneaky: true,
+      }).success
+    ).toBe(false);
+  });
+});
+
+describe("roleDocSchema", () => {
+  const base = {
+    name: "Vet",
+    capabilities: ["activities.read.all"] as ReadonlyArray<string>,
+    locked: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    createdBy: "uid1",
+    updatedBy: "uid1",
+    schemaVersion: 1 as const,
+  };
+
+  it("accepts a valid doc", () => {
+    expect(roleDocSchema.safeParse(base).success).toBe(true);
+  });
+
+  it("rejects createdBy longer than 128 chars", () => {
+    expect(
+      roleDocSchema.safeParse({ ...base, createdBy: "x".repeat(129) }).success
+    ).toBe(false);
+  });
+
+  it("rejects extra fields", () => {
+    expect(
+      roleDocSchema.safeParse({ ...base, leak: true }).success
+    ).toBe(false);
+  });
 });
 
 describe("allowlistEntryInputSchema", () => {
@@ -106,6 +166,65 @@ describe("allowlistEntryInputSchema", () => {
         defaultRoleId: "vet",
         notes: "x".repeat(501),
       }).success
+    ).toBe(false);
+  });
+
+  it("rejects emails starting with =+-@", () => {
+    for (const bad of ["=x@y.it", "+x@y.it", "-x@y.it", "@x@y.it"]) {
+      expect(
+        allowlistEntryInputSchema.safeParse({
+          email: bad,
+          defaultRoleId: "vet",
+        }).success
+      ).toBe(false);
+    }
+  });
+
+  it("rejects email longer than 120 chars", () => {
+    expect(
+      allowlistEntryInputSchema.safeParse({
+        email: "a".repeat(116) + "@b.it",
+        defaultRoleId: "vet",
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects extra fields", () => {
+    expect(
+      allowlistEntryInputSchema.safeParse({
+        email: "a@b.com",
+        defaultRoleId: "vet",
+        sneaky: 1,
+      }).success
+    ).toBe(false);
+  });
+});
+
+describe("allowlistEntryDocSchema", () => {
+  const base = {
+    email: "vet@example.com",
+    defaultRoleId: "vet",
+    invitedBy: "admin-uid",
+    invitedAt: new Date(),
+    schemaVersion: 1 as const,
+  };
+
+  it("accepts a valid doc", () => {
+    expect(allowlistEntryDocSchema.safeParse(base).success).toBe(true);
+  });
+
+  it("rejects invitedBy longer than 128 chars", () => {
+    expect(
+      allowlistEntryDocSchema.safeParse({
+        ...base,
+        invitedBy: "x".repeat(129),
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects extra fields", () => {
+    expect(
+      allowlistEntryDocSchema.safeParse({ ...base, leak: true }).success
     ).toBe(false);
   });
 });
