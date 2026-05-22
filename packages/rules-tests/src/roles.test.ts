@@ -81,4 +81,57 @@ describe("roles rules", () => {
     const db = adminAs(env, "admin-uid");
     await assertFails(deleteDoc(doc(db, "roles/admin")));
   });
+
+  it("create denied when createdBy or updatedBy != auth.uid", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertFails(
+      setDoc(doc(db, "roles/spoofed"), {
+        name: "Spoofed",
+        capabilities: [],
+        locked: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "someone-else",
+        updatedBy: "admin-uid",
+        schemaVersion: 1,
+      })
+    );
+    await assertFails(
+      setDoc(doc(db, "roles/spoofed2"), {
+        name: "Spoofed",
+        capabilities: [],
+        locked: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "admin-uid",
+        updatedBy: "someone-else",
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("update denied when updatedBy != auth.uid", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertFails(
+      updateDoc(doc(db, "roles/vet"), {
+        name: "Renamed",
+        updatedBy: "someone-else",
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update allowed when updatedBy = auth.uid", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertSucceeds(
+      updateDoc(doc(db, "roles/vet"), {
+        name: "Renamed",
+        updatedBy: "admin-uid",
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
 });

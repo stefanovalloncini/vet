@@ -97,4 +97,32 @@ describe("allowlist rules", () => {
     await assertFails(deleteDoc(doc(authedAs(env, "u"), "allowlist/d@x.com")));
     await assertSucceeds(deleteDoc(doc(adminAs(env, "admin"), "allowlist/d@x.com")));
   });
+
+  it("create denied when email field mismatches document id", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin");
+    await assertFails(
+      setDoc(doc(db, "allowlist/alice@x.com"), {
+        email: "bob@x.com",
+        defaultRoleId: "vet",
+        invitedBy: "admin",
+        invitedAt: serverTimestamp(),
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("create allowed when email is mixed-case but normalizes to doc id", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin");
+    await assertSucceeds(
+      setDoc(doc(db, "allowlist/case@x.com"), {
+        email: "Case@x.com",
+        defaultRoleId: "vet",
+        invitedBy: "admin",
+        invitedAt: serverTimestamp(),
+        schemaVersion: 1,
+      })
+    );
+  });
 });

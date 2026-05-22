@@ -8,6 +8,7 @@ import {
   deleteDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import { encodeCaps } from "@vet/shared";
 import { disposeEnv, getEnv } from "./setup";
 import { authedAs } from "./helpers";
 
@@ -321,5 +322,73 @@ describe("attivita rules", () => {
       "activities.delete.any",
     ]);
     await assertFails(deleteDoc(doc(owner, "attivita/a1")));
+  });
+
+  it("create denied when token lacks name claim", async () => {
+    const env = await getEnv();
+    const db = env
+      .authenticatedContext("u", {
+        vet: true,
+        caps: encodeCaps(["activities.create"]),
+        roleId: "vet",
+        capsVer: 1,
+        email: "u@example.com",
+      })
+      .firestore();
+    await assertFails(setDoc(doc(db, "attivita/new"), basePayload("u")));
+  });
+
+  it("update allowed when updatedBy=auth.uid and updatedByName=token.name", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertSucceeds(
+      updateDoc(doc(db, "attivita/a1"), {
+        tariffa: 60,
+        totale: 60,
+        updatedAt: serverTimestamp(),
+        updatedBy: "owner-uid",
+        updatedByName: "Owner",
+      })
+    );
+  });
+
+  it("update denied when updatedBy is spoofed", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        tariffa: 60,
+        updatedAt: serverTimestamp(),
+        updatedBy: "other-uid",
+      })
+    );
+  });
+
+  it("update denied when updatedByName mismatches token.name", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        tariffa: 60,
+        updatedAt: serverTimestamp(),
+        updatedBy: "owner-uid",
+        updatedByName: "Mario Rossi",
+      })
+    );
+  });
+
+  it("update denied when updatedByName starts with csv formula prefix", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"], {
+      name: "=cmd",
+    });
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        tariffa: 60,
+        updatedAt: serverTimestamp(),
+        updatedBy: "owner-uid",
+        updatedByName: "=cmd",
+      })
+    );
   });
 });
