@@ -1,13 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ActorContext, Azienda, Repositories } from "@vet/shared";
 import {
   InMemoryAuthService,
   InMemoryAziendeRepository,
 } from "@vet/shared/testing";
-import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
+import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { QuickAddAziendaDialog } from "../QuickAddAziendaDialog";
 
 function actor(): ActorContext {
@@ -32,16 +30,7 @@ function buildRepos(): { repos: Repositories; auth: InMemoryAuthService } {
 }
 
 function makeWrapper(repos: Repositories) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  });
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={client}>
-        <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
-      </QueryClientProvider>
-    );
-  };
+  return buildProvidersWrapper({ repos });
 }
 
 describe("QuickAddAziendaDialog", () => {

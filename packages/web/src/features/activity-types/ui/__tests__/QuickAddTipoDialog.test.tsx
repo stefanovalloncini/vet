@@ -1,24 +1,11 @@
-import type { ReactNode } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InMemoryActivityTypesRepository } from "@vet/shared/testing";
-import type { Repositories } from "@vet/shared";
-import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
+import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { QuickAddTipoDialog } from "../QuickAddTipoDialog";
 
 function buildWrapper(repo: InMemoryActivityTypesRepository) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  });
-  const repos = { activityTypes: repo } as unknown as Repositories;
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={client}>
-        <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
-      </QueryClientProvider>
-    );
-  };
+  return buildProvidersWrapper({ repos: { activityTypes: repo } });
 }
 
 describe("QuickAddTipoDialog", () => {

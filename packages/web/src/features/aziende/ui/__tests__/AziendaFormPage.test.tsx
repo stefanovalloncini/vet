@@ -1,14 +1,12 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, fireEvent, screen, waitFor } from "@testing-library/react";
+import { Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import {
   InMemoryAuthService,
   InMemoryAziendeRepository,
 } from "@vet/shared/testing";
-import type { ActorContext, Repositories } from "@vet/shared";
-import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
-import { ToastProvider } from "../../../../shared/ui/Toast";
+import type { ActorContext } from "@vet/shared";
+import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { AziendaFormPage } from "../AziendaFormPage";
 
 const ACTOR: ActorContext = {
@@ -29,27 +27,20 @@ function renderForm(path: string, harness?: Partial<Harness>) {
   const aziende = harness?.aziende ?? new InMemoryAziendeRepository();
   const auth = harness?.auth ?? new InMemoryAuthService();
   auth.setSimulatedUser(ACTOR);
-  const repos = { aziende, auth } as unknown as Repositories;
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
   const utils = render(
-    <QueryClientProvider client={client}>
-      <RepositoriesProvider value={repos}>
-        <ToastProvider>
-          <MemoryRouter initialEntries={[path]}>
-            <Routes>
-              <Route path="/aziende" element={<div>LIST</div>} />
-              <Route path="/aziende/nuova" element={<AziendaFormPage />} />
-              <Route
-                path="/aziende/:id/modifica"
-                element={<AziendaFormPage />}
-              />
-            </Routes>
-          </MemoryRouter>
-        </ToastProvider>
-      </RepositoriesProvider>
-    </QueryClientProvider>
+    <Routes>
+      <Route path="/aziende" element={<div>LIST</div>} />
+      <Route path="/aziende/nuova" element={<AziendaFormPage />} />
+      <Route path="/aziende/:id/modifica" element={<AziendaFormPage />} />
+    </Routes>,
+    {
+      wrapper: buildProvidersWrapper({
+        repos: { aziende, auth },
+        withToast: true,
+        withRouter: true,
+        initialEntries: [path],
+      }),
+    }
   );
   return { ...utils, aziende, auth };
 }

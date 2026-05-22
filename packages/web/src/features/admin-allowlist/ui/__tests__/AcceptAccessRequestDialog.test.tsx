@@ -1,9 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { AccessRequest, Repositories } from "@vet/shared";
-import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
+import type { AccessRequest } from "@vet/shared";
+import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { AcceptAccessRequestDialog } from "../AcceptAccessRequestDialog";
 
 const callable = vi.fn();
@@ -38,17 +36,8 @@ function renderDialog(
     request: AccessRequest | null;
   }> = {}
 ): Harness {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
-  });
-  const repos = {} as Repositories;
   const onClose = vi.fn();
   const onAccepted = vi.fn();
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={client}>
-      <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
-    </QueryClientProvider>
-  );
   render(
     <AcceptAccessRequestDialog
       open={overrides.open ?? true}
@@ -57,7 +46,7 @@ function renderDialog(
       onClose={onClose}
       onAccepted={onAccepted}
     />,
-    { wrapper }
+    { wrapper: buildProvidersWrapper({ repos: {} }) }
   );
   return { onClose, onAccepted };
 }

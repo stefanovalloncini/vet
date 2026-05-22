@@ -7,6 +7,7 @@ import {
   Button,
   ConfirmDialog,
   FormFooter,
+  InlineError,
   PageHeader,
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
@@ -125,11 +126,7 @@ export function AttivitaFormPage() {
               ) : null
             }
           />
-          {rootError ? (
-            <p role="alert" className="text-sm text-(--color-danger)">
-              {rootError}
-            </p>
-          ) : null}
+          {rootError ? <InlineError>{rootError}</InlineError> : null}
           <FormActions
             busy={submit.busy}
             destructive={
