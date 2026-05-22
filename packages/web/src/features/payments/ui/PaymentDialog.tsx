@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import {
   Button,
   Dialog,
+  InlineError,
   Select,
   TextArea,
   TextField,
@@ -136,11 +137,7 @@ export function PaymentDialog({
             disabled={busy}
             maxLength={500}
           />
-          {error ? (
-            <p role="alert" className="text-sm text-(--color-danger)">
-              {error}
-            </p>
-          ) : null}
+          {error ? <InlineError>{error}</InlineError> : null}
           <div className="flex items-center justify-end gap-3">
             <Button
               type="button"

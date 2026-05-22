@@ -1,4 +1,4 @@
-import { TextField } from "../../../shared/ui";
+import { SectionLabel, TextField } from "../../../shared/ui";
 
 interface AttivitaReminderFieldProps {
   reminderTitle: string;
@@ -15,9 +15,7 @@ export function AttivitaReminderField({
 }: AttivitaReminderFieldProps) {
   return (
     <div className="pt-3 border-t border-(--color-border)">
-      <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
-        Prossimo richiamo (opzionale)
-      </p>
+      <SectionLabel className="mb-3">Prossimo richiamo (opzionale)</SectionLabel>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <TextField
           id="reminder-title"

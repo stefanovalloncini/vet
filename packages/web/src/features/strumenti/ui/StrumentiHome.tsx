@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { AppShell, Card } from "../../../shared/ui";
+import { AppShell, Card, PageHeader } from "../../../shared/ui";
 import { strumentiI18n as t } from "../i18n";
 
 const TOOLS = [
@@ -13,10 +13,7 @@ const TOOLS = [
 export function StrumentiHome() {
   return (
     <AppShell>
-      <header className="mb-8">
-        <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
-      </header>
+      <PageHeader title={t.title} subtitle={t.subtitle} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {TOOLS.map((tool) => (
           <Link key={tool.to} to={tool.to} className="block">

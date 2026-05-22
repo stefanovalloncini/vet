@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Button, ConfirmDialog, EmptyState } from "../../../shared/ui";
+import {
+  BoxedList,
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  InlineError,
+  LoadingHint,
+  SectionLabel,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { allowlistI18n as t } from "../i18n";
@@ -13,6 +21,12 @@ interface AllowlistTabProps {
   loading: boolean;
   error: unknown;
   refresh: () => Promise<void>;
+}
+
+function countLabel(n: number): string {
+  if (n === 0) return t.countZero;
+  if (n === 1) return t.countOne;
+  return t.countMany(n);
 }
 
 export function AllowlistTab({
@@ -50,43 +64,59 @@ export function AllowlistTab({
       ? entries.find((e) => e.emailNorm === confirmingRemove) ?? null
       : null;
 
+  if (loading) return <LoadingHint label={t.loading} />;
+  if (error) return <InlineError>{t.loadError}</InlineError>;
+
   return (
     <>
-      {canManage && !adding ? (
-        <div className="flex justify-end mb-6">
-          <Button type="button" variant="primary" onClick={() => setAdding(true)}>
-            {t.aggiungi}
-          </Button>
+      {canManage ? (
+        <div className="flex items-baseline justify-between gap-3 mb-3">
+          <SectionLabel>{countLabel(entries.length)}</SectionLabel>
+          {!adding ? (
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => setAdding(true)}
+            >
+              + {t.aggiungiBreve}
+            </Button>
+          ) : null}
         </div>
       ) : null}
 
+      <div
+        className="grid overflow-hidden"
+        style={{
+          gridTemplateRows: adding ? "1fr" : "0fr",
+          transition:
+            "grid-template-rows var(--motion-layout) var(--ease-out-quint)",
+        }}
+      >
+        <div className="min-h-0 overflow-hidden">
+          {adding && user ? (
+            <AddAllowlistEntryForm
+              roles={roles}
+              allowlist={allowlist}
+              user={user}
+              onCancel={() => setAdding(false)}
+              onAdded={async () => {
+                setAdding(false);
+                await refresh();
+              }}
+            />
+          ) : null}
+        </div>
+      </div>
+
       {removeError ? (
-        <p role="alert" className="text-sm text-(--color-danger) mb-4">
-          {removeError}
-        </p>
+        <InlineError className="mb-3">{removeError}</InlineError>
       ) : null}
 
-      {adding && user ? (
-        <AddAllowlistEntryForm
-          roles={roles}
-          allowlist={allowlist}
-          user={user}
-          onCancel={() => setAdding(false)}
-          onAdded={async () => {
-            setAdding(false);
-            await refresh();
-          }}
-        />
-      ) : null}
-
-      {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
-      ) : error ? (
-        <p className="text-sm text-(--color-danger)">{t.loadError}</p>
-      ) : entries.length === 0 ? (
+      {entries.length === 0 ? (
         <EmptyState title={t.empty} />
       ) : (
-        <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
+        <BoxedList>
           {entries.map((entry) => (
             <AllowlistEntryRow
               key={entry.emailNorm}
@@ -97,7 +127,7 @@ export function AllowlistTab({
               onRemove={(e) => setConfirmingRemove(e.emailNorm)}
             />
           ))}
-        </ul>
+        </BoxedList>
       )}
 
       <ConfirmDialog

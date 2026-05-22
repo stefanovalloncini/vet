@@ -1,5 +1,12 @@
 import { useState, type FormEvent } from "react";
-import { Button, Dialog, Select, TextField, useToast } from "../../../shared/ui";
+import {
+  Button,
+  Dialog,
+  InlineError,
+  Select,
+  TextField,
+  useToast,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../../attivita/hooks/useReferenceData";
@@ -143,11 +150,7 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
                 Esiste già un&apos;attività con lo stesso cliente, tipo e data.
               </p>
             ) : null}
-            {form.error ? (
-              <p role="alert" className="text-sm text-(--color-danger)">
-                {form.error}
-              </p>
-            ) : null}
+            {form.error ? <InlineError>{form.error}</InlineError> : null}
             <div className="flex items-center justify-between gap-3 pt-1">
               <Button type="button" variant="ghost" onClick={onClose} disabled={form.busy}>
                 Chiudi

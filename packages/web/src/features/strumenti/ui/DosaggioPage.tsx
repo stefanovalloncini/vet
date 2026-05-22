@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import {
   AppShell,
   Card,
+  PageHeader,
+  SectionLabel,
   Select,
   TextField,
 } from "../../../shared/ui";
@@ -44,12 +46,7 @@ export function DosaggioPage() {
 
   return (
     <AppShell>
-      <header className="mb-8 max-w-2xl">
-        <h1 className="text-3xl text-(--color-text)">{t.dosaggioTitle}</h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">
-          {t.dosaggioSubtitle}
-        </p>
-      </header>
+      <PageHeader title={t.dosaggioTitle} subtitle={t.dosaggioSubtitle} />
 
       <Card className="max-w-2xl">
         <div className="space-y-5">
@@ -93,9 +90,7 @@ export function DosaggioPage() {
           </div>
 
           <div className="pt-4 border-t border-(--color-border)">
-            <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-              {t.risultatoLabel}
-            </p>
+            <SectionLabel>{t.risultatoLabel}</SectionLabel>
             <p className="text-4xl tabular-nums mt-2 text-(--color-text)">
               {ml !== null ? (
                 <>
@@ -113,17 +108,15 @@ export function DosaggioPage() {
                 <dl className="grid grid-cols-3 gap-4 mt-5 text-sm">
                   {preset.via ? (
                     <div>
-                      <dt className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-                        Via
-                      </dt>
+                      <SectionLabel as="dt">Via</SectionLabel>
                       <dd className="text-(--color-text) mt-1">{preset.via}</dd>
                     </div>
                   ) : null}
                   {preset.sospensioneCarne !== undefined ? (
                     <div>
-                      <dt className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+                      <SectionLabel as="dt">
                         {t.sospensione} {t.sospensioneCarne}
-                      </dt>
+                      </SectionLabel>
                       <dd className="text-(--color-text) mt-1 tabular-nums">
                         {preset.sospensioneCarne === -1
                           ? "Non utilizzare"
@@ -133,9 +126,9 @@ export function DosaggioPage() {
                   ) : null}
                   {preset.sospensioneLatte !== undefined ? (
                     <div>
-                      <dt className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+                      <SectionLabel as="dt">
                         {t.sospensione} {t.sospensioneLatte}
-                      </dt>
+                      </SectionLabel>
                       <dd className="text-(--color-text) mt-1 tabular-nums">
                         {preset.sospensioneLatte === -1
                           ? "Vietato in lattazione"

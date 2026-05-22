@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { AppShell, Card, Select } from "../../../shared/ui";
+import {
+  AppShell,
+  Card,
+  LoadingHint,
+  PageHeader,
+  SectionLabel,
+  Select,
+} from "../../../shared/ui";
 import { BarChart } from "../../dashboard/ui/BarChart";
 import { Heatmap } from "./Heatmap";
 import { DonutChart } from "./DonutChart";
@@ -25,7 +32,7 @@ export function StatistichePage() {
       <Header range={range} onRangeChange={setRange} />
 
       {data.loading ? (
-        <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
+        <LoadingHint />
       ) : data.items.length === 0 ? (
         <Card>
           <p className="text-sm text-(--color-text-muted) text-center py-4">
@@ -46,27 +53,25 @@ interface HeaderProps {
 
 function Header({ range, onRangeChange }: HeaderProps) {
   return (
-    <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
-      <div>
-        <h1 className="text-3xl text-(--color-text)">Statistiche</h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">
-          Numeri, tendenze, distribuzioni.
-        </p>
-      </div>
-      <div className="max-w-xs">
-        <Select
-          id="range"
-          label="Periodo"
-          value={range}
-          options={[
-            { value: "12m", label: "Ultimi 12 mesi" },
-            { value: "ytd", label: "Anno corrente" },
-            { value: "all", label: "Sempre" },
-          ]}
-          onChange={(e) => onRangeChange(e.target.value as StatistichePeriodo)}
-        />
-      </div>
-    </header>
+    <PageHeader
+      title="Statistiche"
+      subtitle="Numeri, tendenze, distribuzioni."
+      actions={
+        <div className="max-w-xs">
+          <Select
+            id="range"
+            label="Periodo"
+            value={range}
+            options={[
+              { value: "12m", label: "Ultimi 12 mesi" },
+              { value: "ytd", label: "Anno corrente" },
+              { value: "all", label: "Sempre" },
+            ]}
+            onChange={(e) => onRangeChange(e.target.value as StatistichePeriodo)}
+          />
+        </div>
+      }
+    />
   );
 }
 
@@ -112,9 +117,7 @@ function StatistichePanels({ data, now }: StatistichePanelsProps) {
 
       <Card>
         <div className="flex items-baseline justify-between mb-3">
-          <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-            Confronto mese su mese
-          </p>
+          <SectionLabel>Confronto mese su mese</SectionLabel>
           {data.yoyDiff !== null ? <YoyBadge value={data.yoyDiff} /> : null}
         </div>
         <div className="grid grid-cols-2 gap-6">
@@ -144,9 +147,7 @@ interface PanelProps {
 function Panel({ title, children }: PanelProps) {
   return (
     <Card>
-      <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
-        {title}
-      </p>
+      <SectionLabel className="mb-3">{title}</SectionLabel>
       {children}
     </Card>
   );

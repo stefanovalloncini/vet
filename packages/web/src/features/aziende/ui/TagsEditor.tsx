@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SectionLabel } from "../../../shared/ui";
 
 interface TagsEditorProps {
   tags: ReadonlyArray<string>;
@@ -30,9 +31,7 @@ export function TagsEditor({ tags, onChange }: TagsEditorProps) {
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-2">
-        Etichette
-      </p>
+      <SectionLabel className="mb-2">Etichette</SectionLabel>
       <div className="flex flex-wrap items-center gap-2">
         {tags.map((tag) => (
           <span

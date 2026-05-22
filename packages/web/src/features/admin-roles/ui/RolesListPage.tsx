@@ -1,6 +1,13 @@
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import { AppShell, Button, Card } from "../../../shared/ui";
+import {
+  AppShell,
+  Button,
+  Card,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+} from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useRoles } from "../hooks/useRoles";
 import { rolesI18n as t } from "../i18n";
@@ -13,24 +20,26 @@ export function RolesListPage() {
 
   return (
     <AppShell>
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
-          <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
-        </div>
-        {canManage ? (
-          <Link to="/admin/ruoli/nuovo">
-            <Button type="button" variant="primary">
-              {t.nuovoRuolo}
-            </Button>
-          </Link>
-        ) : null}
-      </header>
+      <PageHeader
+        title={t.title}
+        subtitle={t.subtitle}
+        {...(canManage
+          ? {
+              actions: (
+                <Link to="/admin/ruoli/nuovo">
+                  <Button type="button" variant="primary">
+                    {t.nuovoRuolo}
+                  </Button>
+                </Link>
+              ),
+            }
+          : {})}
+      />
 
       {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       ) : error ? (
-        <p className="text-sm text-(--color-danger)">{t.loadError}</p>
+        <InlineError>{t.loadError}</InlineError>
       ) : (
         <ul className="space-y-3">
           {roles.map((role) => (

@@ -4,6 +4,10 @@ import {
   AppShell,
   Button,
   Card,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+  SectionLabel,
   TextField,
   TextArea,
 } from "../../../shared/ui";
@@ -131,28 +135,18 @@ export function RoleEditorPage() {
   if (loading) {
     return (
       <AppShell>
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       </AppShell>
     );
   }
 
   return (
     <AppShell>
-      <header className="mb-8">
-        <button
-          type="button"
-          onClick={() => navigate("/admin/ruoli")}
-          className="text-sm text-(--color-text-muted) hover:text-(--color-text) mb-3"
-        >
-          ← {t.back}
-        </button>
-        <h1 className="text-3xl text-(--color-text)">
-          {isEdit ? t.titoloModifica : t.titoloNuovo}
-        </h1>
-        {isLocked ? (
-          <p className="text-xs text-(--color-text-subtle) mt-2">{t.blocked}</p>
-        ) : null}
-      </header>
+      <PageHeader
+        title={isEdit ? t.titoloModifica : t.titoloNuovo}
+        back={{ to: "/admin/ruoli", label: t.back }}
+        {...(isLocked ? { subtitle: t.blocked } : {})}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
         <Card>
@@ -195,9 +189,9 @@ export function RoleEditorPage() {
         </Card>
 
         <section>
-          <h2 className="text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-3">
+          <SectionLabel as="h2" className="font-medium mb-3">
             {t.sezioneCap}
-          </h2>
+          </SectionLabel>
           <div className="space-y-4">
             {groupedCaps.map((group) => (
               <Card key={group.label}>
@@ -234,11 +228,7 @@ export function RoleEditorPage() {
           </div>
         </section>
 
-        {error ? (
-          <p role="alert" className="text-sm text-(--color-danger)">
-            {error}
-          </p>
-        ) : null}
+        {error ? <InlineError>{error}</InlineError> : null}
 
         {readonly ? null : (
           <div className="flex items-center justify-end gap-3">

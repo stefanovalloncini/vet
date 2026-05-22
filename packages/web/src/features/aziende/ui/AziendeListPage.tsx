@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Star, ChevronRight } from "lucide-react";
 import {
   AppShell,
+  BoxedList,
   Button,
   DataLoader,
   EmptyState,
@@ -86,7 +87,7 @@ export function AziendeListPage() {
         empty={filtered.length === 0}
         emptyState={renderEmpty(search.trim().length > 0, canCreate)}
       >
-        <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
+        <BoxedList>
           {filtered.map((a) => (
             <li key={a.id}>
               <AziendaRow
@@ -97,7 +98,7 @@ export function AziendeListPage() {
               />
             </li>
           ))}
-        </ul>
+        </BoxedList>
       </DataLoader>
     </AppShell>
   );

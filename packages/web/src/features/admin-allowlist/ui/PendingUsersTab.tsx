@@ -4,6 +4,8 @@ import {
   Card,
   ConfirmDialog,
   EmptyState,
+  InlineError,
+  LoadingHint,
   Select,
 } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
@@ -53,25 +55,12 @@ export function PendingUsersTab({ roles }: PendingUsersTabProps) {
 
   const roleOptions = roles.map((r) => ({ value: r.id, label: r.name }));
 
-  if (loading) {
-    return <p className="text-sm text-(--color-text-muted)">{t.loading}</p>;
-  }
-
-  if (loadError) {
-    return (
-      <p role="alert" className="text-sm text-(--color-danger)">
-        {t.loadError}
-      </p>
-    );
-  }
+  if (loading) return <LoadingHint label={t.loading} />;
+  if (loadError) return <InlineError>{t.loadError}</InlineError>;
 
   return (
     <>
-      {error ? (
-        <p role="alert" className="text-sm text-(--color-danger) mb-4">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineError className="mb-4">{error}</InlineError> : null}
 
       {items.length === 0 ? (
         <Card>

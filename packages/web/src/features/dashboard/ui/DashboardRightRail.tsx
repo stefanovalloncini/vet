@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import { Card } from "../../../shared/ui";
+import { Card, SectionLabel } from "../../../shared/ui";
 import type { Reminder } from "@vet/shared";
 
 interface DashboardRightRailProps {
@@ -36,9 +36,7 @@ function UrgentRemindersPanel({
   return (
     <Card className="border-(--color-accent)/40">
       <div className="flex items-baseline justify-between mb-2">
-        <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-          Promemoria urgenti
-        </p>
+        <SectionLabel>Promemoria urgenti</SectionLabel>
         <Link
           to="/promemoria"
           className="inline-flex items-center gap-1 text-xs text-(--color-accent) hover:underline"
@@ -81,9 +79,7 @@ function RecentAziendePanel({
 }) {
   return (
     <Card>
-      <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
-        Clienti recenti
-      </p>
+      <SectionLabel className="mb-3">Clienti recenti</SectionLabel>
       <ul className="space-y-1.5">
         {aziende.map((a) => (
           <li key={a.id}>

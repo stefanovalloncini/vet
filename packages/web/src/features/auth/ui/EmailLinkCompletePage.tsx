@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { Button, Spinner, TextField } from "../../../shared/ui";
+import { Button, InlineError, Spinner, TextField } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
 import {
   useEmailLinkSignIn,
@@ -113,11 +113,7 @@ function EmailConfirmationForm({
       >
         {submitting ? "Verifica in corso…" : "Conferma e accedi"}
       </Button>
-      {errorMessage ? (
-        <p role="alert" className="text-sm text-(--color-danger)">
-          {errorMessage}
-        </p>
-      ) : null}
+      {errorMessage ? <InlineError>{errorMessage}</InlineError> : null}
     </form>
   );
 }

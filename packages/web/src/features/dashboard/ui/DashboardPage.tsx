@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { AppShell, Card, CardSkeleton } from "../../../shared/ui";
+import { AppShell, Card, CardSkeleton, SectionLabel } from "../../../shared/ui";
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../attivita/lib/format";
 import { RevenueBarChart } from "./RevenueBarChart";
@@ -89,9 +89,7 @@ function DashboardBody({ stats }: { stats: DashboardStats }) {
         ) : null}
       </div>
       <Card className="mb-4">
-        <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-          Incassi ultimi 12 mesi
-        </p>
+        <SectionLabel>Incassi ultimi 12 mesi</SectionLabel>
         <RevenueBarChart
           values={stats.trailing.totals}
           labels={stats.trailing.labels}
@@ -100,9 +98,7 @@ function DashboardBody({ stats }: { stats: DashboardStats }) {
       </Card>
       {stats.thisMonth.byTipo.size > 0 ? (
         <Card>
-          <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
-            Attività del mese per tipo
-          </p>
+          <SectionLabel className="mb-3">Attività del mese per tipo</SectionLabel>
           <BarChart bars={stats.topTipoBars} formatValue={formatEuro} />
         </Card>
       ) : null}

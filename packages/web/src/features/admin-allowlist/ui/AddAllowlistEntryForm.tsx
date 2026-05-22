@@ -1,5 +1,11 @@
 import { useState, type FormEvent } from "react";
-import { Button, Card, Select, TextField } from "../../../shared/ui";
+import {
+  Button,
+  Card,
+  InlineError,
+  Select,
+  TextField,
+} from "../../../shared/ui";
 import {
   allowlistEntryInputSchema,
   type AllowlistRepository,
@@ -57,11 +63,7 @@ export function AddAllowlistEntryForm({
   return (
     <Card className="mb-6">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {errorMsg ? (
-          <p role="alert" className="text-sm text-(--color-danger)">
-            {errorMsg}
-          </p>
-        ) : null}
+        {errorMsg ? <InlineError>{errorMsg}</InlineError> : null}
         <TextField
           id="allow-email"
           type="email"

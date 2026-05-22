@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Button, Dialog, TextField } from "../../../shared/ui";
+import { Button, Dialog, InlineError, TextField } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { aziendaInputSchema, type Azienda } from "@vet/shared";
@@ -76,11 +76,7 @@ export function QuickAddAziendaDialog({
           disabled={busy}
           placeholder="Nome azienda"
         />
-        {error ? (
-          <p role="alert" className="text-sm text-(--color-danger)">
-            {error}
-          </p>
-        ) : null}
+        {error ? <InlineError>{error}</InlineError> : null}
         <div className="flex items-center justify-end gap-3 pt-1">
           <Button type="button" variant="ghost" onClick={handleClose} disabled={busy}>
             Annulla

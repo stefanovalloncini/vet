@@ -28,4 +28,7 @@ export const ACTION_LABELS: Record<AuditAction, string> = {
   "attivita.purge.auto": "Pulizia automatica cestino",
   "user.session.revoke": "Sessione revocata",
   "gdpr.erasure": "Cancellazione GDPR",
+  "access_request.accept": "Richiesta accesso approvata",
+  "access_request.reject": "Richiesta accesso rifiutata",
+  "access_request.purge.auto": "Pulizia automatica richieste",
 };

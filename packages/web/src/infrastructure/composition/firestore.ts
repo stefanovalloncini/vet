@@ -3,6 +3,7 @@ import { initFirebase } from "../firestore/client";
 import { FirestoreUserRepository } from "../firestore/FirestoreUserRepository";
 import { FirestoreRoleRepository } from "../firestore/FirestoreRoleRepository";
 import { FirestoreAllowlistRepository } from "../firestore/FirestoreAllowlistRepository";
+import { FirestoreAccessRequestRepository } from "../firestore/FirestoreAccessRequestRepository";
 import { FirestoreAziendeRepository } from "../firestore/FirestoreAziendeRepository";
 import { FirestoreActivityTypesRepository } from "../firestore/FirestoreActivityTypesRepository";
 import { FirestoreAttivitaRepository } from "../firestore/FirestoreAttivitaRepository";
@@ -21,6 +22,7 @@ export function createFirestoreRepositories(): Repositories {
     users: new FirestoreUserRepository(firestore),
     roles: new FirestoreRoleRepository(firestore),
     allowlist: new FirestoreAllowlistRepository(firestore),
+    accessRequests: new FirestoreAccessRequestRepository(firestore),
     aziende: new FirestoreAziendeRepository(firestore),
     activityTypes: new FirestoreActivityTypesRepository(firestore),
     attivita: new FirestoreAttivitaRepository(firestore),

@@ -1,6 +1,13 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { AppShell, Button, Tabs } from "../../../shared/ui";
+import { Link, useParams } from "react-router-dom";
+import {
+  AppShell,
+  Button,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+  Tabs,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReminders } from "../../reminders/hooks/useReminders";
@@ -13,7 +20,6 @@ type Tab = "storico" | "pagamenti" | "promemoria";
 
 export function AziendaDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { user } = useAuthState();
   const { aziende, attivita, payments } = useRepositories();
   const [tab, setTab] = useState<Tab>("storico");
@@ -42,9 +48,7 @@ export function AziendaDetailPage() {
   if (detail.error) {
     return (
       <AppShell>
-        <p role="alert" className="text-sm text-(--color-danger)">
-          Errore caricamento azienda: {detail.error}
-        </p>
+        <InlineError>Errore caricamento azienda: {detail.error}</InlineError>
       </AppShell>
     );
   }
@@ -52,7 +56,7 @@ export function AziendaDetailPage() {
   if (detail.loading || !detail.azienda) {
     return (
       <AppShell>
-        <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
+        <LoadingHint />
       </AppShell>
     );
   }
@@ -66,37 +70,35 @@ export function AziendaDetailPage() {
 
   return (
     <AppShell>
-      <header className="mb-6">
-        <button
-          type="button"
-          onClick={() => navigate("/aziende")}
-          className="text-sm text-(--color-text-muted) hover:text-(--color-text) mb-3"
-        >
-          ← Aziende
-        </button>
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-          <div>
-            <h1 className="text-3xl text-(--color-text)">{azienda.nome}</h1>
-            {azienda.indirizzo ? (
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(azienda.indirizzo)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-(--color-text-muted) hover:text-(--color-accent) mt-1 inline-block"
-              >
-                {azienda.indirizzo} ↗
-              </a>
-            ) : null}
-          </div>
-          {canUpdate ? (
-            <Link to={`/aziende/${azienda.id}/modifica`}>
-              <Button type="button" variant="secondary">
-                Modifica
-              </Button>
-            </Link>
-          ) : null}
-        </div>
-      </header>
+      <PageHeader
+        title={azienda.nome}
+        back={{ to: "/aziende", label: "Aziende" }}
+        {...(azienda.indirizzo
+          ? {
+              subtitle: (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(azienda.indirizzo)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-(--color-accent)"
+                >
+                  {azienda.indirizzo} ↗
+                </a>
+              ),
+            }
+          : {})}
+        {...(canUpdate
+          ? {
+              actions: (
+                <Link to={`/aziende/${azienda.id}/modifica`}>
+                  <Button type="button" variant="secondary">
+                    Modifica
+                  </Button>
+                </Link>
+              ),
+            }
+          : {})}
+      />
 
       <AziendaInfoCard
         azienda={azienda}

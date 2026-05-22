@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AppShell, Button, Card } from "../../../shared/ui";
+import {
+  AppShell,
+  Button,
+  Card,
+  LoadingHint,
+  PageHeader,
+} from "../../../shared/ui";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
 import { useAuthState } from "../../auth";
 import { agendaI18n as t, MONTHS, WEEKDAYS } from "../i18n";
@@ -44,44 +50,42 @@ export function AgendaPage() {
 
   return (
     <AppShell>
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
-          <p className="text-(--color-text-muted) mt-2 text-sm">
-            {t.subtitle}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setView((v) => addMonths(v, -1))}
-          >
-            {t.meseScorso}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              const now = new Date();
-              setView(startOfMonth(now));
-              setSelected(now);
-            }}
-          >
-            {t.oggi}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setView((v) => addMonths(v, 1))}
-          >
-            {t.meseProssimo}
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title={t.title}
+        subtitle={t.subtitle}
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setView((v) => addMonths(v, -1))}
+            >
+              {t.meseScorso}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                const now = new Date();
+                setView(startOfMonth(now));
+                setSelected(now);
+              }}
+            >
+              {t.oggi}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setView((v) => addMonths(v, 1))}
+            >
+              {t.meseProssimo}
+            </Button>
+          </>
+        }
+      />
 
       <div className="lg:grid lg:grid-cols-[minmax(0,460px)_1fr] lg:gap-6 lg:items-start">
         <Card className="mb-6 lg:mb-0 lg:sticky lg:top-6 !p-4 sm:!p-5">
@@ -170,7 +174,7 @@ export function AgendaPage() {
             </div>
           </header>
           {loading ? (
-            <p className="text-sm text-(--color-text-muted) px-1">{t.loading}</p>
+            <LoadingHint label={t.loading} className="px-1" />
           ) : todaysItems.length === 0 ? (
             <p className="text-sm text-(--color-text-muted) px-1 py-2">
               {t.emptyDay}

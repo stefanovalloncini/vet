@@ -1,5 +1,15 @@
 import { useMemo, useState } from "react";
-import { AppShell, Button, Card, ConfirmDialog, EmptyState, Tabs } from "../../../shared/ui";
+import {
+  AppShell,
+  Button,
+  Card,
+  ConfirmDialog,
+  EmptyState,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+  Tabs,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useTrash } from "../hooks/useTrash";
@@ -60,38 +70,32 @@ export function CestinoPage() {
 
   return (
     <AppShell>
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
-            {t.title}
-          </h1>
-          <p className="text-(--color-text-muted) mt-2 text-sm max-w-prose">
-            {t.subtitle}
-          </p>
-        </div>
-        {canSeeAny ? (
-          <Tabs
-            items={[
-              { value: "mine", label: t.viewMine },
-              { value: "all", label: t.viewAll },
-            ]}
-            value={view}
-            onChange={setView}
-            size="sm"
-          />
-        ) : null}
-      </header>
+      <PageHeader
+        title={t.title}
+        subtitle={t.subtitle}
+        {...(canSeeAny
+          ? {
+              actions: (
+                <Tabs
+                  items={[
+                    { value: "mine", label: t.viewMine },
+                    { value: "all", label: t.viewAll },
+                  ]}
+                  value={view}
+                  onChange={setView}
+                  size="sm"
+                />
+              ),
+            }
+          : {})}
+      />
 
-      {errorMsg ? (
-        <p role="alert" className="text-sm text-(--color-danger) mb-4">
-          {errorMsg}
-        </p>
-      ) : null}
+      {errorMsg ? <InlineError className="mb-4">{errorMsg}</InlineError> : null}
 
       {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       ) : error ? (
-        <p className="text-sm text-(--color-danger)">{t.loadError}</p>
+        <InlineError>{t.loadError}</InlineError>
       ) : items.length === 0 ? (
         <EmptyState title={t.empty} />
       ) : (

@@ -2,6 +2,13 @@ import { beforeUserCreated as beforeUserCreatedFn, HttpsError } from "firebase-f
 import { logger } from "firebase-functions/v2";
 import { adminDb } from "../admin/firebaseAdmin.js";
 import { normalizeEmail } from "@vet/shared";
+import { recordAccessRequest } from "./accessRequestLog.js";
+
+export {
+  decideAccessRequestUpdate,
+  type AccessRequestDecisionInput,
+  type AccessRequestDecision,
+} from "./accessRequestLog.js";
 
 type DenyReason = "missing-email" | "allowlist-miss";
 
@@ -22,10 +29,18 @@ export const beforeUserCreated: ReturnType<typeof beforeUserCreatedFn> =
 
     const norm = normalizeEmail(email);
     const allowSnap = await adminDb.collection("allowlist").doc(norm).get();
-    if (!allowSnap.exists) {
-      denyAndThrow("allowlist-miss", { email: norm, uid, eventType });
+    if (allowSnap.exists) {
+      logger.info("auth.beforeUserCreated.allow", { email: norm, uid, eventType });
+      return {};
     }
 
-    logger.info("auth.beforeUserCreated.allow", { email: norm, uid, eventType });
-    return {};
+    await recordAccessRequest({
+      email,
+      displayName: event.data?.displayName,
+      photoURL: event.data?.photoURL,
+      providerId: event.data?.providerData?.[0]?.providerId,
+      source: "beforeUserCreated",
+    });
+
+    denyAndThrow("allowlist-miss", { email: norm, uid, eventType });
   });

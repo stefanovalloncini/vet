@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Button, Dialog, TextField } from "../../../shared/ui";
+import { Button, Dialog, InlineError, TextField } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { activityTypeInputSchema, slugify, type ActivityType } from "@vet/shared";
 
@@ -104,11 +104,7 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
           placeholder="opzionale"
           hint="Lascia vuoto se la tariffa cambia di volta in volta."
         />
-        {error ? (
-          <p role="alert" className="text-sm text-(--color-danger)">
-            {error}
-          </p>
-        ) : null}
+        {error ? <InlineError>{error}</InlineError> : null}
         <div className="flex items-center justify-end gap-3 pt-1">
           <Button type="button" variant="ghost" onClick={handleClose} disabled={busy}>
             Annulla

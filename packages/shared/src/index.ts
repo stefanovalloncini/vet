@@ -27,6 +27,7 @@ export { CAPABILITY_LABELS } from "./domain/caps/labels.js";
 export type { User } from "./domain/entities/User.js";
 export type { Role } from "./domain/entities/Role.js";
 export type { AllowlistEntry } from "./domain/entities/AllowlistEntry.js";
+export type { AccessRequest } from "./domain/entities/AccessRequest.js";
 export type { ActorContext } from "./domain/entities/ActorContext.js";
 export type { Claims } from "./domain/entities/Claims.js";
 
@@ -49,6 +50,14 @@ export {
   type AllowlistEntryInput,
   type AllowlistEntryDoc,
 } from "./domain/schemas/allowlist.js";
+export {
+  accessRequestDocSchema,
+  acceptAccessRequestInputSchema,
+  rejectAccessRequestInputSchema,
+  type AccessRequestDoc,
+  type AcceptAccessRequestInput,
+  type RejectAccessRequestInput,
+} from "./domain/schemas/accessRequest.js";
 export {
   aziendaInputSchema,
   aziendaDocSchema,
@@ -87,6 +96,7 @@ export type { Attivita } from "./domain/entities/Attivita.js";
 export type { UserRepository } from "./domain/ports/UserRepository.js";
 export type { RoleRepository } from "./domain/ports/RoleRepository.js";
 export type { AllowlistRepository } from "./domain/ports/AllowlistRepository.js";
+export type { AccessRequestRepository } from "./domain/ports/AccessRequestRepository.js";
 export type { AziendeRepository } from "./domain/ports/AziendeRepository.js";
 export type { ActivityTypesRepository } from "./domain/ports/ActivityTypesRepository.js";
 export type {

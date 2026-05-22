@@ -2,6 +2,7 @@ import type { Clock } from "./Clock.js";
 import type { UserRepository } from "./UserRepository.js";
 import type { RoleRepository } from "./RoleRepository.js";
 import type { AllowlistRepository } from "./AllowlistRepository.js";
+import type { AccessRequestRepository } from "./AccessRequestRepository.js";
 import type { AziendeRepository } from "./AziendeRepository.js";
 import type { ActivityTypesRepository } from "./ActivityTypesRepository.js";
 import type { AttivitaRepository } from "./AttivitaRepository.js";
@@ -16,6 +17,7 @@ export interface Repositories {
   readonly users: UserRepository;
   readonly roles: RoleRepository;
   readonly allowlist: AllowlistRepository;
+  readonly accessRequests: AccessRequestRepository;
   readonly aziende: AziendeRepository;
   readonly activityTypes: ActivityTypesRepository;
   readonly attivita: AttivitaRepository;

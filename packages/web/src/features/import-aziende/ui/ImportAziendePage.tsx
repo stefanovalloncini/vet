@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AppShell, Button, Card, TextArea } from "../../../shared/ui";
+import { AppShell, Button, Card, PageHeader, TextArea } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { parseAziendeCsv, type ParsedRow } from "../lib/parser";
@@ -55,12 +55,10 @@ export function ImportAziendePage() {
 
   return (
     <AppShell>
-      <header className="mb-8">
-        <h1 className="text-3xl text-(--color-text)">Importa aziende</h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm max-w-prose">
-          Incolla un CSV (separatore ; o ,). Colonne supportate: nome, indirizzo, telefono, piva, tipoAllevamento, numeroCapi, note.
-        </p>
-      </header>
+      <PageHeader
+        title="Importa aziende"
+        subtitle="Incolla un CSV (separatore ; o ,). Colonne supportate: nome, indirizzo, telefono, piva, tipoAllevamento, numeroCapi, note."
+      />
 
       <Card className="mb-4">
         <TextArea

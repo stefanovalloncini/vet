@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AppShell, Button, ConfirmDialog, FormFooter, PageHeader } from "../../../shared/ui";
+import {
+  AppShell,
+  Button,
+  ConfirmDialog,
+  FormFooter,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useAziendaFormLoader } from "../hooks/useAziendaFormLoader";
@@ -45,7 +53,7 @@ export function AziendaFormPage() {
     return (
       <AppShell>
         {header}
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       </AppShell>
     );
   }
@@ -62,9 +70,7 @@ export function AziendaFormPage() {
         />
 
         {submitState.globalError ? (
-          <p role="alert" className="text-sm text-(--color-danger)">
-            {submitState.globalError}
-          </p>
+          <InlineError>{submitState.globalError}</InlineError>
         ) : null}
 
         <FormActions

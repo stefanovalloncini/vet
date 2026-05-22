@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Dialog, Select, TextField } from "../../../shared/ui";
+import { Button, Dialog, InlineError, Select, TextField } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useReferenceData } from "../hooks/useReferenceData";
 import { attivitaI18n as t } from "../i18n";
@@ -104,11 +104,7 @@ export function ExportDialog({ onClose }: Props) {
             onChange={(e) => setAziendaId(e.target.value)}
             disabled={busy}
           />
-          {error ? (
-            <p role="alert" className="text-sm text-(--color-danger)">
-              {error}
-            </p>
-          ) : null}
+          {error ? <InlineError>{error}</InlineError> : null}
         </div>
         <div className="flex items-center justify-end gap-3 mt-6">
           <Button

@@ -8,7 +8,7 @@ interface BackLink {
 
 interface PageHeaderProps {
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   back?: BackLink;
   actions?: ReactNode;
 }

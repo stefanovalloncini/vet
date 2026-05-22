@@ -1,6 +1,14 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { AppShell, Button, ConfirmDialog, FormFooter, PageHeader } from "../../../shared/ui";
+import {
+  AppShell,
+  Button,
+  ConfirmDialog,
+  FormFooter,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
@@ -111,7 +119,7 @@ export function AttivitaFormPage() {
   if (loading || ref.loading) {
     return (
       <AppShell>
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       </AppShell>
     );
   }
@@ -177,9 +185,7 @@ export function AttivitaFormPage() {
         />
 
         {submitState.globalError ? (
-          <p role="alert" className="text-sm text-(--color-danger)">
-            {submitState.globalError}
-          </p>
+          <InlineError>{submitState.globalError}</InlineError>
         ) : null}
 
         <FormActions

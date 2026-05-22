@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Button } from "../../../shared/ui";
+import {
+  Button,
+  InlineError,
+  LoadingHint,
+  SectionLabel,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { riepilogoI18n as t } from "../i18n";
 import {
@@ -56,7 +61,7 @@ export function RiepilogoPdfPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-(--color-background) p-10">
-        <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
+        <LoadingHint />
       </main>
     );
   }
@@ -64,7 +69,7 @@ export function RiepilogoPdfPage() {
   if (!azienda) {
     return (
       <main className="min-h-screen bg-(--color-background) p-10">
-        <p className="text-sm text-(--color-danger)">Cliente non trovato.</p>
+        <InlineError>Cliente non trovato.</InlineError>
       </main>
     );
   }
@@ -128,9 +133,7 @@ export function RiepilogoPdfPage() {
 
           <div className="grid grid-cols-2 gap-6 mb-6 text-sm">
             <div>
-              <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-                {t.cliente}
-              </p>
+              <SectionLabel>{t.cliente}</SectionLabel>
               <p className="text-(--color-text) font-medium mt-1">
                 {azienda.nome}
               </p>
@@ -146,9 +149,7 @@ export function RiepilogoPdfPage() {
               ) : null}
             </div>
             <div className="text-right">
-              <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-                {t.periodo}
-              </p>
+              <SectionLabel>{t.periodo}</SectionLabel>
               <p className="text-(--color-text) mt-1">
                 {fromStr && parseDateInput(fromStr)
                   ? formatDate(parseDateInput(fromStr)!)

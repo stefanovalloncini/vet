@@ -8,6 +8,8 @@ export { revokeUserSession } from "./auth/revokeUserSession.js";
 export { logAppCheckFailure } from "./diag/logAppCheckFailure.js";
 export { approveUser } from "./auth/approveUser.js";
 export { rejectUser } from "./auth/rejectUser.js";
+export { acceptAccessRequest } from "./auth/acceptAccessRequest.js";
+export { rejectAccessRequest } from "./auth/rejectAccessRequest.js";
 export { killSwitchOnBudget } from "./billing/killSwitch.js";
 export { restoreAttivita } from "./attivita/restore.js";
 export { purgeAttivita } from "./attivita/purge.js";

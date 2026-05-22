@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { AppShell, EmptyState, PageHeader, Select } from "../../../shared/ui";
+import {
+  AppShell,
+  BoxedList,
+  EmptyState,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+  SectionLabel,
+  Select,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { ACTION_LABELS, auditI18n as t } from "../i18n";
 import type { AuditAction, AuditEvent, AuditFilters } from "@vet/shared";
@@ -14,6 +23,7 @@ const TARGET_TYPES: Array<{ value: TargetType | ""; label: string }> = [
   { value: "azienda", label: "Azienda" },
   { value: "allowlist", label: "Allowlist" },
   { value: "activity_type", label: "Tipo attività" },
+  { value: "access_request", label: "Richiesta accesso" },
 ];
 
 const ACTIONS: Array<{ value: AuditAction | ""; label: string }> = [
@@ -97,19 +107,19 @@ export function AuditPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       ) : error ? (
-        <p className="text-sm text-(--color-danger)">{t.loadError}</p>
+        <InlineError>{t.loadError}</InlineError>
       ) : events.length === 0 ? (
         <EmptyState title={t.empty} />
       ) : (
         <div className="space-y-6">
           {grouped.map(([day, dayEvents]) => (
             <section key={day}>
-              <h2 className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
+              <SectionLabel as="h2" className="mb-3">
                 {day}
-              </h2>
-              <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
+              </SectionLabel>
+              <BoxedList>
                 {dayEvents.map((e) => (
                   <li key={e.id} className="px-5 py-4">
                     <div className="flex items-baseline gap-4">
@@ -144,7 +154,7 @@ export function AuditPage() {
                     </div>
                   </li>
                 ))}
-              </ul>
+              </BoxedList>
             </section>
           ))}
         </div>

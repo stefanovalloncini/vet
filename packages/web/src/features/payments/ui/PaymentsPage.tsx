@@ -4,6 +4,9 @@ import {
   Button,
   Card,
   EmptyState,
+  InlineError,
+  LoadingHint,
+  PageHeader,
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { usePaymentsData } from "../hooks/usePaymentsData";
@@ -27,15 +30,12 @@ export function PaymentsPage() {
 
   return (
     <AppShell>
-      <header className="mb-8">
-        <h1 className="text-3xl text-(--color-text)">{t.title}</h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
-      </header>
+      <PageHeader title={t.title} subtitle={t.subtitle} />
 
       {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       ) : error ? (
-        <p className="text-sm text-(--color-danger)">{t.loadError}</p>
+        <InlineError>{t.loadError}</InlineError>
       ) : aziende.length === 0 ? (
         <EmptyState title={t.emptyAziende} />
       ) : (

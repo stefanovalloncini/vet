@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { AppShell, Card, Select } from "../../../shared/ui";
+import {
+  AppShell,
+  Card,
+  LoadingHint,
+  PageHeader,
+  SectionLabel,
+  Select,
+} from "../../../shared/ui";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
 import { formatEuro } from "../../attivita/lib/format";
 import { BarChart } from "../../dashboard/ui/BarChart";
@@ -51,12 +58,10 @@ export function VetStatsPage() {
 
   return (
     <AppShell>
-      <header className="mb-6">
-        <h1 className="text-3xl text-(--color-text)">Statistiche veterinari</h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">
-          Incassi e visite raggruppati per veterinario.
-        </p>
-      </header>
+      <PageHeader
+        title="Statistiche veterinari"
+        subtitle="Incassi e visite raggruppati per veterinario."
+      />
 
       <Card className="mb-6 max-w-xs">
         <Select
@@ -73,7 +78,7 @@ export function VetStatsPage() {
       </Card>
 
       {loading ? (
-        <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
+        <LoadingHint />
       ) : stats.length === 0 ? (
         <Card>
           <p className="text-sm text-(--color-text-muted) text-center py-4">
@@ -83,9 +88,7 @@ export function VetStatsPage() {
       ) : (
         <>
           <Card className="mb-6">
-            <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
-              Distribuzione incassi
-            </p>
+            <SectionLabel className="mb-3">Distribuzione incassi</SectionLabel>
             <BarChart
               bars={stats.map((s) => ({ label: s.nome, value: s.total }))}
               formatValue={formatEuro}

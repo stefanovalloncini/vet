@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import {
   Card,
+  SectionLabel,
   Select,
   TextArea,
   TextField,
@@ -159,9 +160,7 @@ export function AttivitaFormFields({
 
         {totaleLive !== null ? (
           <div className="flex items-baseline justify-between pt-2 border-t border-(--color-border)">
-            <span className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-              {t.totale}
-            </span>
+            <SectionLabel as="span">{t.totale}</SectionLabel>
             <span className="text-2xl font-medium text-(--color-text) tabular-nums">
               {formatEuro(totaleLive)}
             </span>

@@ -41,8 +41,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,woff,woff2,ico,png}"],
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/__\//, /^\/api\//],
+        navigateFallbackDenylist: [/^\/__\//, /^\/api\//, /^\/login/],
         cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
       },
       manifest: {
         name: "Veterinario",

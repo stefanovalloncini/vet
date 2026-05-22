@@ -1,5 +1,13 @@
 import { useMemo, useState, type ChangeEvent } from "react";
-import { AppShell, Button, Card } from "../../../shared/ui";
+import {
+  AppShell,
+  Button,
+  Card,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+  SectionLabel,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useActivityTypes } from "../hooks/useActivityTypes";
@@ -60,26 +68,19 @@ export function ActivityTypesPage() {
 
   return (
     <AppShell>
-      <header className="mb-8">
-        <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
-          {t.title}
-        </h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
-        {!canManage ? (
-          <p className="mt-3 text-xs text-(--color-text-subtle)">{t.readonly}</p>
-        ) : null}
-      </header>
+      <PageHeader title={t.title} subtitle={t.subtitle} />
+      {!canManage ? (
+        <p className="text-xs text-(--color-text-subtle) mb-6">{t.readonly}</p>
+      ) : null}
 
       {globalError ? (
-        <p role="alert" className="text-sm text-(--color-danger) mb-4">
-          {globalError}
-        </p>
+        <InlineError className="mb-4">{globalError}</InlineError>
       ) : null}
 
       {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       ) : error ? (
-        <p className="text-sm text-(--color-danger)">{t.erroreSalvataggio}</p>
+        <InlineError>{t.erroreSalvataggio}</InlineError>
       ) : (
         <div className="space-y-8">
           <Section title={t.attivi} types={active}>
@@ -125,9 +126,9 @@ function Section({
 }) {
   return (
     <section>
-      <h2 className="text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-3">
+      <SectionLabel as="h2" className="font-medium mb-3">
         {title}
-      </h2>
+      </SectionLabel>
       <ul className="space-y-2">
         {types.map((tipo) => (
           <li key={tipo.id}>{children(tipo)}</li>

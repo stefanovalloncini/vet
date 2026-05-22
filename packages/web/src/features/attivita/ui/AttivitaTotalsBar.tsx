@@ -1,3 +1,4 @@
+import { SectionLabel } from "../../../shared/ui";
 import { attivitaI18n as t } from "../i18n";
 import { formatEuro } from "../lib/format";
 import type { computeTotals } from "../lib/totals";
@@ -32,9 +33,7 @@ function Stat({
 }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-        {label}
-      </dt>
+      <SectionLabel as="dt">{label}</SectionLabel>
       <dd
         className={[
           "tabular-nums mt-1",

@@ -3,6 +3,7 @@ import { logger } from "firebase-functions/v2";
 import { adminDb } from "../admin/firebaseAdmin.js";
 import type { Capability } from "@vet/shared";
 import { encodeCaps, normalizeEmail } from "@vet/shared";
+import { recordAccessRequest } from "./accessRequestLog.js";
 
 interface ComposeInput {
   roleId: string;
@@ -91,6 +92,13 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
     const norm = normalizeEmail(email);
     const allowSnap = await adminDb.collection("allowlist").doc(norm).get();
     if (!allowSnap.exists) {
+      await recordAccessRequest({
+        email,
+        displayName: event.data?.displayName,
+        photoURL: event.data?.photoURL,
+        providerId: event.data?.providerData?.[0]?.providerId,
+        source: "beforeSignIn",
+      });
       denyAndThrow("allowlist-miss", { email: norm, uid, eventType });
     }
     const allow = allowSnap.data() as { defaultRoleId: string };

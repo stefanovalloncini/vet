@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import { Card } from "../../../shared/ui";
+import { Card, SectionLabel } from "../../../shared/ui";
 import { sanitizeTel } from "../lib/sanitizeTel";
 import { formatEuro } from "../../attivita/lib/format";
 import type { Azienda } from "@vet/shared";
@@ -85,9 +85,7 @@ function Field({ label, value, capitalize, tabular, mono, emphasized }: FieldPro
     .join(" ");
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-        {label}
-      </dt>
+      <SectionLabel as="dt">{label}</SectionLabel>
       <dd className={cls}>{value}</dd>
     </div>
   );
@@ -97,9 +95,7 @@ function TelefonoField({ raw }: { raw: string }) {
   const tel = sanitizeTel(raw);
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-        Telefono
-      </dt>
+      <SectionLabel as="dt">Telefono</SectionLabel>
       <dd className="text-(--color-text) mt-1">
         {tel ? (
           <a href={`tel:${tel}`} className="hover:underline">

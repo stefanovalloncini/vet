@@ -1,6 +1,14 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { AppShell, Button, EmptyState } from "../../../shared/ui";
+import {
+  AppShell,
+  BoxedList,
+  Button,
+  EmptyState,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+} from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useAttivita } from "../hooks/useAttivita";
 import { useReferenceData } from "../hooks/useReferenceData";
@@ -90,43 +98,39 @@ export function AttivitaListPage() {
 
   return (
     <AppShell>
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
-            {t.title}
-          </h1>
-          <p className="text-(--color-text-muted) mt-2 text-sm">
-            {t.subtitle}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 text-xs text-(--color-text-muted) cursor-pointer mr-2">
-            <input
-              type="checkbox"
-              checked={mineOnly}
-              onChange={(e) => setParam("mine", e.target.checked ? "1" : "")}
-              className="w-4 h-4 accent-(--color-accent)"
-            />
-            Solo mie
-          </label>
-          {canExport ? (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setShowExport(true)}
-            >
-              {t.esporta}
-            </Button>
-          ) : null}
-          {canCreate ? (
-            <Link to="/attivita/nuova">
-              <Button type="button" variant="primary">
-                {t.nuovaAttivita}
+      <PageHeader
+        title={t.title}
+        subtitle={t.subtitle}
+        actions={
+          <>
+            <label className="flex items-center gap-2 text-xs text-(--color-text-muted) cursor-pointer mr-2">
+              <input
+                type="checkbox"
+                checked={mineOnly}
+                onChange={(e) => setParam("mine", e.target.checked ? "1" : "")}
+                className="w-4 h-4 accent-(--color-accent)"
+              />
+              Solo mie
+            </label>
+            {canExport ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setShowExport(true)}
+              >
+                {t.esporta}
               </Button>
-            </Link>
-          ) : null}
-        </div>
-      </header>
+            ) : null}
+            {canCreate ? (
+              <Link to="/attivita/nuova">
+                <Button type="button" variant="primary">
+                  {t.nuovaAttivita}
+                </Button>
+              </Link>
+            ) : null}
+          </>
+        }
+      />
 
       <AttivitaQuickRanges from={from} to={to} onChange={setParam} />
 
@@ -145,9 +149,9 @@ export function AttivitaListPage() {
       <AttivitaTotalsBar totals={totals} />
 
       {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       ) : error ? (
-        <p className="text-sm text-(--color-danger)">{t.loadError}</p>
+        <InlineError>{t.loadError}</InlineError>
       ) : items.length === 0 ? (
         renderEmpty(Object.keys(filters).length > 0, canCreate)
       ) : (
@@ -164,13 +168,13 @@ export function AttivitaListPage() {
                   </span>
                 </header>
               ) : null}
-              <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
+              <BoxedList>
                 {g.items.map((a) => (
                   <li key={a.id}>
                     <AttivitaRow attivita={a} />
                   </li>
                 ))}
-              </ul>
+              </BoxedList>
             </section>
           ))}
         </div>

@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { AppShell, Button, Card, ConfirmDialog, PageHeader } from "../../../shared/ui";
+import {
+  AppShell,
+  Button,
+  Card,
+  ConfirmDialog,
+  InlineError,
+  PageHeader,
+  SectionLabel,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { impostazioniI18n as t } from "../i18n";
@@ -112,9 +120,7 @@ export function ImpostazioniPage() {
 
       <div className="max-w-2xl">
         <Card>
-          <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mb-3">
-            Profilo
-          </p>
+          <SectionLabel className="mb-3">Profilo</SectionLabel>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <dt className="text-(--color-text-subtle) text-xs mb-1">Nome</dt>
@@ -131,9 +137,7 @@ export function ImpostazioniPage() {
           </dl>
         </Card>
 
-        <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mt-10 mb-3">
-          Dati
-        </p>
+        <SectionLabel className="mt-10 mb-3">Dati</SectionLabel>
         <Card>
           <h2 className="text-base font-medium text-(--color-text)">
             Esporta i tuoi dati
@@ -153,9 +157,7 @@ export function ImpostazioniPage() {
           </div>
         </Card>
 
-        <p className="text-xs uppercase tracking-wider text-(--color-text-muted) mt-10 mb-3">
-          {t.gdprSection}
-        </p>
+        <SectionLabel className="mt-10 mb-3">{t.gdprSection}</SectionLabel>
         <Card>
           <h2 className="text-base font-medium text-(--color-text)">
             {t.gdprTitle}
@@ -166,11 +168,7 @@ export function ImpostazioniPage() {
 
           {renderGdprAction()}
 
-          {error ? (
-            <p role="alert" className="text-sm text-(--color-danger) mt-3">
-              {error}
-            </p>
-          ) : null}
+          {error ? <InlineError className="mt-3">{error}</InlineError> : null}
         </Card>
       </div>
 

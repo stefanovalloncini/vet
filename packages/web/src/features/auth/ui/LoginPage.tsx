@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { Button, GoogleIcon, TextField } from "../../../shared/ui";
+import { Button, GoogleIcon, LoadingHint, TextField } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
 import {
   classifyAuthError,
@@ -50,7 +50,7 @@ export function LoginPage() {
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-(--color-background)">
-        <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
+        <LoadingHint />
       </main>
     );
   }

@@ -1,9 +1,12 @@
 import { useState } from "react";
 import {
   AppShell,
+  BoxedList,
   Button,
   ConfirmDialog,
   EmptyState,
+  InlineError,
+  LoadingHint,
   PageHeader,
   Select,
   TextArea,
@@ -94,11 +97,11 @@ export function RemindersPage() {
       ) : null}
 
       {loading ? (
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       ) : reminders.length === 0 ? (
         <EmptyState title={t.emptyAll} />
       ) : (
-        <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
+        <BoxedList>
           {reminders.map((r) => (
             <ReminderRow
               key={r.id}
@@ -109,7 +112,7 @@ export function RemindersPage() {
               onDelete={() => setPendingDelete(r)}
             />
           ))}
-        </ul>
+        </BoxedList>
       )}
 
       <ConfirmDialog
@@ -173,11 +176,7 @@ function ReminderCreateForm({
         onChange={(e) => state.setNote(e.target.value)}
         maxLength={500}
       />
-      {state.error ? (
-        <p role="alert" className="text-sm text-(--color-danger)">
-          {state.error}
-        </p>
-      ) : null}
+      {state.error ? <InlineError>{state.error}</InlineError> : null}
       <div className="flex items-center justify-end gap-3">
         <Button type="button" variant="ghost" onClick={onCancel} disabled={state.busy}>
           {t.annulla}
