@@ -12,6 +12,7 @@ export { MobileNav } from "./MobileNav";
 export { ToastProvider, useToast } from "./Toast";
 export { Dialog } from "./Dialog";
 export { ConfirmDialog } from "./ConfirmDialog";
+export { QuickAddDialog } from "./QuickAddDialog";
 export { EmptyState } from "./EmptyState";
 export { Tabs } from "./Tabs";
 export { Badge } from "./Badge";
