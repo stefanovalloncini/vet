@@ -31,7 +31,7 @@ export function AuthLayout({ eyebrow, title, children, footer }: AuthLayoutProps
         </div>
       </aside>
 
-      <section className="flex flex-1 flex-col lg:col-span-7 lg:px-16 lg:py-16">
+      <section className="flex flex-1 flex-col lg:col-span-7 lg:px-16 lg:py-16 lg:justify-center">
         <div className="flex flex-1 flex-col justify-center w-full max-w-sm mx-auto lg:mx-0 lg:flex-none lg:justify-start">
           <Brand size="md" className="lg:hidden mb-8" />
           <p className="hidden lg:block text-[11px] font-medium uppercase tracking-[0.22em] text-(--color-text-muted)">
