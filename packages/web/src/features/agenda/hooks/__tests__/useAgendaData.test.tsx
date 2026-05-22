@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect } from "vitest";
 import type { ReactNode } from "react";
 import type { Repositories } from "@vet/shared";
@@ -6,9 +7,18 @@ import { createInMemoryRepositories } from "../../../../infrastructure/compositi
 import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
 import { useAgendaData } from "../useAgendaData";
 
+function makeQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
+}
+
 function wrapWith(repos: Repositories) {
+  const client = makeQueryClient();
   return ({ children }: { children: ReactNode }) => (
-    <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
+    <QueryClientProvider client={client}>
+      <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -1,6 +1,8 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { Attivita } from "@vet/shared";
-import { useAttivita } from "../../attivita/hooks/useAttivita";
+import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 import { endOfMonth, startOfMonth } from "../lib/calendar";
 
 export type AgendaViewMode = "month" | "week";
@@ -42,37 +44,45 @@ function endOfWeek(d: Date): Date {
   );
 }
 
-function computeRange(date: Date, viewMode: AgendaViewMode): {
-  rangeStart: Date;
-  rangeEnd: Date;
-  filters: { from: Date; to: Date };
-} {
-  const { rangeStart, rangeEnd } =
-    viewMode === "week"
-      ? { rangeStart: startOfWeek(date), rangeEnd: endOfWeek(date) }
-      : { rangeStart: startOfMonth(date), rangeEnd: endOfMonth(date) };
-  return { rangeStart, rangeEnd, filters: { from: rangeStart, to: rangeEnd } };
+function computeRange(
+  date: Date,
+  viewMode: AgendaViewMode
+): { rangeStart: Date; rangeEnd: Date } {
+  return viewMode === "week"
+    ? { rangeStart: startOfWeek(date), rangeEnd: endOfWeek(date) }
+    : { rangeStart: startOfMonth(date), rangeEnd: endOfMonth(date) };
 }
 
 export function useAgendaData({
   selectedDate,
   viewMode,
 }: UseAgendaDataInput): UseAgendaDataResult {
+  const { attivita: repo } = useRepositories();
   const epoch = selectedDate.getTime();
   const range = useMemo(
     () => computeRange(new Date(epoch), viewMode),
     [epoch, viewMode]
   );
 
-  const { items, loading, error, refresh } = useAttivita(range.filters);
+  const fromMs = range.rangeStart.getTime();
+  const toMs = range.rangeEnd.getTime();
+
+  const query = useQuery<Attivita[]>({
+    queryKey: queryKeys.agenda({ from: fromMs, to: toMs }),
+    queryFn: () => repo.list({ from: new Date(fromMs), to: new Date(toMs) }),
+  });
+
+  const refresh = async (): Promise<void> => {
+    await query.refetch();
+  };
 
   return {
     rangeStart: range.rangeStart,
     rangeEnd: range.rangeEnd,
-    items,
+    items: query.data ?? [],
     reminders: [],
-    loading,
-    error,
+    loading: query.isPending,
+    error: query.isError ? "load-failed" : null,
     refresh,
   };
 }

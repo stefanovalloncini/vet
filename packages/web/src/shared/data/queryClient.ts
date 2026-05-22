@@ -45,4 +45,8 @@ export const queryKeys = {
     from: string | null,
     to: string | null
   ) => ["riepilogoPdf", aziendaId, from, to] as const,
+  agenda: (dateRange?: Readonly<Record<string, unknown>>) =>
+    ["agenda", dateRange ?? {}] as const,
+  trash: (filters?: Readonly<Record<string, unknown>>) =>
+    ["trash", filters ?? {}] as const,
 } as const;
