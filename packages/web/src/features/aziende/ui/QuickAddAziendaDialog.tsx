@@ -1,7 +1,9 @@
-import { useState, type FormEvent } from "react";
-import { Button, Dialog, InlineError, TextField } from "../../../shared/ui";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Dialog, InlineError } from "../../../shared/ui";
+import { RHFTextField } from "../../../shared/ui/rhf";
 import { useAuthState } from "../../auth";
-import { aziendaInputSchema, type Azienda } from "@vet/shared";
+import { aziendaInputSchema, type Azienda, type AziendaInput } from "@vet/shared";
 import { useCreateAzienda } from "../hooks/useAziende";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 
@@ -12,6 +14,8 @@ interface Props {
   initialNome?: string;
 }
 
+type FormValues = { nome: string };
+
 export function QuickAddAziendaDialog({
   open,
   onClose,
@@ -21,70 +25,75 @@ export function QuickAddAziendaDialog({
   const { user } = useAuthState();
   const { aziende: repo } = useRepositories();
   const create = useCreateAzienda();
-  const [nome, setNome] = useState(initialNome);
-  const [error, setError] = useState<string | null>(null);
-  const busy = create.isPending;
+  const form = useForm<FormValues>({
+    resolver: zodResolver(aziendaInputSchema),
+    defaultValues: { nome: initialNome },
+    mode: "onSubmit",
+  });
+  const busy = create.isPending || form.formState.isSubmitting;
+  const nome = form.watch("nome");
+  const rootError = form.formState.errors.root?.message;
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function onSubmit(values: FormValues) {
     if (!user) return;
-    const parsed = aziendaInputSchema.safeParse({ nome: nome.trim() });
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Dati non validi");
-      return;
-    }
-    setError(null);
     try {
-      const id = await create.mutateAsync({ input: parsed.data, actor: user });
+      const input: AziendaInput = { nome: values.nome };
+      const id = await create.mutateAsync({ input, actor: user });
       const created = await repo.getById(id);
       if (!created) throw new Error("Impossibile leggere la nuova azienda");
       onCreated(created);
-      setNome("");
+      form.reset({ nome: "" });
       onClose();
     } catch (err) {
       console.error("quick add azienda failed", err);
-      setError(err instanceof Error ? err.message : "Salvataggio non riuscito");
+      form.setError("root", {
+        message: err instanceof Error ? err.message : "Salvataggio non riuscito",
+      });
     }
   }
 
   function handleClose() {
     if (busy) return;
-    setNome("");
-    setError(null);
+    form.reset({ nome: "" });
+    form.clearErrors();
     onClose();
   }
 
   return (
     <Dialog open={open} onClose={handleClose} labelledBy="quick-azienda-title" size="sm">
-      <form onSubmit={handleSubmit} className="p-5 space-y-4">
-        <div>
-          <h2 id="quick-azienda-title" className="text-base font-medium text-(--color-text)">
-            Nuova azienda
-          </h2>
-          <p className="text-xs text-(--color-text-muted) mt-1">
-            Solo il nome è obbligatorio. Gli altri campi li puoi compilare dopo.
-          </p>
-        </div>
-        <TextField
-          id="quick-azienda-nome"
-          label="Nome"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          required
-          autoFocus
-          disabled={busy}
-          placeholder="Nome azienda"
-        />
-        {error ? <InlineError>{error}</InlineError> : null}
-        <div className="flex items-center justify-end gap-3 pt-1">
-          <Button type="button" variant="ghost" onClick={handleClose} disabled={busy}>
-            Annulla
-          </Button>
-          <Button type="submit" variant="primary" disabled={busy || !nome.trim()}>
-            Crea
-          </Button>
-        </div>
-      </form>
+      <FormProvider {...form}>
+        <form
+          noValidate
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="p-5 space-y-4"
+        >
+          <div>
+            <h2 id="quick-azienda-title" className="text-base font-medium text-(--color-text)">
+              Nuova azienda
+            </h2>
+            <p className="text-xs text-(--color-text-muted) mt-1">
+              Solo il nome è obbligatorio. Gli altri campi li puoi compilare dopo.
+            </p>
+          </div>
+          <RHFTextField<FormValues>
+            name="nome"
+            label="Nome"
+            required
+            autoFocus
+            disabled={busy}
+            placeholder="Nome azienda"
+          />
+          {rootError ? <InlineError>{rootError}</InlineError> : null}
+          <div className="flex items-center justify-end gap-3 pt-1">
+            <Button type="button" variant="ghost" onClick={handleClose} disabled={busy}>
+              Annulla
+            </Button>
+            <Button type="submit" variant="primary" disabled={busy || !nome.trim()}>
+              Crea
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
     </Dialog>
   );
 }

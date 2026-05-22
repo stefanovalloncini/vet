@@ -1,0 +1,292 @@
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useForm, useWatch, type UseFormReturn } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
+import {
+  GINECOLOGIA_TIPO_ID,
+  type ActorContext,
+  type Attivita,
+  type AttivitaInput,
+  type AttivitaRepository,
+} from "@vet/shared";
+import {
+  dateInputValue,
+  formatEuro,
+  parseDateInput,
+} from "../../attivita/lib/format";
+import { queryKeys } from "../../../shared/data/queryClient";
+import { useCreateAttivita } from "../../attivita/hooks/useAttivita";
+import type { ReferenceData } from "../../attivita/hooks/useReferenceData";
+import {
+  isTariffaOutOfRange,
+  meanTariffaByTipo,
+} from "../lib/tariffStats";
+import {
+  defaultTariffaForTipo,
+  hasDuplicateAttivita,
+  parseTariffa,
+} from "../lib/quickEntryHelpers";
+
+const RECENT_AZIENDE_LIMIT = 6;
+
+const formSchema = z.object({
+  data: z.string().min(1, "Data obbligatoria"),
+  aziendaId: z.string().min(1, "Scegli un'azienda"),
+  tipoId: z.string().min(1, "Scegli un tipo"),
+  tariffa: z
+    .string()
+    .min(1, "Tariffa obbligatoria")
+    .superRefine((value, ctx) => {
+      const num = Number(value);
+      if (!Number.isFinite(num) || num <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Tariffa non valida",
+        });
+      }
+    }),
+});
+
+export type QuickEntryFormValues = z.infer<typeof formSchema>;
+
+interface Option {
+  value: string;
+  label: string;
+}
+
+export interface QuickEntryFormState {
+  form: UseFormReturn<QuickEntryFormValues>;
+  busy: boolean;
+  tariffaNum: number | null;
+  duplicateExists: boolean;
+  rangeWarning: string | null;
+  aziendaOptions: ReadonlyArray<Option>;
+  tipoOptions: ReadonlyArray<Option>;
+  rootError: string | undefined;
+  submit: (
+    values: QuickEntryFormValues
+  ) => Promise<{ ok: false } | { ok: true; id: string }>;
+  resetAll: (over?: Partial<QuickEntryFormValues>) => void;
+}
+
+function defaultValues(): QuickEntryFormValues {
+  return {
+    data: dateInputValue(new Date()),
+    aziendaId: "",
+    tipoId: "",
+    tariffa: "",
+  };
+}
+
+function aziendaOptionsFor(
+  aziende: ReferenceData["aziende"],
+  items: ReadonlyArray<Attivita>
+): ReadonlyArray<Option> {
+  const recent: string[] = [];
+  for (const a of items) {
+    if (!recent.includes(a.aziendaId)) recent.push(a.aziendaId);
+    if (recent.length >= RECENT_AZIENDE_LIMIT) break;
+  }
+  const sorted = [...aziende].sort((a, b) => {
+    const ai = recent.indexOf(a.id);
+    const bi = recent.indexOf(b.id);
+    if (ai === -1 && bi === -1) return a.nome.localeCompare(b.nome, "it");
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+  return [
+    { value: "", label: "Scegli azienda" },
+    ...sorted.map((a) => ({
+      value: a.id,
+      label: recent.includes(a.id) ? `★ ${a.nome}` : a.nome,
+    })),
+  ];
+}
+
+function tipoOptionsFor(tipi: ReferenceData["tipi"]): ReadonlyArray<Option> {
+  return [
+    { value: "", label: "Scegli tipo" },
+    ...tipi.map((t) => ({ value: t.id, label: t.nome })),
+  ];
+}
+
+interface UseQuickEntryFormStateArgs {
+  open: boolean;
+  user: ActorContext | null;
+  attivita: AttivitaRepository;
+  ref: ReferenceData;
+}
+
+export function useQuickEntryFormState({
+  open,
+  user,
+  attivita,
+  ref,
+}: UseQuickEntryFormStateArgs): QuickEntryFormState {
+  const createMutation = useCreateAttivita();
+  const form = useForm<QuickEntryFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaultValues(),
+    mode: "onSubmit",
+  });
+  const dupSkipRef = useRef(false);
+  const prevTipoRef = useRef("");
+
+  const recentQuery = useQuery<Attivita[]>({
+    queryKey: queryKeys.attivita(),
+    queryFn: () => attivita.list(),
+    enabled: open,
+  });
+  const items = useMemo(() => recentQuery.data ?? [], [recentQuery.data]);
+
+  const watched = useWatch({ control: form.control });
+  const data = watched.data ?? "";
+  const aziendaId = watched.aziendaId ?? "";
+  const tipoId = watched.tipoId ?? "";
+  const tariffa = watched.tariffa ?? "";
+
+  const tariffaNum = parseTariffa(tariffa);
+  const candidateDate = useMemo(
+    () => parseDateInput(data) ?? new Date(NaN),
+    [data]
+  );
+
+  const meanByTipo = useMemo(() => meanTariffaByTipo(items), [items]);
+  const rangeMean = useMemo(
+    () => isTariffaOutOfRange({ tariffa: tariffaNum, tipoId, meanByTipo }),
+    [tariffaNum, tipoId, meanByTipo]
+  );
+  const rangeWarning =
+    rangeMean === null
+      ? null
+      : `Tariffa fuori dal range solito per questo tipo (media ${formatEuro(rangeMean)}).`;
+
+  const duplicateExists = useMemo(
+    () =>
+      hasDuplicateAttivita({
+        items,
+        aziendaId,
+        tipoId,
+        date: candidateDate,
+      }),
+    [items, aziendaId, tipoId, candidateDate]
+  );
+
+  const aziendaOptions = useMemo(
+    () => aziendaOptionsFor(ref.aziende, items),
+    [ref.aziende, items]
+  );
+  const tipoOptions = useMemo(() => tipoOptionsFor(ref.tipi), [ref.tipi]);
+
+  useEffect(() => {
+    dupSkipRef.current = false;
+  }, [aziendaId, tipoId, data]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (tipoId === prevTipoRef.current) return;
+    prevTipoRef.current = tipoId;
+    if (!tipoId) return;
+    if (form.getValues("tariffa").trim() !== "") return;
+    const fallback = defaultTariffaForTipo(tipoId, ref.tipi);
+    if (fallback !== null) {
+      form.setValue("tariffa", fallback, { shouldDirty: false });
+    }
+  }, [tipoId, open, ref.tipi, form]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (tipoId !== GINECOLOGIA_TIPO_ID) return;
+    if (!aziendaId) return;
+    if (form.getValues("tariffa").trim() !== "") return;
+    let cancelled = false;
+    void (async () => {
+      const last = await attivita.findLastByAziendaAndTipo(
+        aziendaId,
+        GINECOLOGIA_TIPO_ID
+      );
+      if (cancelled || !last) return;
+      if (form.getValues("tariffa").trim() !== "") return;
+      form.setValue("tariffa", String(last.tariffa), { shouldDirty: false });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [aziendaId, tipoId, open, attivita, form]);
+
+  const resetAll = useCallback(
+    (over?: Partial<QuickEntryFormValues>): void => {
+      form.reset({ ...defaultValues(), ...over });
+      dupSkipRef.current = false;
+      prevTipoRef.current = "";
+    },
+    [form]
+  );
+
+  useEffect(() => {
+    if (!open) resetAll();
+  }, [open, resetAll]);
+
+  const submit = useCallback(
+    async (
+      values: QuickEntryFormValues
+    ): Promise<{ ok: false } | { ok: true; id: string }> => {
+      if (!user) return { ok: false };
+      form.clearErrors("root");
+      const parsedDate = parseDateInput(values.data);
+      if (!parsedDate) {
+        form.setError("data", { message: "Data non valida" });
+        return { ok: false };
+      }
+      const azienda = ref.aziende.find((a) => a.id === values.aziendaId);
+      const tipo = ref.tipi.find((t) => t.id === values.tipoId);
+      if (!azienda || !tipo) {
+        form.setError("root", { message: "Cliente o tipo non valido" });
+        return { ok: false };
+      }
+      if (duplicateExists && !dupSkipRef.current) {
+        form.setError("root", {
+          message:
+            "Esiste già un'attività identica oggi. Premi Salva di nuovo per confermare.",
+        });
+        dupSkipRef.current = true;
+        return { ok: false };
+      }
+      try {
+        const input: AttivitaInput = {
+          data: parsedDate,
+          aziendaId: values.aziendaId,
+          tipoId: values.tipoId,
+          oraria: false,
+          tariffa: Number(values.tariffa),
+        };
+        const id = await createMutation.mutateAsync({
+          input,
+          denorm: { aziendaNome: azienda.nome, tipoNome: tipo.nome },
+          actor: user,
+        });
+        return { ok: true, id };
+      } catch (err) {
+        console.error("quick entry save failed", err);
+        form.setError("root", { message: "Salvataggio non riuscito" });
+        return { ok: false };
+      }
+    },
+    [user, form, ref.aziende, ref.tipi, duplicateExists, createMutation]
+  );
+
+  return {
+    form,
+    busy: createMutation.isPending || form.formState.isSubmitting,
+    tariffaNum,
+    duplicateExists,
+    rangeWarning,
+    aziendaOptions,
+    tipoOptions,
+    rootError: form.formState.errors.root?.message,
+    submit,
+    resetAll,
+  };
+}
