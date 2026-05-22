@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   AppShell,
@@ -13,126 +13,33 @@ import {
 } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
-import { CAP_GROUPS, rolesI18n as t } from "../i18n";
-import {
-  CAPABILITIES,
-  CAPABILITY_LABELS,
-  roleInputSchema,
-  type Capability,
-  type Role,
-  type RoleInput,
-} from "@vet/shared";
-
-interface FormState {
-  id: string;
-  name: string;
-  description: string;
-  capabilities: Set<Capability>;
-}
-
-function emptyForm(): FormState {
-  return {
-    id: "",
-    name: "",
-    description: "",
-    capabilities: new Set(),
-  };
-}
+import { useRoleEditor } from "../hooks/useRoleEditor";
+import { CapabilityMatrix } from "./CapabilityMatrix";
+import { rolesI18n as t } from "../i18n";
 
 export function RoleEditorPage() {
   const { id } = useParams<{ id: string }>();
-  const isEdit = id !== undefined && id !== "nuovo";
   const navigate = useNavigate();
   const { user } = useAuthState();
   const { roles: repo } = useRepositories();
 
-  const [form, setForm] = useState<FormState>(emptyForm);
-  const [loaded, setLoaded] = useState<Role | null>(null);
-  const [loading, setLoading] = useState<boolean>(isEdit);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const editor = useRoleEditor({
+    repo,
+    user,
+    ...(id !== undefined ? { id } : {}),
+  });
 
   useEffect(() => {
-    if (!isEdit || !id) return;
-    let cancelled = false;
-    void (async () => {
-      const r = await repo.getById(id);
-      if (cancelled) return;
-      if (!r) {
-        navigate("/admin/ruoli", { replace: true });
-        return;
-      }
-      setLoaded(r);
-      setForm({
-        id: r.id,
-        name: r.name,
-        description: r.description ?? "",
-        capabilities: new Set(r.capabilities),
-      });
-      setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [id, isEdit, navigate, repo]);
-
-  const canManage = user?.caps.has("roles.manage") ?? false;
-  const isLocked = loaded?.locked ?? false;
-  const readonly = !canManage || isLocked;
-
-  function toggleCap(cap: Capability) {
-    if (readonly) return;
-    setForm((s) => {
-      const next = new Set(s.capabilities);
-      if (next.has(cap)) next.delete(cap);
-      else next.add(cap);
-      return { ...s, capabilities: next };
-    });
-  }
+    if (editor.notFound) navigate("/admin/ruoli", { replace: true });
+  }, [editor.notFound, navigate]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (readonly || !user) return;
-    const input: RoleInput = {
-      name: form.name,
-      capabilities: [...form.capabilities],
-      ...(form.description.trim() ? { description: form.description.trim() } : {}),
-    };
-    const parsed = roleInputSchema.safeParse(input);
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? t.saveError);
-      return;
-    }
-    const idForWrite = isEdit ? id! : form.id.trim();
-    if (!isEdit && !/^[a-z][a-z0-9-]{0,40}$/.test(idForWrite)) {
-      setError(t.campoIdHint);
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      if (isEdit) {
-        await repo.update(idForWrite, parsed.data, user.uid);
-      } else {
-        await repo.create(idForWrite, parsed.data, user.uid);
-      }
-      navigate("/admin/ruoli");
-    } catch {
-      setError(t.saveError);
-      setBusy(false);
-    }
+    const outcome = await editor.save();
+    if (outcome.kind === "saved") navigate("/admin/ruoli");
   }
 
-  const groupedCaps = useMemo(
-    () =>
-      CAP_GROUPS.map((g) => ({
-        label: t[g.label] as string,
-        items: CAPABILITIES.filter((c) => c.startsWith(g.prefix)),
-      })).filter((g) => g.items.length > 0),
-    []
-  );
-
-  if (loading) {
+  if (editor.loading) {
     return (
       <AppShell>
         <LoadingHint label={t.loading} />
@@ -143,46 +50,40 @@ export function RoleEditorPage() {
   return (
     <AppShell>
       <PageHeader
-        title={isEdit ? t.titoloModifica : t.titoloNuovo}
+        title={editor.isEdit ? t.titoloModifica : t.titoloNuovo}
         back={{ to: "/admin/ruoli", label: t.back }}
-        {...(isLocked ? { subtitle: t.blocked } : {})}
+        {...(editor.isLocked ? { subtitle: t.blocked } : {})}
       />
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
         <Card>
           <div className="space-y-5">
-            {!isEdit ? (
+            {!editor.isEdit ? (
               <TextField
                 id="role-id"
                 label={t.campoId}
-                value={form.id}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, id: e.target.value }))
-                }
+                value={editor.draftId}
+                onChange={(e) => editor.setDraftId(e.target.value)}
                 hint={t.campoIdHint}
                 required
-                disabled={busy}
+                disabled={editor.busy}
               />
             ) : null}
             <TextField
               id="role-name"
               label={t.campoNome}
-              value={form.name}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, name: e.target.value }))
-              }
+              value={editor.name}
+              onChange={(e) => editor.setName(e.target.value)}
               required
-              disabled={busy || readonly}
+              disabled={editor.busy || editor.readonly}
               maxLength={60}
             />
             <TextArea
               id="role-description"
               label={t.campoDescrizione}
-              value={form.description}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, description: e.target.value }))
-              }
-              disabled={busy || readonly}
+              value={editor.description}
+              onChange={(e) => editor.setDescription(e.target.value)}
+              disabled={editor.busy || editor.readonly}
               maxLength={300}
             />
           </div>
@@ -192,55 +93,27 @@ export function RoleEditorPage() {
           <SectionLabel as="h2" className="font-medium mb-3">
             {t.sezioneCap}
           </SectionLabel>
-          <div className="space-y-4">
-            {groupedCaps.map((group) => (
-              <Card key={group.label}>
-                <h3 className="text-sm font-medium text-(--color-text) mb-3">
-                  {group.label}
-                </h3>
-                <div className="space-y-2">
-                  {group.items.map((cap) => (
-                    <label
-                      key={cap}
-                      className={[
-                        "flex items-center gap-3 py-1.5 rounded-md",
-                        readonly ? "" : "cursor-pointer hover:bg-(--color-surface-muted) px-2 -mx-2",
-                      ].join(" ")}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={form.capabilities.has(cap)}
-                        onChange={() => toggleCap(cap)}
-                        disabled={readonly}
-                        className="w-4 h-4 accent-(--color-accent)"
-                      />
-                      <span className="text-sm text-(--color-text)">
-                        {CAPABILITY_LABELS[cap]}
-                      </span>
-                      <span className="text-[10px] text-(--color-text-subtle) font-mono ml-auto">
-                        {cap}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </Card>
-            ))}
-          </div>
+          <CapabilityMatrix
+            value={editor.capabilities}
+            onChange={editor.setCapabilities}
+            readonly={editor.readonly}
+          />
         </section>
 
-        {error ? <InlineError>{error}</InlineError> : null}
+        {editor.loadError ? <InlineError>{editor.loadError}</InlineError> : null}
+        {editor.error ? <InlineError>{editor.error}</InlineError> : null}
 
-        {readonly ? null : (
+        {editor.readonly ? null : (
           <div className="flex items-center justify-end gap-3">
             <Button
               type="button"
               variant="ghost"
               onClick={() => navigate("/admin/ruoli")}
-              disabled={busy}
+              disabled={editor.busy}
             >
               {t.annulla}
             </Button>
-            <Button type="submit" variant="primary" disabled={busy}>
+            <Button type="submit" variant="primary" disabled={editor.busy}>
               {t.salva}
             </Button>
           </div>
