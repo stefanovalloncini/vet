@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import {
   attivitaInputSchema,
   GINECOLOGIA_TIPO_ID,
@@ -7,9 +7,14 @@ import {
   type AttivitaInput,
   type AttivitaRepository,
 } from "@vet/shared";
-import { dateInputValue, formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../attivita/lib/format";
 import { isTariffaOutOfRange, meanTariffaByTipo } from "../lib/tariffStats";
 import type { ReferenceData } from "../../attivita/hooks/useReferenceData";
+import {
+  defaultTariffaForTipo,
+  initialQuickEntryFields,
+  quickEntryReducer,
+} from "./quickEntryReducer";
 
 const RECENT_AZIENDE_LIMIT = 6;
 
@@ -59,15 +64,15 @@ export function useQuickEntryForm({
   attivita,
   ref,
 }: UseQuickEntryFormArgs): QuickEntryFormState {
-  const [data, setData] = useState<string>(() => dateInputValue(new Date()));
-  const [aziendaId, setAziendaId] = useState("");
-  const [tipoId, setTipoId] = useState("");
-  const [tariffa, setTariffa] = useState("");
+  const [fields, dispatch] = useReducer(
+    quickEntryReducer,
+    undefined,
+    initialQuickEntryFields
+  );
+  const { data, aziendaId, tipoId, tariffa, skipDupCheck, error } = fields;
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [items, setItems] = useState<Attivita[]>([]);
-  const [skipDupCheck, setSkipDupCheck] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -95,32 +100,22 @@ export function useQuickEntryForm({
   }, [open, attivita]);
 
   useEffect(() => {
-    if (!open || !tipoId || tariffa) return;
-    if (tipoId === GINECOLOGIA_TIPO_ID) {
-      if (!aziendaId) return;
-      let cancelled = false;
-      void (async () => {
-        const last = await attivita.findLastByAziendaAndTipo(
-          aziendaId,
-          GINECOLOGIA_TIPO_ID
-        );
-        if (cancelled || !last) return;
-        setTariffa(String(last.tariffa));
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }
-    const tipo = ref.tipi.find((t) => t.id === tipoId);
-    if (tipo?.tariffaStandard !== undefined) {
-      setTariffa(String(tipo.tariffaStandard));
-    }
-    return undefined;
-  }, [aziendaId, tipoId, tariffa, open, attivita, ref.tipi]);
-
-  useEffect(() => {
-    setSkipDupCheck(false);
-  }, [aziendaId, tipoId, data]);
+    if (!open) return;
+    if (tipoId !== GINECOLOGIA_TIPO_ID) return;
+    if (!aziendaId || tariffa) return;
+    let cancelled = false;
+    void (async () => {
+      const last = await attivita.findLastByAziendaAndTipo(
+        aziendaId,
+        GINECOLOGIA_TIPO_ID
+      );
+      if (cancelled || !last) return;
+      dispatch({ type: "set-tariffa", value: String(last.tariffa) });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [aziendaId, tipoId, tariffa, open, attivita]);
 
   const tariffaNum = tariffa.trim() === "" ? null : Number(tariffa);
   const candidateDate = useMemo(() => new Date(`${data}T00:00:00`), [data]);
@@ -130,9 +125,10 @@ export function useQuickEntryForm({
     () => isTariffaOutOfRange({ tariffa: tariffaNum, tipoId, meanByTipo }),
     [tariffaNum, tipoId, meanByTipo]
   );
-  const rangeWarning = rangeMean === null
-    ? null
-    : `Tariffa fuori dal range solito per questo tipo (media ${formatEuro(rangeMean)}).`;
+  const rangeWarning =
+    rangeMean === null
+      ? null
+      : `Tariffa fuori dal range solito per questo tipo (media ${formatEuro(rangeMean)}).`;
 
   const duplicateExists = useMemo(() => {
     if (!aziendaId || !tipoId) return false;
@@ -170,13 +166,28 @@ export function useQuickEntryForm({
     [ref.tipi]
   );
 
+  function setData(value: string): void {
+    dispatch({ type: "set-data", value });
+  }
+
+  function setAziendaId(value: string): void {
+    dispatch({ type: "set-azienda", value });
+  }
+
+  function setTipoId(value: string): void {
+    dispatch({
+      type: "set-tipo",
+      value,
+      defaultTariffa: defaultTariffaForTipo(value, ref.tipi),
+    });
+  }
+
+  function setTariffa(value: string): void {
+    dispatch({ type: "set-tariffa", value });
+  }
+
   function reset(opts: { keepDate?: boolean } = {}): void {
-    if (!opts.keepDate) setData(dateInputValue(new Date()));
-    setAziendaId("");
-    setTipoId("");
-    setTariffa("");
-    setError(null);
-    setSkipDupCheck(false);
+    dispatch({ type: "reset", keepDate: opts.keepDate ?? false });
   }
 
   async function save(): Promise<string | null> {
@@ -189,24 +200,29 @@ export function useQuickEntryForm({
       tariffa: Number(tariffa),
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Dati non validi");
+      dispatch({
+        type: "set-error",
+        value: parsed.error.issues[0]?.message ?? "Dati non validi",
+      });
       return null;
     }
     const azienda = ref.aziende.find((a) => a.id === aziendaId);
     const tipo = ref.tipi.find((t) => t.id === tipoId);
     if (!azienda || !tipo) {
-      setError("Cliente o tipo non valido");
+      dispatch({ type: "set-error", value: "Cliente o tipo non valido" });
       return null;
     }
     if (duplicateExists && !skipDupCheck) {
-      setError(
-        "Esiste già un'attività identica oggi. Premi Salva di nuovo per confermare."
-      );
-      setSkipDupCheck(true);
+      dispatch({
+        type: "set-error",
+        value:
+          "Esiste già un'attività identica oggi. Premi Salva di nuovo per confermare.",
+      });
+      dispatch({ type: "arm-dup-skip" });
       return null;
     }
     setBusy(true);
-    setError(null);
+    dispatch({ type: "set-error", value: null });
     try {
       const input: AttivitaInput = parsed.data;
       return await attivita.create(
@@ -216,7 +232,7 @@ export function useQuickEntryForm({
       );
     } catch (err) {
       console.error("quick entry save failed", err);
-      setError("Salvataggio non riuscito");
+      dispatch({ type: "set-error", value: "Salvataggio non riuscito" });
       return null;
     } finally {
       setBusy(false);
