@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ActorContext, AziendeRepository } from "@vet/shared";
 import { AppShell, Button, Card, PageHeader, TextArea } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 import { useAuthState } from "../../auth";
 import { parseAziendeCsv, type ParsedRow } from "../lib/parser";
 
@@ -44,7 +45,7 @@ export function ImportAziendePage() {
   const importer = useMutation({
     mutationFn: (input: ImportInput) => runImport(repo, input),
     onSuccess: (outcome) => {
-      if (outcome.created > 0) void qc.invalidateQueries({ queryKey: ["aziende"] });
+      if (outcome.created > 0) void qc.invalidateQueries({ queryKey: queryKeys.aziende });
     },
   });
   const [text, setText] = useState("");

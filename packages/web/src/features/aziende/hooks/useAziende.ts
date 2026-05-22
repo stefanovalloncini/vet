@@ -22,7 +22,7 @@ export function useAziende() {
 export function useAzienda(id: string | undefined) {
   const { aziende: repo } = useRepositories();
   return useQuery<Azienda | null>({
-    queryKey: id ? queryKeys.azienda(id) : ["aziende", "none"],
+    queryKey: id ? queryKeys.azienda(id) : queryKeys.azienda("__none__"),
     queryFn: () => (id ? repo.getById(id) : Promise.resolve(null)),
     enabled: id !== undefined,
   });
@@ -38,7 +38,7 @@ export function useCreateAzienda() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ input, actor }: CreateInput) => repo.create(input, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["aziende"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.aziende }),
   });
 }
 
@@ -54,7 +54,7 @@ export function useUpdateAzienda() {
   return useMutation({
     mutationFn: ({ id, input, actor }: UpdateInput) =>
       repo.update(id, input, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["aziende"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.aziende }),
   });
 }
 
@@ -68,6 +68,6 @@ export function useDeleteAzienda() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, actor }: DeleteInput) => repo.softDelete(id, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["aziende"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.aziende }),
   });
 }

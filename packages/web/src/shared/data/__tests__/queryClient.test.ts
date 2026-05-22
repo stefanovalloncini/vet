@@ -43,6 +43,10 @@ describe("queryKeys", () => {
     expect(queryKeys.azienda("az1")).toEqual(["aziende", "az1"]);
   });
 
+  it("keys the azienda detail under the aziende prefix so list invalidations refresh it", () => {
+    expect(queryKeys.aziendaDetail("az1")).toEqual(["aziende", "az1", "detail"]);
+  });
+
   it("exposes payments and reminders keys with and without filters", () => {
     expect(queryKeys.payments()).toEqual(["payments", {}]);
     expect(queryKeys.payments({ aziendaId: "az1" })).toEqual([
