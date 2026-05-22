@@ -7,7 +7,7 @@ import {
   SectionLabel,
   Select,
 } from "../../../shared/ui";
-import { useAttivita } from "../../attivita/hooks/useAttivita";
+import { useVetStats } from "../hooks/useVetStats";
 import { formatEuro } from "../../attivita/lib/format";
 import { BarChart } from "../../dashboard/ui/BarChart";
 
@@ -32,27 +32,8 @@ export function VetStatsPage() {
     return {};
   }, [range, now]);
 
-  const { items, loading } = useAttivita(filters);
-
-  const stats = useMemo(() => {
-    const map = new Map<
-      string,
-      { uid: string; nome: string; email: string; total: number; count: number }
-    >();
-    for (const a of items) {
-      const cur = map.get(a.ownerUid) ?? {
-        uid: a.ownerUid,
-        nome: a.ownerName,
-        email: a.ownerEmail,
-        total: 0,
-        count: 0,
-      };
-      cur.total += a.totale;
-      cur.count += 1;
-      map.set(a.ownerUid, cur);
-    }
-    return [...map.values()].sort((a, b) => b.total - a.total);
-  }, [items]);
+  const { data, isLoading } = useVetStats(filters);
+  const stats = data ?? [];
 
   const totalAll = stats.reduce((s, v) => s + v.total, 0);
 
@@ -77,7 +58,7 @@ export function VetStatsPage() {
         />
       </Card>
 
-      {loading ? (
+      {isLoading ? (
         <LoadingHint />
       ) : stats.length === 0 ? (
         <Card>
