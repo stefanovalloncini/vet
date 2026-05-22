@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import { Card } from "../../../shared/ui";
 
 interface MetricCardProps {
@@ -7,6 +8,7 @@ interface MetricCardProps {
   secondary?: string;
   accent?: "danger" | "ok";
   compactValue?: boolean;
+  icon?: LucideIcon;
 }
 
 export function MetricCard({
@@ -16,6 +18,7 @@ export function MetricCard({
   secondary,
   accent,
   compactValue,
+  icon: Icon,
 }: MetricCardProps) {
   const valueColor =
     accent === "danger" ? "text-(--color-danger)" : "text-(--color-text)";
@@ -42,9 +45,12 @@ export function MetricCard({
         accent === "danger" ? "border-(--color-danger)/30" : "",
       ].join(" ")}
     >
-      <p className="text-[10px] uppercase tracking-[0.06em] text-(--color-text-muted) truncate">
-        {label}
-      </p>
+      <div className="flex items-center gap-2 text-(--color-text-muted)">
+        {Icon ? <Icon size={13} strokeWidth={1.75} aria-hidden="true" /> : null}
+        <p className="text-[10px] uppercase tracking-[0.06em] truncate">
+          {label}
+        </p>
+      </div>
       <div className="mt-auto pt-3">
         <p
           className={[
