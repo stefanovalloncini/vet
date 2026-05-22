@@ -1,49 +1,66 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { AppShell, Button, ConfirmDialog, FormFooter, PageHeader } from "../../../shared/ui";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  AppShell,
+  Button,
+  ConfirmDialog,
+  FormFooter,
+  PageHeader,
+} from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
-import { useTariffaSuggestion } from "../hooks/useTariffaSuggestion";
-import { useAttivitaForm } from "../hooks/useAttivitaForm";
+import {
+  useAttivitaDerived,
+  useAttivitaHydration,
+  useAttivitaSubmit,
+  useExistingAttivita,
+} from "../hooks/useAttivitaForm";
 import { QuickAddAziendaDialog } from "../../aziende/ui/QuickAddAziendaDialog";
 import { QuickAddTipoDialog } from "../../activity-types/ui/QuickAddTipoDialog";
 import { nextOrdine } from "../../activity-types/lib/ordine";
 import { attivitaI18n as t } from "../i18n";
-import { computeTotale } from "@vet/shared";
+import {
+  attivitaFormSchema,
+  emptyFormValues,
+  type AttivitaFormValues,
+} from "../lib/formSchema";
 import { AttivitaFormFields } from "./AttivitaFormFields";
 
 export function AttivitaFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const cloneId = params.get("clone");
+  const presetDate = params.get("data");
+  const isEdit = id !== undefined;
+  const targetId = id ?? cloneId ?? undefined;
+
   const { user } = useAuthState();
   const ref = useReferenceData();
+  const existing = useExistingAttivita(targetId);
+
+  const form = useForm<AttivitaFormValues>({
+    resolver: zodResolver(attivitaFormSchema),
+    defaultValues: emptyFormValues(presetDate),
+    mode: "onSubmit",
+  });
+
+  useAttivitaHydration({ form, existing, isEdit, targetId });
+  const submit = useAttivitaSubmit({
+    form,
+    id,
+    isEdit,
+    user,
+    aziende: ref.aziende,
+    tipi: ref.tipi,
+  });
+  const derived = useAttivitaDerived({ form, tipi: ref.tipi, isEdit });
+
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addAziendaOpen, setAddAziendaOpen] = useState(false);
   const [addTipoOpen, setAddTipoOpen] = useState(false);
-
-  const f = useAttivitaForm({ id, user, aziende: ref.aziende, tipi: ref.tipi });
-
-  const { suggested: tariffaSuggested, clear: clearTariffaSuggestion } =
-    useTariffaSuggestion({
-      aziendaId: f.form.aziendaId,
-      tipoId: f.form.tipoId,
-      tipi: ref.tipi,
-      isEdit: f.isEdit,
-      currentTariffa: f.form.tariffa,
-      onSuggest: (value) => f.setForm((s) => ({ ...s, tariffa: value })),
-    });
-
-  const totaleLive = useMemo(() => {
-    const tariffa = Number(f.form.tariffa);
-    const ore = Number(f.form.ore);
-    if (!Number.isFinite(tariffa) || tariffa <= 0) return null;
-    if (f.form.oraria && (!Number.isFinite(ore) || ore <= 0)) return null;
-    return computeTotale({
-      oraria: f.form.oraria,
-      tariffa,
-      ...(f.form.oraria ? { ore } : {}),
-    });
-  }, [f.form.tariffa, f.form.ore, f.form.oraria]);
 
   const aziendaOptions = useMemo(
     () => [
@@ -62,13 +79,13 @@ export function AttivitaFormPage() {
   const nextTipoOrdine = useMemo(() => nextOrdine(ref.tipi), [ref.tipi]);
 
   const canDelete =
-    f.isEdit &&
+    isEdit &&
     (user?.caps.has("activities.delete.own") ?? false) &&
-    f.loaded?.ownerUid === user?.uid;
+    existing.data?.ownerUid === user?.uid;
   const canCreateAzienda = user?.caps.has("aziende.create") ?? false;
   const canCreateTipo = user?.caps.has("activity_types.manage") ?? false;
 
-  if (f.initialLoading || ref.loading) {
+  if (existing.isLoading || ref.loading) {
     return (
       <AppShell>
         <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
@@ -76,70 +93,75 @@ export function AttivitaFormPage() {
     );
   }
 
+  const rootError = form.formState.errors.root?.message;
+
   return (
     <AppShell>
       <PageHeader
-        title={f.isEdit ? t.titoloModifica : t.titoloNuova}
+        title={isEdit ? t.titoloModifica : t.titoloNuova}
         back={{ to: "/attivita", label: t.back }}
       />
-      <form onSubmit={f.submit} className="space-y-6 max-w-2xl">
-        <AttivitaFormFields
-          form={f.form}
-          errors={f.errors}
-          busy={f.busy}
-          isEdit={f.isEdit}
-          tariffaSuggested={tariffaSuggested}
-          totaleLive={totaleLive}
-          aziendaOptions={aziendaOptions}
-          tipoOptions={tipoOptions}
-          aziendaAction={
-            canCreateAzienda ? <AddLink onClick={() => setAddAziendaOpen(true)} label="+ Nuova" /> : null
-          }
-          tipoAction={
-            canCreateTipo ? <AddLink onClick={() => setAddTipoOpen(true)} label="+ Nuovo" /> : null
-          }
-          onUpdate={f.update}
-          onTariffaInput={(v) => {
-            f.update("tariffa", v);
-            clearTariffaSuggestion();
-          }}
-        />
-        <QuickAddAziendaDialog
-          open={addAziendaOpen}
-          onClose={() => setAddAziendaOpen(false)}
-          onCreated={(a) => {
-            ref.addAzienda(a);
-            f.update("aziendaId", a.id);
-          }}
-        />
-        <QuickAddTipoDialog
-          open={addTipoOpen}
-          onClose={() => setAddTipoOpen(false)}
-          nextOrdine={nextTipoOrdine}
-          onCreated={(tp) => {
-            ref.addTipo(tp);
-            f.update("tipoId", tp.id);
-          }}
-        />
-        {f.globalError ? (
-          <p role="alert" className="text-sm text-(--color-danger)">
-            {f.globalError}
-          </p>
-        ) : null}
-        <FormActions
-          busy={f.busy}
-          destructive={
-            canDelete ? (
-              <DeleteActions
-                busy={f.busy}
-                onDuplicate={() => navigate(`/attivita/nuova?clone=${id}`)}
-                onDelete={() => setConfirmDelete(true)}
-              />
-            ) : null
-          }
-          onCancel={() => navigate("/attivita")}
-        />
-      </form>
+      <FormProvider {...form}>
+        <form
+          noValidate
+          onSubmit={form.handleSubmit(submit.onSubmit)}
+          className="space-y-6 max-w-2xl"
+        >
+          <AttivitaFormFields
+            busy={submit.busy}
+            isEdit={isEdit}
+            tariffaSuggested={derived.tariffaSuggested}
+            totaleLive={derived.totaleLive}
+            aziendaOptions={aziendaOptions}
+            tipoOptions={tipoOptions}
+            aziendaAction={
+              canCreateAzienda ? (
+                <AddLink onClick={() => setAddAziendaOpen(true)} label="+ Nuova" />
+              ) : null
+            }
+            tipoAction={
+              canCreateTipo ? (
+                <AddLink onClick={() => setAddTipoOpen(true)} label="+ Nuovo" />
+              ) : null
+            }
+          />
+          {rootError ? (
+            <p role="alert" className="text-sm text-(--color-danger)">
+              {rootError}
+            </p>
+          ) : null}
+          <FormActions
+            busy={submit.busy}
+            destructive={
+              canDelete ? (
+                <DeleteActions
+                  busy={submit.busy}
+                  onDuplicate={() => navigate(`/attivita/nuova?clone=${id}`)}
+                  onDelete={() => setConfirmDelete(true)}
+                />
+              ) : null
+            }
+            onCancel={() => navigate("/attivita")}
+          />
+        </form>
+      </FormProvider>
+      <QuickAddAziendaDialog
+        open={addAziendaOpen}
+        onClose={() => setAddAziendaOpen(false)}
+        onCreated={(a) => {
+          ref.addAzienda(a);
+          form.setValue("aziendaId", a.id, { shouldValidate: true });
+        }}
+      />
+      <QuickAddTipoDialog
+        open={addTipoOpen}
+        onClose={() => setAddTipoOpen(false)}
+        nextOrdine={nextTipoOrdine}
+        onCreated={(tp) => {
+          ref.addTipo(tp);
+          form.setValue("tipoId", tp.id, { shouldValidate: true });
+        }}
+      />
       <ConfirmDialog
         open={confirmDelete}
         title="Eliminare questa attività?"
@@ -147,10 +169,10 @@ export function AttivitaFormPage() {
         confirmLabel={t.elimina}
         cancelLabel={t.annulla}
         variant="danger"
-        busy={f.busy}
+        busy={submit.busy}
         onConfirm={() => {
-          void f.remove();
           setConfirmDelete(false);
+          void submit.handleDelete();
         }}
         onClose={() => setConfirmDelete(false)}
       />
@@ -160,7 +182,11 @@ export function AttivitaFormPage() {
 
 function AddLink({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button type="button" onClick={onClick} className="text-(--color-accent) hover:underline font-medium">
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-(--color-accent) hover:underline font-medium"
+    >
       {label}
     </button>
   );
