@@ -10,7 +10,8 @@
     "typecheck": "tsc -p . --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:emulator": "playwright test --config playwright.config.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.0",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",
+    "firebase-admin": "^12.5.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@tailwindcss/vite": "^4.0.0",
     "@testing-library/jest-dom": "^6.5.0",
