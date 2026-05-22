@@ -1,0 +1,26 @@
+export const common = {
+  salva: "Salva",
+  annulla: "Annulla",
+  elimina: "Elimina",
+  modifica: "Modifica",
+  back: "Torna indietro",
+  loading: "Caricamento…",
+  loadError: "Caricamento fallito.",
+  saveError: "Salvataggio non riuscito.",
+  operazioneNonRiuscita: "Operazione non riuscita.",
+  riprova: "Riprova",
+  note: "Note",
+  data: "Data",
+  tipo: "Tipo",
+  totale: "Totale",
+  azienda: "Azienda",
+  periodo: "Periodo",
+  da: "Da",
+  a: "A",
+  oggi: "Oggi",
+  giorni: "giorni",
+  tutti: "Tutti",
+  tutte: "Tutte",
+} as const;
+
+export type CommonI18n = typeof common;
