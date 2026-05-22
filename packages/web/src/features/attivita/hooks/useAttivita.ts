@@ -10,7 +10,11 @@ import type {
   AttivitaInput,
 } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { queryKeys } from "../../../shared/data/queryClient";
+import {
+  ATTIVITA_DEPENDENT_KEYS,
+  invalidateMany,
+  queryKeys,
+} from "../../../shared/data/queryClient";
 
 type Denorm = { aziendaNome: string; tipoNome: string };
 
@@ -54,7 +58,7 @@ export function useCreateAttivita() {
   return useMutation({
     mutationFn: ({ input, denorm, actor }: CreateVars) =>
       repo.create(input, denorm, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["attivita"] }),
+    onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
   });
 }
 
@@ -71,7 +75,7 @@ export function useUpdateAttivita() {
   return useMutation({
     mutationFn: ({ id, input, denorm, actor }: UpdateVars) =>
       repo.update(id, input, denorm, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["attivita"] }),
+    onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
   });
 }
 
@@ -85,6 +89,6 @@ export function useSoftDeleteAttivita() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, actor }: DeleteVars) => repo.softDelete(id, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["attivita"] }),
+    onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
   });
 }

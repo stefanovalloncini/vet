@@ -22,6 +22,7 @@ interface MonthStats {
 
 export interface DashboardStats {
   loading: boolean;
+  isError: boolean;
   items: Attivita[];
   aziende: Azienda[];
   thisMonth: MonthStats;
@@ -63,9 +64,18 @@ export function useDashboardStats(now: Date): DashboardStats {
     [trailingStart, monthEnd]
   );
 
-  const { items, loading } = useAttivita(allRangeFilters);
-  const { aziende, payments } = usePaymentsData();
-  const { reminders: openReminders } = useReminders({ onlyOpen: true });
+  const attivitaResult = useAttivita(allRangeFilters);
+  const paymentsResult = usePaymentsData();
+  const remindersResult = useReminders({ onlyOpen: true });
+  const items = attivitaResult.items;
+  const loading = attivitaResult.loading || paymentsResult.loading || remindersResult.loading;
+  const isError =
+    attivitaResult.isError ||
+    paymentsResult.error !== null ||
+    remindersResult.error !== null;
+  const aziende = paymentsResult.aziende;
+  const payments = paymentsResult.payments;
+  const openReminders = remindersResult.reminders;
 
   const thisMonth = useMemo(
     () => statsForRange(items, monthStart, monthEnd),
@@ -118,6 +128,7 @@ export function useDashboardStats(now: Date): DashboardStats {
 
   return {
     loading,
+    isError,
     items,
     aziende,
     thisMonth,

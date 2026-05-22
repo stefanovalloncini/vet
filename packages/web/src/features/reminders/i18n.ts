@@ -4,6 +4,7 @@ export const remindersI18n = {
   emptyAll: "Nessun promemoria.",
   emptyOpen: "Nessun promemoria aperto.",
   loading: "Caricamento…",
+  loadError: "Caricamento fallito.",
   scaduto: "Scaduto",
   oggi: "Oggi",
   domani: "Domani",

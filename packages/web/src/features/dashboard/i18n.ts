@@ -10,6 +10,7 @@ export const dashboardI18n = {
   topAzienda: "Cliente top del mese",
   topTipo: "Tipo più frequente",
   loading: "Caricamento…",
+  loadError: "Caricamento fallito.",
   diff: "vs mese scorso",
   noActivity: "Ancora nessuna attività registrata.",
 } as const;

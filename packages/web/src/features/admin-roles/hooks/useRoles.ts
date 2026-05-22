@@ -30,13 +30,18 @@ interface RoleWriteVars {
   actor: string;
 }
 
+function invalidateRoles(qc: ReturnType<typeof useQueryClient>): void {
+  void qc.invalidateQueries({ queryKey: ["roles"] });
+  void qc.invalidateQueries({ queryKey: ["allowlist"] });
+}
+
 export function useCreateRole() {
   const { roles: repo } = useRepositories();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (vars: RoleWriteVars) =>
       repo.create(vars.id, vars.input, vars.actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["roles"] }),
+    onSuccess: () => invalidateRoles(qc),
   });
 }
 
@@ -46,7 +51,7 @@ export function useUpdateRole() {
   return useMutation({
     mutationFn: (vars: RoleWriteVars) =>
       repo.update(vars.id, vars.input, vars.actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["roles"] }),
+    onSuccess: () => invalidateRoles(qc),
   });
 }
 
@@ -55,6 +60,6 @@ export function useDeleteRole() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (vars: { id: string }) => repo.delete(vars.id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["roles"] }),
+    onSuccess: () => invalidateRoles(qc),
   });
 }

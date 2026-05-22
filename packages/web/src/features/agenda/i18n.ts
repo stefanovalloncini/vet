@@ -6,6 +6,7 @@ export const agendaI18n = {
   oggi: "Oggi",
   emptyDay: "Nessuna attività in agenda.",
   loading: "Caricamento…",
+  loadError: "Caricamento fallito.",
 } as const;
 
 export const WEEKDAYS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"] as const;

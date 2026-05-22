@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useReducer, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useReducer } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   attivitaInputSchema,
   GINECOLOGIA_TIPO_ID,
@@ -9,6 +9,8 @@ import {
   type AttivitaRepository,
 } from "@vet/shared";
 import { formatEuro } from "../../attivita/lib/format";
+import { useCreateAttivita } from "../../attivita/hooks/useAttivita";
+import { queryKeys } from "../../../shared/data/queryClient";
 import { isTariffaOutOfRange, meanTariffaByTipo } from "../lib/tariffStats";
 import type { ReferenceData } from "../../attivita/hooks/useReferenceData";
 import {
@@ -65,41 +67,28 @@ export function useQuickEntryForm({
   attivita,
   ref,
 }: UseQuickEntryFormArgs): QuickEntryFormState {
-  const qc = useQueryClient();
+  const createMutation = useCreateAttivita();
   const [fields, dispatch] = useReducer(
     quickEntryReducer,
     undefined,
     initialQuickEntryFields
   );
   const { data, aziendaId, tipoId, tariffa, skipDupCheck, error } = fields;
-  const [busy, setBusy] = useState(false);
-  const [recentIds, setRecentIds] = useState<string[]>([]);
-  const [items, setItems] = useState<Attivita[]>([]);
 
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const recent = await attivita.list();
-        if (cancelled) return;
-        setItems(recent);
-        const order: string[] = [];
-        for (const a of recent) {
-          if (!order.includes(a.aziendaId)) order.push(a.aziendaId);
-          if (order.length >= RECENT_AZIENDE_LIMIT) break;
-        }
-        setRecentIds(order);
-      } catch {
-        if (cancelled) return;
-        setItems([]);
-        setRecentIds([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [open, attivita]);
+  const recentQuery = useQuery<Attivita[]>({
+    queryKey: queryKeys.attivita(),
+    queryFn: () => attivita.list(),
+    enabled: open,
+  });
+  const items = useMemo(() => recentQuery.data ?? [], [recentQuery.data]);
+  const recentIds = useMemo(() => {
+    const order: string[] = [];
+    for (const a of items) {
+      if (!order.includes(a.aziendaId)) order.push(a.aziendaId);
+      if (order.length >= RECENT_AZIENDE_LIMIT) break;
+    }
+    return order;
+  }, [items]);
 
   useEffect(() => {
     if (!open) return;
@@ -223,23 +212,19 @@ export function useQuickEntryForm({
       dispatch({ type: "arm-dup-skip" });
       return null;
     }
-    setBusy(true);
     dispatch({ type: "set-error", value: null });
     try {
       const input: AttivitaInput = parsed.data;
-      const id = await attivita.create(
+      const id = await createMutation.mutateAsync({
         input,
-        { aziendaNome: azienda.nome, tipoNome: tipo.nome },
-        user
-      );
-      await qc.invalidateQueries({ queryKey: ["attivita"] });
+        denorm: { aziendaNome: azienda.nome, tipoNome: tipo.nome },
+        actor: user,
+      });
       return id;
     } catch (err) {
       console.error("quick entry save failed", err);
       dispatch({ type: "set-error", value: "Salvataggio non riuscito" });
       return null;
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -252,7 +237,7 @@ export function useQuickEntryForm({
     setTipoId,
     tariffa,
     setTariffa,
-    busy,
+    busy: createMutation.isPending,
     error,
     rangeWarning,
     duplicateExists,

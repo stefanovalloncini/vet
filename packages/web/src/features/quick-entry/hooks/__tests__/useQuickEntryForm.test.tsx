@@ -8,18 +8,23 @@ import {
   type ActorContext,
   type Azienda,
   type AttivitaRepository,
+  type Repositories,
 } from "@vet/shared";
 import { InMemoryAttivitaRepository } from "@vet/shared/testing";
+import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
 import type { ReferenceData } from "../../../attivita/hooks/useReferenceData";
 import { useQuickEntryForm } from "../useQuickEntryForm";
 
-function makeWrapper() {
+function makeWrapper(repo: AttivitaRepository) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
+  const repos = { attivita: repo } as unknown as Repositories;
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      <QueryClientProvider client={client}>
+        <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
+      </QueryClientProvider>
     );
   };
 }
@@ -95,7 +100,7 @@ describe("useQuickEntryForm", () => {
           attivita,
           ref: refData(aziende, tipi),
         }),
-      { wrapper: makeWrapper() }
+      { wrapper: makeWrapper(attivita) }
     );
     await waitFor(() => expect(view.result.current.aziendaOptions.length).toBeGreaterThan(1));
     return view;
@@ -215,7 +220,7 @@ describe("useQuickEntryForm", () => {
   });
 
   it("setters survive StrictMode double-invocation", async () => {
-    const Inner = makeWrapper();
+    const Inner = makeWrapper(attivita);
     const { result } = renderHook(
       () =>
         useQuickEntryForm({

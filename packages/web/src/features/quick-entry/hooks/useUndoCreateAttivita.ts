@@ -5,6 +5,10 @@ import {
 } from "@tanstack/react-query";
 import type { ActorContext, Attivita } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import {
+  ATTIVITA_DEPENDENT_KEYS,
+  invalidateMany,
+} from "../../../shared/data/queryClient";
 
 interface UndoVars {
   id: string;
@@ -37,7 +41,7 @@ export function useUndoCreateAttivita() {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
     },
     onSettled: () => {
-      void qc.invalidateQueries({ queryKey: ATTIVITA_KEY });
+      invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS);
     },
   });
 }

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   AppShell,
   Card,
+  InlineError,
   LoadingHint,
   PageHeader,
   SectionLabel,
@@ -32,7 +33,7 @@ export function VetStatsPage() {
     return {};
   }, [range, now]);
 
-  const { data, isLoading } = useVetStats(filters);
+  const { data, isLoading, isError } = useVetStats(filters);
   const stats = data ?? [];
 
   const totalAll = stats.reduce((s, v) => s + v.total, 0);
@@ -60,6 +61,8 @@ export function VetStatsPage() {
 
       {isLoading ? (
         <LoadingHint />
+      ) : isError ? (
+        <InlineError>Caricamento fallito.</InlineError>
       ) : stats.length === 0 ? (
         <Card>
           <p className="text-sm text-(--color-text-muted) text-center py-4">

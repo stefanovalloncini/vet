@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AppShell, Button, PageHeader } from "../../../shared/ui";
+import { AppShell, Button, InlineError, PageHeader } from "../../../shared/ui";
 import { agendaI18n as t } from "../i18n";
 import { addMonths, startOfMonth } from "../lib/calendar";
 import { useAgendaData, type AgendaViewMode } from "../hooks/useAgendaData";
@@ -9,7 +9,7 @@ import { AgendaDayList } from "./AgendaDayList";
 export function AgendaPage() {
   const [selected, setSelected] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<AgendaViewMode>("month");
-  const { items, reminders, loading } = useAgendaData({
+  const { items, reminders, loading, error } = useAgendaData({
     selectedDate: selected,
     viewMode,
   });
@@ -37,6 +37,10 @@ export function AgendaPage() {
           </>
         }
       />
+
+      {error ? (
+        <InlineError className="mb-4">{t.loadError}</InlineError>
+      ) : null}
 
       <div className="lg:grid lg:grid-cols-[minmax(0,460px)_1fr] lg:gap-6 lg:items-start">
         <AgendaCalendar

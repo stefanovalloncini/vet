@@ -10,6 +10,7 @@ import {
 } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useToast } from "../../../shared/ui";
+import { useCreateReminder } from "../../reminders/hooks/useReminders";
 import { attivitaI18n as t } from "../i18n";
 import { dateInputValue, parseDateInput } from "../lib/format";
 import {
@@ -85,11 +86,12 @@ export function useAttivitaForm({
   const presetDate = params.get("data");
   const isEdit = id !== undefined;
   const targetId = id ?? cloneId;
-  const { attivita: repo, reminders } = useRepositories();
+  const { attivita: repo } = useRepositories();
   const { notify } = useToast();
   const createMutation = useCreateAttivita();
   const updateMutation = useUpdateAttivita();
   const deleteMutation = useSoftDeleteAttivita();
+  const createReminder = useCreateReminder();
 
   const [form, setForm] = useState<AttivitaFormState>(() => emptyForm(presetDate));
   const [loaded, setLoaded] = useState<Attivita | null>(null);
@@ -166,17 +168,17 @@ export function useAttivitaForm({
       const title = form.reminderTitle.trim();
       if (!dueDate || !title) return;
       try {
-        await reminders.create(
-          { aziendaId: azienda.id, titolo: title, dueAt: dueDate },
-          { aziendaNome: azienda.nome },
-          user
-        );
+        await createReminder.mutateAsync({
+          input: { aziendaId: azienda.id, titolo: title, dueAt: dueDate },
+          denorm: { aziendaNome: azienda.nome },
+          actor: user,
+        });
         notify("Promemoria creato", "success");
       } catch {
         void 0;
       }
     },
-    [user, form.reminderAt, form.reminderTitle, reminders, notify]
+    [user, form.reminderAt, form.reminderTitle, createReminder, notify]
   );
 
   const submit = useCallback(
