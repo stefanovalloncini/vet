@@ -1,13 +1,5 @@
 import { z } from "zod";
 
-export const userInputSchema = z
-  .object({
-    email: z.string().email(),
-    displayName: z.string().min(1).max(80),
-    roleId: z.string().min(1).max(60),
-  })
-  .strict();
-
 export const userDocSchema = z
   .object({
     email: z.string().email(),
@@ -24,5 +16,4 @@ export const userDocSchema = z
   })
   .strict();
 
-export type UserInput = z.infer<typeof userInputSchema>;
 export type UserDoc = z.infer<typeof userDocSchema>;

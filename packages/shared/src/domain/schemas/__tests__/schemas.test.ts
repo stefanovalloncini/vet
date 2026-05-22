@@ -1,58 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { userInputSchema, userDocSchema } from "../user.js";
+import { userDocSchema } from "../user.js";
 import { roleInputSchema, roleDocSchema } from "../role.js";
 import {
   allowlistEntryInputSchema,
   allowlistEntryDocSchema,
 } from "../allowlist.js";
-
-describe("userInputSchema", () => {
-  it("accepts a minimal valid input", () => {
-    const r = userInputSchema.safeParse({
-      email: "stefano@example.com",
-      displayName: "Stefano",
-      roleId: "vet",
-    });
-    expect(r.success).toBe(true);
-  });
-
-  it("rejects empty displayName", () => {
-    const r = userInputSchema.safeParse({
-      email: "x@y.com",
-      displayName: "",
-      roleId: "vet",
-    });
-    expect(r.success).toBe(false);
-  });
-
-  it("rejects displayName > 80 chars", () => {
-    const r = userInputSchema.safeParse({
-      email: "x@y.com",
-      displayName: "x".repeat(81),
-      roleId: "vet",
-    });
-    expect(r.success).toBe(false);
-  });
-
-  it("rejects invalid email", () => {
-    const r = userInputSchema.safeParse({
-      email: "not-an-email",
-      displayName: "X",
-      roleId: "vet",
-    });
-    expect(r.success).toBe(false);
-  });
-
-  it("rejects extra fields in strict mode", () => {
-    const r = userInputSchema.safeParse({
-      email: "x@y.com",
-      displayName: "X",
-      roleId: "vet",
-      sneaky: "field",
-    });
-    expect(r.success).toBe(false);
-  });
-});
 
 describe("roleInputSchema", () => {
   it("accepts a valid role with capabilities", () => {

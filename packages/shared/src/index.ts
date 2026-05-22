@@ -32,9 +32,7 @@ export type { ActorContext } from "./domain/entities/ActorContext.js";
 export type { Claims } from "./domain/entities/Claims.js";
 
 export {
-  userInputSchema,
   userDocSchema,
-  type UserInput,
   type UserDoc,
 } from "./domain/schemas/user.js";
 export {
