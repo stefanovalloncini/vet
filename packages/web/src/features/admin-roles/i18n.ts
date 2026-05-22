@@ -22,6 +22,7 @@ export const rolesI18n = {
   annulla: "Annulla",
   back: "Torna ai ruoli",
   blocked: "Ruolo bloccato (locked) — non modificabile.",
+  nomeObbligatorio: "Inserisci un nome.",
   groupActivities: "Attività",
   groupAziende: "Aziende",
   groupTipi: "Tipi attività",

@@ -8,8 +8,8 @@ import { Card } from "../../../shared/ui";
 import { CAP_GROUPS, rolesI18n as t } from "../i18n";
 
 interface CapabilityMatrixProps {
-  value: ReadonlySet<Capability>;
-  onChange: (next: ReadonlySet<Capability>) => void;
+  value: ReadonlyArray<Capability>;
+  onChange: (next: ReadonlyArray<Capability>) => void;
   readonly: boolean;
 }
 
@@ -31,13 +31,14 @@ export function CapabilityMatrix({
   readonly,
 }: CapabilityMatrixProps) {
   const groups = useMemo(buildGroups, []);
+  const selected = useMemo(() => new Set(value), [value]);
 
   function toggle(cap: Capability) {
     if (readonly) return;
-    const next = new Set(value);
+    const next = new Set(selected);
     if (next.has(cap)) next.delete(cap);
     else next.add(cap);
-    onChange(next);
+    onChange([...next]);
   }
 
   return (
@@ -60,7 +61,7 @@ export function CapabilityMatrix({
               >
                 <input
                   type="checkbox"
-                  checked={value.has(cap)}
+                  checked={selected.has(cap)}
                   onChange={() => toggle(cap)}
                   disabled={readonly}
                   className="w-4 h-4 accent-(--color-accent)"

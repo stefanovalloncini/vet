@@ -1,5 +1,13 @@
-import { useEffect, type FormEvent } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Controller, FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  capabilitySchema,
+  type Capability,
+  type RoleInput,
+} from "@vet/shared";
 import {
   AppShell,
   Button,
@@ -8,35 +16,112 @@ import {
   LoadingHint,
   PageHeader,
   SectionLabel,
-  TextField,
-  TextArea,
 } from "../../../shared/ui";
+import { RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { useAuthState } from "../../auth";
-import { useRoleEditor } from "../hooks/useRoleEditor";
+import { useCreateRole, useRole, useUpdateRole } from "../hooks/useRoles";
 import { CapabilityMatrix } from "./CapabilityMatrix";
 import { rolesI18n as t } from "../i18n";
+
+const ID_PATTERN = /^[a-z][a-z0-9-]{0,40}$/;
+
+interface RoleFormValues {
+  id: string;
+  name: string;
+  description: string;
+  capabilities: Capability[];
+}
+
+const EMPTY_VALUES: RoleFormValues = {
+  id: "",
+  name: "",
+  description: "",
+  capabilities: [],
+};
+
+function buildFormSchema(isEdit: boolean) {
+  return z.object({
+    id: isEdit
+      ? z.string()
+      : z.string().regex(ID_PATTERN, t.campoIdHint),
+    name: z.string().min(1, t.nomeObbligatorio).max(60),
+    description: z.string().max(300),
+    capabilities: z.array(capabilitySchema),
+  });
+}
+
+function toRoleInput(values: RoleFormValues): RoleInput {
+  const description = values.description.trim();
+  return {
+    name: values.name,
+    capabilities: [...values.capabilities],
+    ...(description ? { description } : {}),
+  };
+}
 
 export function RoleEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuthState();
 
-  const editor = useRoleEditor({
-    user,
-    ...(id !== undefined ? { id } : {}),
+  const isEdit = id !== undefined && id !== "nuovo";
+
+  const roleQuery = useRole(isEdit ? id : undefined);
+  const loaded = roleQuery.data ?? null;
+  const loading = isEdit && roleQuery.isLoading;
+  const loadError = roleQuery.isError ? t.loadError : null;
+  const notFound = isEdit && roleQuery.isSuccess && loaded === null;
+
+  const createMut = useCreateRole();
+  const updateMut = useUpdateRole();
+
+  const canManage = user?.caps.has("roles.manage") ?? false;
+  const isLocked = loaded?.locked ?? false;
+  const readonly = !canManage || isLocked;
+
+  const schema = useMemo(() => buildFormSchema(isEdit), [isEdit]);
+  const form = useForm<RoleFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: EMPTY_VALUES,
+    mode: "onSubmit",
   });
 
+  const hydratedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (editor.notFound) navigate("/admin/ruoli", { replace: true });
-  }, [editor.notFound, navigate]);
+    if (!loaded || hydratedFor.current === loaded.id) return;
+    form.reset({
+      id: loaded.id,
+      name: loaded.name,
+      description: loaded.description ?? "",
+      capabilities: [...loaded.capabilities],
+    });
+    hydratedFor.current = loaded.id;
+  }, [loaded, form]);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const outcome = await editor.save();
-    if (outcome.kind === "saved") navigate("/admin/ruoli");
+  useEffect(() => {
+    if (notFound) navigate("/admin/ruoli", { replace: true });
+  }, [notFound, navigate]);
+
+  const busy =
+    createMut.isPending || updateMut.isPending || form.formState.isSubmitting;
+
+  async function onSubmit(values: RoleFormValues): Promise<void> {
+    if (readonly || !user) {
+      form.setError("root", { message: t.saveError });
+      return;
+    }
+    const idForWrite = isEdit ? id! : values.id.trim();
+    const input = toRoleInput(values);
+    try {
+      const mut = isEdit ? updateMut : createMut;
+      await mut.mutateAsync({ id: idForWrite, input, actor: user.uid });
+      navigate("/admin/ruoli");
+    } catch {
+      form.setError("root", { message: t.saveError });
+    }
   }
 
-  if (editor.loading) {
+  if (loading) {
     return (
       <AppShell>
         <LoadingHint label={t.loading} />
@@ -44,78 +129,86 @@ export function RoleEditorPage() {
     );
   }
 
+  const rootError = form.formState.errors.root?.message;
+
   return (
     <AppShell>
       <PageHeader
-        title={editor.isEdit ? t.titoloModifica : t.titoloNuovo}
+        title={isEdit ? t.titoloModifica : t.titoloNuovo}
         back={{ to: "/admin/ruoli", label: t.back }}
-        {...(editor.isLocked ? { subtitle: t.blocked } : {})}
+        {...(isLocked ? { subtitle: t.blocked } : {})}
       />
 
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
-        <Card>
-          <div className="space-y-5">
-            {!editor.isEdit ? (
-              <TextField
-                id="role-id"
-                label={t.campoId}
-                value={editor.draftId}
-                onChange={(e) => editor.setDraftId(e.target.value)}
-                hint={t.campoIdHint}
+      <FormProvider {...form}>
+        <form
+          noValidate
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6 max-w-3xl"
+        >
+          <Card>
+            <div className="space-y-5">
+              {!isEdit ? (
+                <RHFTextField<RoleFormValues>
+                  name="id"
+                  label={t.campoId}
+                  hint={t.campoIdHint}
+                  required
+                  disabled={busy}
+                />
+              ) : null}
+              <RHFTextField<RoleFormValues>
+                name="name"
+                label={t.campoNome}
                 required
-                disabled={editor.busy}
+                disabled={busy || readonly}
+                maxLength={60}
               />
-            ) : null}
-            <TextField
-              id="role-name"
-              label={t.campoNome}
-              value={editor.name}
-              onChange={(e) => editor.setName(e.target.value)}
-              required
-              disabled={editor.busy || editor.readonly}
-              maxLength={60}
+              <RHFTextArea<RoleFormValues>
+                name="description"
+                label={t.campoDescrizione}
+                disabled={busy || readonly}
+                maxLength={300}
+              />
+            </div>
+          </Card>
+
+          <section>
+            <SectionLabel as="h2" className="font-medium mb-3">
+              {t.sezioneCap}
+            </SectionLabel>
+            <Controller<RoleFormValues, "capabilities">
+              control={form.control}
+              name="capabilities"
+              render={({ field }) => (
+                <CapabilityMatrix
+                  value={field.value}
+                  onChange={field.onChange}
+                  readonly={readonly}
+                />
+              )}
             />
-            <TextArea
-              id="role-description"
-              label={t.campoDescrizione}
-              value={editor.description}
-              onChange={(e) => editor.setDescription(e.target.value)}
-              disabled={editor.busy || editor.readonly}
-              maxLength={300}
-            />
-          </div>
-        </Card>
+          </section>
 
-        <section>
-          <SectionLabel as="h2" className="font-medium mb-3">
-            {t.sezioneCap}
-          </SectionLabel>
-          <CapabilityMatrix
-            value={editor.capabilities}
-            onChange={editor.setCapabilities}
-            readonly={editor.readonly}
-          />
-        </section>
+          {loadError ? <InlineError>{loadError}</InlineError> : null}
+          {rootError ? <InlineError>{rootError}</InlineError> : null}
 
-        {editor.loadError ? <InlineError>{editor.loadError}</InlineError> : null}
-        {editor.error ? <InlineError>{editor.error}</InlineError> : null}
-
-        {editor.readonly ? null : (
-          <div className="flex items-center justify-end gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => navigate("/admin/ruoli")}
-              disabled={editor.busy}
-            >
-              {t.annulla}
-            </Button>
-            <Button type="submit" variant="primary" disabled={editor.busy}>
-              {t.salva}
-            </Button>
-          </div>
-        )}
-      </form>
+          {readonly ? null : (
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate("/admin/ruoli")}
+                disabled={busy}
+              >
+                {t.annulla}
+              </Button>
+              <Button type="submit" variant="primary" disabled={busy}>
+                {t.salva}
+              </Button>
+            </div>
+          )}
+        </form>
+      </FormProvider>
     </AppShell>
   );
 }
