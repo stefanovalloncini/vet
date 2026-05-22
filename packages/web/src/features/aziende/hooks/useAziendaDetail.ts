@@ -9,18 +9,13 @@ import type {
   Payment,
   PaymentsRepository,
 } from "@vet/shared";
+import { queryKeys } from "../../../shared/data/queryClient";
 
 interface UseAziendaDetailArgs {
   id: string | undefined;
   aziende: AziendeRepository;
   attivita: AttivitaRepository;
   payments: PaymentsRepository;
-}
-
-interface AziendaDetailData {
-  azienda: Azienda | null;
-  items: Attivita[];
-  payments: Payment[];
 }
 
 export interface AziendaDetail {
@@ -33,19 +28,9 @@ export interface AziendaDetail {
   refetch: () => void;
 }
 
-async function loadDetail(
-  id: string,
-  aziende: AziendeRepository,
-  attivita: AttivitaRepository,
-  payments: PaymentsRepository
-): Promise<AziendaDetailData> {
-  const [azienda, items, pays] = await Promise.all([
-    aziende.getById(id),
-    attivita.list({ aziendaId: id }),
-    payments.listForAzienda(id),
-  ]);
-  return { azienda, items, payments: pays };
-}
+const NONE_KEY = ["aziende", "__none__"] as const;
+const EMPTY_ITEMS: Attivita[] = [];
+const EMPTY_PAYMENTS: Payment[] = [];
 
 export function useAziendaDetail({
   id,
@@ -54,26 +39,54 @@ export function useAziendaDetail({
   payments,
 }: UseAziendaDetailArgs): AziendaDetail {
   const navigate = useNavigate();
-  const query = useQuery<AziendaDetailData>({
-    queryKey: id ? ["aziende", id, "detail"] : ["aziende", "none", "detail"],
-    queryFn: () => loadDetail(id as string, aziende, attivita, payments),
-    enabled: id !== undefined,
+  const enabled = id !== undefined;
+
+  const aziendaQuery = useQuery<Azienda | null>({
+    queryKey: enabled ? queryKeys.azienda(id) : NONE_KEY,
+    queryFn: () => aziende.getById(id as string),
+    enabled,
   });
 
-  const missing = query.isSuccess && query.data.azienda === null;
+  const attivitaQuery = useQuery<Attivita[]>({
+    queryKey: queryKeys.attivita({ aziendaId: id ?? "" }),
+    queryFn: () => attivita.list({ aziendaId: id as string }),
+    enabled,
+  });
+
+  const paymentsQuery = useQuery<Payment[]>({
+    queryKey: queryKeys.payments({ aziendaId: id ?? "" }),
+    queryFn: () => payments.listForAzienda(id as string),
+    enabled,
+  });
+
+  const missing =
+    aziendaQuery.isSuccess && aziendaQuery.data === null;
   useEffect(() => {
     if (missing) navigate("/aziende", { replace: true });
   }, [missing, navigate]);
 
+  const isLoading =
+    aziendaQuery.isLoading ||
+    attivitaQuery.isLoading ||
+    paymentsQuery.isLoading;
+  const isError =
+    aziendaQuery.isError || attivitaQuery.isError || paymentsQuery.isError;
+  const error =
+    (aziendaQuery.error as Error | null) ??
+    (attivitaQuery.error as Error | null) ??
+    (paymentsQuery.error as Error | null);
+
   return {
-    azienda: query.data?.azienda ?? null,
-    items: query.data?.items ?? [],
-    payments: query.data?.payments ?? [],
-    isLoading: query.isLoading,
-    isError: query.isError,
-    error: query.error,
+    azienda: aziendaQuery.data ?? null,
+    items: attivitaQuery.data ?? EMPTY_ITEMS,
+    payments: paymentsQuery.data ?? EMPTY_PAYMENTS,
+    isLoading,
+    isError,
+    error,
     refetch: () => {
-      void query.refetch();
+      void aziendaQuery.refetch();
+      void attivitaQuery.refetch();
+      void paymentsQuery.refetch();
     },
   };
 }
