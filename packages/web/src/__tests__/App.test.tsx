@@ -22,7 +22,7 @@ describe("App routing", () => {
   it("redirects unauthenticated users to /login", async () => {
     withRepos();
     await waitFor(() => {
-      expect(screen.getByText(/Entra con il tuo account/)).toBeInTheDocument();
+      expect(screen.getByText(/Entra nel tuo account/)).toBeInTheDocument();
     });
   });
 
