@@ -1,30 +1,13 @@
 import type { ReactNode } from "react";
-import {
-  Card,
-  SectionLabel,
-  Select,
-  TextArea,
-  TextField,
-} from "../../../shared/ui";
+import { useFormContext, useWatch } from "react-hook-form";
+import { Card, SectionLabel } from "../../../shared/ui";
+import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { attivitaI18n as t } from "../i18n";
 import { formatEuro } from "../lib/format";
+import type { AttivitaFormValues } from "../lib/formSchema";
 import { AttivitaReminderField } from "./AttivitaReminderField";
 
-export interface AttivitaFormState {
-  data: string;
-  aziendaId: string;
-  tipoId: string;
-  oraria: boolean;
-  tariffa: string;
-  ore: string;
-  note: string;
-  reminderAt: string;
-  reminderTitle: string;
-}
-
 interface AttivitaFormFieldsProps {
-  form: AttivitaFormState;
-  errors: Partial<Record<keyof AttivitaFormState, string>>;
   busy: boolean;
   isEdit: boolean;
   tariffaSuggested: boolean;
@@ -33,16 +16,9 @@ interface AttivitaFormFieldsProps {
   tipoOptions: ReadonlyArray<{ value: string; label: string }>;
   aziendaAction?: ReactNode;
   tipoAction?: ReactNode;
-  onUpdate: <K extends keyof AttivitaFormState>(
-    key: K,
-    value: AttivitaFormState[K]
-  ) => void;
-  onTariffaInput: (value: string) => void;
 }
 
 export function AttivitaFormFields({
-  form,
-  errors,
   busy,
   isEdit,
   tariffaSuggested,
@@ -51,41 +27,33 @@ export function AttivitaFormFields({
   tipoOptions,
   aziendaAction,
   tipoAction,
-  onUpdate,
-  onTariffaInput,
 }: AttivitaFormFieldsProps) {
+  const { control, register, setValue } = useFormContext<AttivitaFormValues>();
+  const oraria = useWatch({ control, name: "oraria" });
+
   return (
     <Card>
       <div className="space-y-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <TextField
-            id="data"
+          <RHFTextField<AttivitaFormValues>
+            name="data"
             type="date"
             label={t.campoData}
-            value={form.data}
-            onChange={(e) => onUpdate("data", e.target.value)}
             required
-            error={errors.data}
             disabled={busy}
           />
-          <Select
-            id="azienda"
+          <RHFSelect<AttivitaFormValues>
+            name="aziendaId"
             label={t.campoAzienda}
-            value={form.aziendaId}
-            onChange={(e) => onUpdate("aziendaId", e.target.value)}
             options={aziendaOptions}
-            error={errors.aziendaId}
             disabled={busy}
             action={aziendaAction}
           />
         </div>
-        <Select
-          id="tipo"
+        <RHFSelect<AttivitaFormValues>
+          name="tipoId"
           label={t.campoTipo}
-          value={form.tipoId}
-          onChange={(e) => onUpdate("tipoId", e.target.value)}
           options={tipoOptions}
-          error={errors.tipoId}
           disabled={busy}
           action={tipoAction}
         />
@@ -93,11 +61,13 @@ export function AttivitaFormFields({
         <label className="flex items-center gap-3 cursor-pointer">
           <input
             type="checkbox"
-            checked={form.oraria}
-            onChange={(e) => {
-              onUpdate("oraria", e.target.checked);
-              if (!e.target.checked) onUpdate("ore", "");
-            }}
+            {...register("oraria", {
+              onChange: (e) => {
+                if (!(e.target as HTMLInputElement).checked) {
+                  setValue("ore", "", { shouldValidate: false });
+                }
+              },
+            })}
             disabled={busy}
             className="w-4 h-4 accent-(--color-accent)"
           />
@@ -108,55 +78,39 @@ export function AttivitaFormFields({
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <TextField
-            id="tariffa"
+          <RHFTextField<AttivitaFormValues>
+            name="tariffa"
             type="number"
             step="0.01"
             min="0.01"
             max="100000"
             label={t.campoTariffa}
-            value={form.tariffa}
-            onChange={(e) => onTariffaInput(e.target.value)}
             required
-            error={errors.tariffa}
             disabled={busy}
-            hint={tariffaSuggested ? t.ginecologiaSuggerita : undefined}
+            {...(tariffaSuggested ? { hint: t.ginecologiaSuggerita } : {})}
           />
-          {form.oraria ? (
-            <TextField
-              id="ore"
+          {oraria ? (
+            <RHFTextField<AttivitaFormValues>
+              name="ore"
               type="number"
               step="0.25"
               min="0.25"
               max="24"
               label={t.campoOre}
-              value={form.ore}
-              onChange={(e) => onUpdate("ore", e.target.value)}
               required
-              error={errors.ore}
               disabled={busy}
             />
           ) : null}
         </div>
 
-        <TextArea
-          id="note"
+        <RHFTextArea<AttivitaFormValues>
+          name="note"
           label={t.campoNote}
-          value={form.note}
-          onChange={(e) => onUpdate("note", e.target.value)}
-          error={errors.note}
           disabled={busy}
           maxLength={2000}
         />
 
-        {!isEdit ? (
-          <AttivitaReminderField
-            reminderTitle={form.reminderTitle}
-            reminderAt={form.reminderAt}
-            busy={busy}
-            onUpdate={onUpdate}
-          />
-        ) : null}
+        {!isEdit ? <AttivitaReminderField busy={busy} /> : null}
 
         {totaleLive !== null ? (
           <div className="flex items-baseline justify-between pt-2 border-t border-(--color-border)">
