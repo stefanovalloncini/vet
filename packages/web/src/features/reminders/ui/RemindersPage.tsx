@@ -12,10 +12,13 @@ import {
   TextArea,
   TextField,
 } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../../attivita/hooks/useReferenceData";
-import { useReminders } from "../hooks/useReminders";
+import {
+  useDeleteReminder,
+  useReminders,
+  useUpdateReminder,
+} from "../hooks/useReminders";
 import { useReminderCreate } from "../hooks/useReminderCreate";
 import { remindersI18n as t } from "../i18n";
 import { ReminderRow } from "./ReminderRow";
@@ -23,14 +26,13 @@ import type { Reminder } from "@vet/shared";
 
 export function RemindersPage() {
   const { user } = useAuthState();
-  const { reminders: repo } = useRepositories();
   const ref = useReferenceData();
-  const { reminders, loading, refresh } = useReminders();
+  const { reminders, loading, error: loadError } = useReminders();
+  const update = useUpdateReminder();
+  const remove = useDeleteReminder();
   const create = useReminderCreate({
     user,
     aziende: ref.aziende,
-    repo,
-    onCreated: refresh,
   });
 
   const canCreate = user?.caps.has("reminders.create") ?? false;
@@ -53,14 +55,12 @@ export function RemindersPage() {
 
   async function toggleDone(r: Reminder): Promise<void> {
     if (!canUpdateOne(r)) return;
-    await repo.markDone(r.id, !r.done);
-    await refresh();
+    await update.mutateAsync({ id: r.id, done: !r.done });
   }
 
   async function handleDelete(r: Reminder): Promise<void> {
     if (!canDeleteOne(r)) return;
-    await repo.delete(r.id);
-    await refresh();
+    await remove.mutateAsync(r.id);
   }
 
   const aziendaOptions = [
@@ -98,6 +98,8 @@ export function RemindersPage() {
 
       {loading ? (
         <LoadingHint label={t.loading} />
+      ) : loadError ? (
+        <InlineError>{t.loadError}</InlineError>
       ) : reminders.length === 0 ? (
         <EmptyState title={t.emptyAll} />
       ) : (

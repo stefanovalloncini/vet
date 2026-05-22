@@ -1,6 +1,7 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import type { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ActorContext, Repositories } from "@vet/shared";
 import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
 import { createInMemoryRepositories } from "../../../../infrastructure/composition/in-memory";
@@ -47,8 +48,15 @@ async function seed(repos: Repositories): Promise<{ aziendaId: string }> {
 }
 
 function wrap(repos: Repositories) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>;
+    return (
+      <QueryClientProvider client={client}>
+        <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
+      </QueryClientProvider>
+    );
   };
 }
 

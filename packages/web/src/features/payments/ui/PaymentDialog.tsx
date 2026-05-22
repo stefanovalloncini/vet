@@ -7,7 +7,6 @@ import {
   TextArea,
   TextField,
 } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { paymentsI18n as t } from "../i18n";
 import {
@@ -16,6 +15,7 @@ import {
   type MetodoPagamento,
 } from "@vet/shared";
 import { dateInputValue, parseDateInput } from "../../attivita/lib/format";
+import { useCreatePayment } from "../hooks/usePaymentsData";
 import type { AziendaArrears } from "../lib/arrears";
 
 const METODI_OPTIONS = [
@@ -35,15 +35,15 @@ export function PaymentDialog({
   onSaved: () => void | Promise<void>;
 }) {
   const { user } = useAuthState();
-  const { payments } = useRepositories();
+  const create = useCreatePayment();
   const [periodo, setPeriodo] = useState(dateInputValue(new Date()));
   const [importo, setImporto] = useState(
     row.unpaidTotal > 0 ? String(row.unpaidTotal) : ""
   );
   const [metodo, setMetodo] = useState<MetodoPagamento | "">("");
   const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const busy = create.isPending;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -66,18 +66,16 @@ export function PaymentDialog({
       setError(parsed.error.issues[0]?.message ?? t.saveError);
       return;
     }
-    setBusy(true);
     setError(null);
     try {
-      await payments.create(
-        parsed.data,
-        { aziendaNome: row.azienda.nome },
-        user
-      );
+      await create.mutateAsync({
+        input: parsed.data,
+        denorm: { aziendaNome: row.azienda.nome },
+        actor: user,
+      });
       await onSaved();
     } catch {
       setError(t.saveError);
-      setBusy(false);
     }
   }
 

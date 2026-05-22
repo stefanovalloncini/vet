@@ -15,6 +15,7 @@ import { QuickAddTipoDialog } from "../../activity-types/ui/QuickAddTipoDialog";
 import { nextOrdine } from "../../activity-types/lib/ordine";
 import { formatEuro } from "../../attivita/lib/format";
 import { useQuickEntryForm } from "../hooks/useQuickEntryForm";
+import { useUndoCreateAttivita } from "../hooks/useUndoCreateAttivita";
 
 interface QuickEntryDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
   const ref = useReferenceData();
   const { notify } = useToast();
   const form = useQuickEntryForm({ open, user, attivita, ref });
+  const undoCreate = useUndoCreateAttivita();
   const [addAziendaOpen, setAddAziendaOpen] = useState(false);
   const [addTipoOpen, setAddTipoOpen] = useState(false);
 
@@ -41,15 +43,16 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
       action: {
         label: "Annulla",
         onClick: () => {
-          void (async () => {
-            try {
-              await attivita.softDelete(id, user);
-              notify("Attività annullata");
-            } catch (err) {
-              console.error("undo failed", err);
-              notify("Annullamento non riuscito", "error");
+          undoCreate.mutate(
+            { id, user },
+            {
+              onSuccess: () => notify("Attività annullata"),
+              onError: (err) => {
+                console.error("undo failed", err);
+                notify("Annullamento non riuscito", "error");
+              },
             }
-          })();
+          );
         },
       },
     });

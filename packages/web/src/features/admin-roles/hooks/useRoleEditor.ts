@@ -3,11 +3,15 @@ import {
   roleInputSchema,
   type ActorContext,
   type Capability,
-  type Role,
   type RoleInput,
-  type RoleRepository,
 } from "@vet/shared";
 import { rolesI18n as t } from "../i18n";
+import {
+  useCreateRole,
+  useDeleteRole,
+  useRole,
+  useUpdateRole,
+} from "./useRoles";
 
 export type RoleEditorOutcome =
   | { kind: "saved" }
@@ -15,84 +19,44 @@ export type RoleEditorOutcome =
 
 export interface UseRoleEditorOptions {
   id?: string;
-  repo: RoleRepository;
   user: ActorContext | null;
-}
-
-export interface UseRoleEditorResult {
-  isEdit: boolean;
-  loading: boolean;
-  loadError: string | null;
-  notFound: boolean;
-  draftId: string;
-  setDraftId: (next: string) => void;
-  name: string;
-  setName: (next: string) => void;
-  description: string;
-  setDescription: (next: string) => void;
-  capabilities: ReadonlySet<Capability>;
-  setCapabilities: (next: ReadonlySet<Capability>) => void;
-  busy: boolean;
-  error: string | null;
-  canManage: boolean;
-  isLocked: boolean;
-  readonly: boolean;
-  save: () => Promise<RoleEditorOutcome>;
-  remove: () => Promise<RoleEditorOutcome>;
 }
 
 const ID_PATTERN = /^[a-z][a-z0-9-]{0,40}$/;
 
-export function useRoleEditor(
-  options: UseRoleEditorOptions
-): UseRoleEditorResult {
-  const { id, repo, user } = options;
+export function useRoleEditor(options: UseRoleEditorOptions) {
+  const { id, user } = options;
   const isEdit = id !== undefined && id !== "nuovo";
 
-  const [loaded, setLoaded] = useState<Role | null>(null);
-  const [loading, setLoading] = useState<boolean>(isEdit);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [notFound, setNotFound] = useState(false);
+  const roleQuery = useRole(isEdit ? id : undefined);
+  const loaded = roleQuery.data ?? null;
+  const loading = isEdit && roleQuery.isLoading;
+  const loadError = roleQuery.isError ? t.loadError : null;
+  const notFound = isEdit && roleQuery.isSuccess && loaded === null;
+
+  const createMut = useCreateRole();
+  const updateMut = useUpdateRole();
+  const deleteMut = useDeleteRole();
+  const busy =
+    createMut.isPending || updateMut.isPending || deleteMut.isPending;
+
   const [draftId, setDraftId] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [capabilities, setCaps] = useState<ReadonlySet<Capability>>(
     () => new Set()
   );
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hydratedFor, setHydratedFor] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isEdit || !id) return;
-    let cancelled = false;
-    setLoading(true);
-    setLoadError(null);
-    setNotFound(false);
-    void (async () => {
-      try {
-        const r = await repo.getById(id);
-        if (cancelled) return;
-        if (!r) {
-          setNotFound(true);
-          setLoading(false);
-          return;
-        }
-        setLoaded(r);
-        setDraftId(r.id);
-        setName(r.name);
-        setDescription(r.description ?? "");
-        setCaps(new Set(r.capabilities));
-        setLoading(false);
-      } catch {
-        if (cancelled) return;
-        setLoadError(t.loadError);
-        setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [id, isEdit, repo]);
+    if (!loaded || hydratedFor === loaded.id) return;
+    setDraftId(loaded.id);
+    setName(loaded.name);
+    setDescription(loaded.description ?? "");
+    setCaps(new Set(loaded.capabilities));
+    setHydratedFor(loaded.id);
+  }, [loaded, hydratedFor]);
 
   const canManage = user?.caps.has("roles.manage") ?? false;
   const isLocked = loaded?.locked ?? false;
@@ -121,15 +85,13 @@ export function useRoleEditor(
       setError(t.campoIdHint);
       return { kind: "error", message: t.campoIdHint };
     }
-    setBusy(true);
     setError(null);
     try {
-      if (isEdit) await repo.update(idForWrite, parsed.data, user.uid);
-      else await repo.create(idForWrite, parsed.data, user.uid);
+      const mut = isEdit ? updateMut : createMut;
+      await mut.mutateAsync({ id: idForWrite, input: parsed.data, actor: user.uid });
       return { kind: "saved" };
     } catch {
       setError(t.saveError);
-      setBusy(false);
       return { kind: "error", message: t.saveError };
     }
   }
@@ -138,14 +100,12 @@ export function useRoleEditor(
     if (!isEdit || !id || readonly) {
       return { kind: "error", message: t.saveError };
     }
-    setBusy(true);
     setError(null);
     try {
-      await repo.delete(id);
+      await deleteMut.mutateAsync({ id });
       return { kind: "saved" };
     } catch {
       setError(t.saveError);
-      setBusy(false);
       return { kind: "error", message: t.saveError };
     }
   }

@@ -1,34 +1,73 @@
-import { useCallback, useEffect, useState } from "react";
-import type { Azienda } from "@vet/shared";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type {
+  ActorContext,
+  Azienda,
+  AziendaInput,
+} from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-
-interface UseAziendeState {
-  loading: boolean;
-  error: string | null;
-  aziende: Azienda[];
-}
+import { queryKeys } from "../../../shared/data/queryClient";
 
 export function useAziende() {
   const { aziende: repo } = useRepositories();
-  const [state, setState] = useState<UseAziendeState>({
-    loading: true,
-    error: null,
-    aziende: [],
+  return useQuery<Azienda[]>({
+    queryKey: queryKeys.aziende,
+    queryFn: () => repo.list(),
   });
+}
 
-  const refresh = useCallback(async () => {
-    setState((s) => ({ ...s, loading: true, error: null }));
-    try {
-      const list = await repo.list();
-      setState({ loading: false, error: null, aziende: list });
-    } catch {
-      setState({ loading: false, error: "load-failed", aziende: [] });
-    }
-  }, [repo]);
+export function useAzienda(id: string | undefined) {
+  const { aziende: repo } = useRepositories();
+  return useQuery<Azienda | null>({
+    queryKey: id ? queryKeys.azienda(id) : queryKeys.azienda("__none__"),
+    queryFn: () => (id ? repo.getById(id) : Promise.resolve(null)),
+    enabled: id !== undefined,
+  });
+}
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+interface CreateInput {
+  input: AziendaInput;
+  actor: ActorContext;
+}
 
-  return { ...state, refresh };
+export function useCreateAzienda() {
+  const { aziende: repo } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ input, actor }: CreateInput) => repo.create(input, actor),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.aziende }),
+  });
+}
+
+interface UpdateInput {
+  id: string;
+  input: AziendaInput;
+  actor: ActorContext;
+}
+
+export function useUpdateAzienda() {
+  const { aziende: repo } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input, actor }: UpdateInput) =>
+      repo.update(id, input, actor),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.aziende }),
+  });
+}
+
+interface DeleteInput {
+  id: string;
+  actor: ActorContext;
+}
+
+export function useDeleteAzienda() {
+  const { aziende: repo } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, actor }: DeleteInput) => repo.softDelete(id, actor),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.aziende }),
+  });
 }

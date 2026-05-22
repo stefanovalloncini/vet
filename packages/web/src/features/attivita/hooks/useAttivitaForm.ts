@@ -10,8 +10,14 @@ import {
 } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useToast } from "../../../shared/ui";
+import { useCreateReminder } from "../../reminders/hooks/useReminders";
 import { attivitaI18n as t } from "../i18n";
 import { dateInputValue, parseDateInput } from "../lib/format";
+import {
+  useCreateAttivita,
+  useSoftDeleteAttivita,
+  useUpdateAttivita,
+} from "./useAttivita";
 import type { AttivitaFormState } from "../ui/AttivitaFormFields";
 
 interface UseAttivitaFormArgs {
@@ -80,17 +86,25 @@ export function useAttivitaForm({
   const presetDate = params.get("data");
   const isEdit = id !== undefined;
   const targetId = id ?? cloneId;
-  const { attivita: repo, reminders } = useRepositories();
+  const { attivita: repo } = useRepositories();
   const { notify } = useToast();
+  const createMutation = useCreateAttivita();
+  const updateMutation = useUpdateAttivita();
+  const deleteMutation = useSoftDeleteAttivita();
+  const createReminder = useCreateReminder();
 
   const [form, setForm] = useState<AttivitaFormState>(() => emptyForm(presetDate));
   const [loaded, setLoaded] = useState<Attivita | null>(null);
   const [initialLoading, setInitialLoading] = useState<boolean>(
     isEdit || cloneId !== null
   );
-  const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const busy =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
 
   useEffect(() => {
     if (!targetId) return;
@@ -154,17 +168,17 @@ export function useAttivitaForm({
       const title = form.reminderTitle.trim();
       if (!dueDate || !title) return;
       try {
-        await reminders.create(
-          { aziendaId: azienda.id, titolo: title, dueAt: dueDate },
-          { aziendaNome: azienda.nome },
-          user
-        );
+        await createReminder.mutateAsync({
+          input: { aziendaId: azienda.id, titolo: title, dueAt: dueDate },
+          denorm: { aziendaNome: azienda.nome },
+          actor: user,
+        });
         notify("Promemoria creato", "success");
       } catch {
         void 0;
       }
     },
-    [user, form.reminderAt, form.reminderTitle, reminders, notify]
+    [user, form.reminderAt, form.reminderTitle, createReminder, notify]
   );
 
   const submit = useCallback(
@@ -180,14 +194,13 @@ export function useAttivitaForm({
         setGlobalError(t.erroreSalvataggio);
         return;
       }
-      setBusy(true);
+      const denorm = { aziendaNome: azienda.nome, tipoNome: tipo.nome };
       try {
-        const denorm = { aziendaNome: azienda.nome, tipoNome: tipo.nome };
         if (isEdit && id) {
-          await repo.update(id, input, denorm, user);
+          await updateMutation.mutateAsync({ id, input, denorm, actor: user });
           notify("Attività aggiornata", "success");
         } else {
-          await repo.create(input, denorm, user);
+          await createMutation.mutateAsync({ input, denorm, actor: user });
           notify("Attività registrata", "success");
           await maybeCreateReminder(azienda);
         }
@@ -195,8 +208,6 @@ export function useAttivitaForm({
       } catch {
         setGlobalError(t.erroreSalvataggio);
         notify(t.erroreSalvataggio, "error");
-      } finally {
-        setBusy(false);
       }
     },
     [
@@ -206,7 +217,8 @@ export function useAttivitaForm({
       tipi,
       isEdit,
       id,
-      repo,
+      updateMutation,
+      createMutation,
       notify,
       maybeCreateReminder,
       navigate,
@@ -215,15 +227,13 @@ export function useAttivitaForm({
 
   const remove = useCallback(async (): Promise<void> => {
     if (!isEdit || !id || !user) return;
-    setBusy(true);
     try {
-      await repo.softDelete(id, user);
+      await deleteMutation.mutateAsync({ id, actor: user });
       navigate("/attivita");
     } catch {
       setGlobalError(t.erroreSalvataggio);
-      setBusy(false);
     }
-  }, [isEdit, id, user, repo, navigate]);
+  }, [isEdit, id, user, deleteMutation, navigate]);
 
   return {
     isEdit,

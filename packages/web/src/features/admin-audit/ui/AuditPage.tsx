@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AppShell,
   BoxedList,
@@ -9,7 +9,7 @@ import {
   SectionLabel,
   Select,
 } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { useAuditEvents } from "../hooks/useAuditEvents";
 import { ACTION_LABELS, auditI18n as t } from "../i18n";
 import type { AuditAction, AuditEvent, AuditFilters } from "@vet/shared";
 
@@ -34,38 +34,15 @@ const ACTIONS: Array<{ value: AuditAction | ""; label: string }> = [
 ];
 
 export function AuditPage() {
-  const { audit } = useRepositories();
-  const [events, setEvents] = useState<AuditEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [filterAction, setFilterAction] = useState<AuditAction | "">("");
   const [filterTarget, setFilterTarget] = useState<TargetType | "">("");
 
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      setLoading(true);
-      try {
-        const list = await audit.list({
-          limit: 200,
-          ...(filterAction ? { action: filterAction } : {}),
-          ...(filterTarget ? { targetType: filterTarget } : {}),
-        });
-        if (!cancelled) {
-          setEvents(list);
-          setLoading(false);
-        }
-      } catch {
-        if (!cancelled) {
-          setError("load-failed");
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [audit, filterAction, filterTarget]);
+  const filters: AuditFilters = {
+    ...(filterAction ? { action: filterAction } : {}),
+    ...(filterTarget ? { targetType: filterTarget } : {}),
+  };
+  const { data, isLoading, isError } = useAuditEvents(filters);
+  const events = data ?? [];
 
   const grouped = useMemo(() => {
     const map = new Map<string, AuditEvent[]>();
@@ -106,9 +83,9 @@ export function AuditPage() {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <LoadingHint label={t.loading} />
-      ) : error ? (
+      ) : isError ? (
         <InlineError>{t.loadError}</InlineError>
       ) : events.length === 0 ? (
         <EmptyState title={t.empty} />

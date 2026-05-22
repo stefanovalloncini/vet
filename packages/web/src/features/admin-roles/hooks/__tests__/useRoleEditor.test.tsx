@@ -1,10 +1,20 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { describe, it, expect, beforeEach } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InMemoryRoleRepository } from "@vet/shared/testing";
-import type { ActorContext, Capability, Role } from "@vet/shared";
+import type {
+  ActorContext,
+  Capability,
+  Repositories,
+  Role,
+} from "@vet/shared";
+import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
 import { useRoleEditor } from "../useRoleEditor";
 
-function makeUser(caps: ReadonlyArray<Capability> = ["roles.manage"]): ActorContext {
+function makeUser(
+  caps: ReadonlyArray<Capability> = ["roles.manage"]
+): ActorContext {
   return {
     uid: "u1",
     email: "u@example.com",
@@ -30,6 +40,24 @@ function makeRole(overrides: Partial<Role> = {}): Role {
   };
 }
 
+function makeRepos(roleRepo: InMemoryRoleRepository): Repositories {
+  return {
+    roles: roleRepo,
+  } as unknown as Repositories;
+}
+
+function makeWrapper(repo: InMemoryRoleRepository) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
+  const repos = makeRepos(repo);
+  return ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>
+      <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
+    </QueryClientProvider>
+  );
+}
+
 describe("useRoleEditor", () => {
   let repo: InMemoryRoleRepository;
 
@@ -38,9 +66,9 @@ describe("useRoleEditor", () => {
   });
 
   it("starts in create mode when id is missing", () => {
-    const { result } = renderHook(() =>
-      useRoleEditor({ repo, user: makeUser() })
-    );
+    const { result } = renderHook(() => useRoleEditor({ user: makeUser() }), {
+      wrapper: makeWrapper(repo),
+    });
     expect(result.current.isEdit).toBe(false);
     expect(result.current.loading).toBe(false);
     expect(result.current.readonly).toBe(false);
@@ -49,8 +77,9 @@ describe("useRoleEditor", () => {
   });
 
   it("treats 'nuovo' as create mode", () => {
-    const { result } = renderHook(() =>
-      useRoleEditor({ id: "nuovo", repo, user: makeUser() })
+    const { result } = renderHook(
+      () => useRoleEditor({ id: "nuovo", user: makeUser() }),
+      { wrapper: makeWrapper(repo) }
     );
     expect(result.current.isEdit).toBe(false);
     expect(result.current.loading).toBe(false);
@@ -58,42 +87,44 @@ describe("useRoleEditor", () => {
 
   it("loads existing role into form state", async () => {
     await repo.seed(makeRole());
-    const { result } = renderHook(() =>
-      useRoleEditor({ id: "vet-junior", repo, user: makeUser() })
+    const { result } = renderHook(
+      () => useRoleEditor({ id: "vet-junior", user: makeUser() }),
+      { wrapper: makeWrapper(repo) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.name).toBe("Vet junior"));
     expect(result.current.isEdit).toBe(true);
-    expect(result.current.name).toBe("Vet junior");
     expect(result.current.capabilities.has("activities.create")).toBe(true);
     expect(result.current.notFound).toBe(false);
   });
 
   it("flags notFound when the role id does not exist", async () => {
-    const { result } = renderHook(() =>
-      useRoleEditor({ id: "missing", repo, user: makeUser() })
+    const { result } = renderHook(
+      () => useRoleEditor({ id: "missing", user: makeUser() }),
+      { wrapper: makeWrapper(repo) }
     );
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.notFound).toBe(true);
+    await waitFor(() => expect(result.current.notFound).toBe(true));
   });
 
   it("marks readonly when role is locked", async () => {
     await repo.seed(makeRole({ id: "admin", locked: true }));
-    const { result } = renderHook(() =>
-      useRoleEditor({ id: "admin", repo, user: makeUser() })
+    const { result } = renderHook(
+      () => useRoleEditor({ id: "admin", user: makeUser() }),
+      { wrapper: makeWrapper(repo) }
     );
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.isLocked).toBe(true);
+    await waitFor(() => expect(result.current.isLocked).toBe(true));
     expect(result.current.readonly).toBe(true);
   });
 
   it("marks readonly when the user lacks roles.manage", async () => {
     await repo.seed(makeRole());
-    const { result } = renderHook(() =>
-      useRoleEditor({
-        id: "vet-junior",
-        repo,
-        user: makeUser(["roles.read"]),
-      })
+    const { result } = renderHook(
+      () =>
+        useRoleEditor({
+          id: "vet-junior",
+          user: makeUser(["roles.read"]),
+        }),
+      { wrapper: makeWrapper(repo) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.canManage).toBe(false);
@@ -102,19 +133,20 @@ describe("useRoleEditor", () => {
 
   it("setCapabilities is a no-op when readonly", async () => {
     await repo.seed(makeRole({ locked: true }));
-    const { result } = renderHook(() =>
-      useRoleEditor({ id: "vet-junior", repo, user: makeUser() })
+    const { result } = renderHook(
+      () => useRoleEditor({ id: "vet-junior", user: makeUser() }),
+      { wrapper: makeWrapper(repo) }
     );
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.isLocked).toBe(true));
     const before = result.current.capabilities;
     act(() => result.current.setCapabilities(new Set(["aziende.delete"])));
     expect(result.current.capabilities).toBe(before);
   });
 
   it("rejects invalid id when creating a new role", async () => {
-    const { result } = renderHook(() =>
-      useRoleEditor({ repo, user: makeUser() })
-    );
+    const { result } = renderHook(() => useRoleEditor({ user: makeUser() }), {
+      wrapper: makeWrapper(repo),
+    });
     act(() => {
       result.current.setDraftId("Invalid ID");
       result.current.setName("New role");
@@ -129,9 +161,9 @@ describe("useRoleEditor", () => {
   });
 
   it("creates a new role on save when inputs are valid", async () => {
-    const { result } = renderHook(() =>
-      useRoleEditor({ repo, user: makeUser() })
-    );
+    const { result } = renderHook(() => useRoleEditor({ user: makeUser() }), {
+      wrapper: makeWrapper(repo),
+    });
     act(() => {
       result.current.setDraftId("vet-trial");
       result.current.setName("Vet trial");
@@ -151,10 +183,11 @@ describe("useRoleEditor", () => {
 
   it("updates an existing role on save", async () => {
     await repo.seed(makeRole());
-    const { result } = renderHook(() =>
-      useRoleEditor({ id: "vet-junior", repo, user: makeUser() })
+    const { result } = renderHook(
+      () => useRoleEditor({ id: "vet-junior", user: makeUser() }),
+      { wrapper: makeWrapper(repo) }
     );
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.name).toBe("Vet junior"));
     act(() => {
       result.current.setName("Vet renamed");
       result.current.setCapabilities(new Set(["aziende.read"]));
@@ -168,9 +201,9 @@ describe("useRoleEditor", () => {
   });
 
   it("save refuses when there is no user", async () => {
-    const { result } = renderHook(() =>
-      useRoleEditor({ repo, user: null })
-    );
+    const { result } = renderHook(() => useRoleEditor({ user: null }), {
+      wrapper: makeWrapper(repo),
+    });
     let outcome;
     await act(async () => {
       outcome = await result.current.save();
@@ -180,10 +213,11 @@ describe("useRoleEditor", () => {
 
   it("remove deletes the role when allowed", async () => {
     await repo.seed(makeRole());
-    const { result } = renderHook(() =>
-      useRoleEditor({ id: "vet-junior", repo, user: makeUser() })
+    const { result } = renderHook(
+      () => useRoleEditor({ id: "vet-junior", user: makeUser() }),
+      { wrapper: makeWrapper(repo) }
     );
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.name).toBe("Vet junior"));
     await act(async () => {
       await result.current.remove();
     });
@@ -191,9 +225,9 @@ describe("useRoleEditor", () => {
   });
 
   it("remove refuses in create mode", async () => {
-    const { result } = renderHook(() =>
-      useRoleEditor({ repo, user: makeUser() })
-    );
+    const { result } = renderHook(() => useRoleEditor({ user: makeUser() }), {
+      wrapper: makeWrapper(repo),
+    });
     let outcome;
     await act(async () => {
       outcome = await result.current.remove();

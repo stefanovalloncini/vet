@@ -1,35 +1,56 @@
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import type { AccessRequest } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 
-interface AccessRequestsState {
+export interface UseAccessRequestsResult {
   items: AccessRequest[];
   loading: boolean;
   error: unknown;
 }
 
-export function useAccessRequests() {
+export function useAccessRequests(): UseAccessRequestsResult {
   const { accessRequests } = useRepositories();
-  const [state, setState] = useState<AccessRequestsState>({
-    items: [],
-    loading: true,
-    error: null,
+  const query = useQuery<AccessRequest[]>({
+    queryKey: queryKeys.accessRequests,
+    queryFn: () => accessRequests.list(),
   });
+  return {
+    items: query.data ?? [],
+    loading: query.isPending,
+    error: query.error,
+  };
+}
 
-  async function refresh(): Promise<void> {
-    setState((s) => ({ ...s, loading: true, error: null }));
-    try {
-      const items = await accessRequests.list();
-      setState({ items, loading: false, error: null });
-    } catch (error) {
-      setState((s) => ({ ...s, loading: false, error }));
-    }
-  }
+function callable<TIn, TOut>(name: string) {
+  return httpsCallable<TIn, TOut>(getFunctions(undefined, "europe-west8"), name);
+}
 
-  useEffect(() => {
-    void refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessRequests]);
+interface AcceptInput {
+  email: string;
+  roleId: string;
+}
 
-  return { ...state, refresh };
+export function useAcceptAccessRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: AcceptInput) => {
+      await callable<AcceptInput, void>("acceptAccessRequest")(input);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.accessRequests });
+      void qc.invalidateQueries({ queryKey: queryKeys.allowlist });
+    },
+  });
+}
+
+export function useRejectAccessRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (email: string) => {
+      await callable<{ email: string }, void>("rejectAccessRequest")({ email });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.accessRequests }),
+  });
 }

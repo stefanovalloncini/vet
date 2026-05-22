@@ -1,35 +1,46 @@
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 
-interface PendingUsersState {
+export interface UsePendingUsersResult {
   items: User[];
   loading: boolean;
   error: unknown;
 }
 
-export function usePendingUsers() {
+export function usePendingUsers(): UsePendingUsersResult {
   const { users } = useRepositories();
-  const [state, setState] = useState<PendingUsersState>({
-    items: [],
-    loading: true,
-    error: null,
+  const query = useQuery<User[]>({
+    queryKey: queryKeys.pendingUsers,
+    queryFn: () => users.listPending(),
   });
+  return {
+    items: query.data ?? [],
+    loading: query.isPending,
+    error: query.error,
+  };
+}
 
-  async function refresh() {
-    setState((s) => ({ ...s, loading: true, error: null }));
-    try {
-      const items = await users.listPending();
-      setState({ items, loading: false, error: null });
-    } catch (error) {
-      setState((s) => ({ ...s, loading: false, error }));
-    }
-  }
+interface ApproveInput {
+  uid: string;
+  roleId: string;
+}
 
-  useEffect(() => {
-    void refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users]);
+export function useApprovePendingUser() {
+  const { users } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ uid, roleId }: ApproveInput) => users.approve(uid, roleId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.pendingUsers }),
+  });
+}
 
-  return { ...state, refresh };
+export function useRejectPendingUser() {
+  const { users } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (uid: string) => users.delete(uid),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.pendingUsers }),
+  });
 }

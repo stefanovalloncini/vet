@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog } from "../../shared/ui";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../auth";
-import type { Attivita, Azienda } from "@vet/shared";
+import { queryKeys } from "../../shared/data";
+import type { Attivita } from "@vet/shared";
 
 export function SearchPalette() {
   const navigate = useNavigate();
@@ -11,8 +13,9 @@ export function SearchPalette() {
   const { aziende, attivita } = useRepositories();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [items, setItems] = useState<Azienda[]>([]);
-  const [recentAtt, setRecentAtt] = useState<Attivita[]>([]);
+
+  const canReadAziende = user?.caps.has("aziende.read") ?? false;
+  const canReadAttivita = user?.caps.has("activities.read.all") ?? false;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -25,31 +28,23 @@ export function SearchPalette() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    void (async () => {
-      const calls: Promise<void>[] = [];
-      if (user?.caps.has("aziende.read")) {
-        calls.push(
-          aziende.list().then((list) => {
-            if (!cancelled) setItems(list);
-          })
-        );
-      }
-      if (user?.caps.has("activities.read.all")) {
-        calls.push(
-          attivita.list().then((list) => {
-            if (!cancelled) setRecentAtt(list.slice(0, 50));
-          })
-        );
-      }
-      await Promise.all(calls);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [open, aziende, attivita, user]);
+  const aziendeQ = useQuery({
+    queryKey: queryKeys.aziende,
+    queryFn: () => aziende.list(),
+    enabled: open && canReadAziende,
+  });
+
+  const attivitaQ = useQuery({
+    queryKey: queryKeys.attivita(),
+    queryFn: () => attivita.list(),
+    enabled: open && canReadAttivita,
+  });
+
+  const items = useMemo(() => aziendeQ.data ?? [], [aziendeQ.data]);
+  const recentAtt = useMemo<Attivita[]>(
+    () => (attivitaQ.data ?? []).slice(0, 50),
+    [attivitaQ.data]
+  );
 
   const filteredAziende = useMemo(() => {
     if (!query.trim()) return items.slice(0, 6);

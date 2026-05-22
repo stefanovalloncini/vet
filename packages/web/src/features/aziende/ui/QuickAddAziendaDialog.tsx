@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { Button, Dialog, InlineError, TextField } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { aziendaInputSchema, type Azienda } from "@vet/shared";
+import { useCreateAzienda } from "../hooks/useAziende";
+import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 
 interface Props {
   open: boolean;
@@ -18,10 +19,11 @@ export function QuickAddAziendaDialog({
   initialNome = "",
 }: Props) {
   const { user } = useAuthState();
-  const { aziende } = useRepositories();
+  const { aziende: repo } = useRepositories();
+  const create = useCreateAzienda();
   const [nome, setNome] = useState(initialNome);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const busy = create.isPending;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -31,11 +33,10 @@ export function QuickAddAziendaDialog({
       setError(parsed.error.issues[0]?.message ?? "Dati non validi");
       return;
     }
-    setBusy(true);
     setError(null);
     try {
-      const id = await aziende.create(parsed.data, user);
-      const created = await aziende.getById(id);
+      const id = await create.mutateAsync({ input: parsed.data, actor: user });
+      const created = await repo.getById(id);
       if (!created) throw new Error("Impossibile leggere la nuova azienda");
       onCreated(created);
       setNome("");
@@ -43,8 +44,6 @@ export function QuickAddAziendaDialog({
     } catch (err) {
       console.error("quick add azienda failed", err);
       setError(err instanceof Error ? err.message : "Salvataggio non riuscito");
-    } finally {
-      setBusy(false);
     }
   }
 

@@ -1,34 +1,58 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { Attivita, TrashFilters } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 
-interface State {
+interface UseTrashResult {
+  items: Attivita[];
   loading: boolean;
   error: string | null;
-  items: Attivita[];
+  refresh: () => Promise<void>;
 }
 
-export function useTrash(filters: TrashFilters) {
+export function useTrash(filters: TrashFilters): UseTrashResult {
   const { attivita } = useRepositories();
-  const [state, setState] = useState<State>({
-    loading: true,
-    error: null,
-    items: [],
+
+  const query = useQuery<Attivita[]>({
+    queryKey: queryKeys.trash({ ...filters }),
+    queryFn: () => attivita.listDeleted(filters),
   });
 
-  const refresh = useCallback(async () => {
-    setState((s) => ({ ...s, loading: true, error: null }));
-    try {
-      const list = await attivita.listDeleted(filters);
-      setState({ loading: false, error: null, items: list });
-    } catch {
-      setState({ loading: false, error: "load-failed", items: [] });
-    }
-  }, [attivita, filters.ownerUid]); // eslint-disable-line react-hooks/exhaustive-deps
+  const refresh = async (): Promise<void> => {
+    await query.refetch();
+  };
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  return {
+    items: query.data ?? [],
+    loading: query.isPending,
+    error: query.isError ? "load-failed" : null,
+    refresh,
+  };
+}
 
-  return { ...state, refresh };
+export function useRestoreTrashed() {
+  const { trash } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => trash.restoreAttivita(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["trash"] });
+      void qc.invalidateQueries({ queryKey: ["attivita"] });
+    },
+  });
+}
+
+export function usePurgeTrashed() {
+  const { trash } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => trash.purgeAttivita(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["trash"] });
+    },
+  });
 }

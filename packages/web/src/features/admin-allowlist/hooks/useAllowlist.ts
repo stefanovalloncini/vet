@@ -1,41 +1,60 @@
-import { useCallback, useEffect, useState } from "react";
-import type { AllowlistEntry, Role } from "@vet/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+  AllowlistEntry,
+  AllowlistEntryInput,
+  Role,
+} from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 
-interface State {
-  loading: boolean;
-  error: string | null;
+export interface UseAllowlistResult {
   entries: AllowlistEntry[];
   roles: Role[];
+  loading: boolean;
+  error: unknown;
 }
 
-export function useAllowlist() {
+export function useAllowlist(): UseAllowlistResult {
   const { allowlist, roles: rolesRepo } = useRepositories();
-  const [state, setState] = useState<State>({
-    loading: true,
-    error: null,
-    entries: [],
-    roles: [],
-  });
-
-  const refresh = useCallback(async () => {
-    setState((s) => ({ ...s, loading: true, error: null }));
-    try {
+  const query = useQuery({
+    queryKey: queryKeys.allowlist,
+    queryFn: async () => {
       const [entries, roles] = await Promise.all([
         allowlist.list(),
         rolesRepo.list(),
       ]);
       entries.sort((a, b) => a.email.localeCompare(b.email, "it"));
       roles.sort((a, b) => a.name.localeCompare(b.name, "it"));
-      setState({ loading: false, error: null, entries, roles });
-    } catch {
-      setState({ loading: false, error: "load-failed", entries: [], roles: [] });
-    }
-  }, [allowlist, rolesRepo]);
+      return { entries, roles };
+    },
+  });
+  return {
+    entries: query.data?.entries ?? [],
+    roles: query.data?.roles ?? [],
+    loading: query.isPending,
+    error: query.error,
+  };
+}
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+interface AddInput {
+  input: AllowlistEntryInput;
+  actor: string;
+}
 
-  return { ...state, refresh };
+export function useAddAllowlistEntry() {
+  const { allowlist } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ input, actor }: AddInput) => allowlist.add(input, actor),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allowlist }),
+  });
+}
+
+export function useRemoveAllowlistEntry() {
+  const { allowlist } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (email: string) => allowlist.remove(email),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allowlist }),
+  });
 }

@@ -7,8 +7,8 @@ import type { Group } from "../lib/totals";
 import { AttivitaRow } from "./AttivitaRow";
 
 interface AttivitaGroupsProps {
-  loading: boolean;
-  error: string | null;
+  isLoading: boolean;
+  isError: boolean;
   items: Attivita[];
   groups: Group[];
   canCreate: boolean;
@@ -16,17 +16,17 @@ interface AttivitaGroupsProps {
 }
 
 export function AttivitaGroups({
-  loading,
-  error,
+  isLoading,
+  isError,
   items,
   groups,
   canCreate,
   filtersActive,
 }: AttivitaGroupsProps) {
-  if (loading) {
+  if (isLoading) {
     return <p className="text-sm text-(--color-text-muted)">{t.loading}</p>;
   }
-  if (error) {
+  if (isError) {
     return <p className="text-sm text-(--color-danger)">{t.loadError}</p>;
   }
   if (items.length === 0) {

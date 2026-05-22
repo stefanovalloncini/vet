@@ -19,18 +19,59 @@ export function createQueryClient(): QueryClient {
 export const queryKeys = {
   aziende: ["aziende"] as const,
   azienda: (id: string) => ["aziende", id] as const,
+  aziendaDetail: (id: string) => ["aziende", id, "detail"] as const,
   attivita: (filters?: Readonly<Record<string, unknown>>) =>
     ["attivita", filters ?? {}] as const,
-  attivitaById: (id: string) => ["attivita", "id", id] as const,
   tipiAttivita: ["tipiAttivita"] as const,
   payments: (filters?: Readonly<Record<string, unknown>>) =>
     ["payments", filters ?? {}] as const,
+  reminders: (filters?: Readonly<Record<string, unknown>>) =>
+    ["reminders", filters ?? {}] as const,
   vetStats: (filters?: Readonly<Record<string, unknown>>) =>
     ["vetStats", filters ?? {}] as const,
   auditEvents: (filters?: Readonly<Record<string, unknown>>) =>
     ["auditEvents", filters ?? {}] as const,
   allowlist: ["allowlist"] as const,
   pendingUsers: ["pendingUsers"] as const,
+  accessRequests: ["accessRequests"] as const,
   roles: ["roles"] as const,
   role: (id: string) => ["roles", id] as const,
+  dashboardStats: (filters?: Readonly<Record<string, unknown>>) =>
+    ["dashboardStats", filters ?? {}] as const,
+  statistiche: (filters?: Readonly<Record<string, unknown>>) =>
+    ["statistiche", filters ?? {}] as const,
+  riepilogoPdf: (
+    aziendaId: string,
+    from: string | null,
+    to: string | null
+  ) => ["riepilogoPdf", aziendaId, from, to] as const,
+  agenda: (dateRange?: Readonly<Record<string, unknown>>) =>
+    ["agenda", dateRange ?? {}] as const,
+  trash: (filters?: Readonly<Record<string, unknown>>) =>
+    ["trash", filters ?? {}] as const,
 } as const;
+
+export const ATTIVITA_DEPENDENT_KEYS = [
+  ["attivita"],
+  ["agenda"],
+  ["payments"],
+  ["vetStats"],
+] as const;
+
+export const AZIENDE_DEPENDENT_KEYS = [
+  ["aziende"],
+  ["payments"],
+] as const;
+
+export const REMINDERS_DEPENDENT_KEYS = [
+  ["reminders"],
+] as const;
+
+export function invalidateMany(
+  qc: { invalidateQueries: (input: { queryKey: readonly unknown[] }) => Promise<unknown> | void },
+  keys: ReadonlyArray<readonly unknown[]>
+): void {
+  for (const key of keys) {
+    void qc.invalidateQueries({ queryKey: key });
+  }
+}

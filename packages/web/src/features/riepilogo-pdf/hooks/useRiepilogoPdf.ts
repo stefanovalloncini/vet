@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { Attivita, Azienda } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 import { formatDate, formatEuro, parseDateInput } from "../../attivita/lib/format";
 
 export interface RiepilogoFilters {
@@ -26,72 +28,60 @@ export interface UseRiepilogoPdfResult {
   shareWhatsApp: () => void;
 }
 
+interface FetchedDetail {
+  azienda: Azienda | null;
+  items: Attivita[];
+}
+
 export function useRiepilogoPdf(filters: RiepilogoFilters): UseRiepilogoPdfResult {
   const { aziende, attivita } = useRepositories();
-  const [azienda, setAzienda] = useState<Azienda | null>(null);
-  const [items, setItems] = useState<Attivita[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<"not-found" | "load-failed" | null>(null);
-
   const { aziendaId, fromStr, toStr } = filters;
+  const fromKey = fromStr || null;
+  const toKey = toStr || null;
 
-  useEffect(() => {
-    if (!aziendaId) {
-      setLoading(false);
-      setError("not-found");
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    void (async () => {
-      try {
-        const a = await aziende.getById(aziendaId);
-        if (cancelled) return;
-        if (!a) {
-          setAzienda(null);
-          setItems([]);
-          setError("not-found");
-          setLoading(false);
-          return;
-        }
-        const q: { aziendaId: string; from?: Date; to?: Date } = { aziendaId };
-        const fromD = parseDateInput(fromStr);
-        const toD = parseDateInput(toStr);
-        if (fromD) q.from = fromD;
-        if (toD) {
-          const end = new Date(toD);
-          end.setHours(23, 59, 59, 999);
-          q.to = end;
-        }
-        const list = await attivita.list(q);
-        if (cancelled) return;
-        setAzienda(a);
-        setItems(list.sort((x, y) => x.data.getTime() - y.data.getTime()));
-        setLoading(false);
-      } catch {
-        if (cancelled) return;
-        setError("load-failed");
-        setLoading(false);
+  const query = useQuery<FetchedDetail>({
+    queryKey: queryKeys.riepilogoPdf(aziendaId || "__none__", fromKey, toKey),
+    enabled: aziendaId !== "",
+    queryFn: async () => {
+      const a = await aziende.getById(aziendaId);
+      if (!a) return { azienda: null, items: [] };
+      const q: { aziendaId: string; from?: Date; to?: Date } = { aziendaId };
+      const fromD = parseDateInput(fromStr);
+      const toD = parseDateInput(toStr);
+      if (fromD) q.from = fromD;
+      if (toD) {
+        const end = new Date(toD);
+        end.setHours(23, 59, 59, 999);
+        q.to = end;
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [aziendaId, fromStr, toStr, aziende, attivita]);
+      const list = await attivita.list(q);
+      return {
+        azienda: a,
+        items: list.sort((x, y) => x.data.getTime() - y.data.getTime()),
+      };
+    },
+  });
+
+  const error: "not-found" | "load-failed" | null = useMemo(() => {
+    if (!aziendaId) return "not-found";
+    if (query.isError) return "load-failed";
+    if (query.isSuccess && query.data.azienda === null) return "not-found";
+    return null;
+  }, [aziendaId, query.isError, query.isSuccess, query.data]);
 
   const summary = useMemo<RiepilogoSummary | null>(() => {
-    if (!azienda) return null;
-    const total = items.reduce((s, a) => s + a.totale, 0);
+    const data = query.data;
+    if (!data?.azienda) return null;
+    const total = data.items.reduce((s, a) => s + a.totale, 0);
     return {
-      azienda,
-      items,
+      azienda: data.azienda,
+      items: data.items,
       total,
       from: parseDateInput(fromStr),
       to: parseDateInput(toStr),
-      vetName: items[0]?.ownerName ?? "",
+      vetName: data.items[0]?.ownerName ?? "",
     };
-  }, [azienda, items, fromStr, toStr]);
+  }, [query.data, fromStr, toStr]);
 
   const generatePdf = useCallback(() => {
     window.print();
@@ -107,6 +97,8 @@ export function useRiepilogoPdf(filters: RiepilogoFilters): UseRiepilogoPdfResul
     );
     window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
   }, [summary]);
+
+  const loading = aziendaId !== "" && query.isLoading;
 
   return { loading, error, summary, generatePdf, shareWhatsApp };
 }

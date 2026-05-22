@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppShell, Tabs } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { useTags } from "../hooks/useTags";
@@ -16,12 +15,11 @@ export function AziendaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuthState();
-  const { aziende, attivita, payments } = useRepositories();
   const [tab, setTab] = useState<Tab>("storico");
   const { reminders } = useReminders();
   const { tagsFor, setForAzienda } = useTags();
 
-  const detail = useAziendaDetail({ id, aziende, attivita, payments });
+  const detail = useAziendaDetail(id);
 
   const reminderCount = useMemo(
     () => reminders.filter((r) => r.aziendaId === id && !r.done).length,
@@ -40,17 +38,17 @@ export function AziendaDetailPage() {
   const canUpdate = user?.caps.has("aziende.update") ?? false;
   const canExport = user?.caps.has("activities.export") ?? false;
 
-  if (detail.error) {
+  if (detail.isError) {
     return (
       <AppShell>
         <p role="alert" className="text-sm text-(--color-danger)">
-          Errore caricamento azienda: {detail.error}
+          Errore caricamento azienda: {detail.error?.message ?? "errore"}
         </p>
       </AppShell>
     );
   }
 
-  if (detail.loading || !detail.azienda) {
+  if (detail.isLoading || !detail.azienda) {
     return (
       <AppShell>
         <p className="text-sm text-(--color-text-muted)">Caricamento…</p>

@@ -1,6 +1,4 @@
 import { useState, type FormEvent } from "react";
-import { httpsCallable } from "firebase/functions";
-import { getFunctions } from "firebase/functions";
 import {
   Button,
   Dialog,
@@ -9,13 +7,14 @@ import {
 } from "../../../shared/ui";
 import type { AccessRequest } from "@vet/shared";
 import { allowlistI18n as t } from "../i18n";
+import { useAcceptAccessRequest } from "../hooks/useAccessRequests";
 
 interface AcceptAccessRequestDialogProps {
   open: boolean;
   request: AccessRequest | null;
   roles: ReadonlyArray<{ id: string; name: string }>;
   onClose: () => void;
-  onAccepted: () => Promise<void>;
+  onAccepted: () => void;
 }
 
 export function AcceptAccessRequestDialog({
@@ -25,28 +24,23 @@ export function AcceptAccessRequestDialog({
   onClose,
   onAccepted,
 }: AcceptAccessRequestDialogProps) {
+  const accept = useAcceptAccessRequest();
   const [roleId, setRoleId] = useState("vet");
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const busy = accept.isPending;
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
     if (!request) return;
-    setBusy(true);
     setError(null);
     try {
-      const fn = httpsCallable(
-        getFunctions(undefined, "europe-west8"),
-        "acceptAccessRequest"
-      );
-      await fn({ email: request.email, roleId });
-      await onAccepted();
+      await accept.mutateAsync({ email: request.email, roleId });
+      onAccepted();
       setRoleId("vet");
       onClose();
     } catch {
       setError(t.requestAcceptError);
-    } finally {
-      setBusy(false);
     }
   }
 

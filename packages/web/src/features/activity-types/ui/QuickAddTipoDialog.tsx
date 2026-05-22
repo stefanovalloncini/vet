@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Button, Dialog, InlineError, TextField } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { activityTypeInputSchema, slugify, type ActivityType } from "@vet/shared";
+import { useCreateTipoAttivita } from "../hooks/useActivityTypes";
 
 interface Props {
   open: boolean;
@@ -11,11 +11,11 @@ interface Props {
 }
 
 export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Props) {
-  const { activityTypes } = useRepositories();
+  const createTipo = useCreateTipoAttivita();
   const [nome, setNome] = useState("");
   const [tariffa, setTariffa] = useState("");
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const busy = createTipo.isPending;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -45,12 +45,9 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
       setError(parsed.error.issues[0]?.message ?? "Dati non validi");
       return;
     }
-    setBusy(true);
     setError(null);
     try {
-      await activityTypes.upsert(id, parsed.data);
-      const created = await activityTypes.getById(id);
-      if (!created) throw new Error("Impossibile leggere il nuovo tipo");
+      const created = await createTipo.mutateAsync({ id, input: parsed.data });
       onCreated(created);
       setNome("");
       setTariffa("");
@@ -58,8 +55,6 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
     } catch (err) {
       console.error("quick add tipo failed", err);
       setError(err instanceof Error ? err.message : "Salvataggio non riuscito");
-    } finally {
-      setBusy(false);
     }
   }
 

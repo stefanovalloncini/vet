@@ -8,9 +8,12 @@ import {
   LoadingHint,
   Select,
 } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import type { Role, User } from "@vet/shared";
-import { usePendingUsers } from "../hooks/usePendingUsers";
+import {
+  useApprovePendingUser,
+  usePendingUsers,
+  useRejectPendingUser,
+} from "../hooks/usePendingUsers";
 import { allowlistI18n as t } from "../i18n";
 
 interface PendingUsersTabProps {
@@ -18,38 +21,36 @@ interface PendingUsersTabProps {
 }
 
 export function PendingUsersTab({ roles }: PendingUsersTabProps) {
-  const { users } = useRepositories();
-  const { items, loading, error: loadError, refresh } = usePendingUsers();
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const { items, loading, error: loadError } = usePendingUsers();
+  const approve = useApprovePendingUser();
+  const reject = useRejectPendingUser();
   const [error, setError] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<User | null>(null);
   const [roleByUid, setRoleByUid] = useState<Record<string, string>>({});
+  const busyId =
+    approve.isPending && approve.variables
+      ? approve.variables.uid
+      : reject.isPending && reject.variables
+        ? reject.variables
+        : null;
 
-  async function approve(u: User) {
-    setBusyId(u.uid);
+  async function handleApprove(u: User): Promise<void> {
     setError(null);
     try {
       const roleId = roleByUid[u.uid] ?? u.roleId;
-      await users.approve(u.uid, roleId);
-      await refresh();
+      await approve.mutateAsync({ uid: u.uid, roleId });
     } catch {
       setError(t.pendingApprovaErrore);
-    } finally {
-      setBusyId(null);
     }
   }
 
-  async function reject(u: User) {
-    setBusyId(u.uid);
+  async function handleReject(u: User): Promise<void> {
     setError(null);
     try {
-      await users.delete(u.uid);
+      await reject.mutateAsync(u.uid);
       setRejecting(null);
-      await refresh();
     } catch {
       setError(t.pendingRifiutaErrore);
-    } finally {
-      setBusyId(null);
     }
   }
 
@@ -97,7 +98,7 @@ export function PendingUsersTab({ roles }: PendingUsersTabProps) {
                       type="button"
                       variant="primary"
                       size="sm"
-                      onClick={() => approve(u)}
+                      onClick={() => handleApprove(u)}
                       disabled={busyId === u.uid}
                     >
                       {t.pendingApprova}
@@ -126,9 +127,9 @@ export function PendingUsersTab({ roles }: PendingUsersTabProps) {
         confirmLabel={t.pendingRifiuta}
         cancelLabel={t.annulla}
         variant="danger"
-        busy={busyId !== null}
+        busy={reject.isPending}
         onConfirm={() => {
-          if (rejecting) void reject(rejecting);
+          if (rejecting) void handleReject(rejecting);
         }}
         onClose={() => setRejecting(null)}
       />
