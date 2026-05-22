@@ -1,5 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
+/**
+ * @deprecated Unused. The forms migration will replace this with `react-hook-form`
+ * wrappers under `shared/ui/rhf/`. Delete this file at the end of the RHF
+ * migration (see `~/.claude/plans/Vet/2026-05-22-data-and-forms-migration.md`).
+ */
 export type FieldErrors<T> = Partial<Record<keyof T, string>>;
 
 interface ParseIssue {
@@ -46,6 +51,11 @@ function issuesToFieldErrors<T>(issues: ReadonlyArray<ParseIssue>): FieldErrors<
   return out;
 }
 
+/**
+ * @deprecated Unused. The forms migration will replace this with `react-hook-form`
+ * wrappers under `shared/ui/rhf/`. Delete this file at the end of the RHF
+ * migration (see `~/.claude/plans/Vet/2026-05-22-data-and-forms-migration.md`).
+ */
 export function useForm<TInput extends object, TParsed>(
   config: UseFormConfig<TInput, TParsed>
 ): UseFormResult<TInput> {

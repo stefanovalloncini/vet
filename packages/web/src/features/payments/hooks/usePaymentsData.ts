@@ -55,13 +55,18 @@ interface CreatePaymentInput {
   actor: ActorContext;
 }
 
+function invalidatePaymentsScope(qc: ReturnType<typeof useQueryClient>): void {
+  void qc.invalidateQueries({ queryKey: ["payments"] });
+  void qc.invalidateQueries({ queryKey: queryKeys.aziende });
+}
+
 export function useCreatePayment() {
   const { payments } = useRepositories();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ input, denorm, actor }: CreatePaymentInput) =>
       payments.create(input, denorm, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["payments"] }),
+    onSuccess: () => invalidatePaymentsScope(qc),
   });
 }
 
@@ -76,6 +81,6 @@ export function useDeletePayment() {
   return useMutation({
     mutationFn: ({ id, actor }: DeletePaymentInput) =>
       payments.delete(id, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["payments"] }),
+    onSuccess: () => invalidatePaymentsScope(qc),
   });
 }

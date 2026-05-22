@@ -18,7 +18,7 @@ export function useRoles() {
 export function useRole(id: string | undefined) {
   const { roles: repo } = useRepositories();
   return useQuery<Role | null>({
-    queryKey: id ? queryKeys.role(id) : ["roles", "__none__"],
+    queryKey: id ? queryKeys.role(id) : queryKeys.role("__none__"),
     queryFn: () => (id ? repo.getById(id) : Promise.resolve(null)),
     enabled: Boolean(id),
   });

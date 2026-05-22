@@ -19,6 +19,7 @@ export function createQueryClient(): QueryClient {
 export const queryKeys = {
   aziende: ["aziende"] as const,
   azienda: (id: string) => ["aziende", id] as const,
+  aziendaDetail: (id: string) => ["aziende", id, "detail"] as const,
   attivita: (filters?: Readonly<Record<string, unknown>>) =>
     ["attivita", filters ?? {}] as const,
   tipiAttivita: ["tipiAttivita"] as const,
