@@ -1,6 +1,7 @@
-import { StrictMode } from "react";
+import { StrictMode, type ReactNode } from "react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   GINECOLOGIA_TIPO_ID,
   type ActivityType,
@@ -11,6 +12,17 @@ import {
 import { InMemoryAttivitaRepository } from "@vet/shared/testing";
 import type { ReferenceData } from "../../../attivita/hooks/useReferenceData";
 import { useQuickEntryForm } from "../useQuickEntryForm";
+
+function makeWrapper() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+  };
+}
 
 function actor(): ActorContext {
   return {
@@ -75,13 +87,15 @@ describe("useQuickEntryForm", () => {
   ];
 
   async function mount() {
-    const view = renderHook(() =>
-      useQuickEntryForm({
-        open: true,
-        user: actor(),
-        attivita,
-        ref: refData(aziende, tipi),
-      })
+    const view = renderHook(
+      () =>
+        useQuickEntryForm({
+          open: true,
+          user: actor(),
+          attivita,
+          ref: refData(aziende, tipi),
+        }),
+      { wrapper: makeWrapper() }
     );
     await waitFor(() => expect(view.result.current.aziendaOptions.length).toBeGreaterThan(1));
     return view;
@@ -201,6 +215,7 @@ describe("useQuickEntryForm", () => {
   });
 
   it("setters survive StrictMode double-invocation", async () => {
+    const Inner = makeWrapper();
     const { result } = renderHook(
       () =>
         useQuickEntryForm({
@@ -209,7 +224,13 @@ describe("useQuickEntryForm", () => {
           attivita,
           ref: refData(aziende, tipi),
         }),
-      { wrapper: ({ children }) => <StrictMode>{children}</StrictMode> }
+      {
+        wrapper: ({ children }) => (
+          <StrictMode>
+            <Inner>{children}</Inner>
+          </StrictMode>
+        ),
+      }
     );
     await waitFor(() => expect(result.current.aziendaOptions.length).toBeGreaterThan(1));
     act(() => result.current.setTipoId("visita"));

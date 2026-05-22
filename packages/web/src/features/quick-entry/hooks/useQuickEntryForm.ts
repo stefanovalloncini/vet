@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   attivitaInputSchema,
   GINECOLOGIA_TIPO_ID,
@@ -64,6 +65,7 @@ export function useQuickEntryForm({
   attivita,
   ref,
 }: UseQuickEntryFormArgs): QuickEntryFormState {
+  const qc = useQueryClient();
   const [fields, dispatch] = useReducer(
     quickEntryReducer,
     undefined,
@@ -225,11 +227,13 @@ export function useQuickEntryForm({
     dispatch({ type: "set-error", value: null });
     try {
       const input: AttivitaInput = parsed.data;
-      return await attivita.create(
+      const id = await attivita.create(
         input,
         { aziendaNome: azienda.nome, tipoNome: tipo.nome },
         user
       );
+      await qc.invalidateQueries({ queryKey: ["attivita"] });
+      return id;
     } catch (err) {
       console.error("quick entry save failed", err);
       dispatch({ type: "set-error", value: "Salvataggio non riuscito" });
