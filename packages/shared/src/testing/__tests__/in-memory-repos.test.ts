@@ -11,24 +11,44 @@ describe("InMemoryUserRepository", () => {
   let repo: InMemoryUserRepository;
   beforeEach(() => { repo = new InMemoryUserRepository(); });
 
+  function seedUser(uid: string, overrides: Partial<{ roleId: string; approved: boolean }> = {}) {
+    const now = new Date();
+    repo.setForTest(uid, {
+      uid,
+      email: `${uid}@example.com`,
+      displayName: uid,
+      roleId: overrides.roleId ?? "vet",
+      approved: overrides.approved ?? true,
+      disabled: false,
+      createdAt: now,
+      updatedAt: now,
+      schemaVersion: 1,
+    });
+  }
+
   it("returns null when user not found", async () => {
     expect(await repo.getById("missing")).toBeNull();
   });
 
-  it("upserts and retrieves a user", async () => {
-    await repo.upsert("uid-1", { email: "a@b.com", displayName: "A", roleId: "vet" });
+  it("returns a seeded user", async () => {
+    seedUser("uid-1");
     const u = await repo.getById("uid-1");
-    expect(u?.email).toBe("a@b.com");
+    expect(u?.email).toBe("uid-1@example.com");
     expect(u?.disabled).toBe(false);
   });
 
-  it("updates lastSignInAt without overwriting other fields", async () => {
-    await repo.upsert("uid-1", { email: "a@b.com", displayName: "A", roleId: "vet" });
-    const ts = new Date("2026-05-18T10:00:00Z");
-    await repo.touchLastSignIn("uid-1", ts);
-    const u = await repo.getById("uid-1");
-    expect(u?.lastSignInAt?.getTime()).toBe(ts.getTime());
-    expect(u?.email).toBe("a@b.com");
+  it("lists by role", async () => {
+    seedUser("vet-1", { roleId: "vet" });
+    seedUser("admin-1", { roleId: "admin" });
+    const vets = await repo.listByRole("vet");
+    expect(vets.map((u) => u.uid)).toEqual(["vet-1"]);
+  });
+
+  it("lists pending", async () => {
+    seedUser("pending-1", { approved: false });
+    seedUser("approved-1", { approved: true });
+    const pending = await repo.listPending();
+    expect(pending.map((u) => u.uid)).toEqual(["pending-1"]);
   });
 });
 
