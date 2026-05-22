@@ -23,7 +23,7 @@ export function composeClaims(input: ComposeInput) {
 interface DecideInput {
   allow: { defaultRoleId: string };
   existing: { approved?: boolean; roleId?: string; displayName?: string } | null;
-  role: { capabilities: ReadonlyArray<Capability> };
+  role: { capabilities: ReadonlyArray<Capability>; capsVer?: number };
   email: string;
   displayName: string;
   now: Date;
@@ -63,7 +63,7 @@ export function decideAuthResult(input: DecideInput): DecideOutput {
     ...composeClaims({
       roleId,
       capabilities: [...role.capabilities],
-      capsVer: Date.now(),
+      capsVer: role.capsVer ?? 0,
     }),
     name: existing?.displayName ?? displayName,
   };
@@ -115,7 +115,7 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
     if (!roleSnap.exists) {
       denyAndThrow("role-missing", { email: norm, uid, roleId, eventType });
     }
-    const role = roleSnap.data() as { capabilities: Capability[] };
+    const role = roleSnap.data() as { capabilities: Capability[]; capsVer?: number };
 
     const displayName = existingUser?.displayName
       ?? event.data?.displayName

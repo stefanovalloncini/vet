@@ -102,7 +102,8 @@ export async function recordAccessRequest(
     logger.error("auth.accessRequest.recordFailed", {
       source: input.source,
       email: emailNorm,
-      error: err instanceof Error ? err.message : String(err),
+      errorName: err instanceof Error ? err.name : "Unknown",
+      errorCode: err instanceof Error && "code" in err ? String((err as { code: unknown }).code) : undefined,
     });
   }
 }
