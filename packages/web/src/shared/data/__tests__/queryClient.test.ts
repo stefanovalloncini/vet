@@ -55,4 +55,20 @@ describe("queryKeys", () => {
       { onlyOpen: true },
     ]);
   });
+
+  it("namespaces agenda by date range", () => {
+    expect(queryKeys.agenda({ from: 1, to: 2 })).toEqual([
+      "agenda",
+      { from: 1, to: 2 },
+    ]);
+    expect(queryKeys.agenda()).toEqual(["agenda", {}]);
+  });
+
+  it("namespaces trash by filters", () => {
+    expect(queryKeys.trash({ ownerUid: "u1" })).toEqual([
+      "trash",
+      { ownerUid: "u1" },
+    ]);
+    expect(queryKeys.trash()).toEqual(["trash", {}]);
+  });
 });

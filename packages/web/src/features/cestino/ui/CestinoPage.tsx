@@ -1,16 +1,14 @@
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { AppShell, ConfirmDialog, EmptyState, Tabs } from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
-import { useTrash } from "../hooks/useTrash";
+import { usePurgeTrashed, useRestoreTrashed, useTrash } from "../hooks/useTrash";
 import { cestinoI18n as t } from "../i18n";
 import type { Attivita } from "@vet/shared";
 import { CestinoRow } from "./CestinoRow";
 
 export function CestinoPage() {
   const { user } = useAuthState();
-  const { trash } = useRepositories();
 
   const canSeeAny = user?.caps.has("trash.read.any") ?? false;
   const canRestoreAny = user?.caps.has("trash.restore.any") ?? false;
@@ -27,7 +25,9 @@ export function CestinoPage() {
     [view, user]
   );
 
-  const { items, loading, error, refresh } = useTrash(filters);
+  const { items, loading, error } = useTrash(filters);
+  const restoreMutation = useRestoreTrashed();
+  const purgeMutation = usePurgeTrashed();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmingPurgeId, setConfirmingPurgeId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -36,8 +36,7 @@ export function CestinoPage() {
     setBusyId(a.id);
     setErrorMsg(null);
     try {
-      await trash.restoreAttivita(a.id);
-      await refresh();
+      await restoreMutation.mutateAsync(a.id);
     } catch {
       setErrorMsg(t.errorRestore);
     } finally {
@@ -49,9 +48,8 @@ export function CestinoPage() {
     setBusyId(a.id);
     setErrorMsg(null);
     try {
-      await trash.purgeAttivita(a.id);
+      await purgeMutation.mutateAsync(a.id);
       setConfirmingPurgeId(null);
-      await refresh();
     } catch {
       setErrorMsg(t.errorPurge);
     } finally {
