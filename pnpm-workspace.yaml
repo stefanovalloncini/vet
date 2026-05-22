@@ -5,3 +5,7 @@ allowBuilds:
   esbuild: true
   protobufjs: true
   re2: true
+overrides:
+  "@types/node": "^20.0.0"
+  undici: "^6.24.0"
+  tar: "^7.5.11"
