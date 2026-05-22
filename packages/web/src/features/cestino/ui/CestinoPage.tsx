@@ -1,21 +1,12 @@
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-import {
-  AppShell,
-  Button,
-  Card,
-  ConfirmDialog,
-  EmptyState,
-  InlineError,
-  LoadingHint,
-  PageHeader,
-  Tabs,
-} from "../../../shared/ui";
+import { AppShell, ConfirmDialog, EmptyState, Tabs } from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useTrash } from "../hooks/useTrash";
 import { cestinoI18n as t } from "../i18n";
 import type { Attivita } from "@vet/shared";
-import { formatDate, formatEuro } from "../../attivita/lib/format";
+import { CestinoRow } from "./CestinoRow";
 
 export function CestinoPage() {
   const { user } = useAuthState();
@@ -70,52 +61,49 @@ export function CestinoPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={t.title}
-        subtitle={t.subtitle}
-        {...(canSeeAny
-          ? {
-              actions: (
-                <Tabs
-                  items={[
-                    { value: "mine", label: t.viewMine },
-                    { value: "all", label: t.viewAll },
-                  ]}
-                  value={view}
-                  onChange={setView}
-                  size="sm"
-                />
-              ),
-            }
-          : {})}
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">
+            {t.title}
+          </h1>
+          <p className="text-(--color-text-muted) mt-2 text-sm max-w-prose">
+            {t.subtitle}
+          </p>
+        </div>
+        {canSeeAny ? (
+          <Tabs
+            items={[
+              { value: "mine", label: t.viewMine },
+              { value: "all", label: t.viewAll },
+            ]}
+            value={view}
+            onChange={setView}
+            size="sm"
+          />
+        ) : null}
+      </header>
+
+      {errorMsg ? (
+        <p role="alert" className="text-sm text-(--color-danger) mb-4">
+          {errorMsg}
+        </p>
+      ) : null}
+
+      <TrashBody
+        loading={loading}
+        error={error}
+        items={items}
+        renderRow={(a) => (
+          <CestinoRow
+            attivita={a}
+            busy={busyId === a.id}
+            canRestore={canRestoreAny || (canRestoreOwn && a.ownerUid === user?.uid)}
+            canPurge={canPurge}
+            onRestore={() => handleRestore(a)}
+            onPurgeAsk={() => setConfirmingPurgeId(a.id)}
+          />
+        )}
       />
-
-      {errorMsg ? <InlineError className="mb-4">{errorMsg}</InlineError> : null}
-
-      {loading ? (
-        <LoadingHint label={t.loading} />
-      ) : error ? (
-        <InlineError>{t.loadError}</InlineError>
-      ) : items.length === 0 ? (
-        <EmptyState title={t.empty} />
-      ) : (
-        <ul className="space-y-2">
-          {items.map((a) => (
-            <li key={a.id}>
-              <TrashRow
-                attivita={a}
-                busy={busyId === a.id}
-                canRestore={
-                  canRestoreAny || (canRestoreOwn && a.ownerUid === user?.uid)
-                }
-                canPurge={canPurge}
-                onRestore={() => handleRestore(a)}
-                onPurgeAsk={() => setConfirmingPurgeId(a.id)}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
 
       <ConfirmDialog
         open={confirmingPurgeId !== null}
@@ -134,69 +122,25 @@ export function CestinoPage() {
   );
 }
 
-function TrashRow({
-  attivita: a,
-  busy,
-  canRestore,
-  canPurge,
-  onRestore,
-  onPurgeAsk,
+function TrashBody({
+  loading,
+  error,
+  items,
+  renderRow,
 }: {
-  attivita: Attivita;
-  busy: boolean;
-  canRestore: boolean;
-  canPurge: boolean;
-  onRestore: () => void;
-  onPurgeAsk: () => void;
+  loading: boolean;
+  error: string | null;
+  items: Attivita[];
+  renderRow: (a: Attivita) => ReactNode;
 }) {
+  if (loading) return <p className="text-sm text-(--color-text-muted)">{t.loading}</p>;
+  if (error) return <p className="text-sm text-(--color-danger)">{t.loadError}</p>;
+  if (items.length === 0) return <EmptyState title={t.empty} />;
   return (
-    <Card className="hover:border-(--color-border-strong) transition-colors">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-3 flex-wrap">
-            <span className="text-sm text-(--color-text-muted) tabular-nums">
-              {formatDate(a.data)}
-            </span>
-            <h2 className="text-base font-medium text-(--color-text) truncate">
-              {a.aziendaNome}
-            </h2>
-            <span className="text-sm text-(--color-text-muted)">
-              {a.tipoNome}
-            </span>
-            <span className="text-base font-medium text-(--color-text) tabular-nums">
-              {formatEuro(a.totale)}
-            </span>
-          </div>
-          <p className="text-xs text-(--color-text-subtle) mt-2">
-            {a.ownerName}
-            {a.deletedAt ? ` · ${t.deletedAt} ${formatDate(a.deletedAt)}` : ""}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {canRestore ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={onRestore}
-              disabled={busy}
-            >
-              {t.ripristina}
-            </Button>
-          ) : null}
-          {canPurge ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onPurgeAsk}
-              disabled={busy}
-            >
-              {t.elimina}
-            </Button>
-          ) : null}
-        </div>
-      </div>
-    </Card>
+    <ul className="space-y-2">
+      {items.map((a) => (
+        <li key={a.id}>{renderRow(a)}</li>
+      ))}
+    </ul>
   );
 }
