@@ -1,117 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
-import {
-  Moon,
-  Sun,
-  LogOut,
-  Settings,
-  LayoutDashboard,
-  Calendar,
-  ClipboardList,
-  Building2,
-  Bell,
-  Wallet,
-  BarChart3,
-  Wrench,
-  Tags,
-  ShieldCheck,
-  KeyRound,
-  ScrollText,
-  Users,
-  Trash2,
-  PanelLeftClose,
-  type LucideIcon,
-} from "lucide-react";
+import { Moon, Sun, LogOut, PanelLeftClose, type LucideIcon } from "lucide-react";
 import { useAuthState } from "../../features/auth";
 import { BrandMark } from "./Brand";
 import { SidebarSectionHeader } from "./SidebarSectionHeader";
 import { SidebarNavLink } from "./SidebarNavLink";
 import { SidebarActionRow } from "./SidebarActionRow";
 import { VersionBadge } from "./VersionBadge";
-
-interface NavItem {
-  to: string;
-  label: string;
-  icon: LucideIcon;
-  requiredCap?: string;
-}
-
-interface NavSection {
-  title: string;
-  items: NavItem[];
-}
-
-const SECTIONS: NavSection[] = [
-  {
-    title: "Operatività",
-    items: [
-      { to: "/riepilogo", label: "Riepilogo", icon: LayoutDashboard, requiredCap: "activities.read.all" },
-      { to: "/agenda", label: "Agenda", icon: Calendar, requiredCap: "activities.read.all" },
-      { to: "/attivita", label: "Attività", icon: ClipboardList, requiredCap: "activities.read.all" },
-      { to: "/aziende", label: "Aziende", icon: Building2, requiredCap: "aziende.read" },
-      { to: "/promemoria", label: "Promemoria", icon: Bell, requiredCap: "reminders.read" },
-    ],
-  },
-  {
-    title: "Gestione",
-    items: [
-      { to: "/pagamenti", label: "Pagamenti", icon: Wallet, requiredCap: "payments.read" },
-      { to: "/statistiche", label: "Statistiche", icon: BarChart3, requiredCap: "activities.read.all" },
-      { to: "/strumenti", label: "Strumenti", icon: Wrench },
-    ],
-  },
-  {
-    title: "Amministrazione",
-    items: [
-      { to: "/admin/tipi-attivita", label: "Tipi attività", icon: Tags, requiredCap: "activity_types.read" },
-      { to: "/admin/ruoli", label: "Ruoli", icon: ShieldCheck, requiredCap: "roles.read" },
-      { to: "/admin/allowlist", label: "Allowlist", icon: KeyRound, requiredCap: "allowlist.read" },
-      { to: "/admin/audit", label: "Audit", icon: ScrollText, requiredCap: "audit.read" },
-      { to: "/admin/stats-vet", label: "Statistiche veterinari", icon: Users, requiredCap: "users.read.all" },
-    ],
-  },
-];
-
-const FOOTER_ITEMS: NavItem[] = [
-  { to: "/cestino", label: "Cestino", icon: Trash2, requiredCap: "trash.read.own" },
-  { to: "/impostazioni", label: "Impostazioni", icon: Settings },
-];
-
-const COLLAPSED_STORAGE_KEY = "vet.sidebarCollapsed";
-const SECTIONS_STORAGE_KEY = "vet.sidebarSectionsCollapsed";
-
-function readCollapsed(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage?.getItem(COLLAPSED_STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function readCollapsedSections(): ReadonlySet<string> {
-  if (typeof window === "undefined") return new Set();
-  try {
-    const raw = window.localStorage?.getItem(SECTIONS_STORAGE_KEY);
-    if (!raw) return new Set();
-    const parsed = JSON.parse(raw) as unknown;
-    if (Array.isArray(parsed)) {
-      return new Set(parsed.filter((x): x is string => typeof x === "string"));
-    }
-    return new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function isActive(pathname: string, to: string): boolean {
-  if (to === "/") return pathname === "/";
-  return pathname === to || pathname.startsWith(to + "/");
-}
-
-function visibleItems(items: NavItem[], caps?: ReadonlySet<string>): NavItem[] {
-  return items.filter((item) => !item.requiredCap || caps?.has(item.requiredCap));
-}
+import {
+  NAV_SECTIONS,
+  FOOTER_ITEMS,
+  isActivePath,
+  visibleItems,
+} from "./sidebar/SidebarConfig";
+import { useSidebarPersistence } from "./sidebar/useSidebarPersistence";
+import { useSidebarSections } from "./sidebar/useSidebarSections";
 
 interface SidebarProps {
   theme: "light" | "dark";
@@ -119,91 +21,40 @@ interface SidebarProps {
   onLogoutClick: () => void;
 }
 
-function sectionContainsPath(
-  section: NavSection,
-  pathname: string,
-  caps?: ReadonlySet<string>
-): boolean {
-  return section.items.some(
-    (item) =>
-      (!item.requiredCap || caps?.has(item.requiredCap)) &&
-      isActive(pathname, item.to)
-  );
-}
-
 export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
   const { user } = useAuthState();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(readCollapsed);
-  const [collapsedSections, setCollapsedSections] = useState<ReadonlySet<string>>(
-    readCollapsedSections
-  );
-
-  useEffect(() => {
-    const caps = user?.caps as ReadonlySet<string> | undefined;
-    const containingSection = SECTIONS.find((s) =>
-      sectionContainsPath(s, location.pathname, caps)
-    );
-    if (!containingSection) return;
-    if (!collapsedSections.has(containingSection.title)) return;
-    setCollapsedSections((prev) => {
-      const next = new Set(prev);
-      next.delete(containingSection.title);
-      return next;
-    });
-  }, [location.pathname, user, collapsedSections]);
-
-  useEffect(() => {
-    try {
-      window.localStorage?.setItem(COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
-    } catch {
-      // ignore (e.g. jsdom test env)
-    }
-  }, [collapsed]);
-
-  useEffect(() => {
-    try {
-      window.localStorage?.setItem(
-        SECTIONS_STORAGE_KEY,
-        JSON.stringify([...collapsedSections])
-      );
-    } catch {
-      // ignore (e.g. jsdom test env)
-    }
-  }, [collapsedSections]);
-
-  function toggleSection(title: string) {
-    setCollapsedSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(title)) next.delete(title);
-      else next.add(title);
-      return next;
-    });
-  }
-
   const caps = user?.caps as ReadonlySet<string> | undefined;
-  const visibleSections = SECTIONS.map((s) => ({
+  const { collapsed, setCollapsed } = useSidebarPersistence();
+  const { collapsedSections, toggleSection } = useSidebarSections(location.pathname, caps);
+
+  const visibleSections = NAV_SECTIONS.map((s) => ({
     ...s,
     items: visibleItems(s.items, caps),
   })).filter((s) => s.items.length > 0);
   const visibleFooter = visibleItems(FOOTER_ITEMS, caps);
-  const sidebarWidth = collapsed ? "3.5rem" : "14.5rem";
+  const rowFor = (to: string, label: string, icon: LucideIcon) => (
+    <SidebarNavLink
+      key={to}
+      to={to}
+      label={label}
+      icon={icon}
+      active={isActivePath(location.pathname, to)}
+      collapsed={collapsed}
+    />
+  );
 
   return (
     <aside
       data-collapsed={collapsed ? "true" : "false"}
       style={{
-        width: sidebarWidth,
+        width: collapsed ? "3.5rem" : "14.5rem",
         transition: "width var(--motion-layout) var(--ease-out-quint)",
       }}
       className="hidden sm:flex sm:flex-col shrink-0 border-r border-(--color-border) bg-(--color-surface) sticky top-0 h-screen overflow-hidden"
     >
       <div className="h-14 flex items-center px-3 border-b border-(--color-border)">
-        <Link
-          to="/"
-          className="flex items-center min-w-0 w-full gap-2.5"
-          aria-label="Veterinario · home"
-        >
+        <Link to="/" className="flex items-center min-w-0 w-full gap-2.5" aria-label="Veterinario · home">
           <BrandMark size={22} className="shrink-0" />
           <div
             className="overflow-hidden grid"
@@ -227,44 +78,26 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
         </Link>
       </div>
 
-      <nav
-        aria-label="Navigazione"
-        className="flex-1 overflow-y-auto overflow-x-hidden"
-      >
+      <nav aria-label="Navigazione" className="flex-1 overflow-y-auto overflow-x-hidden">
         {visibleSections.map((section, sIdx) => {
           const expanded = !collapsedSections.has(section.title);
           return (
-            <div
-              key={section.title}
-              className={sIdx === 0 ? "" : "border-t border-(--color-border)"}
-            >
+            <div key={section.title} className={sIdx === 0 ? "" : "border-t border-(--color-border)"}>
               <SidebarSectionHeader
                 title={section.title}
                 collapsed={collapsed}
                 expanded={expanded}
-                {...(collapsed
-                  ? {}
-                  : { onToggle: () => toggleSection(section.title) })}
+                {...(collapsed ? {} : { onToggle: () => toggleSection(section.title) })}
               />
               <div
                 className="grid overflow-hidden"
                 style={{
                   gridTemplateRows: collapsed || expanded ? "1fr" : "0fr",
-                  transition:
-                    "grid-template-rows var(--motion-layout) var(--ease-out-quint)",
+                  transition: "grid-template-rows var(--motion-layout) var(--ease-out-quint)",
                 }}
               >
                 <ul className="min-h-0 overflow-hidden">
-                  {section.items.map((item) => (
-                    <SidebarNavLink
-                      key={item.to}
-                      to={item.to}
-                      label={item.label}
-                      icon={item.icon}
-                      active={isActive(location.pathname, item.to)}
-                      collapsed={collapsed}
-                    />
-                  ))}
+                  {section.items.map((item) => rowFor(item.to, item.label, item.icon))}
                 </ul>
               </div>
             </div>
@@ -273,18 +106,7 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
       </nav>
 
       <div className="border-t border-(--color-border)">
-        <ul>
-          {visibleFooter.map((item) => (
-            <SidebarNavLink
-              key={item.to}
-              to={item.to}
-              label={item.label}
-              icon={item.icon}
-              active={isActive(location.pathname, item.to)}
-              collapsed={collapsed}
-            />
-          ))}
-        </ul>
+        <ul>{visibleFooter.map((item) => rowFor(item.to, item.label, item.icon))}</ul>
         <div className="border-t border-(--color-border) pt-1 mt-1">
           <SidebarActionRow
             onClick={onThemeToggle}
@@ -292,12 +114,7 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
             label={theme === "dark" ? "Tema chiaro" : "Tema scuro"}
             collapsed={collapsed}
           />
-          <SidebarActionRow
-            onClick={onLogoutClick}
-            icon={LogOut}
-            label="Esci"
-            collapsed={collapsed}
-          />
+          <SidebarActionRow onClick={onLogoutClick} icon={LogOut} label="Esci" collapsed={collapsed} />
         </div>
       </div>
 
