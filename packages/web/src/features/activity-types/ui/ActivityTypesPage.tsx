@@ -1,239 +1,71 @@
-import { useMemo, useState, type ChangeEvent } from "react";
-import {
-  AppShell,
-  Button,
-  Card,
-  InlineError,
-  LoadingHint,
-  PageHeader,
-  SectionLabel,
-} from "../../../shared/ui";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { AppShell, PageHeader } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
-import { useActivityTypes } from "../hooks/useActivityTypes";
+import {
+  useActivityTypesEditor,
+  type ActivityTypesEditor,
+} from "../hooks/useActivityTypesEditor";
 import { activityTypesI18n as t } from "../i18n";
-import { GINECOLOGIA_TIPO_ID, type ActivityType } from "@vet/shared";
+import { ActivityTypeList } from "./ActivityTypeList";
 
 export function ActivityTypesPage() {
   const { user } = useAuthState();
-  const { types, loading, error, refresh } = useActivityTypes();
-  const { activityTypes: repo } = useRepositories();
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [globalError, setGlobalError] = useState<string | null>(null);
-
+  const editor = useActivityTypesEditor();
   const canManage = user?.caps.has("activity_types.manage") ?? false;
-
-  const [active, inactive] = useMemo(() => {
-    const a: ActivityType[] = [];
-    const i: ActivityType[] = [];
-    for (const tipo of types) {
-      (tipo.attivo ? a : i).push(tipo);
-    }
-    return [a, i];
-  }, [types]);
-
-  async function toggle(tipo: ActivityType) {
-    if (!canManage) return;
-    setBusyId(tipo.id);
-    setGlobalError(null);
-    try {
-      await repo.setActive(tipo.id, !tipo.attivo);
-      await refresh();
-    } catch {
-      setGlobalError(t.erroreSalvataggio);
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function saveTariffa(tipo: ActivityType, value: string) {
-    if (!canManage) return;
-    const trimmed = value.trim();
-    const numeric = trimmed === "" ? null : Number(trimmed);
-    if (numeric !== null && (!Number.isFinite(numeric) || numeric < 0)) {
-      setGlobalError("Tariffa non valida");
-      return;
-    }
-    setBusyId(tipo.id);
-    setGlobalError(null);
-    try {
-      await repo.setStandardTariff(tipo.id, numeric);
-      await refresh();
-    } catch {
-      setGlobalError(t.erroreSalvataggio);
-    } finally {
-      setBusyId(null);
-    }
-  }
 
   return (
     <AppShell>
       <PageHeader title={t.title} subtitle={t.subtitle} />
       {!canManage ? (
-        <p className="text-xs text-(--color-text-subtle) mb-6">{t.readonly}</p>
+        <p className="-mt-3 mb-6 text-xs text-(--color-text-subtle)">
+          {t.readonly}
+        </p>
       ) : null}
 
-      {globalError ? (
-        <InlineError className="mb-4">{globalError}</InlineError>
+      {editor.globalError ? (
+        <p role="alert" className="text-sm text-(--color-danger) mb-4">
+          {editor.globalError}
+        </p>
       ) : null}
 
-      {loading ? (
-        <LoadingHint label={t.loading} />
-      ) : error ? (
-        <InlineError>{t.erroreSalvataggio}</InlineError>
-      ) : (
-        <div className="space-y-8">
-          <Section title={t.attivi} types={active}>
-            {(tipo) => (
-              <TypeRow
-                tipo={tipo}
-                busy={busyId === tipo.id}
-                canManage={canManage}
-                onToggle={() => toggle(tipo)}
-                onSaveTariffa={(v) => saveTariffa(tipo, v)}
-                actionLabel={t.disattiva}
-              />
-            )}
-          </Section>
-          {inactive.length > 0 ? (
-            <Section title={t.archiviati} types={inactive}>
-              {(tipo) => (
-                <TypeRow
-                  tipo={tipo}
-                  busy={busyId === tipo.id}
-                  canManage={canManage}
-                  onToggle={() => toggle(tipo)}
-                  onSaveTariffa={(v) => saveTariffa(tipo, v)}
-                  actionLabel={t.attiva}
-                />
-              )}
-            </Section>
-          ) : null}
-        </div>
-      )}
+      {renderBody({ editor, canManage })}
     </AppShell>
   );
 }
 
-function Section({
-  title,
-  types,
-  children,
-}: {
-  title: string;
-  types: ActivityType[];
-  children: (tipo: ActivityType) => React.ReactNode;
-}) {
-  return (
-    <section>
-      <SectionLabel as="h2" className="font-medium mb-3">
-        {title}
-      </SectionLabel>
-      <ul className="space-y-2">
-        {types.map((tipo) => (
-          <li key={tipo.id}>{children(tipo)}</li>
-        ))}
-      </ul>
-    </section>
-  );
+interface BodyProps {
+  editor: ActivityTypesEditor;
+  canManage: boolean;
 }
 
-function TypeRow({
-  tipo,
-  busy,
-  canManage,
-  onToggle,
-  onSaveTariffa,
-  actionLabel,
-}: {
-  tipo: ActivityType;
-  busy: boolean;
-  canManage: boolean;
-  onToggle: () => void;
-  onSaveTariffa: (value: string) => void;
-  actionLabel: string;
-}) {
-  const isGinecologia = tipo.id === GINECOLOGIA_TIPO_ID;
-  const [tariffa, setTariffa] = useState<string>(
-    tipo.tariffaStandard !== undefined ? String(tipo.tariffaStandard) : ""
-  );
-  const initial =
-    tipo.tariffaStandard !== undefined ? String(tipo.tariffaStandard) : "";
-  const dirty = tariffa !== initial;
-
+function renderBody({ editor, canManage }: BodyProps) {
+  if (editor.loading) {
+    return <p className="text-sm text-(--color-text-muted)">{t.loading}</p>;
+  }
+  if (editor.loadError) {
+    return <p className="text-sm text-(--color-danger)">{t.erroreSalvataggio}</p>;
+  }
   return (
-    <Card padded={false} className="px-5 py-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-base font-medium text-(--color-text)">{tipo.nome}</p>
-          <p className="text-xs text-(--color-text-subtle) mt-1">
-            id: <span className="font-mono">{tipo.id}</span> · ordine {tipo.ordine}
-          </p>
-        </div>
-        {canManage ? (
-          <Button
-            type="button"
-            variant={tipo.attivo ? "ghost" : "secondary"}
-            size="sm"
-            onClick={onToggle}
-            disabled={busy}
-          >
-            {actionLabel}
-          </Button>
-        ) : (
-          <span
-            className={[
-              "text-xs px-2 py-1 rounded-md",
-              tipo.attivo
-                ? "bg-(--color-accent-soft) text-(--color-text)"
-                : "bg-(--color-surface-muted) text-(--color-text-muted)",
-            ].join(" ")}
-          >
-            {tipo.attivo ? "attivo" : "inattivo"}
-          </span>
-        )}
-      </div>
-      {canManage && !isGinecologia ? (
-        <div className="mt-3 flex items-center gap-2">
-          <label
-            htmlFor={`tariffa-${tipo.id}`}
-            className="text-xs uppercase tracking-wider text-(--color-text-muted) w-32 shrink-0"
-          >
-            Tariffa standard
-          </label>
-          <input
-            id={`tariffa-${tipo.id}`}
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min="0"
-            value={tariffa}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setTariffa(e.target.value)
-            }
-            placeholder="—"
-            disabled={busy}
-            className="w-28 rounded-lg border border-(--color-border) bg-(--color-surface) px-3 py-1.5 text-sm text-(--color-text) focus:outline-none focus:ring-2 focus:ring-(--color-accent)/20 focus:border-(--color-accent)"
-          />
-          <span className="text-xs text-(--color-text-muted)">€</span>
-          {dirty ? (
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={() => onSaveTariffa(tariffa)}
-              disabled={busy}
-            >
-              Salva
-            </Button>
-          ) : null}
-        </div>
+    <div className="space-y-8">
+      <ActivityTypeList
+        title={t.attivi}
+        items={editor.active}
+        busyId={editor.busyId}
+        canManage={canManage}
+        actionLabel={t.disattiva}
+        onToggle={editor.toggleActive}
+        onSaveTariffa={editor.saveTariffa}
+      />
+      {editor.inactive.length > 0 ? (
+        <ActivityTypeList
+          title={t.archiviati}
+          items={editor.inactive}
+          busyId={editor.busyId}
+          canManage={canManage}
+          actionLabel={t.attiva}
+          onToggle={editor.toggleActive}
+          onSaveTariffa={editor.saveTariffa}
+        />
       ) : null}
-      {isGinecologia ? (
-        <p className="mt-3 text-xs text-(--color-text-subtle)">
-          Ginecologia: tariffa per cliente, ricordata dall&apos;ultima visita.
-        </p>
-      ) : null}
-    </Card>
+    </div>
   );
 }
