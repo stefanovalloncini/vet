@@ -65,3 +65,6 @@ Thumbs.db
 
 # Playwright MCP
 .playwright-mcp/
+
+# Ad-hoc screenshots at repo root (Playwright captures, debugging snapshots)
+/*.png
