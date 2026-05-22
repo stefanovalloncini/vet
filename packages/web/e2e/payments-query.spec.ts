@@ -29,12 +29,14 @@ test.describe("payments page (tanstack query)", () => {
       .first()
       .click();
 
+    const dialog = signedInVet.getByRole("dialog");
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
     await expect(
-      signedInVet.getByRole("heading", { name: FIXTURE.azienda.nome })
-    ).toBeVisible({ timeout: 10_000 });
-    await signedInVet.getByLabel(/Periodo pagato fino al/i).fill("2026-05-31");
-    await signedInVet.getByLabel(/Importo/i).fill("80");
-    await signedInVet.getByRole("button", { name: /Salva/i }).click();
+      dialog.getByRole("heading", { name: FIXTURE.azienda.nome })
+    ).toBeVisible();
+    await dialog.getByLabel(/Periodo pagato fino al/i).fill("2026-05-31");
+    await dialog.getByLabel(/Importo/i).fill("80");
+    await dialog.getByRole("button", { name: /Salva/i }).click();
 
     await expect(
       signedInVet.getByText(/Pagato fino al/i).first()
