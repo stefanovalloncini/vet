@@ -40,6 +40,7 @@ const VET_CAPS: Capability[] = [
   "trash.read.own",
   "trash.restore.own",
   "payments.read",
+  "payments.read.any",
   "payments.manage",
   "reminders.read",
   "reminders.create",

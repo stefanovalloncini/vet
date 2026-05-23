@@ -16,6 +16,7 @@ const vetCaps: Capability[] = [
   "trash.read.own",
   "trash.restore.own",
   "payments.read",
+  "payments.read.any",
   "payments.manage",
   "reminders.read",
   "reminders.create",
@@ -28,6 +29,7 @@ const viewerCaps: Capability[] = [
   "activity_types.read",
   "trash.read.own",
   "payments.read",
+  "payments.read.any",
   "reminders.read",
 ];
 

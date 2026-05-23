@@ -19,8 +19,8 @@ const paymentSeed = {
   metodoPagamento: "bonifico",
   createdAt: new Date(),
   updatedAt: new Date(),
-  createdBy: "creator-uid",
-  updatedBy: "creator-uid",
+  createdBy: "owner-uid",
+  updatedBy: "owner-uid",
   createdByName: "Creator",
   updatedByName: "Creator",
   schemaVersion: 1,
@@ -65,10 +65,24 @@ describe("payments rules", () => {
     await assertFails(getDoc(doc(authedAs(env, "u"), "payments/p1")));
   });
 
-  it("read allowed with payments.read", async () => {
+  it("read allowed with payments.read for owner", async () => {
     const env = await getEnv();
     await assertSucceeds(
+      getDoc(doc(authedAs(env, "owner-uid", ["payments.read"]), "payments/p1"))
+    );
+  });
+
+  it("read denied with payments.read for non-owner", async () => {
+    const env = await getEnv();
+    await assertFails(
       getDoc(doc(authedAs(env, "u", ["payments.read"]), "payments/p1"))
+    );
+  });
+
+  it("read allowed cross-user with payments.read.any", async () => {
+    const env = await getEnv();
+    await assertSucceeds(
+      getDoc(doc(authedAs(env, "u", ["payments.read.any"]), "payments/p1"))
     );
   });
 
@@ -150,9 +164,21 @@ describe("payments rules", () => {
     await assertFails(deleteDoc(doc(db, "payments/p1")));
   });
 
-  it("delete allowed with payments.manage", async () => {
+  it("delete allowed with payments.manage for owner", async () => {
     const env = await getEnv();
     const db = authedAs(env, "owner-uid", ["payments.manage"]);
+    await assertSucceeds(deleteDoc(doc(db, "payments/p1")));
+  });
+
+  it("delete denied cross-user with payments.manage only", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "other-uid", ["payments.manage"]);
+    await assertFails(deleteDoc(doc(db, "payments/p1")));
+  });
+
+  it("delete allowed cross-user with payments.manage.any", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "other-uid", ["payments.manage.any"]);
     await assertSucceeds(deleteDoc(doc(db, "payments/p1")));
   });
 });

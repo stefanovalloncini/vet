@@ -285,14 +285,16 @@ service cloud.firestore {
           && d.updatedByName is string && d.updatedByName.size() >= 1 && d.updatedByName.size() <= 80
           && d.schemaVersion == 1;
       }
-      allow read: if hasCap("pr");
+      allow read: if (hasCap("pr") && resource.data.createdBy == request.auth.uid)
+        || hasCap("pra");
       allow create: if hasCap("pm")
         && valid()
         && request.resource.data.createdBy == request.auth.uid
         && isServerStamped("createdAt")
         && isServerStamped("updatedAt");
       allow update: if false;
-      allow delete: if hasCap("pm");
+      allow delete: if (hasCap("pm") && resource.data.createdBy == request.auth.uid)
+        || hasCap("pma");
     }
 
     match /reminders/{reminderId} {
