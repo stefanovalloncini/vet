@@ -22,6 +22,10 @@ export const selfRevoke = onCall(
     ensureCallerSignedIn(caller);
 
     await adminAuth.revokeRefreshTokens(caller.uid);
+    await adminDb.collection("users").doc(caller.uid).set(
+      { minCapsVer: Date.now(), updatedAt: Timestamp.now() },
+      { merge: true }
+    );
 
     await adminDb.collection("audit").add({
       at: Timestamp.now(),
