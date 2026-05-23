@@ -27,6 +27,18 @@ service cloud.firestore {
       return "name" in request.auth.token && request.auth.token.name is string;
     }
 
+    function tokenIsFresh() {
+      return request.auth != null
+        && request.auth.token.capsVer is int
+        && (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          ||
+          request.auth.token.capsVer >=
+            get(/databases/$(database)/documents/users/$(request.auth.uid))
+              .data.get("minCapsVer", 0)
+        );
+    }
+
     match /users/{uid} {
       allow read: if (request.auth != null && request.auth.uid == uid) || hasCap("usr");
       allow create: if false;
@@ -36,12 +48,14 @@ service cloud.firestore {
             && request.resource.data.displayName.size() >= 1
             && request.resource.data.displayName.size() <= 80)
           || (hasCap("rsg") && uid != request.auth.uid
+            && tokenIsFresh()
             && request.resource.data.diff(resource.data).changedKeys().hasOnly(["roleId", "updatedAt"])
             && request.resource.data.roleId is string
             && request.resource.data.roleId.size() >= 1
             && request.resource.data.roleId.size() <= 60
             && request.resource.data.roleId != "admin")
           || (hasCap("uap") && uid != request.auth.uid
+            && tokenIsFresh()
             && request.resource.data.diff(resource.data).changedKeys().hasOnly(["approved", "roleId", "approvedAt", "approvedBy", "updatedAt"])
             && request.resource.data.approved is bool
             && request.resource.data.roleId is string
@@ -81,6 +95,7 @@ service cloud.firestore {
       }
       allow read: if hasCap("rr");
       allow create: if hasCap("rm")
+        && tokenIsFresh()
         && valid()
         && request.resource.data.locked == false
         && request.resource.data.createdBy == request.auth.uid
@@ -90,6 +105,7 @@ service cloud.firestore {
         && exists(nameMirror(request.resource.data.name))
         && get(nameMirror(request.resource.data.name)).data.roleId == roleId;
       allow update: if hasCap("rm")
+        && tokenIsFresh()
         && valid()
         && resource.data.locked == false
         && request.resource.data.locked == false
@@ -98,19 +114,20 @@ service cloud.firestore {
         && isImmutable("createdBy")
         && isImmutable("name")
         && isServerStamped("updatedAt");
-      allow delete: if hasCap("rm") && resource.data.locked == false;
+      allow delete: if hasCap("rm") && tokenIsFresh() && resource.data.locked == false;
     }
 
     match /roleNames/{nameLower} {
       allow read: if hasCap("rr");
       allow create: if hasCap("rm")
+        && tokenIsFresh()
         && request.resource.data.keys().hasOnly(["roleId"])
         && request.resource.data.roleId is string
         && request.resource.data.roleId.size() >= 1
         && request.resource.data.roleId.size() <= 60
         && nameLower.matches("^[a-z0-9_-]+$");
       allow update: if false;
-      allow delete: if hasCap("rm");
+      allow delete: if hasCap("rm") && tokenIsFresh();
     }
 
     match /allowlist/{emailNorm} {
@@ -128,10 +145,12 @@ service cloud.firestore {
       }
       allow read: if hasCap("lr");
       allow create: if hasCap("lm")
+        && tokenIsFresh()
         && valid()
         && request.resource.data.invitedBy == request.auth.uid
         && isServerStamped("invitedAt");
       allow update: if hasCap("lm")
+        && tokenIsFresh()
         && valid()
         && isImmutable("invitedAt")
         && isImmutable("invitedBy");
@@ -333,13 +352,15 @@ service cloud.firestore {
       allow read: if (hasCap("pr") && resource.data.createdBy == request.auth.uid)
         || hasCap("pra");
       allow create: if hasCap("pm")
+        && tokenIsFresh()
         && valid()
         && request.resource.data.createdBy == request.auth.uid
         && isServerStamped("createdAt")
         && isServerStamped("updatedAt");
       allow update: if false;
-      allow delete: if (hasCap("pm") && resource.data.createdBy == request.auth.uid)
-        || hasCap("pma");
+      allow delete: if tokenIsFresh()
+        && ((hasCap("pm") && resource.data.createdBy == request.auth.uid)
+            || hasCap("pma"));
     }
 
     match /reminders/{reminderId} {

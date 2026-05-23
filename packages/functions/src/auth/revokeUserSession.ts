@@ -37,7 +37,7 @@ export const revokeUserSession = onCall(
     await adminAuth.revokeRefreshTokens(uid);
     await adminAuth.updateUser(uid, { disabled: true });
     await adminDb.collection("users").doc(uid).set(
-      { disabled: true, updatedAt: new Date() },
+      { disabled: true, minCapsVer: Date.now(), updatedAt: new Date() },
       { merge: true }
     );
     await adminDb.collection("audit").add({

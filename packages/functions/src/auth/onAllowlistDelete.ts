@@ -29,7 +29,12 @@ export async function revokeForDeletedAllowlistEntry(args: {
         .collection("users")
         .doc(uid)
         .set(
-          { disabled: true, approved: false, updatedAt: new Date() },
+          {
+            disabled: true,
+            approved: false,
+            minCapsVer: Date.now(),
+            updatedAt: new Date(),
+          },
           { merge: true }
         ),
       adminDb.collection("audit").add({
