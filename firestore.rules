@@ -160,11 +160,11 @@ service cloud.firestore {
               ? !("deletedAt" in d.keys()) && !("deletedBy" in d.keys())
               : (d.deletedAt is timestamp && d.deletedBy == request.auth.uid));
       }
-      allow get: if (resource.data.isDeleted == false && hasCap("ara"))
-        || (resource.data.isDeleted == true
-            && ((hasCap("hro") && resource.data.ownerUid == request.auth.uid)
-                || hasCap("hra")));
-      allow list: if hasCap("ara");
+      allow read: if "isDeleted" in resource.data
+        && ((resource.data.isDeleted == false && hasCap("ara"))
+            || (resource.data.isDeleted == true
+                && ((hasCap("hro") && resource.data.ownerUid == request.auth.uid)
+                    || hasCap("hra"))));
       allow create: if hasCap("ac")
         && validCreate()
         && request.resource.data.ownerUid == request.auth.uid
