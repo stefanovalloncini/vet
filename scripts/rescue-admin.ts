@@ -51,6 +51,10 @@ const SEEDS: ReadonlyArray<{
   { id: "viewer", name: "Sola lettura", caps: viewerCaps, locked: false },
 ];
 
+function nameKey(name: string): string {
+  return name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+}
+
 await runScript({
   scriptName: "rescue-admin",
   run: async () => {
@@ -58,7 +62,14 @@ await runScript({
     const auth = getAuth();
 
     for (const r of SEEDS) {
-      await db.collection("roles").doc(r.id).set(
+      const batch = db.batch();
+      batch.set(
+        db.collection("roleNames").doc(nameKey(r.name)),
+        { roleId: r.id },
+        { merge: true }
+      );
+      batch.set(
+        db.collection("roles").doc(r.id),
         {
           name: r.name,
           capabilities: r.caps,
@@ -71,6 +82,7 @@ await runScript({
         },
         { merge: true }
       );
+      await batch.commit();
       process.stdout.write(`roles/${r.id} upserted\n`);
     }
 

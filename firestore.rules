@@ -76,6 +76,9 @@ service cloud.firestore {
               && "users.approve" in d.capabilities
               && "allowlist.manage" in d.capabilities);
       }
+      function nameMirror(name) {
+        return /databases/$(database)/documents/roleNames/$(name.lower());
+      }
       allow read: if hasCap("rr");
       allow create: if hasCap("rm")
         && valid()
@@ -83,7 +86,9 @@ service cloud.firestore {
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.updatedBy == request.auth.uid
         && isServerStamped("createdAt")
-        && isServerStamped("updatedAt");
+        && isServerStamped("updatedAt")
+        && exists(nameMirror(request.resource.data.name))
+        && get(nameMirror(request.resource.data.name)).data.roleId == roleId;
       allow update: if hasCap("rm")
         && valid()
         && resource.data.locked == false
@@ -91,8 +96,21 @@ service cloud.firestore {
         && request.resource.data.updatedBy == request.auth.uid
         && isImmutable("createdAt")
         && isImmutable("createdBy")
+        && isImmutable("name")
         && isServerStamped("updatedAt");
       allow delete: if hasCap("rm") && resource.data.locked == false;
+    }
+
+    match /roleNames/{nameLower} {
+      allow read: if hasCap("rr");
+      allow create: if hasCap("rm")
+        && request.resource.data.keys().hasOnly(["roleId"])
+        && request.resource.data.roleId is string
+        && request.resource.data.roleId.size() >= 1
+        && request.resource.data.roleId.size() <= 60
+        && nameLower.matches("^[a-z0-9_-]+$");
+      allow update: if false;
+      allow delete: if hasCap("rm");
     }
 
     match /allowlist/{emailNorm} {
