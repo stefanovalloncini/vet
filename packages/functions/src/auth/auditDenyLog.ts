@@ -7,7 +7,9 @@ const MAX_PER_EMAIL_PER_DAY = 10;
 export type AuthDenyReason =
   | "missing-email"
   | "allowlist-miss"
-  | "role-missing";
+  | "role-missing"
+  | "provider-not-allowed"
+  | "email-not-verified";
 
 export type AuthDenySource = "beforeSignIn" | "beforeUserCreated";
 
