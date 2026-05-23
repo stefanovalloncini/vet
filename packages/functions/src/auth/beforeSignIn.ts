@@ -4,6 +4,7 @@ import { adminDb } from "../admin/firebaseAdmin.js";
 import type { Capability } from "@vet/shared";
 import { encodeCaps, normalizeEmail } from "@vet/shared";
 import { recordAccessRequest } from "./accessRequestLog.js";
+import { recordAuthDenyAudit, type AuthDenyReason } from "./auditDenyLog.js";
 
 interface ComposeInput {
   roleId: string;
@@ -71,9 +72,7 @@ export function decideAuthResult(input: DecideInput): DecideOutput {
   return { customClaims: claims, userPatch: basePatch, isFirst };
 }
 
-type DenyReason = "missing-email" | "allowlist-miss" | "role-missing";
-
-function denyAndThrow(reason: DenyReason, context: Record<string, unknown>): never {
+function denyAndThrow(reason: AuthDenyReason, context: Record<string, unknown>): never {
   logger.warn("auth.beforeSignIn.deny", { reason, ...context });
   throw new HttpsError("permission-denied", "");
 }
@@ -86,6 +85,14 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
     const eventType = event.eventType;
 
     if (!email) {
+      await recordAuthDenyAudit({
+        emailNorm: "unknown",
+        email: "unknown",
+        actorUid: uid,
+        reason: "missing-email",
+        source: "beforeSignIn",
+        eventType,
+      });
       denyAndThrow("missing-email", { uid, eventType });
     }
 
@@ -98,6 +105,14 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
         photoURL: event.data?.photoURL,
         providerId: event.data?.providerData?.[0]?.providerId,
         source: "beforeSignIn",
+      });
+      await recordAuthDenyAudit({
+        emailNorm: norm,
+        email,
+        actorUid: uid,
+        reason: "allowlist-miss",
+        source: "beforeSignIn",
+        eventType,
       });
       denyAndThrow("allowlist-miss", { email: norm, uid, eventType });
     }
@@ -113,6 +128,14 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
     const roleId = existingUser?.roleId ?? allow.defaultRoleId;
     const roleSnap = await adminDb.collection("roles").doc(roleId).get();
     if (!roleSnap.exists) {
+      await recordAuthDenyAudit({
+        emailNorm: norm,
+        email,
+        actorUid: uid,
+        reason: "role-missing",
+        source: "beforeSignIn",
+        eventType,
+      });
       denyAndThrow("role-missing", { email: norm, uid, roleId, eventType });
     }
     const role = roleSnap.data() as { capabilities: Capability[]; capsVer?: number };
