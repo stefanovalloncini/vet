@@ -39,13 +39,15 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).changedKeys().hasOnly(["roleId", "updatedAt"])
             && request.resource.data.roleId is string
             && request.resource.data.roleId.size() >= 1
-            && request.resource.data.roleId.size() <= 60)
+            && request.resource.data.roleId.size() <= 60
+            && request.resource.data.roleId != "admin")
           || (hasCap("uap") && uid != request.auth.uid
             && request.resource.data.diff(resource.data).changedKeys().hasOnly(["approved", "roleId", "approvedAt", "approvedBy", "updatedAt"])
             && request.resource.data.approved is bool
             && request.resource.data.roleId is string
             && request.resource.data.roleId.size() >= 1
             && request.resource.data.roleId.size() <= 60
+            && request.resource.data.roleId != "admin"
             && request.resource.data.approvedBy is string
             && request.resource.data.approvedBy == request.auth.uid
             && request.resource.data.approvedAt == request.time)
@@ -68,7 +70,11 @@ service cloud.firestore {
           && d.createdBy is string && d.createdBy.size() <= 128
           && d.updatedBy is string && d.updatedBy.size() <= 128
           && (!("capsVer" in d.keys()) || (d.capsVer is int && d.capsVer >= 0))
-          && d.schemaVersion == 1;
+          && d.schemaVersion == 1
+          && !(d.locked == false
+              && "roles.manage" in d.capabilities
+              && "users.approve" in d.capabilities
+              && "allowlist.manage" in d.capabilities);
       }
       allow read: if hasCap("rr");
       allow create: if hasCap("rm")
@@ -97,6 +103,7 @@ service cloud.firestore {
           && d.email is string && d.email.size() >= 3 && d.email.size() <= 120 && d.email.matches("^[^=+\\-@][^@]*@[^@]+\\.[^@]+$")
           && d.email.lower() == emailNorm
           && d.defaultRoleId is string && d.defaultRoleId.size() >= 1 && d.defaultRoleId.size() <= 60
+          && d.defaultRoleId != "admin"
           && d.invitedBy is string && d.invitedBy.size() <= 128
           && (!("notes" in d.keys()) || (d.notes is string && d.notes.size() <= 500))
           && d.schemaVersion == 1;
@@ -104,10 +111,12 @@ service cloud.firestore {
       allow read: if hasCap("lr");
       allow create: if hasCap("lm")
         && valid()
+        && request.resource.data.invitedBy == request.auth.uid
         && isServerStamped("invitedAt");
       allow update: if hasCap("lm")
         && valid()
-        && isImmutable("invitedAt");
+        && isImmutable("invitedAt")
+        && isImmutable("invitedBy");
       allow delete: if hasCap("lm");
     }
 
@@ -139,7 +148,8 @@ service cloud.firestore {
       }
       function validUpdate() {
         let d = request.resource.data;
-        return d.keys().hasOnly(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "tariffa", "ore", "totale", "note", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "deletedAt", "deletedBy", "updatedBy", "updatedByName", "schemaVersion"])
+        return d.keys().hasAll(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "tariffa", "totale", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "schemaVersion"])
+          && d.keys().hasOnly(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "tariffa", "ore", "totale", "note", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "deletedAt", "deletedBy", "updatedBy", "updatedByName", "schemaVersion"])
           && d.data is timestamp
           && d.aziendaId is string && d.aziendaId.size() >= 1 && d.aziendaId.size() <= 64
           && d.aziendaNome is string && d.aziendaNome.size() >= 1 && d.aziendaNome.size() <= 200
@@ -175,11 +185,18 @@ service cloud.firestore {
         && isServerStamped("updatedAt");
       allow update: if (
           (
-            (hasCap("auo") && resource.data.ownerUid == request.auth.uid)
-            || hasCap("aua")
+            (hasCap("auo") && resource.data.ownerUid == request.auth.uid
+                && resource.data.isDeleted == false)
+            || (hasCap("aua") && resource.data.isDeleted == false)
             || (hasCap("ado") && resource.data.ownerUid == request.auth.uid
-                && request.resource.data.isDeleted == true)
-            || (hasCap("ada") && request.resource.data.isDeleted == true)
+                && resource.data.isDeleted == false
+                && request.resource.data.isDeleted == true
+                && request.resource.data.diff(resource.data).changedKeys()
+                    .hasOnly(["isDeleted", "deletedAt", "deletedBy", "updatedAt", "updatedBy", "updatedByName"]))
+            || (hasCap("ada") && resource.data.isDeleted == false
+                && request.resource.data.isDeleted == true
+                && request.resource.data.diff(resource.data).changedKeys()
+                    .hasOnly(["isDeleted", "deletedAt", "deletedBy", "updatedAt", "updatedBy", "updatedByName"]))
           )
           && validUpdate()
           && isImmutable("ownerUid")
@@ -194,7 +211,7 @@ service cloud.firestore {
           && (request.resource.data.isDeleted == resource.data.isDeleted
               || (resource.data.isDeleted == false && request.resource.data.isDeleted == true && isServerStamped("deletedAt")))
         );
-      allow delete: if false;
+      allow delete: if hasCap("hp") && resource.data.isDeleted == true;
     }
 
     match /aziende/{aziendaId} {
