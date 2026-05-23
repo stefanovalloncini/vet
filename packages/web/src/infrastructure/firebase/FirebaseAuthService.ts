@@ -130,8 +130,15 @@ export class FirebaseAuthService implements AuthService {
   }
 
   async sendEmailSignInLink(email: string): Promise<void> {
+    const createTicket = httpsCallable<
+      { email: string },
+      { ticketId: string; expiresAtMs: number }
+    >(getFunctions(undefined, "europe-west8"), "createSignInTicket");
+    const result = await createTicket({ email });
+    const ticketId = result.data.ticketId;
+
     const actionCodeSettings = {
-      url: window.location.origin + "/login/complete",
+      url: `${window.location.origin}/login/complete?t=${encodeURIComponent(ticketId)}`,
       handleCodeInApp: true,
     };
     await sendSignInLinkToEmail(this.auth, email, actionCodeSettings);
@@ -154,6 +161,21 @@ export class FirebaseAuthService implements AuthService {
         throw new Error("email does not match the address the sign-in link was sent to");
       }
     }
+
+    const ticketId = new URL(emailLinkUrl).searchParams.get("t");
+    if (!ticketId) {
+      throw new Error("sign-in link expired or already used");
+    }
+    const consumeTicket = httpsCallable<
+      { ticketId: string; email: string },
+      { ok: true }
+    >(getFunctions(undefined, "europe-west8"), "consumeSignInTicket");
+    try {
+      await consumeTicket({ ticketId, email: providedEmail });
+    } catch {
+      throw new Error("sign-in link expired or already used");
+    }
+
     await signInWithEmailLink(this.auth, providedEmail, emailLinkUrl);
     clearSignInStorage();
   }
