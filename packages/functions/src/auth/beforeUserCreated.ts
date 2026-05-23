@@ -16,11 +16,15 @@ function denyAndThrow(reason: AuthDenyReason, context: Record<string, unknown>):
   throw new HttpsError("permission-denied", "");
 }
 
+const ALLOWED_PROVIDERS = new Set(["google.com", "password"]);
+
 export const beforeUserCreated: ReturnType<typeof beforeUserCreatedFn> =
   beforeUserCreatedFn({ region: "europe-west8" }, async (event) => {
     const email = event.data?.email;
     const uid = event.data?.uid;
     const eventType = event.eventType;
+    const provider = event.data?.providerData?.[0]?.providerId;
+    const emailVerified = event.data?.emailVerified;
 
     if (!email) {
       await recordAuthDenyAudit({
@@ -35,6 +39,30 @@ export const beforeUserCreated: ReturnType<typeof beforeUserCreatedFn> =
     }
 
     const norm = normalizeEmail(email);
+
+    if (provider && !ALLOWED_PROVIDERS.has(provider)) {
+      await recordAuthDenyAudit({
+        emailNorm: norm,
+        email,
+        actorUid: uid,
+        reason: "provider-not-allowed",
+        source: "beforeUserCreated",
+        eventType,
+      });
+      denyAndThrow("provider-not-allowed", { email: norm, uid, provider, eventType });
+    }
+
+    if (provider === "password" && emailVerified !== true) {
+      await recordAuthDenyAudit({
+        emailNorm: norm,
+        email,
+        actorUid: uid,
+        reason: "email-not-verified",
+        source: "beforeUserCreated",
+        eventType,
+      });
+      denyAndThrow("email-not-verified", { email: norm, uid, provider, eventType });
+    }
     const allowSnap = await adminDb.collection("allowlist").doc(norm).get();
     if (allowSnap.exists) {
       logger.info("auth.beforeUserCreated.allow", { email: norm, uid, eventType });
