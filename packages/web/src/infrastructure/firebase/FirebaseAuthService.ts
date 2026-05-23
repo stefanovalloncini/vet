@@ -15,6 +15,7 @@ import {
   onSnapshot,
   type Firestore,
 } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import type {
   ActorContext,
   AuthService,
@@ -134,6 +135,17 @@ export class FirebaseAuthService implements AuthService {
       window.localStorage?.removeItem(EMAIL_LINK_STORAGE_KEY);
     } catch {
       // ignore localStorage failures
+    }
+    if (this.auth.currentUser) {
+      try {
+        const fn = httpsCallable(
+          getFunctions(undefined, "europe-west8"),
+          "selfRevoke"
+        );
+        await fn({});
+      } catch {
+        // server revoke is best-effort; local sign-out proceeds regardless
+      }
     }
     await fbSignOut(this.auth);
     if (typeof caches !== "undefined") {
