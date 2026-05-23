@@ -5,6 +5,7 @@ export { beforeUserCreated } from "./auth/beforeUserCreated.js";
 export { onRoleChange } from "./auth/onRoleChange.js";
 export { onAllowlistDelete } from "./auth/onAllowlistDelete.js";
 export { revokeUserSession } from "./auth/revokeUserSession.js";
+export { selfRevoke } from "./auth/selfRevoke.js";
 export { logAppCheckFailure } from "./diag/logAppCheckFailure.js";
 export { approveUser } from "./auth/approveUser.js";
 export { rejectUser } from "./auth/rejectUser.js";
