@@ -86,9 +86,9 @@ describe("extractClientIp", () => {
     expect(extractClientIp({})).toBe("unknown");
   });
 
-  it("reads the first hop from a comma-separated X-Forwarded-For header", () => {
+  it("reads the last (trusted) hop from a comma-separated X-Forwarded-For header", () => {
     expect(extractClientIp({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" })).toBe(
-      "1.2.3.4"
+      "10.0.0.1"
     );
   });
 
@@ -97,14 +97,20 @@ describe("extractClientIp", () => {
   });
 
   it("handles array form of X-Forwarded-For", () => {
-    expect(extractClientIp({ "x-forwarded-for": ["7.7.7.7, 10.0.0.1"] })).toBe(
+    expect(extractClientIp({ "x-forwarded-for": ["1.1.1.1, 7.7.7.7"] })).toBe(
       "7.7.7.7"
     );
   });
 
-  it("trims surrounding whitespace from the first hop", () => {
-    expect(extractClientIp({ "x-forwarded-for": "  6.6.6.6  , 10.0.0.1" })).toBe(
+  it("trims surrounding whitespace from the last hop", () => {
+    expect(extractClientIp({ "x-forwarded-for": "10.0.0.1,  6.6.6.6  " })).toBe(
       "6.6.6.6"
     );
+  });
+
+  it("ignores spoofed prefix when client supplies multiple entries", () => {
+    expect(
+      extractClientIp({ "x-forwarded-for": "evil.spoof, 1.2.3.4, 10.0.0.1" })
+    ).toBe("10.0.0.1");
   });
 });
