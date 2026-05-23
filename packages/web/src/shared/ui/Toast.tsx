@@ -18,6 +18,7 @@ interface NotifyOptions {
   kind?: ToastKind;
   action?: ToastAction;
   duration?: number;
+  persistent?: boolean;
 }
 
 interface ToastItem {
@@ -49,6 +50,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       ? { id, kind, text, action: opts.action }
       : { id, kind, text };
     setToasts((prev) => [...prev, item]);
+    if (opts.persistent) return;
     const duration =
       opts.duration ?? (opts.action ? ACTION_DURATION : DEFAULT_DURATION);
     setTimeout(() => {
