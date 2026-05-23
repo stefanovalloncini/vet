@@ -7,7 +7,7 @@
     "outDir": "lib",
     "rootDir": "src",
     "declaration": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "verbatimModuleSyntax": false
   },
   "include": ["src/**/*"],
