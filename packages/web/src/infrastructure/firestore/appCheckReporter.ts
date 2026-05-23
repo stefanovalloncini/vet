@@ -17,6 +17,10 @@ interface FailurePayload {
 const alreadyReported = new Set<string>();
 
 function projectStage(): ProjectStage {
+  const fromEnv = import.meta.env.VITE_PROJECT_STAGE;
+  if (fromEnv === "prod" || fromEnv === "preview" || fromEnv === "dev") {
+    return fromEnv;
+  }
   if (typeof window === "undefined") return "dev";
   const h = window.location.hostname;
   if (h === "gestionale.stefanovalloncini.com") return "prod";
