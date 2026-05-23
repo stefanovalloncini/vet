@@ -197,6 +197,15 @@ service cloud.firestore {
                 && request.resource.data.isDeleted == true
                 && request.resource.data.diff(resource.data).changedKeys()
                     .hasOnly(["isDeleted", "deletedAt", "deletedBy", "updatedAt", "updatedBy", "updatedByName"]))
+            || (hasCap("hso") && resource.data.ownerUid == request.auth.uid
+                && resource.data.isDeleted == true
+                && request.resource.data.isDeleted == false
+                && request.resource.data.diff(resource.data).changedKeys()
+                    .hasOnly(["isDeleted", "deletedAt", "deletedBy", "updatedAt", "updatedBy", "updatedByName"]))
+            || (hasCap("hsa") && resource.data.isDeleted == true
+                && request.resource.data.isDeleted == false
+                && request.resource.data.diff(resource.data).changedKeys()
+                    .hasOnly(["isDeleted", "deletedAt", "deletedBy", "updatedAt", "updatedBy", "updatedByName"]))
           )
           && validUpdate()
           && isImmutable("ownerUid")
@@ -209,7 +218,8 @@ service cloud.firestore {
           && (!("updatedByName" in request.resource.data.keys())
               || (hasTokenName() && request.resource.data.updatedByName == request.auth.token.name))
           && (request.resource.data.isDeleted == resource.data.isDeleted
-              || (resource.data.isDeleted == false && request.resource.data.isDeleted == true && isServerStamped("deletedAt")))
+              || (resource.data.isDeleted == false && request.resource.data.isDeleted == true && isServerStamped("deletedAt"))
+              || (resource.data.isDeleted == true && request.resource.data.isDeleted == false))
         );
       allow delete: if hasCap("hp") && resource.data.isDeleted == true;
     }
