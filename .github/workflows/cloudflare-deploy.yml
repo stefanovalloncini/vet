@@ -2,8 +2,11 @@ name: Cloudflare deploy
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: cf-deploy-${{ github.ref }}
@@ -23,9 +26,9 @@ jobs:
       VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
       VITE_FIREBASE_APP_CHECK_SITE_KEY: ${{ secrets.VITE_FIREBASE_APP_CHECK_SITE_KEY }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
           cache: pnpm
@@ -34,11 +37,4 @@ jobs:
       - run: pnpm -F @vet/web build
       - name: Deploy
         working-directory: packages/web
-        run: |
-          if [ "$GITHUB_REF_NAME" = "main" ]; then
-            echo "Production deploy from main"
-            npx wrangler deploy
-          else
-            echo "Preview version upload from $GITHUB_REF_NAME"
-            npx wrangler versions upload --message "ci $GITHUB_REF_NAME @ $GITHUB_SHA"
-          fi
+        run: npx wrangler deploy
