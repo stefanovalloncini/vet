@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { disposeEnv, getEnv } from "./setup";
-import { adminAs, authedAs } from "./helpers";
+import { authedAs, adminAs } from "./helpers";
 
 describe("allowlist rules", () => {
   beforeAll(async () => { await getEnv(); });
@@ -83,7 +83,7 @@ describe("allowlist rules", () => {
     );
   });
 
-  it("delete requires allowlist.manage", async () => {
+  it("direct delete is denied even with allowlist.manage (must use callable)", async () => {
     const env = await getEnv();
     await env.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), "allowlist/d@x.com"), {
@@ -95,7 +95,7 @@ describe("allowlist rules", () => {
       });
     });
     await assertFails(deleteDoc(doc(authedAs(env, "u"), "allowlist/d@x.com")));
-    await assertSucceeds(deleteDoc(doc(adminAs(env, "admin"), "allowlist/d@x.com")));
+    await assertFails(deleteDoc(doc(adminAs(env, "admin"), "allowlist/d@x.com")));
   });
 
   it("create denied when email field mismatches document id", async () => {

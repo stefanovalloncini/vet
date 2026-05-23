@@ -117,7 +117,7 @@ service cloud.firestore {
         && valid()
         && isImmutable("invitedAt")
         && isImmutable("invitedBy");
-      allow delete: if hasCap("lm");
+      allow delete: if false;
     }
 
     match /accessRequests/{emailNorm} {
