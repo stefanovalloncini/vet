@@ -18,7 +18,7 @@ export interface AccessRequestDecisionInput {
 export type AccessRequestDecision =
   | { kind: "create"; doc: Record<string, unknown> }
   | { kind: "update"; patch: Record<string, unknown> }
-  | { kind: "storm"; attempts: number };
+  | { kind: "storm"; attempts: number; patch: Record<string, unknown> };
 
 export function decideAccessRequestUpdate(
   input: AccessRequestDecisionInput
@@ -46,7 +46,11 @@ export function decideAccessRequestUpdate(
     ? input.existing.attempts
     : 0;
   if (prevAttempts >= MAX_ATTEMPTS) {
-    return { kind: "storm", attempts: prevAttempts };
+    return {
+      kind: "storm",
+      attempts: prevAttempts,
+      patch: { lastAttemptAt: input.now },
+    };
   }
   return {
     kind: "update",
@@ -90,6 +94,7 @@ export async function recordAccessRequest(
           email: emailNorm,
           attempts: decision.attempts,
         });
+        tx.update(ref, decision.patch);
         return;
       }
       if (decision.kind === "create") {
