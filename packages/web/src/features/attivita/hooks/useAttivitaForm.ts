@@ -58,11 +58,14 @@ interface HydrationArgs {
 export function useAttivitaHydration(args: HydrationArgs): void {
   const { form, existing, isEdit, targetId } = args;
   const navigate = useNavigate();
-  const hydratedRef = useRef(false);
+  const hydratedRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (existing.data && !hydratedRef.current) {
+    if (hydratedRef.current !== targetId) {
+      hydratedRef.current = undefined;
+    }
+    if (existing.data && hydratedRef.current !== targetId) {
       form.reset(attivitaToFormValues(existing.data, isEdit));
-      hydratedRef.current = true;
+      hydratedRef.current = targetId;
     }
     if (targetId && existing.data === null && !existing.isLoading) {
       navigate("/attivita", { replace: true });
