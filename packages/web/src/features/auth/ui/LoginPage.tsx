@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { Mail } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { Button, GoogleIcon, LoadingHint } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
@@ -100,7 +100,13 @@ export function LoginPage() {
             fullWidth
             disabled={busy}
             onClick={() => googleSignIn(false)}
-            leadingIcon={<GoogleIcon />}
+            leadingIcon={
+              busy ? (
+                <Loader2 size={20} strokeWidth={2} className="animate-spin" aria-hidden="true" />
+              ) : (
+                <GoogleIcon />
+              )
+            }
           >
             {busy ? "Accesso in corso…" : "Entra con Google"}
           </Button>
