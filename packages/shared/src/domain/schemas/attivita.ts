@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ALTRO_TIPO_ID } from "./activityType.js";
 import { safeName } from "./safeString.js";
 
 function hasAtMostTwoDecimals(n: number): boolean {
@@ -22,8 +23,6 @@ const inputBase = z.object({
   ore: oreSchema.optional(),
   note: z.string().max(2000).optional(),
 });
-
-export const ALTRO_TIPO_ID = "altro";
 
 export const attivitaInputSchema = inputBase.strict().superRefine((val, ctx) => {
   if (val.oraria && val.ore === undefined) {

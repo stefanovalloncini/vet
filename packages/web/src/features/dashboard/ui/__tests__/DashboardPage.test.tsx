@@ -3,7 +3,7 @@ import { fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Attivita, Azienda, Reminder } from "@vet/shared";
+import type { Attivita, Azienda } from "@vet/shared";
 import { ToastProvider } from "../../../../shared/ui/Toast";
 import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
 import { createInMemoryRepositories } from "../../../../infrastructure/composition/in-memory";
@@ -65,7 +65,6 @@ function renderDashboard() {
 function baseStats(overrides: Partial<DashboardStats> = {}): DashboardStats {
   const items: Attivita[] = [];
   const aziende: Azienda[] = [];
-  const urgentReminders: Reminder[] = [];
   return {
     loading: false,
     isError: false,
@@ -77,26 +76,13 @@ function baseStats(overrides: Partial<DashboardStats> = {}): DashboardStats {
       byAzienda: new Map(),
       byTipo: new Map(),
     },
-    lastMonth: {
-      total: 800,
-      count: 5,
-      byAzienda: new Map(),
-      byTipo: new Map(),
-    },
-    totalDiff: 25,
     countDiff: 40,
-    topAzienda: null,
-    topTipo: null,
-    arrearsTotal: 0,
     aziendeAttiveCount: 3,
     trailing: {
       totals: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100],
       counts: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       labels: ["Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic", "Gen", "Feb", "Mar", "Apr", "Mag"],
     },
-    topTipoBars: [],
-    urgentReminders,
-    recentAziende: [],
     ...overrides,
   };
 }

@@ -82,7 +82,7 @@ export function AttivitaFormFields({
             name="tariffa"
             type="number"
             step="10"
-            min="0.01"
+            min="1"
             max="100000"
             label={t.campoTariffa}
             required

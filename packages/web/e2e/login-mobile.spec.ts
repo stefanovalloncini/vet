@@ -54,8 +54,6 @@ test.describe("login — mobile layout", () => {
     if (!viewport) return;
     const box = await emailInput.boundingBox();
     if (!box) return;
-    // The input must be visible above the lower half of the viewport so a
-    // soft keyboard does not cover it. Generous threshold.
     expect(box.y).toBeLessThan(viewport.height - 120);
   });
 });

@@ -76,6 +76,7 @@ export {
   slugify,
   ACTIVITY_TYPE_SEEDS,
   GINECOLOGIA_TIPO_ID,
+  ALTRO_TIPO_ID,
   type ActivityTypeInput,
   type ActivityTypeDoc,
 } from "./domain/schemas/activityType.js";

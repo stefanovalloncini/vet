@@ -40,6 +40,7 @@ export type ActivityTypeInput = z.infer<typeof activityTypeInputSchema>;
 export type ActivityTypeDoc = z.infer<typeof activityTypeDocSchema>;
 
 export const GINECOLOGIA_TIPO_ID = "ginecologia";
+export const ALTRO_TIPO_ID = "altro";
 
 export const ACTIVITY_TYPE_SEEDS: ReadonlyArray<{
   id: string;

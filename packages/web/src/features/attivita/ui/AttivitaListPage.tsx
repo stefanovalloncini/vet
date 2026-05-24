@@ -8,7 +8,10 @@ import { useVetOptions } from "../hooks/useVetOptions";
 import { attivitaI18n as t } from "../i18n";
 import { computeTotals, groupAttivita } from "../lib/totals";
 import { AttivitaTotalsBar } from "./AttivitaTotalsBar";
-import { AttivitaFilterBar, AttivitaQuickRanges } from "./AttivitaFilterBar";
+import {
+  AttivitaFilterBar,
+  AttivitaQuickRanges,
+} from "./AttivitaFilterBar";
 import { AttivitaGroups } from "./AttivitaGroups";
 import { ExportDialog } from "./ExportDialog";
 
@@ -26,7 +29,7 @@ export function AttivitaListPage() {
   const [showExport, setShowExport] = useState(false);
   const fs = useAttivitaFilters();
   const attivitaQuery = useAttivita(fs.filters);
-  const items = useMemo(() => attivitaQuery.data ?? [], [attivitaQuery.data]);
+  const items = attivitaQuery.items;
 
   const totals = useMemo(() => computeTotals(items), [items]);
   const groups = useMemo(() => groupAttivita(items, fs.group), [items, fs.group]);
