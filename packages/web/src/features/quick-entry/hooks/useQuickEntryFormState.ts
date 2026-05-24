@@ -27,6 +27,7 @@ import {
   hasDuplicateAttivita,
   parseTariffa,
 } from "../lib/quickEntryHelpers";
+import { computeCombos, type ComputeCombosResult } from "../lib/recentCombos";
 
 const RECENT_AZIENDE_LIMIT = 6;
 
@@ -63,6 +64,7 @@ export interface QuickEntryFormState {
   rangeWarning: string | null;
   aziendaOptions: ReadonlyArray<Option>;
   tipoOptions: ReadonlyArray<Option>;
+  combos: ComputeCombosResult;
   rootError: string | undefined;
   submit: (
     values: QuickEntryFormValues
@@ -179,6 +181,7 @@ export function useQuickEntryFormState({
     [ref.aziende, items]
   );
   const tipoOptions = useMemo(() => tipoOptionsFor(ref.tipi), [ref.tipi]);
+  const combos = useMemo(() => computeCombos(items), [items]);
 
   useEffect(() => {
     dupSkipRef.current = false;
@@ -285,6 +288,7 @@ export function useQuickEntryFormState({
     rangeWarning,
     aziendaOptions,
     tipoOptions,
+    combos,
     rootError: form.formState.errors.root?.message,
     submit,
     resetAll,

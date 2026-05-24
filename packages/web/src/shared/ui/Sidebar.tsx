@@ -63,8 +63,8 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
               transition: "grid-template-columns var(--motion-layout) var(--ease-out-quint)",
             }}
           >
-            <span
-              className="min-w-0 block text-[13px] font-semibold uppercase tracking-[0.14em] text-(--color-text) truncate"
+            <div
+              className="min-w-0 flex flex-col leading-tight"
               style={{
                 opacity: collapsed ? 0 : 1,
                 transform: `translateX(${collapsed ? "-4px" : "0"})`,
@@ -72,8 +72,15 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
                   "opacity var(--motion-fast) var(--ease-out-quart), transform var(--motion-base) var(--ease-out-quart)",
               }}
             >
-              Veterinario
-            </span>
+              <span className="min-w-0 block text-[13px] font-semibold uppercase tracking-[0.14em] text-(--color-text) truncate">
+                Veterinario
+              </span>
+              {user ? (
+                <span className="min-w-0 block text-[11px] text-(--color-text-muted) truncate">
+                  {user.displayName || user.email}
+                </span>
+              ) : null}
+            </div>
           </div>
         </Link>
       </div>

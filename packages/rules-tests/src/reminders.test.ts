@@ -263,4 +263,28 @@ describe("reminders rules", () => {
     ]);
     await assertFails(deleteDoc(doc(db, "reminders/r1")));
   });
+
+  it("update denied when done=false but doneAt is a timestamp", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["reminders.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "reminders/r1"), {
+        done: false,
+        doneAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update denied when done=true but doneAt is null", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["reminders.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "reminders/r1"), {
+        done: true,
+        doneAt: null,
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
 });

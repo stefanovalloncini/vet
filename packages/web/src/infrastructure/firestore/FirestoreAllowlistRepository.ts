@@ -4,10 +4,10 @@ import {
   collection,
   getDocs,
   setDoc,
-  deleteDoc,
   serverTimestamp,
   type Firestore,
 } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import type {
   AllowlistEntry,
   AllowlistEntryInput,
@@ -43,7 +43,11 @@ export class FirestoreAllowlistRepository implements AllowlistRepository {
   }
 
   async remove(email: string): Promise<void> {
-    await deleteDoc(doc(this.db, "allowlist", normalizeEmail(email)));
+    const fn = httpsCallable<{ email: string }, { ok: true }>(
+      getFunctions(undefined, "europe-west8"),
+      "deleteAllowlistEntry"
+    );
+    await fn({ email });
   }
 
   private fromSnap(emailNorm: string, data: Record<string, unknown>): AllowlistEntry {

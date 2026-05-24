@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { safeEmail, safeName } from "./safeString.js";
 
 export const CADENZA_FATTURAZIONE = ["monthly", "quarterly", "semiannual"] as const;
 export type CadenzaFatturazione = (typeof CADENZA_FATTURAZIONE)[number];
@@ -52,7 +53,7 @@ export const aziendaInputSchema = z
     nome: nomeSchema,
     indirizzo: z.string().max(300).optional(),
     piva: pivaSchema.optional(),
-    emailFatturazione: z.string().email().max(120).optional(),
+    emailFatturazione: safeEmail(120).optional(),
     cadenzaFatturazione: cadenzaFatturazioneSchema.optional(),
     tipoAllevamento: tipoAllevamentoSchema.optional(),
     numeroCapi: z.number().int().nonnegative().max(100_000).optional(),
@@ -67,7 +68,7 @@ export const aziendaDocSchema = z
     nomeNorm: z.string().min(1).max(200),
     indirizzo: z.string().max(300).optional(),
     piva: z.string().regex(/^\d{11}$/).optional(),
-    emailFatturazione: z.string().email().max(120).optional(),
+    emailFatturazione: safeEmail(120).optional(),
     cadenzaFatturazione: cadenzaFatturazioneSchema.optional(),
     tipoAllevamento: tipoAllevamentoSchema.optional(),
     numeroCapi: z.number().int().nonnegative().max(100_000).optional(),
@@ -75,10 +76,10 @@ export const aziendaDocSchema = z
     note: z.string().max(1000).optional(),
     createdAt: z.date(),
     updatedAt: z.date(),
-    createdBy: z.string().min(1),
-    updatedBy: z.string().min(1),
-    createdByName: z.string().min(1).max(80),
-    updatedByName: z.string().min(1).max(80),
+    createdBy: z.string().min(1).max(128),
+    updatedBy: z.string().min(1).max(128),
+    createdByName: safeName(80),
+    updatedByName: safeName(80),
     isDeleted: z.boolean(),
     deletedAt: z.date().optional(),
     schemaVersion: z.literal(1),

@@ -125,6 +125,7 @@ async function startWebServer(): Promise<void> {
     {
       label: "web",
       env: {
+        VITE_E2E: "true",
         VITE_FIREBASE_USE_EMULATOR: "true",
         VITE_FIREBASE_API_KEY: "fake-emulator-api-key",
         VITE_FIREBASE_AUTH_DOMAIN: `${EMULATOR_PROJECT_ID}.firebaseapp.com`,

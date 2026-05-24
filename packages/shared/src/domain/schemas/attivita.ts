@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { safeName } from "./safeString.js";
 
 function hasAtMostTwoDecimals(n: number): boolean {
   return Math.round(n * 100) === n * 100;
@@ -14,8 +15,8 @@ const oreSchema = z.number().positive().max(24);
 
 const inputBase = z.object({
   data: z.date(),
-  aziendaId: z.string().min(1),
-  tipoId: z.string().min(1),
+  aziendaId: z.string().min(1).max(64),
+  tipoId: z.string().min(1).max(64),
   oraria: z.boolean(),
   tariffa: tariffaSchema,
   ore: oreSchema.optional(),
@@ -42,23 +43,25 @@ export const attivitaInputSchema = inputBase.strict().superRefine((val, ctx) => 
 export const attivitaDocSchema = z
   .object({
     data: z.date(),
-    aziendaId: z.string().min(1),
+    aziendaId: z.string().min(1).max(64),
     aziendaNome: z.string().min(1).max(200),
-    tipoId: z.string().min(1),
+    tipoId: z.string().min(1).max(64),
     tipoNome: z.string().min(1).max(80),
     oraria: z.boolean(),
     tariffa: tariffaSchema,
     ore: oreSchema.optional(),
     totale: z.number().nonnegative().max(2_400_000),
     note: z.string().max(2000).optional(),
-    ownerUid: z.string().min(1),
-    ownerEmail: z.string().email(),
-    ownerName: z.string().min(1).max(80),
+    ownerUid: z.string().min(1).max(128),
+    ownerEmail: z.string().email().max(120),
+    ownerName: safeName(80),
     createdAt: z.date(),
     updatedAt: z.date(),
     isDeleted: z.boolean(),
     deletedAt: z.date().optional(),
-    deletedBy: z.string().optional(),
+    deletedBy: z.string().min(1).max(128).optional(),
+    updatedBy: z.string().min(1).max(128).optional(),
+    updatedByName: safeName(80).optional(),
     schemaVersion: z.literal(1),
   })
   .strict();

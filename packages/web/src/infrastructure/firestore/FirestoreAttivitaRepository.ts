@@ -104,7 +104,7 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     id: string,
     input: AttivitaInput,
     denorm: { aziendaNome: string; tipoNome: string },
-    _actor: ActorContext
+    actor: ActorContext
   ): Promise<void> {
     await updateDoc(doc(this.db, "attivita", id), {
       data: Timestamp.fromDate(input.data),
@@ -118,6 +118,8 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
       totale: computeTotale(input),
       note: input.note !== undefined ? input.note : deleteField(),
       updatedAt: serverTimestamp(),
+      updatedBy: actor.uid,
+      updatedByName: actor.displayName,
     });
   }
 
@@ -154,6 +156,8 @@ function fromSnap(id: string, data: Record<string, unknown>): Attivita {
     isDeleted: (data.isDeleted as boolean) ?? false,
     ...(data.deletedAt ? { deletedAt: toDate(data.deletedAt) } : {}),
     ...(data.deletedBy ? { deletedBy: data.deletedBy as string } : {}),
+    ...(data.updatedBy ? { updatedBy: data.updatedBy as string } : {}),
+    ...(data.updatedByName ? { updatedByName: data.updatedByName as string } : {}),
     schemaVersion: 1,
   };
 }

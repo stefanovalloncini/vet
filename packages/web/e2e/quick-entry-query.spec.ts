@@ -11,21 +11,15 @@ test.describe("quick entry (tanstack query)", () => {
     });
 
     await signedInVet.getByRole("button", { name: /Voce rapida/i }).click();
-    await expect(
-      signedInVet.getByRole("heading", { name: /Voce rapida/i })
-    ).toBeVisible({ timeout: 10_000 });
+    const dialog = signedInVet.getByRole("dialog", { name: /Voce rapida/i });
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
 
-    await signedInVet.getByLabel(/Data/i).fill("2026-05-28");
-    await signedInVet
-      .getByLabel(/Azienda/i, { exact: false })
-      .selectOption(FIXTURE.azienda.id);
-    await signedInVet
-      .getByLabel(/Tipo/i, { exact: false })
-      .first()
-      .selectOption(FIXTURE.tipo.id);
-    await signedInVet.getByLabel(/Tariffa/i).fill("120");
+    await dialog.getByLabel(/Data/i).fill("2026-05-28");
+    await dialog.getByLabel(/Azienda/i).selectOption(FIXTURE.azienda.id);
+    await dialog.getByLabel(/Tipo/i).selectOption(FIXTURE.tipo.id);
+    await dialog.getByLabel(/Tariffa/i).fill("120");
 
-    await signedInVet.getByRole("button", { name: /^Salva$/i }).click();
+    await dialog.getByRole("button", { name: /^Salva$/i }).click();
 
     await expect(
       signedInVet.getByText(/Attività salvata/i)

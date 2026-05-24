@@ -1,0 +1,63 @@
+import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { Timestamp } from "firebase-admin/firestore";
+import { z } from "zod";
+import { adminDb } from "../admin/firebaseAdmin.js";
+import { decodeCaps, normalizeEmail } from "@vet/shared";
+
+const inputSchema = z
+  .object({ email: z.string().min(3).max(120) })
+  .strict();
+
+interface Caller {
+  uid: string;
+  email: string;
+  caps: string[];
+}
+
+export function ensureCanManageAllowlist(caller: Caller | null): asserts caller is Caller {
+  if (!caller) throw new HttpsError("unauthenticated", "");
+  if (!caller.caps.includes("allowlist.manage")) {
+    throw new HttpsError("permission-denied", "");
+  }
+}
+
+export const deleteAllowlistEntry = onCall(
+  { region: "europe-west8", enforceAppCheck: true },
+  async (request) => {
+    const auth = request.auth;
+    const caller: Caller | null = auth
+      ? {
+          uid: auth.uid,
+          email: (auth.token.email as string) ?? "",
+          caps: decodeCaps((auth.token.caps as string[]) ?? []),
+        }
+      : null;
+
+    ensureCanManageAllowlist(caller);
+
+    let email: string;
+    try {
+      ({ email } = inputSchema.parse(request.data));
+    } catch {
+      throw new HttpsError("invalid-argument", "");
+    }
+
+    const emailNorm = normalizeEmail(email);
+    const ref = adminDb.collection("allowlist").doc(emailNorm);
+
+    const now = Timestamp.now();
+    await adminDb.collection("audit").add({
+      at: now,
+      actorUid: caller.uid,
+      actorEmail: caller.email,
+      action: "allowlist.delete",
+      targetType: "allowlist",
+      targetId: emailNorm,
+      details: { email },
+    });
+
+    await ref.delete();
+
+    return { ok: true as const };
+  }
+);

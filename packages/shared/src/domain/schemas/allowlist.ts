@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { safeEmail } from "./safeString.js";
 
 export const allowlistEntryInputSchema = z
   .object({
-    email: z.string().email(),
+    email: safeEmail(120),
     defaultRoleId: z.string().min(1).max(60),
     notes: z.string().max(500).optional(),
   })
@@ -10,9 +11,9 @@ export const allowlistEntryInputSchema = z
 
 export const allowlistEntryDocSchema = z
   .object({
-    email: z.string().email(),
+    email: safeEmail(120),
     defaultRoleId: z.string().min(1).max(60),
-    invitedBy: z.string(),
+    invitedBy: z.string().min(1).max(128),
     invitedAt: z.date(),
     notes: z.string().max(500).optional(),
     schemaVersion: z.literal(1),

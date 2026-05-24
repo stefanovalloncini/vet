@@ -15,6 +15,7 @@ import {
   onSnapshot,
   type Firestore,
 } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import type {
   ActorContext,
   AuthService,
@@ -23,7 +24,26 @@ import type {
 } from "@vet/shared";
 import { decodeCaps } from "@vet/shared";
 
-const EMAIL_LINK_STORAGE_KEY = "vet.signInEmail";
+const LEGACY_EMAIL_LINK_STORAGE_KEY = "vet.signInEmail";
+const EMAIL_LINK_HASH_STORAGE_KEY = "vet.signInEmailHash";
+
+async function hashEmail(email: string): Promise<string> {
+  const buf = new TextEncoder().encode(email.toLowerCase().trim());
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 16);
+}
+
+function clearSignInStorage(): void {
+  try {
+    window.localStorage?.removeItem(LEGACY_EMAIL_LINK_STORAGE_KEY);
+    window.localStorage?.removeItem(EMAIL_LINK_HASH_STORAGE_KEY);
+  } catch {
+    // ignore localStorage failures
+  }
+}
 
 export class FirebaseAuthService implements AuthService {
   private current: ActorContext | null = null;
@@ -110,30 +130,68 @@ export class FirebaseAuthService implements AuthService {
   }
 
   async sendEmailSignInLink(email: string): Promise<void> {
+    const createTicket = httpsCallable<
+      { email: string },
+      { ticketId: string; expiresAtMs: number }
+    >(getFunctions(undefined, "europe-west8"), "createSignInTicket");
+    const result = await createTicket({ email });
+    const ticketId = result.data.ticketId;
+
     const actionCodeSettings = {
-      url: window.location.origin + "/login/complete",
+      url: `${window.location.origin}/login/complete?t=${encodeURIComponent(ticketId)}`,
       handleCodeInApp: true,
     };
     await sendSignInLinkToEmail(this.auth, email, actionCodeSettings);
-    window.localStorage.setItem(EMAIL_LINK_STORAGE_KEY, email);
+    const hash = await hashEmail(email);
+    window.localStorage.setItem(EMAIL_LINK_HASH_STORAGE_KEY, hash);
+    window.localStorage.removeItem(LEGACY_EMAIL_LINK_STORAGE_KEY);
   }
 
   async completeEmailSignIn(emailLinkUrl: string, providedEmail?: string): Promise<void> {
     if (!isSignInWithEmailLink(this.auth, emailLinkUrl)) {
       throw new Error("invalid sign-in link");
     }
-    const stored = window.localStorage.getItem(EMAIL_LINK_STORAGE_KEY);
-    const email = providedEmail ?? stored;
-    if (!email) throw new Error("email not remembered for sign-in");
-    await signInWithEmailLink(this.auth, email, emailLinkUrl);
-    window.localStorage.removeItem(EMAIL_LINK_STORAGE_KEY);
+    if (!providedEmail) {
+      throw new Error("email not remembered for sign-in");
+    }
+    const storedHash = window.localStorage.getItem(EMAIL_LINK_HASH_STORAGE_KEY);
+    if (storedHash) {
+      const typedHash = await hashEmail(providedEmail);
+      if (typedHash !== storedHash) {
+        throw new Error("email does not match the address the sign-in link was sent to");
+      }
+    }
+
+    const ticketId = new URL(emailLinkUrl).searchParams.get("t");
+    if (!ticketId) {
+      throw new Error("sign-in link expired or already used");
+    }
+    const consumeTicket = httpsCallable<
+      { ticketId: string; email: string },
+      { ok: true }
+    >(getFunctions(undefined, "europe-west8"), "consumeSignInTicket");
+    try {
+      await consumeTicket({ ticketId, email: providedEmail });
+    } catch {
+      throw new Error("sign-in link expired or already used");
+    }
+
+    await signInWithEmailLink(this.auth, providedEmail, emailLinkUrl);
+    clearSignInStorage();
   }
 
   async signOut(): Promise<void> {
-    try {
-      window.localStorage?.removeItem(EMAIL_LINK_STORAGE_KEY);
-    } catch {
-      // ignore localStorage failures
+    clearSignInStorage();
+    if (this.auth.currentUser) {
+      try {
+        const fn = httpsCallable(
+          getFunctions(undefined, "europe-west8"),
+          "selfRevoke"
+        );
+        await fn({});
+      } catch {
+        // server revoke is best-effort; local sign-out proceeds regardless
+      }
     }
     await fbSignOut(this.auth);
     if (typeof caches !== "undefined") {

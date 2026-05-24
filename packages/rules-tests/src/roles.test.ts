@@ -27,6 +27,12 @@ describe("roles rules", () => {
       const db = ctx.firestore();
       await setDoc(doc(db, "roles/vet"), seedRole);
       await setDoc(doc(db, "roles/admin"), seedAdminRole);
+      await setDoc(doc(db, "roleNames/test"), { roleId: "vet" });
+      await setDoc(doc(db, "roleNames/admin"), { roleId: "admin" });
+      await setDoc(doc(db, "roleNames/new"), { roleId: "newrole" });
+      await setDoc(doc(db, "roleNames/spoofed"), { roleId: "spoofed" });
+      await setDoc(doc(db, "roleNames/spoofed-two"), { roleId: "spoofed2" });
+      await setDoc(doc(db, "roleNames/duplicate"), { roleId: "first" });
     });
   });
 
@@ -80,5 +86,104 @@ describe("roles rules", () => {
     const env = await getEnv();
     const db = adminAs(env, "admin-uid");
     await assertFails(deleteDoc(doc(db, "roles/admin")));
+  });
+
+  it("create denied when createdBy or updatedBy != auth.uid", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertFails(
+      setDoc(doc(db, "roles/spoofed"), {
+        name: "Spoofed",
+        capabilities: [],
+        locked: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "someone-else",
+        updatedBy: "admin-uid",
+        schemaVersion: 1,
+      })
+    );
+    await assertFails(
+      setDoc(doc(db, "roles/spoofed2"), {
+        name: "Spoofed Two",
+        capabilities: [],
+        locked: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "admin-uid",
+        updatedBy: "someone-else",
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("update denied when updatedBy != auth.uid", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertFails(
+      updateDoc(doc(db, "roles/vet"), {
+        description: "renamed",
+        updatedBy: "someone-else",
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update allowed when updatedBy = auth.uid", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertSucceeds(
+      updateDoc(doc(db, "roles/vet"), {
+        description: "updated description",
+        updatedBy: "admin-uid",
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("rename via update is denied (name is immutable)", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertFails(
+      updateDoc(doc(db, "roles/vet"), {
+        name: "Renamed",
+        updatedBy: "admin-uid",
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("create denied when name mirror is missing", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertFails(
+      setDoc(doc(db, "roles/orphan"), {
+        name: "Orphan",
+        capabilities: [],
+        locked: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "admin-uid",
+        updatedBy: "admin-uid",
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("create denied when name mirror points to a different roleId (duplicate name)", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertFails(
+      setDoc(doc(db, "roles/second"), {
+        name: "Duplicate",
+        capabilities: [],
+        locked: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "admin-uid",
+        updatedBy: "admin-uid",
+        schemaVersion: 1,
+      })
+    );
   });
 });

@@ -60,4 +60,28 @@ describe("decideAuthResult", () => {
     expect(out.userPatch).not.toHaveProperty("approved");
     expect(out.userPatch).not.toHaveProperty("createdAt");
   });
+
+  it("approved user: capsVer in claims comes from role.capsVer", () => {
+    const out = decideAuthResult({
+      allow,
+      existing: { approved: true, roleId: "vet", displayName: "A" },
+      role: { capabilities: ["activities.read.all"], capsVer: 42 },
+      email: "a@b.com",
+      displayName: "A",
+      now: new Date(),
+    });
+    expect(out.customClaims).toMatchObject({ capsVer: 42 });
+  });
+
+  it("approved user: capsVer defaults to 0 when role doc has none", () => {
+    const out = decideAuthResult({
+      allow,
+      existing: { approved: true, roleId: "vet", displayName: "A" },
+      role,
+      email: "a@b.com",
+      displayName: "A",
+      now: new Date(),
+    });
+    expect(out.customClaims).toMatchObject({ capsVer: 0 });
+  });
 });

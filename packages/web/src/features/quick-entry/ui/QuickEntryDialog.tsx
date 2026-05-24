@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FormProvider } from "react-hook-form";
+import { FormProvider, useWatch } from "react-hook-form";
 import {
   Button,
   Dialog,
@@ -20,6 +20,8 @@ import {
   type QuickEntryFormValues,
 } from "../hooks/useQuickEntryFormState";
 import type { ActorContext } from "@vet/shared";
+import { SuggestionsPanel } from "./SuggestionsPanel";
+import type { Combo } from "../lib/recentCombos";
 
 interface QuickEntryDialogProps {
   open: boolean;
@@ -80,6 +82,13 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
     s.resetAll({ data: values.data });
   }
 
+  function pickCombo(c: Combo) {
+    s.form.clearErrors();
+    s.form.setValue("aziendaId", c.aziendaId, { shouldDirty: true, shouldValidate: false });
+    s.form.setValue("tipoId", c.tipoId, { shouldDirty: true, shouldValidate: false });
+    s.form.setValue("tariffa", String(c.tariffa), { shouldDirty: true, shouldValidate: false });
+  }
+
   return (
     <>
       <Dialog open={open} onClose={onClose} labelledBy="quick-entry-title" size="md">
@@ -91,10 +100,11 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
             >
               Voce rapida
             </h2>
+            <SuggestionsBridge combos={s.combos} onPick={pickCombo} />
             <form
               noValidate
               onSubmit={s.form.handleSubmit(onSubmit)}
-              className="space-y-3 mt-5"
+              className="space-y-3 mt-4"
             >
               <RHFTextField<QuickEntryFormValues>
                 name="data"
@@ -197,5 +207,21 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
         }}
       />
     </>
+  );
+}
+
+interface SuggestionsBridgeProps {
+  combos: ReturnType<typeof useQuickEntryFormState>["combos"];
+  onPick: (c: Combo) => void;
+}
+
+function SuggestionsBridge({ combos, onPick }: SuggestionsBridgeProps) {
+  const aziendaId = useWatch<QuickEntryFormValues>({ name: "aziendaId" }) as string | undefined;
+  const tipoId = useWatch<QuickEntryFormValues>({ name: "tipoId" }) as string | undefined;
+  const active = aziendaId && tipoId ? { aziendaId, tipoId } : null;
+  return (
+    <div className="mt-4">
+      <SuggestionsPanel combos={combos} active={active} onPick={onPick} />
+    </div>
   );
 }

@@ -39,10 +39,11 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg", "icon-maskable.svg"],
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,woff,woff2,ico,png}"],
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/__\//, /^\/api\//, /^\/login/],
+        globPatterns: ["**/*.{html,svg,woff,woff2,ico,png}"],
+        navigateFallback: undefined,
         cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
       },
       manifest: {
         name: "Veterinario",

@@ -16,6 +16,7 @@ const vetCaps: Capability[] = [
   "trash.read.own",
   "trash.restore.own",
   "payments.read",
+  "payments.read.any",
   "payments.manage",
   "reminders.read",
   "reminders.create",
@@ -28,6 +29,7 @@ const viewerCaps: Capability[] = [
   "activity_types.read",
   "trash.read.own",
   "payments.read",
+  "payments.read.any",
   "reminders.read",
 ];
 
@@ -42,12 +44,18 @@ const SEEDS: ReadonlyArray<{
   { id: "viewer", name: "Sola lettura", caps: viewerCaps, locked: false },
 ];
 
+function nameKey(name: string): string {
+  return name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+}
+
 await runScript({
   scriptName: "seed-roles",
   run: async () => {
     const db = getFirestore();
     for (const r of SEEDS) {
-      await db.collection("roles").doc(r.id).set({
+      const batch = db.batch();
+      batch.set(db.collection("roleNames").doc(nameKey(r.name)), { roleId: r.id });
+      batch.set(db.collection("roles").doc(r.id), {
         name: r.name,
         capabilities: r.caps,
         locked: r.locked,
@@ -57,6 +65,7 @@ await runScript({
         updatedBy: "seed",
         schemaVersion: 1,
       });
+      await batch.commit();
       process.stdout.write(`seeded role ${r.id}\n`);
     }
   },

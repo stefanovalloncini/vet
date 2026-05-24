@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "vet-dev"
+    "default": "vet-marinoni",
+    "prod": "vet-marinoni",
+    "dev": "vet-dev"
   }
 }

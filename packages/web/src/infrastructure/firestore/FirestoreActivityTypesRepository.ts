@@ -4,6 +4,7 @@ import {
   collection,
   getDocs,
   setDoc,
+  updateDoc,
   serverTimestamp,
   query,
   orderBy,
@@ -45,18 +46,31 @@ export class FirestoreActivityTypesRepository
   }
 
   async upsert(id: string, input: ActivityTypeInput): Promise<void> {
-    const payload: Record<string, unknown> = {
+    const ref = doc(this.db, "activity_types", id);
+    const snap = await getDoc(ref);
+    const tariffaPatch =
+      input.tariffaStandard !== undefined
+        ? { tariffaStandard: input.tariffaStandard }
+        : {};
+    if (snap.exists()) {
+      await updateDoc(ref, {
+        nome: input.nome,
+        ordine: input.ordine,
+        attivo: input.attivo,
+        ...tariffaPatch,
+        updatedAt: serverTimestamp(),
+      });
+      return;
+    }
+    await setDoc(ref, {
       nome: input.nome,
       ordine: input.ordine,
       attivo: input.attivo,
+      ...tariffaPatch,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       schemaVersion: 1,
-    };
-    if (input.tariffaStandard !== undefined) {
-      payload["tariffaStandard"] = input.tariffaStandard;
-    }
-    await setDoc(doc(this.db, "activity_types", id), payload, { merge: true });
+    });
   }
 
   async setActive(id: string, attivo: boolean): Promise<void> {

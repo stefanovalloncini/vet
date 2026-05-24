@@ -5,12 +5,10 @@ import {
   where,
   collection,
   getDocs,
-  setDoc,
-  serverTimestamp,
   type Firestore,
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import type { User, UserInput, UserRepository } from "@vet/shared";
+import type { User, UserRepository } from "@vet/shared";
 
 export class FirestoreUserRepository implements UserRepository {
   constructor(private readonly db: Firestore) {}
@@ -19,38 +17,6 @@ export class FirestoreUserRepository implements UserRepository {
     const snap = await getDoc(doc(this.db, "users", uid));
     if (!snap.exists()) return null;
     return this.fromSnap(uid, snap.data());
-  }
-
-  async upsert(uid: string, input: UserInput): Promise<void> {
-    await setDoc(
-      doc(this.db, "users", uid),
-      {
-        email: input.email,
-        displayName: input.displayName,
-        roleId: input.roleId,
-        disabled: false,
-        updatedAt: serverTimestamp(),
-        createdAt: serverTimestamp(),
-        schemaVersion: 1,
-      },
-      { merge: true }
-    );
-  }
-
-  async touchLastSignIn(uid: string, _at: Date): Promise<void> {
-    await setDoc(
-      doc(this.db, "users", uid),
-      { lastSignInAt: serverTimestamp(), updatedAt: serverTimestamp() },
-      { merge: true }
-    );
-  }
-
-  async setDisabled(uid: string, disabled: boolean, _actor: string): Promise<void> {
-    await setDoc(
-      doc(this.db, "users", uid),
-      { disabled, updatedAt: serverTimestamp() },
-      { merge: true }
-    );
   }
 
   async listByRole(roleId: string): Promise<User[]> {

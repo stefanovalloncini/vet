@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const reminderInputSchema = z
   .object({
-    aziendaId: z.string().min(1),
+    aziendaId: z.string().min(1).max(64),
     titolo: z.string().min(1).max(120),
     dueAt: z.date(),
     note: z.string().max(500).optional(),
@@ -11,7 +11,7 @@ export const reminderInputSchema = z
 
 export const reminderDocSchema = z
   .object({
-    aziendaId: z.string().min(1),
+    aziendaId: z.string().min(1).max(64),
     aziendaNome: z.string().min(1).max(200),
     titolo: z.string().min(1).max(120),
     dueAt: z.date(),
@@ -20,7 +20,7 @@ export const reminderDocSchema = z
     doneAt: z.date().optional(),
     createdAt: z.date(),
     updatedAt: z.date(),
-    createdBy: z.string().min(1),
+    createdBy: z.string().min(1).max(128),
     schemaVersion: z.literal(1),
   })
   .strict();

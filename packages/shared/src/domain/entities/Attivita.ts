@@ -18,5 +18,7 @@ export interface Attivita {
   isDeleted: boolean;
   deletedAt?: Date;
   deletedBy?: string;
+  updatedBy?: string;
+  updatedByName?: string;
   schemaVersion: number;
 }

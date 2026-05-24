@@ -21,7 +21,7 @@ export const cestinoI18n = {
 
 export const impostazioniI18n = {
   title: "Impostazioni",
-  subtitle: "Profilo e privacy.",
+  subtitle: "Profilo, dati e privacy.",
   gdprSection: "Privacy",
   gdprTitle: "Cancella i miei dati",
   gdprDescr:
