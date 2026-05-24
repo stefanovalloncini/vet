@@ -95,7 +95,7 @@ export function useAttivitaDerived(args: DerivedArgs): AttivitaDerived {
 
   const tipiMutable = useMemo(() => [...tipi], [tipi]);
 
-  const { suggested, clear } = useTariffaSuggestion({
+  const { suggested } = useTariffaSuggestion({
     aziendaId,
     tipoId,
     tipi: tipiMutable,
@@ -104,16 +104,6 @@ export function useAttivitaDerived(args: DerivedArgs): AttivitaDerived {
     onSuggest: (value) =>
       form.setValue("tariffa", value, { shouldValidate: false }),
   });
-
-  const clearRef = useRef(clear);
-  clearRef.current = clear;
-
-  useEffect(() => {
-    const sub = form.watch((_value, info) => {
-      if (info.name === "tariffa" && info.type === "change") clearRef.current();
-    });
-    return () => sub.unsubscribe();
-  }, [form]);
 
   const totaleLive = useMemo(() => {
     const tariffaNum = Number(tariffa);
@@ -174,7 +164,7 @@ export function useAttivitaSubmit(args: SubmitArgs): UseAttivitaSubmitResult {
         });
         notify("Promemoria creato", "success");
       } catch {
-        void 0;
+        notify("Promemoria non creato", "error");
       }
     },
     [user, createReminder, notify]
@@ -228,8 +218,9 @@ export function useAttivitaSubmit(args: SubmitArgs): UseAttivitaSubmitResult {
       navigate("/attivita");
     } catch {
       form.setError("root", { message: t.erroreSalvataggio });
+      notify(t.erroreSalvataggio, "error");
     }
-  }, [isEdit, id, user, deleteMutation, navigate, form]);
+  }, [isEdit, id, user, deleteMutation, navigate, form, notify]);
 
   return { busy, onSubmit, handleDelete };
 }

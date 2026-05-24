@@ -17,7 +17,7 @@ interface Args {
 }
 
 export function useTariffaSuggestion(args: Args): Result {
-  const [suggested, setSuggested] = useState(false);
+  const [lastSuggested, setLastSuggested] = useState<string | null>(null);
   const onSuggestRef = useRef(args.onSuggest);
   onSuggestRef.current = args.onSuggest;
   const currentTariffaRef = useRef(args.currentTariffa);
@@ -33,30 +33,32 @@ export function useTariffaSuggestion(args: Args): Result {
   useEffect(() => {
     if (args.isEdit) return;
     if (!args.tipoId) {
-      setSuggested(false);
+      setLastSuggested(null);
       return;
     }
     if (isGin) {
       if (!args.aziendaId || ginQuery.isPending || ginQuery.isFetching) return;
       const last = ginQuery.data;
       if (last) {
+        const value = String(last.tariffa);
         if (currentTariffaRef.current === "") {
-          onSuggestRef.current(String(last.tariffa));
+          onSuggestRef.current(value);
         }
-        setSuggested(true);
+        setLastSuggested(value);
       } else {
-        setSuggested(false);
+        setLastSuggested(null);
       }
       return;
     }
     const tipo = args.tipi.find((t) => t.id === args.tipoId);
     if (tipo?.tariffaStandard !== undefined) {
+      const value = String(tipo.tariffaStandard);
       if (currentTariffaRef.current === "") {
-        onSuggestRef.current(String(tipo.tariffaStandard));
+        onSuggestRef.current(value);
       }
-      setSuggested(true);
+      setLastSuggested(value);
     } else {
-      setSuggested(false);
+      setLastSuggested(null);
     }
   }, [
     args.aziendaId,
@@ -69,8 +71,11 @@ export function useTariffaSuggestion(args: Args): Result {
     ginQuery.isFetching,
   ]);
 
+  const suggested =
+    lastSuggested !== null && args.currentTariffa === lastSuggested;
+
   return {
     suggested,
-    clear: () => setSuggested(false),
+    clear: () => setLastSuggested(null),
   };
 }
