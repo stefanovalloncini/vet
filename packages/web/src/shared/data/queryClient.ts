@@ -56,6 +56,9 @@ export const ATTIVITA_DEPENDENT_KEYS = [
   ["agenda"],
   ["payments"],
   ["vetStats"],
+  ["dashboardStats"],
+  ["statistiche"],
+  ["trash"],
 ] as const;
 
 export const AZIENDE_DEPENDENT_KEYS = [

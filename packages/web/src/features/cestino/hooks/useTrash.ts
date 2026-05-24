@@ -5,7 +5,11 @@ import {
 } from "@tanstack/react-query";
 import type { Attivita, TrashFilters } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { queryKeys } from "../../../shared/data/queryClient";
+import {
+  ATTIVITA_DEPENDENT_KEYS,
+  invalidateMany,
+  queryKeys,
+} from "../../../shared/data/queryClient";
 
 interface UseTrashResult {
   items: Attivita[];
@@ -39,10 +43,7 @@ export function useRestoreTrashed() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => trash.restoreAttivita(id),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["trash"] });
-      void qc.invalidateQueries({ queryKey: ["attivita"] });
-    },
+    onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
   });
 }
 
@@ -51,8 +52,6 @@ export function usePurgeTrashed() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => trash.purgeAttivita(id),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["trash"] });
-    },
+    onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
   });
 }
