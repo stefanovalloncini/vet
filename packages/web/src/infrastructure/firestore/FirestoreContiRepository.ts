@@ -18,9 +18,8 @@ import type {
   ContoEmitInput,
   ContoSaldoInput,
   ContiRepository,
-  MetodoPagamento,
 } from "@vet/shared";
-import { toDate } from "./timestamps";
+import { parseConto } from "@vet/shared";
 
 export class FirestoreContiRepository implements ContiRepository {
   constructor(private readonly db: Firestore) {}
@@ -124,42 +123,5 @@ export class FirestoreContiRepository implements ContiRepository {
 }
 
 function fromSnap(id: string, data: Record<string, unknown>): Conto {
-  return {
-    id,
-    aziendaId: data.aziendaId as string,
-    aziendaNome: data.aziendaNome as string,
-    periodoFrom: toDate(data.periodoFrom),
-    periodoTo: toDate(data.periodoTo),
-    attivitaIds: (data.attivitaIds as string[] | undefined) ?? [],
-    totaleConto: (data.totaleConto as number) ?? 0,
-    modalita: (data.modalita as "proforma" | "emesso") ?? "proforma",
-    saldato: (data.saldato as boolean) ?? false,
-    emittedAt: toDate(data.emittedAt),
-    emittedBy: (data.emittedBy as string) ?? "",
-    emittedByName: (data.emittedByName as string) ?? "",
-    ...(data.saldatoAt
-      ? { saldatoAt: toDate(data.saldatoAt) }
-      : {}),
-    ...(data.saldatoBy
-      ? { saldatoBy: data.saldatoBy as string }
-      : {}),
-    ...(data.saldatoByName
-      ? { saldatoByName: data.saldatoByName as string }
-      : {}),
-    ...(data.importoSaldato !== undefined
-      ? { importoSaldato: data.importoSaldato as number }
-      : {}),
-    ...(data.metodoPagamento
-      ? { metodoPagamento: data.metodoPagamento as MetodoPagamento }
-      : {}),
-    ...(data.note ? { note: data.note as string } : {}),
-    isDeleted: (data.isDeleted as boolean) ?? false,
-    ...(data.deletedAt
-      ? { deletedAt: toDate(data.deletedAt) }
-      : {}),
-    ...(data.deletedBy
-      ? { deletedBy: data.deletedBy as string }
-      : {}),
-    schemaVersion: 1,
-  };
+  return parseConto(id, data);
 }
