@@ -13,6 +13,7 @@ import type {
   AuditFilters,
   AuditRepository,
 } from "@vet/shared";
+import { toDate } from "./timestamps";
 
 export class FirestoreAuditRepository implements AuditRepository {
   constructor(private readonly db: Firestore) {}
@@ -41,17 +42,4 @@ function fromSnap(id: string, data: Record<string, unknown>): AuditEvent {
     targetId: (data.targetId as string) ?? "",
     ...(data.details ? { details: data.details as Record<string, unknown> } : {}),
   };
-}
-
-function toDate(value: unknown): Date {
-  if (value instanceof Date) return value;
-  if (
-    value &&
-    typeof value === "object" &&
-    "toDate" in value &&
-    typeof (value as { toDate: () => Date }).toDate === "function"
-  ) {
-    return (value as { toDate: () => Date }).toDate();
-  }
-  return new Date(0);
 }

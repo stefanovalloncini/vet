@@ -1,4 +1,4 @@
-import type { MetodoPagamento } from "../schemas/payment.js";
+import type { MetodoPagamento } from "../schemas/money.js";
 
 export interface Conto {
   id: string;

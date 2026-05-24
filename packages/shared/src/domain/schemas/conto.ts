@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { metodoPagamentoSchema } from "./payment.js";
+import { metodoPagamentoSchema } from "./money.js";
 import { safeName } from "./safeString.js";
 
 export const CONTO_MODALITA = ["proforma", "emesso"] as const;

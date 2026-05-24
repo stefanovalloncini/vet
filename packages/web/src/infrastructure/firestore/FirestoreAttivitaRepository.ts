@@ -24,6 +24,7 @@ import type {
   TrashFilters,
 } from "@vet/shared";
 import { computeTotale } from "@vet/shared";
+import { toDate } from "./timestamps";
 
 export class FirestoreAttivitaRepository implements AttivitaRepository {
   constructor(private readonly db: Firestore) {}
@@ -168,17 +169,4 @@ function fromSnap(id: string, data: Record<string, unknown>): Attivita {
     ...(data.updatedByName ? { updatedByName: data.updatedByName as string } : {}),
     schemaVersion: 1,
   };
-}
-
-function toDate(value: unknown): Date {
-  if (value instanceof Date) return value;
-  if (
-    value &&
-    typeof value === "object" &&
-    "toDate" in value &&
-    typeof (value as { toDate: () => Date }).toDate === "function"
-  ) {
-    return (value as { toDate: () => Date }).toDate();
-  }
-  return new Date(0);
 }

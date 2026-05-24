@@ -19,6 +19,7 @@ import type {
   PaymentsRepository,
 } from "@vet/shared";
 import type { MetodoPagamento } from "@vet/shared";
+import { toDate } from "./timestamps";
 
 export class FirestorePaymentsRepository implements PaymentsRepository {
   constructor(private readonly db: Firestore) {}
@@ -112,17 +113,4 @@ function fromSnap(id: string, data: Record<string, unknown>): Payment {
     updatedByName: (data.updatedByName as string) ?? "",
     schemaVersion: 1,
   };
-}
-
-function toDate(value: unknown): Date {
-  if (value instanceof Date) return value;
-  if (
-    value &&
-    typeof value === "object" &&
-    "toDate" in value &&
-    typeof (value as { toDate: () => Date }).toDate === "function"
-  ) {
-    return (value as { toDate: () => Date }).toDate();
-  }
-  return new Date(0);
 }
