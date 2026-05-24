@@ -22,6 +22,8 @@ export const queryKeys = {
   aziendaDetail: (id: string) => ["aziende", id, "detail"] as const,
   attivita: (filters?: Readonly<Record<string, unknown>>) =>
     ["attivita", filters ?? {}] as const,
+  attivitaById: (id: string | undefined) =>
+    ["attivita", "byId", id ?? null] as const,
   tipiAttivita: ["tipiAttivita"] as const,
   payments: (filters?: Readonly<Record<string, unknown>>) =>
     ["payments", filters ?? {}] as const,
@@ -77,4 +79,25 @@ export function invalidateMany(
   for (const key of keys) {
     void qc.invalidateQueries({ queryKey: key });
   }
+}
+
+export interface FilterKeyInput {
+  from?: Date | undefined;
+  to?: Date | undefined;
+  aziendaId?: string | undefined;
+  tipoId?: string | undefined;
+  ownerUid?: string | undefined;
+}
+
+export function filterKey(
+  filters: FilterKeyInput | undefined
+): Record<string, unknown> {
+  if (!filters) return {};
+  return {
+    from: filters.from?.toISOString(),
+    to: filters.to?.toISOString(),
+    aziendaId: filters.aziendaId,
+    tipoId: filters.tipoId,
+    ownerUid: filters.ownerUid,
+  };
 }

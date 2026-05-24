@@ -10,6 +10,7 @@ import {
   type Azienda,
 } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 import { useToast } from "../../../shared/ui";
 import { useCreateReminder } from "../../reminders/hooks/useReminders";
 import {
@@ -37,7 +38,7 @@ export function useExistingAttivita(
 ): UseExistingAttivitaResult {
   const { attivita: repo } = useRepositories();
   const query = useQuery<Attivita | null>({
-    queryKey: ["attivita", "byId", id ?? null],
+    queryKey: queryKeys.attivitaById(id),
     queryFn: () => (id ? repo.getById(id) : Promise.resolve(null)),
     enabled: id !== undefined,
   });

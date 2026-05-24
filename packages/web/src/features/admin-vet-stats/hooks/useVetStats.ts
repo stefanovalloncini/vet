@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Attivita, AttivitaFilters } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { queryKeys } from "../../../shared/data/queryClient";
+import { filterKey, queryKeys } from "../../../shared/data/queryClient";
 
 export interface VetStat {
   readonly uid: string;
@@ -35,7 +35,7 @@ function aggregate(items: ReadonlyArray<Attivita>): VetStat[] {
 export function useVetStats(filters: AttivitaFilters = {}) {
   const { attivita } = useRepositories();
   return useQuery<VetStat[]>({
-    queryKey: queryKeys.vetStats(filters as Record<string, unknown>),
+    queryKey: queryKeys.vetStats(filterKey(filters)),
     queryFn: async () => aggregate(await attivita.list(filters)),
   });
 }

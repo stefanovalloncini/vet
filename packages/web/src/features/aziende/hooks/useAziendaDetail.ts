@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import type { Attivita, Azienda, Payment } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { queryKeys } from "../../../shared/data/queryClient";
+import { filterKey, queryKeys } from "../../../shared/data/queryClient";
 
 export interface AziendaDetail {
   azienda: Azienda | null;
@@ -31,13 +31,13 @@ export function useAziendaDetail(id: string | undefined): AziendaDetail {
   });
 
   const attivitaQuery = useQuery<Attivita[]>({
-    queryKey: queryKeys.attivita({ aziendaId: id ?? "" }),
+    queryKey: queryKeys.attivita(filterKey({ aziendaId: id })),
     queryFn: () => attivita.list({ aziendaId: id as string }),
     enabled,
   });
 
   const paymentsQuery = useQuery<Payment[]>({
-    queryKey: queryKeys.payments({ aziendaId: id ?? "" }),
+    queryKey: queryKeys.payments(filterKey({ aziendaId: id })),
     queryFn: () => payments.listForAzienda(id as string),
     enabled,
   });

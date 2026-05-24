@@ -12,22 +12,12 @@ import type {
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import {
   ATTIVITA_DEPENDENT_KEYS,
+  filterKey,
   invalidateMany,
   queryKeys,
 } from "../../../shared/data/queryClient";
 
 type Denorm = { aziendaNome: string; tipoNome: string };
-
-function filterKey(filters: AttivitaFilters | undefined) {
-  if (!filters) return {};
-  return {
-    from: filters.from?.toISOString(),
-    to: filters.to?.toISOString(),
-    aziendaId: filters.aziendaId,
-    tipoId: filters.tipoId,
-    ownerUid: filters.ownerUid,
-  };
-}
 
 export function useAttivita(filters: AttivitaFilters = {}) {
   const { attivita: repo } = useRepositories();

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Attivita } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { queryKeys } from "../../../shared/data/queryClient";
+import { filterKey, queryKeys } from "../../../shared/data/queryClient";
 import { endOfMonth, startOfMonth } from "../lib/calendar";
 
 export type AgendaViewMode = "month" | "week";
@@ -66,10 +66,12 @@ export function useAgendaData({
 
   const fromMs = range.rangeStart.getTime();
   const toMs = range.rangeEnd.getTime();
+  const fromDate = useMemo(() => new Date(fromMs), [fromMs]);
+  const toDate = useMemo(() => new Date(toMs), [toMs]);
 
   const query = useQuery<Attivita[]>({
-    queryKey: queryKeys.agenda({ from: fromMs, to: toMs }),
-    queryFn: () => repo.list({ from: new Date(fromMs), to: new Date(toMs) }),
+    queryKey: queryKeys.agenda(filterKey({ from: fromDate, to: toDate })),
+    queryFn: () => repo.list({ from: fromDate, to: toDate }),
   });
 
   const refresh = async (): Promise<void> => {
