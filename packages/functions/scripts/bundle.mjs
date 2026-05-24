@@ -42,12 +42,15 @@ const deployPkg = {
   private: true,
   type: "module",
   main: "index.js",
-  engines: orig.engines,
+  engines: { node: "20" },
   dependencies: {
     "@google-cloud/billing": orig.dependencies["@google-cloud/billing"],
     "firebase-admin": orig.dependencies["firebase-admin"],
     "firebase-functions": orig.dependencies["firebase-functions"],
     zod: orig.dependencies.zod,
+  },
+  overrides: {
+    uuid: "^11.1.1",
   },
 };
 

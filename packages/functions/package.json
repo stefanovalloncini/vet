@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "main": "lib/index.js",
-  "engines": { "node": "20" },
+  "engines": { "node": ">=20" },
   "scripts": {
     "build": "tsc -p . && node scripts/bundle.mjs",
     "typecheck": "tsc -p . --noEmit",
