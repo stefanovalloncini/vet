@@ -19,7 +19,11 @@ interface UndoContext {
   snapshots: Array<[QueryKey, Attivita[] | undefined]>;
 }
 
-const ATTIVITA_KEY = ["attivita"] as const;
+const OPTIMISTICALLY_PATCHED_KEYS: ReadonlyArray<QueryKey> = [
+  ["attivita"],
+  ["agenda"],
+  ["trash"],
+];
 
 export function useUndoCreateAttivita() {
   const { attivita: repo } = useRepositories();
@@ -27,14 +31,19 @@ export function useUndoCreateAttivita() {
   return useMutation<void, Error, UndoVars, UndoContext>({
     mutationFn: ({ id, user }) => repo.softDelete(id, user),
     onMutate: async ({ id }) => {
-      await qc.cancelQueries({ queryKey: ATTIVITA_KEY });
-      const snapshots = qc.getQueriesData<Attivita[]>({
-        queryKey: ATTIVITA_KEY,
-      });
-      qc.setQueriesData<Attivita[]>(
-        { queryKey: ATTIVITA_KEY },
-        (old) => (old ?? []).filter((a) => a.id !== id)
+      await Promise.all(
+        OPTIMISTICALLY_PATCHED_KEYS.map((key) =>
+          qc.cancelQueries({ queryKey: key })
+        )
       );
+      const snapshots: UndoContext["snapshots"] = [];
+      for (const key of OPTIMISTICALLY_PATCHED_KEYS) {
+        snapshots.push(...qc.getQueriesData<Attivita[]>({ queryKey: key }));
+        qc.setQueriesData<Attivita[]>(
+          { queryKey: key },
+          (old) => (old ?? []).filter((a) => a.id !== id)
+        );
+      }
       return { snapshots };
     },
     onError: (_err, _vars, ctx) => {
