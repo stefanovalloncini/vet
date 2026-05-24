@@ -42,9 +42,13 @@ module.exports = {
   ],
   overrides: [
     {
-      files: ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
+      files: ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**", "**/e2e/**"],
       rules: {
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "react/display-name": "off",
+        "react/prop-types": "off",
+        "react/no-children-prop": "off",
+        "react-hooks/rules-of-hooks": "off"
       }
     }
   ]

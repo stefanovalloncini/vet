@@ -1,8 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useCallback, useState, type ReactNode } from "react";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
-import { useAuthState } from "../../features/auth";
-import { useSessionGuard } from "../../features/auth/hooks/useSessionGuard";
+import { useAuthState, useSessionGuard } from "../../features/auth";
 import { QuickEntryFab } from "../../features/quick-entry";
 import { SearchPalette } from "../../features/search";
 import { InstallBanner, useTitleBadge } from "../../features/pwa-install";

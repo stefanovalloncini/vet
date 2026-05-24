@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Capability } from "@vet/shared";
-import { useAuthState } from "../../features/auth/hooks/useAuthState";
+import { useAuthState } from "../../features/auth";
 
 type SingleProps = {
   cap: Capability;

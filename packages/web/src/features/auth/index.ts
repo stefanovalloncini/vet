@@ -3,3 +3,4 @@ export { EmailLinkCompletePage } from "./ui/EmailLinkCompletePage";
 export { RequireAuth } from "./ui/RequireAuth";
 export { PendingApproval } from "./ui/PendingApproval";
 export { useAuthState } from "./hooks/useAuthState";
+export { useSessionGuard } from "./hooks/useSessionGuard";
