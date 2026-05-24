@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FormProvider } from "react-hook-form";
 import {
   AppShell,
   BoxedList,
@@ -8,10 +9,8 @@ import {
   InlineError,
   LoadingHint,
   PageHeader,
-  Select,
-  TextArea,
-  TextField,
 } from "../../../shared/ui";
+import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../../attivita/hooks/useReferenceData";
 import {
@@ -19,7 +18,10 @@ import {
   useReminders,
   useUpdateReminder,
 } from "../hooks/useReminders";
-import { useReminderCreate } from "../hooks/useReminderCreate";
+import {
+  useReminderCreate,
+  type ReminderCreateValues,
+} from "../hooks/useReminderCreate";
 import { remindersI18n as t } from "../i18n";
 import { ReminderRow } from "./ReminderRow";
 import type { Reminder } from "@vet/shared";
@@ -149,44 +151,49 @@ function ReminderCreateForm({
   onSubmit,
 }: ReminderCreateFormProps) {
   return (
-    <div className="mb-6 border border-(--color-border) rounded-2xl p-5 space-y-4 bg-(--color-surface)">
-      <Select
-        id="rem-azienda"
-        label={t.campoAzienda}
-        value={state.aziendaId}
-        options={aziendaOptions}
-        onChange={(e) => state.setAziendaId(e.target.value)}
-      />
-      <TextField
-        id="rem-titolo"
-        label={t.campoTitolo}
-        value={state.titolo}
-        onChange={(e) => state.setTitolo(e.target.value)}
-        hint={t.campoTitoloHint}
-      />
-      <TextField
-        id="rem-data"
-        type="date"
-        label={t.campoData}
-        value={state.data}
-        onChange={(e) => state.setData(e.target.value)}
-      />
-      <TextArea
-        id="rem-note"
-        label={t.campoNote}
-        value={state.note}
-        onChange={(e) => state.setNote(e.target.value)}
-        maxLength={500}
-      />
-      {state.error ? <InlineError>{state.error}</InlineError> : null}
-      <div className="flex items-center justify-end gap-3">
-        <Button type="button" variant="ghost" onClick={onCancel} disabled={state.busy}>
-          {t.annulla}
-        </Button>
-        <Button type="button" variant="primary" onClick={onSubmit} disabled={state.busy}>
-          {t.salva}
-        </Button>
-      </div>
-    </div>
+    <FormProvider {...state.form}>
+      <form
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault();
+          void onSubmit();
+        }}
+        className="mb-6 border border-(--color-border) rounded-2xl p-5 space-y-4 bg-(--color-surface)"
+      >
+        <RHFSelect<ReminderCreateValues>
+          name="aziendaId"
+          label={t.campoAzienda}
+          options={aziendaOptions}
+          disabled={state.busy}
+        />
+        <RHFTextField<ReminderCreateValues>
+          name="titolo"
+          label={t.campoTitolo}
+          hint={t.campoTitoloHint}
+          disabled={state.busy}
+        />
+        <RHFTextField<ReminderCreateValues>
+          name="data"
+          type="date"
+          label={t.campoData}
+          disabled={state.busy}
+        />
+        <RHFTextArea<ReminderCreateValues>
+          name="note"
+          label={t.campoNote}
+          maxLength={500}
+          disabled={state.busy}
+        />
+        {state.rootError ? <InlineError>{state.rootError}</InlineError> : null}
+        <div className="flex items-center justify-end gap-3">
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={state.busy}>
+            {t.annulla}
+          </Button>
+          <Button type="submit" variant="primary" disabled={state.busy}>
+            {t.salva}
+          </Button>
+        </div>
+      </form>
+    </FormProvider>
   );
 }

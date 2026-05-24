@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useForm, type UseFormReturn } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   reminderInputSchema,
   type ActorContext,
@@ -16,21 +18,28 @@ interface UseReminderCreateArgs {
 
 const DEFAULT_LEAD_DAYS = 7;
 
-function emptyDate(): string {
-  return dateInputValue(addDays(new Date(), DEFAULT_LEAD_DAYS));
+const formSchema = z.object({
+  aziendaId: z.string().min(1, "Scegli un'azienda"),
+  titolo: z.string().min(1, "Titolo obbligatorio").max(120),
+  data: z.string().min(1, "Data obbligatoria"),
+  note: z.string().max(500),
+});
+
+export type ReminderCreateValues = z.infer<typeof formSchema>;
+
+function defaults(): ReminderCreateValues {
+  return {
+    aziendaId: "",
+    titolo: "",
+    data: dateInputValue(addDays(new Date(), DEFAULT_LEAD_DAYS)),
+    note: "",
+  };
 }
 
 export interface ReminderCreateState {
-  aziendaId: string;
-  setAziendaId: (next: string) => void;
-  titolo: string;
-  setTitolo: (next: string) => void;
-  data: string;
-  setData: (next: string) => void;
-  note: string;
-  setNote: (next: string) => void;
+  form: UseFormReturn<ReminderCreateValues>;
   busy: boolean;
-  error: string | null;
+  rootError: string | undefined;
   submit: () => Promise<boolean>;
   reset: () => void;
 }
@@ -39,45 +48,44 @@ export function useReminderCreate({
   user,
   aziende,
 }: UseReminderCreateArgs): ReminderCreateState {
-  const [aziendaId, setAziendaId] = useState("");
-  const [titolo, setTitolo] = useState("");
-  const [data, setData] = useState<string>(emptyDate);
-  const [note, setNote] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const form = useForm<ReminderCreateValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaults(),
+    mode: "onSubmit",
+  });
   const create = useCreateReminder();
 
   function reset(): void {
-    setAziendaId("");
-    setTitolo("");
-    setNote("");
-    setData(emptyDate());
-    setError(null);
+    form.reset(defaults());
   }
 
   async function submit(): Promise<boolean> {
-    if (!user) return false;
-    const due = parseDateInput(data);
+    const valid = await form.trigger();
+    if (!valid || !user) return false;
+    const values = form.getValues();
+    const due = parseDateInput(values.data);
     if (!due) {
-      setError(t.saveError);
+      form.setError("data", { message: "Data non valida" });
       return false;
     }
-    const noteTrim = note.trim();
+    const noteTrim = values.note.trim();
     const parsed = reminderInputSchema.safeParse({
-      aziendaId,
-      titolo: titolo.trim(),
+      aziendaId: values.aziendaId,
+      titolo: values.titolo.trim(),
       dueAt: due,
       ...(noteTrim ? { note: noteTrim } : {}),
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? t.saveError);
+      form.setError("root", {
+        message: parsed.error.issues[0]?.message ?? t.saveError,
+      });
       return false;
     }
-    const azienda = aziende.find((a) => a.id === aziendaId);
+    const azienda = aziende.find((a) => a.id === values.aziendaId);
     if (!azienda) {
-      setError(t.saveError);
+      form.setError("root", { message: t.saveError });
       return false;
     }
-    setError(null);
     try {
       await create.mutateAsync({
         input: parsed.data,
@@ -86,23 +94,17 @@ export function useReminderCreate({
       });
       reset();
       return true;
-    } catch {
-      setError(t.saveError);
+    } catch (err) {
+      console.error("reminder create failed", err);
+      form.setError("root", { message: t.saveError });
       return false;
     }
   }
 
   return {
-    aziendaId,
-    setAziendaId,
-    titolo,
-    setTitolo,
-    data,
-    setData,
-    note,
-    setNote,
-    busy: create.isPending,
-    error,
+    form,
+    busy: create.isPending || form.formState.isSubmitting,
+    rootError: form.formState.errors.root?.message,
     submit,
     reset,
   };
