@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useRiepilogoPdf } from "../hooks/useRiepilogoPdf";
 import { RiepilogoFilters } from "./RiepilogoFilters";
@@ -5,11 +6,21 @@ import { RiepilogoPreview } from "./RiepilogoPreview";
 
 export function RiepilogoPdfPage() {
   const { id } = useParams<{ id: string }>();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
 
   const fromStr = params.get("from") ?? "";
   const toStr = params.get("to") ?? "";
+
+  const setPeriod = useCallback(
+    (key: "from" | "to", value: string) => {
+      const next = new URLSearchParams(params);
+      if (value) next.set(key, value);
+      else next.delete(key);
+      setParams(next, { replace: true });
+    },
+    [params, setParams]
+  );
 
   const { loading, error, summary, generatePdf, shareWhatsApp } = useRiepilogoPdf({
     aziendaId: id ?? "",
@@ -41,6 +52,9 @@ export function RiepilogoPdfPage() {
           onPrint={generatePdf}
           onShareWhatsApp={shareWhatsApp}
           canShare={summary.items.length > 0}
+          from={fromStr}
+          to={toStr}
+          onPeriodChange={setPeriod}
         />
         <RiepilogoPreview summary={summary} />
       </div>
