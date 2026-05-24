@@ -23,8 +23,8 @@ describe("useAttivitaFilters", () => {
     expect(result.current.to).toBe("");
     expect(result.current.aziendaId).toBe("");
     expect(result.current.tipoId).toBe("");
+    expect(result.current.vetUid).toBe("");
     expect(result.current.group).toBe("none");
-    expect(result.current.mineOnly).toBe(false);
     expect(result.current.filters).toEqual({});
   });
 
@@ -71,29 +71,19 @@ describe("useAttivitaFilters", () => {
     }
   });
 
-  it("sets ownerUid when mine=1 and ownerUid is provided", () => {
-    const { result } = renderHook(
-      () => useAttivitaFilters({ ownerUid: "u-42" }),
-      { wrapper: wrapperWithUrl("/attivita?mine=1") }
-    );
-    expect(result.current.mineOnly).toBe(true);
+  it("sets ownerUid when vet param is present", () => {
+    const { result } = renderHook(() => useAttivitaFilters(), {
+      wrapper: wrapperWithUrl("/attivita?vet=u-42"),
+    });
+    expect(result.current.vetUid).toBe("u-42");
     expect(result.current.filters.ownerUid).toBe("u-42");
   });
 
-  it("omits ownerUid when mine=1 but no ownerUid is given", () => {
+  it("omits ownerUid when vet param is absent", () => {
     const { result } = renderHook(() => useAttivitaFilters(), {
-      wrapper: wrapperWithUrl("/attivita?mine=1"),
+      wrapper: wrapperWithUrl("/attivita"),
     });
-    expect(result.current.mineOnly).toBe(true);
-    expect(result.current.filters.ownerUid).toBeUndefined();
-  });
-
-  it("omits ownerUid when mine flag is absent", () => {
-    const { result } = renderHook(
-      () => useAttivitaFilters({ ownerUid: "u-42" }),
-      { wrapper: wrapperWithUrl("/attivita") }
-    );
-    expect(result.current.mineOnly).toBe(false);
+    expect(result.current.vetUid).toBe("");
     expect(result.current.filters.ownerUid).toBeUndefined();
   });
 

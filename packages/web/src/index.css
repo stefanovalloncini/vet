@@ -44,6 +44,10 @@
   --motion-layout: 280ms;
   --motion-enter: 240ms;
   --motion-exit: 160ms;
+
+  --nav-h: 3.25rem;
+  --page-bottom-pad: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 3.5rem);
+  --fab-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 1rem);
 }
 
 html[data-theme="dark"] {

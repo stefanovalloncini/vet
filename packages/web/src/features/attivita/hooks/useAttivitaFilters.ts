@@ -4,17 +4,13 @@ import type { AttivitaFilters } from "@vet/shared";
 import { parseDateInput } from "../lib/format";
 import type { GroupKey } from "../lib/totals";
 
-export interface UseAttivitaFiltersOptions {
-  ownerUid?: string | undefined;
-}
-
 export interface AttivitaFiltersState {
   from: string;
   to: string;
   aziendaId: string;
   tipoId: string;
+  vetUid: string;
   group: GroupKey;
-  mineOnly: boolean;
   filters: AttivitaFilters;
   setParam: (key: string, value: string) => void;
 }
@@ -31,8 +27,7 @@ function buildFilters(
   to: string,
   aziendaId: string,
   tipoId: string,
-  mineOnly: boolean,
-  ownerUid: string | undefined
+  vetUid: string
 ): AttivitaFilters {
   const f: AttivitaFilters = {};
   const fromDate = parseDateInput(from);
@@ -45,26 +40,23 @@ function buildFilters(
   }
   if (aziendaId) f.aziendaId = aziendaId;
   if (tipoId) f.tipoId = tipoId;
-  if (mineOnly && ownerUid) f.ownerUid = ownerUid;
+  if (vetUid) f.ownerUid = vetUid;
   return f;
 }
 
-export function useAttivitaFilters(
-  options: UseAttivitaFiltersOptions = {}
-): AttivitaFiltersState {
-  const { ownerUid } = options;
+export function useAttivitaFilters(): AttivitaFiltersState {
   const [params, setParams] = useSearchParams();
 
   const from = params.get("from") ?? "";
   const to = params.get("to") ?? "";
   const aziendaId = params.get("azienda") ?? "";
   const tipoId = params.get("tipo") ?? "";
+  const vetUid = params.get("vet") ?? "";
   const group = parseGroup(params.get("group"));
-  const mineOnly = params.get("mine") === "1";
 
   const filters = useMemo(
-    () => buildFilters(from, to, aziendaId, tipoId, mineOnly, ownerUid),
-    [from, to, aziendaId, tipoId, mineOnly, ownerUid]
+    () => buildFilters(from, to, aziendaId, tipoId, vetUid),
+    [from, to, aziendaId, tipoId, vetUid]
   );
 
   const setParam = useCallback(
@@ -77,5 +69,5 @@ export function useAttivitaFilters(
     [params, setParams]
   );
 
-  return { from, to, aziendaId, tipoId, group, mineOnly, filters, setParam };
+  return { from, to, aziendaId, tipoId, vetUid, group, filters, setParam };
 }

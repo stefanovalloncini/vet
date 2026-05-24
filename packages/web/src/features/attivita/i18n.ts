@@ -32,6 +32,7 @@ export const attivitaI18n = {
   filtroDataA: "A",
   filtroAzienda: "Azienda",
   filtroTipo: "Tipo",
+  filtroVet: "Veterinario",
   filtroTutti: "Tutti",
   raggruppa: "Raggruppa per",
   raggruppaNessuno: "Nessuno",

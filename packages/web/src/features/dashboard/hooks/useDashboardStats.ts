@@ -34,7 +34,7 @@ export interface DashboardStats {
   topTipo: { key: string; value: { nome: string; total: number; count: number } } | null;
   arrearsTotal: number;
   aziendeAttiveCount: number;
-  trailing: { totals: number[]; labels: string[] };
+  trailing: { totals: number[]; counts: number[]; labels: string[] };
   topTipoBars: Array<{ label: string; value: number }>;
   urgentReminders: Reminder[];
   recentAziende: Array<{ id: string; nome: string }>;

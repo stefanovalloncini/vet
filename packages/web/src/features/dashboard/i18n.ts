@@ -4,7 +4,7 @@ export const dashboardI18n = {
   meseCorrente: "Questo mese",
   meseScorso: "Mese scorso",
   incassoMese: "Incassi mese",
-  visiteMese: "Visite mese",
+  visiteMese: "Attività mese",
   aziendeAttive: "Aziende attive",
   arretratiTot: "Da incassare",
   topAzienda: "Cliente top del mese",
@@ -13,4 +13,7 @@ export const dashboardI18n = {
   loadError: "Caricamento fallito.",
   diff: "vs mese scorso",
   noActivity: "Ancora nessuna attività registrata.",
+  toggleAttivita: "Attività",
+  toggleIncassi: "Incassi",
+  totaleAnno: "Totale 12 mesi",
 } as const;

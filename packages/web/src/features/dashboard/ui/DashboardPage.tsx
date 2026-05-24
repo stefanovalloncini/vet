@@ -1,22 +1,12 @@
-import { useMemo } from "react";
-import { Link } from "react-router-dom";
-import {
-  TrendingUp,
-  ClipboardList,
-  Building2,
-  Wallet,
-  Crown,
-  Tag,
-} from "lucide-react";
+import { useMemo, useState } from "react";
+import { ClipboardList, Building2 } from "lucide-react";
 import { AppShell, Card, CardSkeleton, InlineError, SectionLabel } from "../../../shared/ui";
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../attivita/lib/format";
-import { RevenueBarChart } from "./RevenueBarChart";
-import { BarChart } from "./BarChart";
+import { TrailingBarChart } from "./RevenueBarChart";
 import { OnboardingBanner } from "../../onboarding/OnboardingBanner";
 import { useDashboardStats, type DashboardStats } from "../hooks/useDashboardStats";
 import { MetricCard } from "./MetricCard";
-import { DashboardRightRail } from "./DashboardRightRail";
 
 const MONTHS_IT = [
   "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
@@ -50,30 +40,28 @@ export function DashboardPage() {
       />
 
       {stats.loading ? (
-        <CardSkeleton rows={4} />
+        <CardSkeleton rows={3} />
       ) : stats.isError ? (
         <InlineError>{t.loadError}</InlineError>
       ) : stats.items.length === 0 ? (
         <p className="text-sm text-(--color-text-muted) py-2">{t.noActivity}</p>
       ) : (
-        <DashboardBody stats={stats} now={now} />
+        <DashboardBody stats={stats} />
       )}
     </AppShell>
   );
 }
 
-function DashboardBody({ stats, now }: { stats: DashboardStats; now: Date }) {
-  const hasFooter =
-    stats.urgentReminders.length > 0 || stats.recentAziende.length > 0;
+type ChartMode = "attivita" | "incassi";
+
+function DashboardBody({ stats }: { stats: DashboardStats }) {
+  const [mode, setMode] = useState<ChartMode>("attivita");
+  const chartValues = mode === "attivita" ? stats.trailing.counts : stats.trailing.totals;
+  const formatValue =
+    mode === "attivita" ? (v: number) => String(v) : (v: number) => formatEuro(v);
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 auto-rows-fr">
-        <MetricCard
-          label={t.incassoMese}
-          value={formatEuro(stats.thisMonth.total)}
-          trend={stats.totalDiff}
-          icon={TrendingUp}
-        />
+      <div className="grid grid-cols-2 gap-3 mb-4 auto-rows-fr">
         <MetricCard
           label={t.visiteMese}
           value={String(stats.thisMonth.count)}
@@ -85,58 +73,74 @@ function DashboardBody({ stats, now }: { stats: DashboardStats; now: Date }) {
           value={String(stats.aziendeAttiveCount)}
           icon={Building2}
         />
-        <Link to="/pagamenti" className="block">
-          <MetricCard
-            label={t.arretratiTot}
-            value={formatEuro(stats.arrearsTotal)}
-            accent={stats.arrearsTotal > 0 ? "danger" : "ok"}
-            icon={Wallet}
-          />
-        </Link>
-        {stats.topAzienda ? (
-          <Link to={`/aziende/${stats.topAzienda.key}`} className="block">
-            <MetricCard
-              label={t.topAzienda}
-              value={stats.topAzienda.value.nome}
-              secondary={`${formatEuro(stats.topAzienda.value.total)} · ${stats.topAzienda.value.count} visite`}
-              compactValue
-              icon={Crown}
-            />
-          </Link>
-        ) : null}
-        {stats.topTipo ? (
-          <MetricCard
-            label={t.topTipo}
-            value={stats.topTipo.value.nome}
-            secondary={`${formatEuro(stats.topTipo.value.total)} · ${stats.topTipo.value.count} volte`}
-            compactValue
-            icon={Tag}
-          />
-        ) : null}
       </div>
-      <Card className="mb-4">
-        <SectionLabel>Incassi ultimi 12 mesi</SectionLabel>
-        <RevenueBarChart
-          values={stats.trailing.totals}
+      <Card>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <SectionLabel as="span">
+            {mode === "attivita" ? "Attività ultimi 12 mesi" : "Incassi ultimi 12 mesi"}
+          </SectionLabel>
+          <ChartModeToggle mode={mode} onChange={setMode} />
+        </div>
+        <TrailingBarChart
+          values={chartValues}
           labels={stats.trailing.labels}
-          className="mt-3"
+          formatValue={formatValue}
+          totalLabel={t.totaleAnno}
         />
       </Card>
-      {stats.thisMonth.byTipo.size > 0 ? (
-        <Card>
-          <SectionLabel className="mb-3">Attività del mese per tipo</SectionLabel>
-          <BarChart bars={stats.topTipoBars} formatValue={formatEuro} />
-        </Card>
-      ) : null}
-      {hasFooter ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-          <DashboardRightRail
-            urgentReminders={stats.urgentReminders}
-            recentAziende={stats.recentAziende}
-            now={now}
-          />
-        </div>
-      ) : null}
     </>
+  );
+}
+
+interface ChartModeToggleProps {
+  mode: ChartMode;
+  onChange: (next: ChartMode) => void;
+}
+
+function ChartModeToggle({ mode, onChange }: ChartModeToggleProps) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Vista grafico"
+      className="inline-flex rounded-full border border-(--color-border) bg-(--color-surface) text-xs"
+    >
+      <ToggleOption
+        active={mode === "attivita"}
+        label={t.toggleAttivita}
+        onClick={() => onChange("attivita")}
+      />
+      <ToggleOption
+        active={mode === "incassi"}
+        label={t.toggleIncassi}
+        onClick={() => onChange("incassi")}
+      />
+    </div>
+  );
+}
+
+function ToggleOption({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={[
+        "px-3 py-1 rounded-full transition-colors",
+        active
+          ? "bg-(--color-accent) text-white"
+          : "text-(--color-text-muted) hover:text-(--color-text)",
+      ].join(" ")}
+    >
+      {label}
+    </button>
   );
 }

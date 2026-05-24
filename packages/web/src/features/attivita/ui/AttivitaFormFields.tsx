@@ -81,7 +81,7 @@ export function AttivitaFormFields({
           <RHFTextField<AttivitaFormValues>
             name="tariffa"
             type="number"
-            step="0.01"
+            step="10"
             min="0.01"
             max="100000"
             label={t.campoTariffa}

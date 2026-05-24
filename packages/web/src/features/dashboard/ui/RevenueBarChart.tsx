@@ -1,16 +1,18 @@
-import { formatEuro } from "../../attivita/lib/format";
-
-interface RevenueBarChartProps {
+interface TrailingBarChartProps {
   values: number[];
   labels: string[];
+  formatValue: (value: number) => string;
+  totalLabel: string;
   className?: string;
 }
 
-export function RevenueBarChart({
+export function TrailingBarChart({
   values,
   labels,
+  formatValue,
+  totalLabel,
   className = "",
-}: RevenueBarChartProps) {
+}: TrailingBarChartProps) {
   if (values.length === 0) return null;
   const max = Math.max(...values, 1);
   const total = values.reduce((s, v) => s + v, 0);
@@ -31,7 +33,7 @@ export function RevenueBarChart({
               className="flex-1 flex flex-col items-center justify-end h-full min-w-0"
             >
               <div
-                title={`${labels[i] ?? ""}: ${formatEuro(v)}`}
+                title={`${labels[i] ?? ""}: ${formatValue(v)}`}
                 className={[
                   "w-full rounded-t-md transition-colors",
                   v === 0
@@ -43,7 +45,7 @@ export function RevenueBarChart({
                         : "bg-(--color-accent)/40",
                 ].join(" ")}
                 style={{ height: `${height}%` }}
-                aria-label={`${labels[i] ?? ""}: ${formatEuro(v)}`}
+                aria-label={`${labels[i] ?? ""}: ${formatValue(v)}`}
               />
             </div>
           );
@@ -66,10 +68,10 @@ export function RevenueBarChart({
       </div>
       <div className="flex items-baseline justify-between mt-4 pt-3 border-t border-(--color-border)">
         <span className="text-[10px] uppercase tracking-wider text-(--color-text-muted)">
-          Totale 12 mesi
+          {totalLabel}
         </span>
         <span className="text-base font-medium text-(--color-text) tabular-nums">
-          {formatEuro(total)}
+          {formatValue(total)}
         </span>
       </div>
     </div>

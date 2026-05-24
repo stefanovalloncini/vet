@@ -36,19 +36,11 @@ export function AziendeListPage() {
         subtitle={t.subtitle}
         actions={
           canCreate ? (
-            <>
-              <Link
-                to="/aziende/importa"
-                className="text-sm text-(--color-text-muted) hover:text-(--color-text)"
-              >
-                Importa CSV
-              </Link>
-              <Link to="/aziende/nuova">
-                <Button type="button" variant="primary">
-                  {t.nuovaAzienda}
-                </Button>
-              </Link>
-            </>
+            <Link to="/aziende/nuova">
+              <Button type="button" variant="primary">
+                {t.nuovaAzienda}
+              </Button>
+            </Link>
           ) : null
         }
       />

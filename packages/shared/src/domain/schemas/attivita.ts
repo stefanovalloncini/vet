@@ -23,6 +23,8 @@ const inputBase = z.object({
   note: z.string().max(2000).optional(),
 });
 
+export const ALTRO_TIPO_ID = "altro";
+
 export const attivitaInputSchema = inputBase.strict().superRefine((val, ctx) => {
   if (val.oraria && val.ore === undefined) {
     ctx.addIssue({
@@ -36,6 +38,13 @@ export const attivitaInputSchema = inputBase.strict().superRefine((val, ctx) => 
       code: z.ZodIssueCode.custom,
       path: ["ore"],
       message: "Le ore non vanno indicate quando oraria=false",
+    });
+  }
+  if (val.tipoId === ALTRO_TIPO_ID && (val.note === undefined || val.note.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["note"],
+      message: "La nota è obbligatoria per il tipo 'Altro'",
     });
   }
 });

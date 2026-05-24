@@ -75,11 +75,6 @@ const RiepilogoPdfPage = lazy(() =>
     default: m.RiepilogoPdfPage,
   }))
 );
-const ImportAziendePage = lazy(() =>
-  import("./features/import-aziende").then((m) => ({
-    default: m.ImportAziendePage,
-  }))
-);
 const VetStatsPage = lazy(() =>
   import("./features/admin-vet-stats").then((m) => ({ default: m.VetStatsPage }))
 );
@@ -102,7 +97,6 @@ export const PROTECTED_ROUTES: ReadonlyArray<AppRoute> = [
   { path: "/aziende/:id", Component: AziendaDetailPage },
   { path: "/aziende/:id/modifica", Component: AziendaFormPage },
   { path: "/aziende/:id/riepilogo", Component: RiepilogoPdfPage },
-  { path: "/aziende/importa", Component: ImportAziendePage },
   { path: "/cestino", Component: CestinoPage },
   { path: "/impostazioni", Component: ImpostazioniPage },
   { path: "/admin/tipi-attivita", Component: ActivityTypesPage },

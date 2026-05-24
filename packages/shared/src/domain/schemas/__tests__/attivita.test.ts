@@ -131,6 +131,32 @@ describe("attivitaInputSchema", () => {
       attivitaInputSchema.safeParse({ ...baseInput, sneaky: 1 }).success
     ).toBe(false);
   });
+
+  it("rejects tipoId 'altro' without a note", () => {
+    expect(
+      attivitaInputSchema.safeParse({ ...baseInput, tipoId: "altro" }).success
+    ).toBe(false);
+  });
+
+  it("rejects tipoId 'altro' with whitespace-only note", () => {
+    expect(
+      attivitaInputSchema.safeParse({
+        ...baseInput,
+        tipoId: "altro",
+        note: "   ",
+      }).success
+    ).toBe(false);
+  });
+
+  it("accepts tipoId 'altro' when a non-empty note is present", () => {
+    expect(
+      attivitaInputSchema.safeParse({
+        ...baseInput,
+        tipoId: "altro",
+        note: "Visita straordinaria notturna",
+      }).success
+    ).toBe(true);
+  });
 });
 
 describe("computeTotale", () => {

@@ -33,15 +33,6 @@ export function AgendaDayList({ date, items, loading = false }: AgendaDayListPro
           {formatHeading(date)}
         </h2>
         <div className="flex items-center gap-3 shrink-0">
-          {dayItems.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="text-sm text-(--color-text-muted) hover:text-(--color-text) print:hidden transition-colors"
-            >
-              Stampa
-            </button>
-          ) : null}
           {canCreate ? (
             <Link
               to={`/attivita/nuova?data=${dateInputValue(date)}`}
