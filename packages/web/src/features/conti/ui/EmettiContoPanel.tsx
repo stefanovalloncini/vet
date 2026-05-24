@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { Attivita, Azienda } from "@vet/shared";
 import { Button, Card, ConfirmDialog, SectionLabel, TextField, useToast } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
-import { formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import { useEmettiConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
 import {

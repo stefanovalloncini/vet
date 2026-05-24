@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { formatDate, formatEuro } from "../lib/format";
+import { formatDate, formatEuro } from "../../../shared/lib/format";
 import type { Attivita } from "@vet/shared";
 
 export function AttivitaRow({ attivita: a }: { attivita: Attivita }) {

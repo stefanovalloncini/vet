@@ -14,7 +14,7 @@ import {
   useToast,
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
-import { formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import { useConti, useSaldaConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
 

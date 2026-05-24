@@ -15,7 +15,7 @@ import { Funnel } from "./Funnel";
 import { WeekdayChart } from "./WeekdayChart";
 import { ZonePanel } from "./ZonePanel";
 import { Sparkline } from "../../dashboard/ui/Sparkline";
-import { formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import {
   useStatistiche,
   type StatistichePeriodo,

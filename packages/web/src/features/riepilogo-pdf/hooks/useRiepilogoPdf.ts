@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Attivita, Azienda } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { queryKeys } from "../../../shared/data/queryClient";
-import { formatDate, formatEuro, parseDateInput } from "../../attivita/lib/format";
+import { formatDate, formatEuro, parseDateInput } from "../../../shared/lib/format";
 
 export interface RiepilogoFilters {
   aziendaId: string;

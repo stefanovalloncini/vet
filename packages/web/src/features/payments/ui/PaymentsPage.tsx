@@ -14,7 +14,7 @@ import { useAttivita } from "../../attivita/hooks/useAttivita";
 import { usePayments } from "../hooks/usePayments";
 import { computeArrears, type AziendaArrears } from "../lib/arrears";
 import { paymentsI18n as t } from "../i18n";
-import { formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import { PaymentDialog } from "./PaymentDialog";
 import type { Azienda, Payment } from "@vet/shared";
 

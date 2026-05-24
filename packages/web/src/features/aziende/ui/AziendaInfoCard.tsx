@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { Card, SectionLabel } from "../../../shared/ui";
 import { sanitizeTel } from "../lib/sanitizeTel";
-import { formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import type { Azienda } from "@vet/shared";
 import { TagsEditor } from "./TagsEditor";
 

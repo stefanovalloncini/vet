@@ -3,7 +3,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { Card, SectionLabel } from "../../../shared/ui";
 import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { attivitaI18n as t } from "../i18n";
-import { formatEuro } from "../lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import type { AttivitaFormValues } from "../lib/formSchema";
 import { AttivitaReminderField } from "./AttivitaReminderField";
 

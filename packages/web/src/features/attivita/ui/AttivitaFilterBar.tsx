@@ -1,6 +1,6 @@
 import { Select, TextField } from "../../../shared/ui";
 import { attivitaI18n as t } from "../i18n";
-import { dateInputValue } from "../lib/format";
+import { dateInputValue } from "../../../shared/lib/format";
 import type { GroupKey } from "../lib/totals";
 
 const QUICK_RANGES = [

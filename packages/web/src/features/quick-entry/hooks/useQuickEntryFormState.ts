@@ -15,7 +15,7 @@ import {
   dateInputValue,
   formatEuro,
   parseDateInput,
-} from "../../attivita/lib/format";
+} from "../../../shared/lib/format";
 import { queryKeys } from "../../../shared/data/queryClient";
 import {
   useCreateAttivita,

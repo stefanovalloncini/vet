@@ -4,7 +4,7 @@ import {
   type Attivita,
   type AttivitaInput,
 } from "@vet/shared";
-import { dateInputValue, parseDateInput } from "./format";
+import { dateInputValue, parseDateInput } from "../../../shared/lib/format";
 
 export const attivitaFormSchema = z
   .object({

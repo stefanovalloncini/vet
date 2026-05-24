@@ -19,7 +19,7 @@ import {
   useUpdateAttivita,
 } from "./useAttivita";
 import { useTariffaSuggestion } from "./useTariffaSuggestion";
-import { parseDateInput } from "../lib/format";
+import { parseDateInput } from "../../../shared/lib/format";
 import {
   attivitaToFormValues,
   formValuesToInput,

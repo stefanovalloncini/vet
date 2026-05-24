@@ -1,5 +1,5 @@
 import type { Attivita } from "@vet/shared";
-import { dateInputValue } from "./format";
+import { dateInputValue } from "../../../shared/lib/format";
 
 const dayLabelFormatter = new Intl.DateTimeFormat("it-IT", {
   weekday: "long",

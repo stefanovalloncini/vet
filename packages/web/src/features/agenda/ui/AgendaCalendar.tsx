@@ -3,7 +3,7 @@ import { Card } from "../../../shared/ui";
 import type { Attivita } from "@vet/shared";
 import { MONTHS, WEEKDAYS } from "../i18n";
 import { buildMonthGrid, sameDay, startOfMonth } from "../lib/calendar";
-import { dateInputValue } from "../../attivita/lib/format";
+import { dateInputValue } from "../../../shared/lib/format";
 import type { AgendaViewMode } from "../hooks/useAgendaData";
 
 interface AgendaCalendarProps {

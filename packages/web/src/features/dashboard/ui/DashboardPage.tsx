@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ClipboardList, Building2 } from "lucide-react";
 import { AppShell, Card, CardSkeleton, InlineError, SectionLabel } from "../../../shared/ui";
 import { dashboardI18n as t } from "../i18n";
-import { formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import { TrailingBarChart } from "./RevenueBarChart";
 import { OnboardingBanner } from "../../onboarding/OnboardingBanner";
 import { useDashboardStats, type DashboardStats } from "../hooks/useDashboardStats";

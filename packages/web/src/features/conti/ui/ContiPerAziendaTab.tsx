@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Conto } from "@vet/shared";
 import { Card, EmptyState, LoadingHint } from "../../../shared/ui";
-import { formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import { useContiForAzienda, useSaldaConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
 import { useAuthState } from "../../auth";

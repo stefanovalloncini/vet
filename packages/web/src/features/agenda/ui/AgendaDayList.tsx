@@ -3,7 +3,7 @@ import { Card, LoadingHint } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import type { Attivita } from "@vet/shared";
 import { agendaI18n as t } from "../i18n";
-import { dateInputValue, formatEuro } from "../../attivita/lib/format";
+import { dateInputValue, formatEuro } from "../../../shared/lib/format";
 
 interface AgendaDayListProps {
   readonly date: Date;

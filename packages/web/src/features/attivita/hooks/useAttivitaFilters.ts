@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { AttivitaFilters } from "@vet/shared";
-import { parseDateInput } from "../lib/format";
+import { parseDateInput } from "../../../shared/lib/format";
 import type { GroupKey } from "../lib/totals";
 
 export interface AttivitaFiltersState {
