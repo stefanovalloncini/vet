@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import {
   GINECOLOGIA_TIPO_ID,
+  attivitaInputSchema,
   type ActorContext,
   type Attivita,
   type AttivitaInput,
@@ -257,14 +258,19 @@ export function useQuickEntryFormState({
         dupSkipRef.current = true;
         return { ok: false };
       }
+      const parsed = attivitaInputSchema.safeParse({
+        data: parsedDate,
+        aziendaId: values.aziendaId,
+        tipoId: values.tipoId,
+        oraria: false,
+        tariffa: Number(values.tariffa),
+      });
+      if (!parsed.success) {
+        form.setError("root", { message: "Dati non validi" });
+        return { ok: false };
+      }
+      const input: AttivitaInput = parsed.data;
       try {
-        const input: AttivitaInput = {
-          data: parsedDate,
-          aziendaId: values.aziendaId,
-          tipoId: values.tipoId,
-          oraria: false,
-          tariffa: Number(values.tariffa),
-        };
         const id = await createMutation.mutateAsync({
           input,
           denorm: { aziendaNome: azienda.nome, tipoNome: tipo.nome },
