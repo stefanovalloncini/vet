@@ -6,6 +6,7 @@ import type {
 } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { queryKeys } from "../../../shared/data/queryClient";
+import { useRoles } from "../../admin-roles/hooks/useRoles";
 
 export interface UseAllowlistResult {
   entries: AllowlistEntry[];
@@ -14,25 +15,26 @@ export interface UseAllowlistResult {
   error: unknown;
 }
 
-export function useAllowlist(): UseAllowlistResult {
-  const { allowlist, roles: rolesRepo } = useRepositories();
-  const query = useQuery({
+export function useAllowlistEntries() {
+  const { allowlist } = useRepositories();
+  return useQuery<AllowlistEntry[]>({
     queryKey: queryKeys.allowlist,
     queryFn: async () => {
-      const [entries, roles] = await Promise.all([
-        allowlist.list(),
-        rolesRepo.list(),
-      ]);
+      const entries = await allowlist.list();
       entries.sort((a, b) => a.email.localeCompare(b.email, "it"));
-      roles.sort((a, b) => a.name.localeCompare(b.name, "it"));
-      return { entries, roles };
+      return entries;
     },
   });
+}
+
+export function useAllowlist(): UseAllowlistResult {
+  const entries = useAllowlistEntries();
+  const roles = useRoles();
   return {
-    entries: query.data?.entries ?? [],
-    roles: query.data?.roles ?? [],
-    loading: query.isPending,
-    error: query.error,
+    entries: entries.data ?? [],
+    roles: roles.data ?? [],
+    loading: entries.isPending || roles.isPending,
+    error: entries.error ?? roles.error,
   };
 }
 
