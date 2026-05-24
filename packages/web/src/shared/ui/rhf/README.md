@@ -20,23 +20,28 @@ RHF can focus the first invalid field on submit.
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RHFTextField, RHFSelect } from "../../../shared/ui/rhf";
-import { Button } from "../../../shared/ui";
-import { aziendaCreateSchema, type AziendaCreate } from "@vet/shared";
+import { Button, InlineError } from "../../../shared/ui";
+import {
+  aziendaFormSchema,
+  emptyAziendaForm,
+  type AziendaFormValues,
+} from "../lib/formSchema";
 
-export function AziendaForm({ onSubmit }: { onSubmit: (v: AziendaCreate) => Promise<void> }) {
-  const form = useForm<AziendaCreate>({
-    resolver: zodResolver(aziendaCreateSchema),
-    defaultValues: { nome: "", indirizzo: "" },
+export function AziendaForm({ onSubmit }: { onSubmit: (v: AziendaFormValues) => Promise<void> }) {
+  const form = useForm<AziendaFormValues>({
+    resolver: zodResolver(aziendaFormSchema),
+    defaultValues: emptyAziendaForm,
+    mode: "onSubmit",
   });
+  const rootError = form.formState.errors.root?.message;
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <RHFTextField<AziendaCreate> name="nome" label="Nome" required />
-        <RHFTextField<AziendaCreate> name="indirizzo" label="Indirizzo" />
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          Salva
-        </Button>
+      <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <RHFTextField<AziendaFormValues> name="nome" label="Nome" required />
+        <RHFTextField<AziendaFormValues> name="indirizzo" label="Indirizzo" />
+        {rootError ? <InlineError>{rootError}</InlineError> : null}
+        <Button type="submit" disabled={form.formState.isSubmitting}>Salva</Button>
       </form>
     </FormProvider>
   );
@@ -45,98 +50,142 @@ export function AziendaForm({ onSubmit }: { onSubmit: (v: AziendaCreate) => Prom
 
 ## Mutation integration
 
-The submit handler typically calls a TanStack Query mutation. Surface server
-errors via `form.setError`:
+The submit handler calls a TanStack Query mutation. Surface server errors via
+`form.setError("root", { message })` and render with `<InlineError>`:
 
 ```tsx
 const createAzienda = useCreateAzienda();
-const onSubmit = async (values: AziendaCreate) => {
+const onSubmit = async (values: AziendaFormValues) => {
   try {
-    await createAzienda.mutateAsync(values);
-    form.reset();
-  } catch (err) {
-    form.setError("root", { message: err instanceof Error ? err.message : "Errore" });
+    await createAzienda.mutateAsync({ input: formToAziendaInput(values), actor: user });
+    navigate("/aziende");
+  } catch {
+    form.setError("root", { message: t.erroreSalvataggio });
   }
 };
 ```
 
-Display root errors with `form.formState.errors.root?.message`.
+## File layout per feature
+
+Each form-driven feature follows the same shape:
+
+```
+features/<x>/
+  lib/
+    formSchema.ts     # form-only Zod schema + types + mappers
+  ui/
+    <X>FormPage.tsx   # page: useForm, hydration, submit handler
+    <X>FormFields.tsx # the fields, reads form via useFormContext
+```
+
+`formSchema.ts` exports:
+
+- `<x>FormSchema` — Zod schema for the form (string-shaped: `""` for empty,
+  not `undefined`; numbers as strings until submit).
+- `<X>FormValues` — `z.infer` of the schema.
+- `empty<X>Form` — initial empty values, passed as `defaultValues`.
+- `formFrom<X>(server)` — server entity → form values (for edit mode).
+- `formTo<X>Input(values)` — form values → repository input (trims, parses
+  numbers, drops empty optional fields).
+
+The form schema is intentionally separate from the repository input schema in
+`@vet/shared` — the latter rejects `""` and free-text numbers, the former
+needs those for empty-input UX.
 
 ## Conventions
 
 - Always provide `defaultValues` so RHF knows the form shape. Avoid `undefined`
   fields — use `""` / `0` / `false` as the empty value.
-- Use `zodResolver(schema)` with a schema from `@vet/shared`. No custom resolvers.
-- For dependent / cross-field validation, attach a refinement to the Zod schema
-  rather than handling it imperatively in submit.
-- For initial values from server (edit mode), call `form.reset(serverValues)`
-  inside an effect that runs once after the server data loads. Use a sentinel
-  like `useEffect(() => { if (data && !hydratedRef.current) { form.reset(data); hydratedRef.current = true; } }, [data])`.
+- Use `zodResolver(schema)` with the per-form schema from `lib/formSchema.ts`.
+- For dependent / cross-field validation, attach `.superRefine()` to the Zod
+  schema rather than handling it imperatively in submit.
+- For initial values from server (edit mode), see "Form hydration" below.
 - For nested objects, type the path explicitly: `<RHFTextField<MyForm> name="address.street" />`.
 - Don't drop down to bare `<TextField>` inside an RHF form — that breaks the
   unified state. Add a wrapper here if you need a new control type.
+- Render root errors with `<InlineError>` from `shared/ui`.
 
 ## Form hydration in edit flows
 
 When a form edits an existing entity, the initial values come from a `useQuery`.
-Wait for the query to load, then `form.reset(data)` exactly once:
+Wait for the query to load, then `form.reset(formFromX(data))` exactly once.
+The sentinel prevents a background refetch from clobbering in-flight edits.
 
 ```tsx
-const { data, isLoading } = useAzienda(id);
-const form = useForm<AziendaInput>({ defaultValues: emptyAzienda });
+const { data, isSuccess } = useAzienda(id);
+const form = useForm<AziendaFormValues>({
+  resolver: zodResolver(aziendaFormSchema),
+  defaultValues: emptyAziendaForm,
+});
 const hydratedRef = useRef(false);
 useEffect(() => {
-  if (data && !hydratedRef.current) {
-    form.reset(serverToForm(data));
-    hydratedRef.current = true;
+  if (!isEdit || hydratedRef.current) return;
+  if (isSuccess && data === null) {
+    navigate("/aziende", { replace: true });
+    return;
   }
-}, [data, form]);
+  if (!data) return;
+  form.reset(formFromAzienda(data));
+  hydratedRef.current = true;
+}, [isEdit, isSuccess, data, form, navigate]);
 ```
 
-The sentinel prevents the user's in-flight edits from being clobbered by a
-background refetch.
+This boilerplate is small (≤10 lines) and the variations across forms differ
+enough — bool vs string sentinel, with/without "not found" redirect, mapper
+shape — that a `useFormHydration()` hook does not pay off. Keep it inline.
+
+Three legitimate hydration shapes exist:
+
+1. **Once-after-load** (most pages): `useRef(false)` sentinel — see above.
+2. **Per-row** (`ActivityTypeForm` used inside a list row): keep the previous
+   initial value in `useRef`, reset when it changes.
+3. **On-open** (dialog forms): `useEffect(() => { if (open) form.reset(...) }, [open])`.
+
+## Composite / array fields
+
+When the field cannot be rendered as a single primitive — e.g. a checkbox
+matrix, a chip editor — drop to `<Controller>` and pass `field.value` /
+`field.onChange` to the custom component. Example: `CapabilityMatrix` in
+`features/admin-roles/`.
+
+```tsx
+<Controller<RoleFormValues, "capabilities">
+  control={form.control}
+  name="capabilities"
+  render={({ field }) => (
+    <CapabilityMatrix value={field.value} onChange={field.onChange} />
+  )}
+/>
+```
+
+Use `<RHFTextField>` / `<RHFSelect>` / `<RHFTextArea>` when the field is a
+single `<input>` / `<select>` / `<textarea>`. Use `<Controller>` for anything
+custom. Don't invent a new RHF wrapper unless 2+ features need it.
+
+## Dialog reset on open/close
+
+Dialog forms reset their values when the dialog opens:
+
+```tsx
+useEffect(() => { if (open) form.reset(defaultValues); }, [open, form]);
+```
+
+For dialogs that should reset only on the open→open transition (avoiding a
+re-reset while already open), use a `wasOpenRef` sentinel — see
+`QuickAddTipoDialog`.
 
 ## What NOT to do
 
 - Don't pass `value` + `onChange` manually to the RHF wrappers — `useController`
   handles that. The wrapper's job is to subscribe to RHF state.
-- Don't use a `<Controller>` JSX wrapper around bare primitives; use the
-  pre-baked `RHF*` wrappers for type safety and consistency.
 - Don't manage form state with `useState` in components that also use RHF. Pick
   one. Inside an RHF form, all field state lives in `useForm`.
+- Don't render root errors with a hand-rolled `<p role="alert">` — use
+  `<InlineError>`.
 
-## Migration from hand-rolled forms
+## Testing
 
-Old shape:
-```tsx
-const [name, setName] = useState("");
-const [error, setError] = useState<string | null>(null);
-async function submit(e: FormEvent) {
-  e.preventDefault();
-  if (!name) { setError("Required"); return; }
-  await repo.create({ name });
-}
-return (
-  <form onSubmit={submit}>
-    <TextField id="name" value={name} onChange={(e) => setName(e.target.value)} error={error ?? undefined} />
-  </form>
-);
-```
-
-New shape:
-```tsx
-const form = useForm<{ name: string }>({
-  resolver: zodResolver(schema),
-  defaultValues: { name: "" },
-});
-const create = useCreateThing();
-return (
-  <FormProvider {...form}>
-    <form onSubmit={form.handleSubmit((v) => create.mutateAsync(v))}>
-      <RHFTextField<{ name: string }> name="name" label="Name" />
-    </form>
-  </FormProvider>
-);
-```
-
-Validation and error display come for free from the schema + wrappers.
+For unit tests that mount a form, use `buildProvidersWrapper` from
+`__tests__/renderWithProviders` to wire `QueryClientProvider` +
+`RepositoriesProvider` (+ optional `ToastProvider` / `MemoryRouter`). Avoid
+re-wiring those providers per test.

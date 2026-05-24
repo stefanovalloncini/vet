@@ -1,13 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   InMemoryAllowlistRepository,
   InMemoryRoleRepository,
 } from "@vet/shared/testing";
-import type { ActorContext, Repositories } from "@vet/shared";
-import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
+import type { ActorContext } from "@vet/shared";
+import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { AddAllowlistEntryForm } from "../AddAllowlistEntryForm";
 
 const ROLES = [
@@ -33,17 +31,8 @@ interface Harness {
 function renderForm(): Harness {
   const allowlist = new InMemoryAllowlistRepository();
   const rolesRepo = new InMemoryRoleRepository();
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
-  });
-  const repos = { allowlist, roles: rolesRepo } as unknown as Repositories;
   const onAdded = vi.fn();
   const onCancel = vi.fn();
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={client}>
-      <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
-    </QueryClientProvider>
-  );
   render(
     <AddAllowlistEntryForm
       roles={ROLES}
@@ -51,7 +40,7 @@ function renderForm(): Harness {
       onAdded={onAdded}
       onCancel={onCancel}
     />,
-    { wrapper }
+    { wrapper: buildProvidersWrapper({ repos: { allowlist, roles: rolesRepo } }) }
   );
   return { allowlist, onAdded, onCancel };
 }

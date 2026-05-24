@@ -8,6 +8,7 @@ import {
   Button,
   ConfirmDialog,
   FormFooter,
+  InlineError,
   PageHeader,
   useToast,
 } from "../../../shared/ui";
@@ -27,7 +28,7 @@ import {
   formFromAzienda,
   formToAziendaInput,
   type AziendaFormValues,
-} from "./aziendaFormSchema";
+} from "../lib/formSchema";
 
 export function AziendaFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -129,11 +130,7 @@ export function AziendaFormPage() {
           className="space-y-6 max-w-2xl"
         >
           <AziendaFormFields busy={busy} />
-          {rootError ? (
-            <p role="alert" className="text-sm text-(--color-danger)">
-              {rootError}
-            </p>
-          ) : null}
+          {rootError ? <InlineError>{rootError}</InlineError> : null}
           <FormFooter
             destructive={
               canDelete ? (

@@ -1,13 +1,12 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { ActorContext, Capability, Repositories, Role } from "@vet/shared";
+import type { ActorContext, Capability, Role } from "@vet/shared";
 import {
   InMemoryAuthService,
   InMemoryRoleRepository,
 } from "@vet/shared/testing";
-import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
+import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { RoleEditorPage } from "../RoleEditorPage";
 
 function makeUser(
@@ -48,7 +47,6 @@ interface MountOptions {
 
 interface MountResult {
   repo: InMemoryRoleRepository;
-  client: QueryClient;
 }
 
 async function mountEditor({
@@ -61,23 +59,20 @@ async function mountEditor({
   for (const r of seed) await repo.seed(r);
   const auth = new InMemoryAuthService();
   if (user) auth.setSimulatedUser(user);
-  const repos = { roles: repo, auth } as unknown as Repositories;
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: 0 } },
-  });
   render(
-    <QueryClientProvider client={client}>
-      <RepositoriesProvider value={repos}>
-        <MemoryRouter initialEntries={[url]}>
-          <Routes>
-            <Route path={routePath} element={<RoleEditorPage />} />
-            <Route path="/admin/ruoli" element={<div>roles-list</div>} />
-          </Routes>
-        </MemoryRouter>
-      </RepositoriesProvider>
-    </QueryClientProvider>
+    <Routes>
+      <Route path={routePath} element={<RoleEditorPage />} />
+      <Route path="/admin/ruoli" element={<div>roles-list</div>} />
+    </Routes>,
+    {
+      wrapper: buildProvidersWrapper({
+        repos: { roles: repo, auth },
+        withRouter: true,
+        initialEntries: [url],
+      }),
+    }
   );
-  return { repo, client };
+  return { repo };
 }
 
 describe("RoleEditorPage", () => {

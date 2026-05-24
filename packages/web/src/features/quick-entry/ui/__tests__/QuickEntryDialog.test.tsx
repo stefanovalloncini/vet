@@ -1,7 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ActorContext, Repositories } from "@vet/shared";
 import { GINECOLOGIA_TIPO_ID } from "@vet/shared";
 import {
@@ -10,8 +8,7 @@ import {
   InMemoryAuthService,
   InMemoryAziendeRepository,
 } from "@vet/shared/testing";
-import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
-import { ToastProvider } from "../../../../shared/ui";
+import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { QuickEntryDialog } from "../QuickEntryDialog";
 
 function actor(): ActorContext {
@@ -61,18 +58,7 @@ async function buildWorld(): Promise<World> {
 }
 
 function makeWrapper(repos: Repositories) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  });
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={client}>
-        <RepositoriesProvider value={repos}>
-          <ToastProvider>{children}</ToastProvider>
-        </RepositoriesProvider>
-      </QueryClientProvider>
-    );
-  };
+  return buildProvidersWrapper({ repos, withToast: true });
 }
 
 async function mount(world: World) {

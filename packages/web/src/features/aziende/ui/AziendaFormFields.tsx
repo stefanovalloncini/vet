@@ -1,7 +1,7 @@
 import { Card } from "../../../shared/ui";
 import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { aziendeI18n as t } from "../i18n";
-import type { AziendaFormValues } from "./aziendaFormSchema";
+import type { AziendaFormValues } from "../lib/formSchema";
 
 const CADENZA_OPTIONS = [
   { value: "", label: t.campoCadenzaNessuna },

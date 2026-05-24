@@ -1,10 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import type { ActorContext, Repositories } from "@vet/shared";
-import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
-import { ToastProvider } from "../../../../shared/ui/Toast";
+import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { createInMemoryRepositories } from "../../../../infrastructure/composition/in-memory";
 import { AttivitaFormPage } from "../AttivitaFormPage";
 
@@ -43,23 +41,20 @@ async function seedRepos(): Promise<SeededRepos> {
 }
 
 function renderForm(path: string, repos: Repositories) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
   return render(
-    <QueryClientProvider client={client}>
-      <RepositoriesProvider value={repos}>
-        <ToastProvider>
-          <MemoryRouter initialEntries={[path]}>
-            <Routes>
-              <Route path="/attivita" element={<div>LIST</div>} />
-              <Route path="/attivita/nuova" element={<AttivitaFormPage />} />
-              <Route path="/attivita/:id" element={<AttivitaFormPage />} />
-            </Routes>
-          </MemoryRouter>
-        </ToastProvider>
-      </RepositoriesProvider>
-    </QueryClientProvider>
+    <Routes>
+      <Route path="/attivita" element={<div>LIST</div>} />
+      <Route path="/attivita/nuova" element={<AttivitaFormPage />} />
+      <Route path="/attivita/:id" element={<AttivitaFormPage />} />
+    </Routes>,
+    {
+      wrapper: buildProvidersWrapper({
+        repos,
+        withToast: true,
+        withRouter: true,
+        initialEntries: [path],
+      }),
+    }
   );
 }
 
