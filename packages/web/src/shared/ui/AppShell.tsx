@@ -25,6 +25,7 @@ export function AppShell({ children, rightRail, wide = false }: AppShellProps) {
   const { theme, toggle } = useTheme();
   const { notify } = useToast();
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   useTitleBadge();
 
   const onRevoked = useCallback(() => {
@@ -70,13 +71,24 @@ export function AppShell({ children, rightRail, wide = false }: AppShellProps) {
       <ConfirmDialog
         open={confirmLogout}
         title="Esci dall'account?"
-        confirmLabel="Esci"
+        confirmLabel={loggingOut ? "Uscita…" : "Esci"}
         cancelLabel="Annulla"
-        onConfirm={() => {
-          setConfirmLogout(false);
-          void auth.signOut();
+        busy={loggingOut}
+        onConfirm={async () => {
+          setLoggingOut(true);
+          try {
+            await auth.signOut();
+          } catch (err) {
+            console.error("sign out failed", err);
+            notify("Disconnessione non riuscita", "error");
+            setLoggingOut(false);
+            setConfirmLogout(false);
+          }
         }}
-        onClose={() => setConfirmLogout(false)}
+        onClose={() => {
+          if (loggingOut) return;
+          setConfirmLogout(false);
+        }}
       />
     </div>
   );
