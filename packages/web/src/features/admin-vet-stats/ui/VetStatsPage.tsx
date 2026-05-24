@@ -10,7 +10,7 @@ import {
 } from "../../../shared/ui";
 import { useVetStats } from "../hooks/useVetStats";
 import { formatEuro } from "../../../shared/lib/format";
-import { BarChart } from "../../dashboard/ui/BarChart";
+import { BarChart } from "../../../shared/ui/charts/BarChart";
 
 type Range = "month" | "year" | "all";
 

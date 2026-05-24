@@ -3,10 +3,10 @@ import { ClipboardList, Building2 } from "lucide-react";
 import { AppShell, Card, CardSkeleton, InlineError, SectionLabel } from "../../../shared/ui";
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../../shared/lib/format";
-import { TrailingBarChart } from "./RevenueBarChart";
+import { TrailingBarChart } from "../../../shared/ui/charts/TrailingBarChart";
 import { OnboardingBanner } from "../../onboarding/OnboardingBanner";
 import { useDashboardStats, type DashboardStats } from "../hooks/useDashboardStats";
-import { MetricCard } from "./MetricCard";
+import { MetricCard } from "../../../shared/ui/charts/MetricCard";
 
 const MONTHS_IT = [
   "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
