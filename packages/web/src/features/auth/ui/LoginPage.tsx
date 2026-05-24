@@ -124,6 +124,7 @@ export function LoginPage() {
           busy={busy}
           onSubmit={handleEmailSubmit}
           onBack={goToChoice}
+          onEmailChange={setEmail}
         />
       ) : null}
 

@@ -61,6 +61,23 @@ describe("LoginPage", () => {
     expect(screen.queryByLabelText(/Email/i)).toBeNull();
   });
 
+  it("preserves the draft email when the user goes Indietro and back", async () => {
+    mountLogin();
+    await openEmailFlow();
+    const emailField = await screen.findByLabelText(/Email/i);
+    fireEvent.change(emailField, { target: { value: "draft@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: /Indietro/i }));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Entra con Google/i })
+      ).toBeInTheDocument();
+    });
+    await openEmailFlow();
+    expect(
+      (await screen.findByLabelText(/Email/i)) as HTMLInputElement
+    ).toHaveValue("draft@example.com");
+  });
+
   it("shows unauthorized message and Cambia account button on allowlist denial", async () => {
     const repos = createInMemoryRepositories();
     vi.spyOn(repos.auth, "signInWithGoogle").mockRejectedValue({

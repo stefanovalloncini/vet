@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "../../../shared/ui";
@@ -16,6 +17,7 @@ interface EmailLinkFormProps {
   busy: boolean;
   onSubmit: (values: EmailFormValues) => Promise<void>;
   onBack: () => void;
+  onEmailChange?: (email: string) => void;
 }
 
 export function EmailLinkForm({
@@ -23,6 +25,7 @@ export function EmailLinkForm({
   busy,
   onSubmit,
   onBack,
+  onEmailChange,
 }: EmailLinkFormProps) {
   const form = useForm<EmailFormValues>({
     resolver: zodResolver(emailFormSchema),
@@ -46,6 +49,7 @@ export function EmailLinkForm({
           placeholder="nome.cognome@studio.it"
           hint="Ti arriva un link a tempo. Apri dallo stesso dispositivo."
         />
+        {onEmailChange ? <EmailDraftSync onChange={onEmailChange} /> : null}
         <Button
           type="submit"
           variant="primary"
@@ -67,4 +71,12 @@ export function EmailLinkForm({
       </form>
     </FormProvider>
   );
+}
+
+function EmailDraftSync({ onChange }: { onChange: (email: string) => void }) {
+  const email = useWatch<EmailFormValues, "email">({ name: "email" });
+  useEffect(() => {
+    onChange(email ?? "");
+  }, [email, onChange]);
+  return null;
 }
