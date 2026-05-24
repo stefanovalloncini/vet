@@ -10,7 +10,7 @@ function makeAttivita(overrides: Partial<Attivita> = {}): Attivita {
     aziendaNome: "Cascina",
     tipoId: "visita",
     tipoNome: "Visita",
-    oraria: false,
+    oraria: false, adElemento: false,
     tariffa: 50,
     totale: 50,
     ownerUid: "u",

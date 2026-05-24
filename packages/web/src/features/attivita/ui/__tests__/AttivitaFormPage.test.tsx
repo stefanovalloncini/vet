@@ -118,7 +118,7 @@ describe("AttivitaFormPage", () => {
         data: new Date("2026-04-01"),
         aziendaId,
         tipoId,
-        oraria: false,
+        oraria: false, adElemento: false,
         tariffa: 90,
       },
       { aziendaNome: "Cascina Verdi", tipoNome: "Visita" },

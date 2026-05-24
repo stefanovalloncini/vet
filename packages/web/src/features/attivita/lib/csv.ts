@@ -4,22 +4,30 @@ const HEADER = [
   "Data",
   "Azienda",
   "Tipo",
-  "Oraria",
+  "Modalità",
   "Tariffa",
   "Ore",
+  "Quantità",
   "Totale",
   "Veterinario",
   "Note",
 ];
+
+function modalitaLabel(a: Attivita): string {
+  if (a.oraria) return "oraria";
+  if (a.adElemento) return "ad elemento";
+  return "fissa";
+}
 
 export function toCsvItalian(items: Attivita[]): string {
   const rows = items.map((a) => [
     formatDataIso(a.data),
     a.aziendaNome,
     a.tipoNome,
-    a.oraria ? "sì" : "no",
+    modalitaLabel(a),
     formatEuroIt(a.tariffa),
     a.ore !== undefined ? formatNumberIt(a.ore) : "",
+    a.elementi !== undefined ? String(a.elementi) : "",
     formatEuroIt(a.totale),
     a.ownerName,
     a.note ?? "",

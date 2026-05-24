@@ -27,7 +27,7 @@ function attivita(
     id: "att-1",
     aziendaNome: "Az",
     tipoNome: "T",
-    oraria: false,
+    oraria: false, adElemento: false,
     tariffa: 30,
     totale: 30,
     ownerUid: "u",

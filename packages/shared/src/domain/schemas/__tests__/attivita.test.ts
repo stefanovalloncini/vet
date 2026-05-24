@@ -10,6 +10,7 @@ const baseInput = {
   aziendaId: "az1",
   tipoId: "visita",
   oraria: false,
+  adElemento: false,
   tariffa: 50,
 };
 
@@ -156,6 +157,98 @@ describe("attivitaInputSchema", () => {
         note: "Visita straordinaria notturna",
       }).success
     ).toBe(true);
+  });
+
+  it("accepts adElemento input with elementi", () => {
+    const r = attivitaInputSchema.safeParse({
+      ...baseInput,
+      adElemento: true,
+      tariffa: 2,
+      elementi: 15,
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("rejects adElemento input without elementi", () => {
+    expect(
+      attivitaInputSchema.safeParse({
+        ...baseInput,
+        adElemento: true,
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects elementi when adElemento is false", () => {
+    expect(
+      attivitaInputSchema.safeParse({
+        ...baseInput,
+        adElemento: false,
+        elementi: 5,
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects when both oraria and adElemento are true", () => {
+    expect(
+      attivitaInputSchema.safeParse({
+        ...baseInput,
+        oraria: true,
+        ore: 2,
+        adElemento: true,
+        elementi: 10,
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects non-integer elementi", () => {
+    expect(
+      attivitaInputSchema.safeParse({
+        ...baseInput,
+        adElemento: true,
+        elementi: 2.5,
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects elementi above the 10000 cap", () => {
+    expect(
+      attivitaInputSchema.safeParse({
+        ...baseInput,
+        adElemento: true,
+        elementi: 10001,
+      }).success
+    ).toBe(false);
+  });
+});
+
+describe("computeTotale modalita", () => {
+  it("multiplies tariffa by elementi for adElemento", () => {
+    expect(
+      computeTotale({
+        oraria: false,
+        adElemento: true,
+        tariffa: 2,
+        elementi: 15,
+      })
+    ).toBe(30);
+  });
+
+  it("falls back to tariffa when adElemento is true but elementi is missing", () => {
+    expect(
+      computeTotale({ oraria: false, adElemento: true, tariffa: 50 })
+    ).toBe(50);
+  });
+
+  it("prefers oraria over adElemento when both are set", () => {
+    expect(
+      computeTotale({
+        oraria: true,
+        adElemento: true,
+        tariffa: 10,
+        ore: 3,
+        elementi: 5,
+      })
+    ).toBe(30);
   });
 });
 

@@ -39,7 +39,7 @@ async function seed(repos: Repositories, dates: Date[]): Promise<void> {
   });
   for (const data of dates) {
     await repos.attivita.create(
-      { data, aziendaId, tipoId: "visita", oraria: false, tariffa: 50 },
+      { data, aziendaId, tipoId: "visita", oraria: false, adElemento: false, tariffa: 50 },
       { aziendaNome: "Azienda A", tipoNome: "Visita" },
       actor
     );

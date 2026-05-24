@@ -91,7 +91,9 @@ export function useAttivitaDerived(args: DerivedArgs): AttivitaDerived {
   const tipoId = useWatch({ control: form.control, name: "tipoId" });
   const tariffa = useWatch({ control: form.control, name: "tariffa" });
   const ore = useWatch({ control: form.control, name: "ore" });
+  const elementi = useWatch({ control: form.control, name: "elementi" });
   const oraria = useWatch({ control: form.control, name: "oraria" });
+  const adElemento = useWatch({ control: form.control, name: "adElemento" });
 
   const tipiMutable = useMemo(() => [...tipi], [tipi]);
 
@@ -107,15 +109,24 @@ export function useAttivitaDerived(args: DerivedArgs): AttivitaDerived {
 
   const totaleLive = useMemo(() => {
     const tariffaNum = Number(tariffa);
-    const oreNum = Number(ore);
     if (!Number.isFinite(tariffaNum) || tariffaNum <= 0) return null;
-    if (oraria && (!Number.isFinite(oreNum) || oreNum <= 0)) return null;
-    return computeTotale({
-      oraria,
-      tariffa: tariffaNum,
-      ...(oraria ? { ore: oreNum } : {}),
-    });
-  }, [tariffa, ore, oraria]);
+    if (oraria) {
+      const oreNum = Number(ore);
+      if (!Number.isFinite(oreNum) || oreNum <= 0) return null;
+      return computeTotale({ oraria: true, tariffa: tariffaNum, ore: oreNum });
+    }
+    if (adElemento) {
+      const elNum = Number(elementi);
+      if (!Number.isFinite(elNum) || elNum <= 0) return null;
+      return computeTotale({
+        oraria: false,
+        adElemento: true,
+        tariffa: tariffaNum,
+        elementi: elNum,
+      });
+    }
+    return computeTotale({ oraria: false, tariffa: tariffaNum });
+  }, [tariffa, ore, elementi, oraria, adElemento]);
 
   return { totaleLive, tariffaSuggested: suggested };
 }

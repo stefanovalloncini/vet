@@ -128,7 +128,7 @@ describe("QuickEntryDialog", () => {
         data: today,
         aziendaId,
         tipoId: "visita",
-        oraria: false,
+        oraria: false, adElemento: false,
         tariffa: 30,
       },
       { aziendaNome: "Cliente Uno", tipoNome: "Visita" },

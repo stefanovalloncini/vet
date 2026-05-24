@@ -2,8 +2,9 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { CAPABILITIES, type Capability } from "@vet/shared";
 import { runScript } from "./lib/runScript.js";
 
-const adminCaps: Capability[] = [...CAPABILITIES];
-const vetCaps: Capability[] = [
+const amministratoreCaps: Capability[] = [...CAPABILITIES];
+
+const veterinarioCapoCaps: Capability[] = [
   "activities.read.all",
   "activities.create",
   "activities.update.own",
@@ -18,19 +19,33 @@ const vetCaps: Capability[] = [
   "payments.read",
   "payments.read.any",
   "payments.manage",
+  "conti.proforma",
+  "conti.emit",
+  "conti.saldo",
   "reminders.read",
   "reminders.create",
   "reminders.update.own",
   "reminders.delete.own",
 ];
-const viewerCaps: Capability[] = [
+
+const veterinarioSempliceCaps: Capability[] = [
   "activities.read.all",
+  "activities.create",
+  "activities.update.own",
+  "activities.delete.own",
+  "activities.export",
   "aziende.read",
+  "aziende.create",
+  "aziende.update",
   "activity_types.read",
   "trash.read.own",
+  "trash.restore.own",
   "payments.read",
-  "payments.read.any",
+  "conti.proforma",
   "reminders.read",
+  "reminders.create",
+  "reminders.update.own",
+  "reminders.delete.own",
 ];
 
 const SEEDS: ReadonlyArray<{
@@ -39,9 +54,9 @@ const SEEDS: ReadonlyArray<{
   caps: Capability[];
   locked: boolean;
 }> = [
-  { id: "admin", name: "Amministratore", caps: adminCaps, locked: true },
-  { id: "vet", name: "Veterinario", caps: vetCaps, locked: false },
-  { id: "viewer", name: "Sola lettura", caps: viewerCaps, locked: false },
+  { id: "amministratore", name: "Amministratore", caps: amministratoreCaps, locked: true },
+  { id: "veterinario_capo", name: "Veterinario capo", caps: veterinarioCapoCaps, locked: true },
+  { id: "veterinario_semplice", name: "Veterinario semplice", caps: veterinarioSempliceCaps, locked: true },
 ];
 
 function nameKey(name: string): string {

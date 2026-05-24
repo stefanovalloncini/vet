@@ -10,7 +10,7 @@ const base: Attivita = {
   aziendaNome: "Allevamento Verde",
   tipoId: "t-1",
   tipoNome: "Visita",
-  oraria: false,
+  oraria: false, adElemento: false,
   tariffa: 50,
   ore: 1,
   totale: 50,

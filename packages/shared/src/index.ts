@@ -77,8 +77,10 @@ export {
   ACTIVITY_TYPE_SEEDS,
   GINECOLOGIA_TIPO_ID,
   ALTRO_TIPO_ID,
+  modalitaSchema,
   type ActivityTypeInput,
   type ActivityTypeDoc,
+  type Modalita,
 } from "./domain/schemas/activityType.js";
 export {
   attivitaInputSchema,

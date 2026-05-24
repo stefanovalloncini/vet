@@ -12,7 +12,7 @@ function item(
     aziendaNome: "Az",
     tipoNome: "T",
     note: "",
-    oraria: false,
+    oraria: false, adElemento: false,
     ore: 0,
     totale: overrides.tariffa,
     ownerUid: "u",

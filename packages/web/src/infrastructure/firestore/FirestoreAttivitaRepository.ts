@@ -85,8 +85,10 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
       tipoId: input.tipoId,
       tipoNome: denorm.tipoNome,
       oraria: input.oraria,
+      adElemento: input.adElemento,
       tariffa: input.tariffa,
       ...(input.ore !== undefined ? { ore: input.ore } : {}),
+      ...(input.elementi !== undefined ? { elementi: input.elementi } : {}),
       totale: computeTotale(input),
       ...(input.note !== undefined ? { note: input.note } : {}),
       ownerUid: actor.uid,
@@ -113,8 +115,10 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
       tipoId: input.tipoId,
       tipoNome: denorm.tipoNome,
       oraria: input.oraria,
+      adElemento: input.adElemento,
       tariffa: input.tariffa,
       ore: input.ore !== undefined ? input.ore : deleteField(),
+      elementi: input.elementi !== undefined ? input.elementi : deleteField(),
       totale: computeTotale(input),
       note: input.note !== undefined ? input.note : deleteField(),
       updatedAt: serverTimestamp(),
@@ -142,9 +146,13 @@ function fromSnap(id: string, data: Record<string, unknown>): Attivita {
     tipoId: data.tipoId as string,
     tipoNome: data.tipoNome as string,
     oraria: (data.oraria as boolean) ?? false,
+    adElemento: (data.adElemento as boolean) ?? false,
     tariffa: (data.tariffa as number) ?? 0,
     ...(data.ore !== undefined && data.ore !== null
       ? { ore: data.ore as number }
+      : {}),
+    ...(data.elementi !== undefined && data.elementi !== null
+      ? { elementi: data.elementi as number }
       : {}),
     totale: (data.totale as number) ?? 0,
     ...(data.note ? { note: data.note as string } : {}),

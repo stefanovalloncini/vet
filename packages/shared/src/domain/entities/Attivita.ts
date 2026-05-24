@@ -6,8 +6,10 @@ export interface Attivita {
   tipoId: string;
   tipoNome: string;
   oraria: boolean;
+  adElemento: boolean;
   tariffa: number;
   ore?: number;
+  elementi?: number;
   totale: number;
   note?: string;
   ownerUid: string;
