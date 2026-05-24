@@ -138,10 +138,10 @@ interface SaldaContoDialogProps {
 }
 
 const METODO_OPTIONS = [
-  { value: "", label: "—" },
-  { value: "bonifico", label: "Bonifico" },
-  { value: "contanti", label: "Contanti" },
-  { value: "altro", label: "Altro" },
+  { value: "", label: t.metodoVuoto },
+  { value: "bonifico", label: t.metodoBonifico },
+  { value: "contanti", label: t.metodoContanti },
+  { value: "altro", label: t.metodoAltro },
 ];
 
 function SaldaContoDialog({ conto, onClose }: SaldaContoDialogProps) {
