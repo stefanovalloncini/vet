@@ -103,6 +103,7 @@ export function AziendaFormPage() {
       navigate("/aziende");
     } catch {
       form.setError("root", { message: t.erroreSalvataggio });
+      notify(t.erroreSalvataggio, "error");
     }
   }
 
