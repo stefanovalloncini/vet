@@ -9,7 +9,11 @@ import type {
   AziendaInput,
 } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { queryKeys } from "../../../shared/data/queryClient";
+import {
+  AZIENDE_DEPENDENT_KEYS,
+  invalidateMany,
+  queryKeys,
+} from "../../../shared/data/queryClient";
 
 export function useAziende() {
   const { aziende: repo } = useRepositories();
@@ -38,7 +42,7 @@ export function useCreateAzienda() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ input, actor }: CreateInput) => repo.create(input, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.aziende }),
+    onSuccess: () => invalidateMany(qc, AZIENDE_DEPENDENT_KEYS),
   });
 }
 
@@ -54,7 +58,7 @@ export function useUpdateAzienda() {
   return useMutation({
     mutationFn: ({ id, input, actor }: UpdateInput) =>
       repo.update(id, input, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.aziende }),
+    onSuccess: () => invalidateMany(qc, AZIENDE_DEPENDENT_KEYS),
   });
 }
 
@@ -68,6 +72,6 @@ export function useDeleteAzienda() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, actor }: DeleteInput) => repo.softDelete(id, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.aziende }),
+    onSuccess: () => invalidateMany(qc, AZIENDE_DEPENDENT_KEYS),
   });
 }

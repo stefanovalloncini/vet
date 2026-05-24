@@ -9,7 +9,11 @@ import type {
   ReminderInput,
 } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { queryKeys } from "../../../shared/data/queryClient";
+import {
+  invalidateMany,
+  queryKeys,
+  REMINDERS_DEPENDENT_KEYS,
+} from "../../../shared/data/queryClient";
 
 export interface UseRemindersResult {
   reminders: Reminder[];
@@ -45,7 +49,7 @@ export function useCreateReminder() {
   return useMutation({
     mutationFn: ({ input, denorm, actor }: CreateReminderInput) =>
       repo.create(input, denorm, actor),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["reminders"] }),
+    onSuccess: () => invalidateMany(qc, REMINDERS_DEPENDENT_KEYS),
   });
 }
 
@@ -59,7 +63,7 @@ export function useUpdateReminder() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, done }: UpdateReminderInput) => repo.markDone(id, done),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["reminders"] }),
+    onSuccess: () => invalidateMany(qc, REMINDERS_DEPENDENT_KEYS),
   });
 }
 
@@ -68,6 +72,6 @@ export function useDeleteReminder() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => repo.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["reminders"] }),
+    onSuccess: () => invalidateMany(qc, REMINDERS_DEPENDENT_KEYS),
   });
 }
