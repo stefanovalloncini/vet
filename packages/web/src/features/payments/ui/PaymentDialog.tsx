@@ -12,7 +12,7 @@ import {
   type PaymentInput,
 } from "@vet/shared";
 import { dateInputValue, parseDateInput } from "../../attivita/lib/format";
-import { useCreatePayment } from "../hooks/usePaymentsData";
+import { useCreatePayment } from "../hooks/usePayments";
 import type { AziendaArrears } from "../lib/arrears";
 
 const METODI_OPTIONS = [

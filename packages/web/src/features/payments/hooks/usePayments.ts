@@ -5,48 +5,18 @@ import {
 } from "@tanstack/react-query";
 import type {
   ActorContext,
-  Attivita,
-  Azienda,
   Payment,
   PaymentInput,
 } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { queryKeys } from "../../../shared/data/queryClient";
 
-interface PaymentsData {
-  aziende: Azienda[];
-  attivita: Attivita[];
-  payments: Payment[];
-}
-
-export interface UsePaymentsDataResult extends PaymentsData {
-  loading: boolean;
-  error: string | null;
-}
-
-const EMPTY: PaymentsData = { aziende: [], attivita: [], payments: [] };
-
-export function usePaymentsData(): UsePaymentsDataResult {
-  const { aziende, attivita, payments } = useRepositories();
-  const query = useQuery<PaymentsData>({
+export function usePayments() {
+  const { payments: repo } = useRepositories();
+  return useQuery<Payment[]>({
     queryKey: queryKeys.payments(),
-    queryFn: async () => {
-      const [a, t, p] = await Promise.all([
-        aziende.list(),
-        attivita.list(),
-        payments.list(),
-      ]);
-      return { aziende: a, attivita: t, payments: p };
-    },
+    queryFn: () => repo.list(),
   });
-  const data = query.data ?? EMPTY;
-  return {
-    aziende: data.aziende,
-    attivita: data.attivita,
-    payments: data.payments,
-    loading: query.isPending,
-    error: query.error ? "load-failed" : null,
-  };
 }
 
 interface CreatePaymentInput {

@@ -1,10 +1,14 @@
 import { useMemo } from "react";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
-import { usePaymentsData } from "../../payments/hooks/usePaymentsData";
+import { useAziende } from "../../aziende/hooks/useAziende";
+import { usePayments } from "../../payments/hooks/usePayments";
 import { SHORT_MONTHS } from "../../dashboard/lib/stats";
 import type { Attivita, Azienda, Payment } from "@vet/shared";
 
 export type StatistichePeriodo = "12m" | "ytd" | "all";
+
+const EMPTY_AZIENDE: Azienda[] = [];
+const EMPTY_PAYMENTS: Payment[] = [];
 
 interface AttivitaFilter {
   from?: Date;
@@ -204,7 +208,10 @@ export function useStatistiche(range: StatistichePeriodo, now: Date): Statistich
     [now]
   );
   const { items: lastYearItems } = useAttivita(lastYearFilters);
-  const { aziende, payments } = usePaymentsData();
+  const aziendeQuery = useAziende();
+  const paymentsQuery = usePayments();
+  const aziende = aziendeQuery.data ?? EMPTY_AZIENDE;
+  const payments = paymentsQuery.data ?? EMPTY_PAYMENTS;
 
   const byTipo = useMemo(() => byTipoSlices(items), [items]);
   const topClients = useMemo(() => topClientsSlices(items), [items]);

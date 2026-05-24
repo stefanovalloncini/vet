@@ -8,8 +8,8 @@ import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesCon
 import {
   useCreatePayment,
   useDeletePayment,
-  usePaymentsData,
-} from "../usePaymentsData";
+  usePayments,
+} from "../usePayments";
 
 const actor: ActorContext = {
   uid: "u1",
@@ -35,29 +35,26 @@ async function seedAzienda(repos: Repositories): Promise<string> {
   return repos.aziende.create({ nome: "Cascina A" }, actor);
 }
 
-describe("usePaymentsData", () => {
-  it("loads aziende, attivita, and payments via tanstack query", async () => {
+describe("usePayments", () => {
+  it("loads payments via tanstack query", async () => {
     const repos = createInMemoryRepositories();
     await seedAzienda(repos);
 
-    const { result } = renderHook(() => usePaymentsData(), {
+    const { result } = renderHook(() => usePayments(), {
       wrapper: wrap(repos),
     });
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.aziende).toHaveLength(1);
-    expect(result.current.payments).toEqual([]);
-    expect(result.current.error).toBeNull();
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+    expect(result.current.data).toEqual([]);
+    expect(result.current.isError).toBe(false);
   });
 
-  it("returns empty arrays before data resolves", () => {
+  it("returns undefined before data resolves", () => {
     const repos = createInMemoryRepositories();
-    const { result } = renderHook(() => usePaymentsData(), {
+    const { result } = renderHook(() => usePayments(), {
       wrapper: wrap(repos),
     });
-    expect(result.current.aziende).toEqual([]);
-    expect(result.current.attivita).toEqual([]);
-    expect(result.current.payments).toEqual([]);
+    expect(result.current.data).toBeUndefined();
   });
 });
 
@@ -67,11 +64,11 @@ describe("useCreatePayment", () => {
     const aziendaId = await seedAzienda(repos);
     const wrapper = wrap(repos);
 
-    const { result: listResult } = renderHook(() => usePaymentsData(), {
+    const { result: listResult } = renderHook(() => usePayments(), {
       wrapper,
     });
-    await waitFor(() => expect(listResult.current.loading).toBe(false));
-    expect(listResult.current.payments).toHaveLength(0);
+    await waitFor(() => expect(listResult.current.isPending).toBe(false));
+    expect(listResult.current.data).toHaveLength(0);
 
     const { result: createResult } = renderHook(() => useCreatePayment(), {
       wrapper,
@@ -89,7 +86,7 @@ describe("useCreatePayment", () => {
     });
 
     await waitFor(() =>
-      expect(listResult.current.payments).toHaveLength(1)
+      expect(listResult.current.data).toHaveLength(1)
     );
   });
 });
@@ -105,11 +102,11 @@ describe("useDeletePayment", () => {
     );
     const wrapper = wrap(repos);
 
-    const { result: listResult } = renderHook(() => usePaymentsData(), {
+    const { result: listResult } = renderHook(() => usePayments(), {
       wrapper,
     });
-    await waitFor(() => expect(listResult.current.loading).toBe(false));
-    expect(listResult.current.payments).toHaveLength(1);
+    await waitFor(() => expect(listResult.current.isPending).toBe(false));
+    expect(listResult.current.data).toHaveLength(1);
 
     const { result: deleteResult } = renderHook(() => useDeletePayment(), {
       wrapper,
@@ -118,7 +115,7 @@ describe("useDeletePayment", () => {
       await deleteResult.current.mutateAsync({ id, actor });
     });
     await waitFor(() =>
-      expect(listResult.current.payments).toHaveLength(0)
+      expect(listResult.current.data).toHaveLength(0)
     );
   });
 });

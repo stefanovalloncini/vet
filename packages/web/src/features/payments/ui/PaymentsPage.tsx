@@ -9,15 +9,34 @@ import {
   PageHeader,
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
-import { usePaymentsData } from "../hooks/usePaymentsData";
+import { useAziende } from "../../aziende/hooks/useAziende";
+import { useAttivita } from "../../attivita/hooks/useAttivita";
+import { usePayments } from "../hooks/usePayments";
 import { computeArrears, type AziendaArrears } from "../lib/arrears";
 import { paymentsI18n as t } from "../i18n";
 import { formatEuro } from "../../attivita/lib/format";
 import { PaymentDialog } from "./PaymentDialog";
+import type { Azienda, Payment } from "@vet/shared";
+
+const EMPTY_AZIENDE: Azienda[] = [];
+const EMPTY_PAYMENTS: Payment[] = [];
 
 export function PaymentsPage() {
   const { user } = useAuthState();
-  const { aziende, attivita, payments, loading, error } = usePaymentsData();
+  const aziendeQuery = useAziende();
+  const attivitaQuery = useAttivita();
+  const paymentsQuery = usePayments();
+  const aziende = aziendeQuery.data ?? EMPTY_AZIENDE;
+  const attivita = attivitaQuery.items;
+  const payments = paymentsQuery.data ?? EMPTY_PAYMENTS;
+  const loading =
+    aziendeQuery.isPending ||
+    attivitaQuery.loading ||
+    paymentsQuery.isPending;
+  const error =
+    aziendeQuery.isError || attivitaQuery.isError || paymentsQuery.isError
+      ? "load-failed"
+      : null;
   const [paying, setPaying] = useState<AziendaArrears | null>(null);
 
   const canManage = user?.caps.has("payments.manage") ?? false;

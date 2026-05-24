@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
-import { usePaymentsData } from "../../payments/hooks/usePaymentsData";
+import { useAziende } from "../../aziende/hooks/useAziende";
+import { usePayments } from "../../payments/hooks/usePayments";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { computeArrears } from "../../payments/lib/arrears";
 import {
@@ -11,7 +12,7 @@ import {
   topEntry,
   trailingMonths,
 } from "../lib/stats";
-import type { Attivita, Azienda, Reminder } from "@vet/shared";
+import type { Attivita, Azienda, Payment, Reminder } from "@vet/shared";
 
 interface MonthStats {
   total: number;
@@ -43,6 +44,8 @@ const URGENT_WINDOW_MS = 7 * 86_400_000;
 const RECENT_AZIENDE_LIMIT = 4;
 const TOP_TIPO_LIMIT = 8;
 const TRAILING_MONTHS = 12;
+const EMPTY_AZIENDE: Azienda[] = [];
+const EMPTY_PAYMENTS: Payment[] = [];
 
 export function useDashboardStats(now: Date): DashboardStats {
   const monthStart = useMemo(() => startOfMonthLocal(now), [now]);
@@ -65,16 +68,22 @@ export function useDashboardStats(now: Date): DashboardStats {
   );
 
   const attivitaResult = useAttivita(allRangeFilters);
-  const paymentsResult = usePaymentsData();
+  const aziendeQuery = useAziende();
+  const paymentsQuery = usePayments();
   const remindersResult = useReminders({ onlyOpen: true });
   const items = attivitaResult.items;
-  const loading = attivitaResult.loading || paymentsResult.loading || remindersResult.loading;
+  const loading =
+    attivitaResult.loading ||
+    aziendeQuery.isPending ||
+    paymentsQuery.isPending ||
+    remindersResult.loading;
   const isError =
     attivitaResult.isError ||
-    paymentsResult.error !== null ||
+    aziendeQuery.isError ||
+    paymentsQuery.isError ||
     remindersResult.error !== null;
-  const aziende = paymentsResult.aziende;
-  const payments = paymentsResult.payments;
+  const aziende = aziendeQuery.data ?? EMPTY_AZIENDE;
+  const payments = paymentsQuery.data ?? EMPTY_PAYMENTS;
   const openReminders = remindersResult.reminders;
 
   const thisMonth = useMemo(
