@@ -1,18 +1,15 @@
-import { useState, type FormEvent } from "react";
-import {
-  Button,
-  Dialog,
-  InlineError,
-  Select,
-  TextArea,
-  TextField,
-} from "../../../shared/ui";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button, Dialog, InlineError } from "../../../shared/ui";
+import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { useAuthState } from "../../auth";
 import { paymentsI18n as t } from "../i18n";
 import {
   METODI_PAGAMENTO,
   paymentInputSchema,
   type MetodoPagamento,
+  type PaymentInput,
 } from "@vet/shared";
 import { dateInputValue, parseDateInput } from "../../attivita/lib/format";
 import { useCreatePayment } from "../hooks/usePaymentsData";
@@ -25,36 +22,56 @@ const METODI_OPTIONS = [
   { value: "altro", label: t.metodoAltro },
 ];
 
-export function PaymentDialog({
-  row,
-  onClose,
-  onSaved,
-}: {
+const formSchema = z.object({
+  periodo: z.string().min(1, "Data obbligatoria"),
+  importo: z.string().superRefine((value, ctx) => {
+    if (value.trim() === "") return;
+    const num = Number(value);
+    if (!Number.isFinite(num) || num < 0 || num > 1_000_000) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Importo non valido" });
+    }
+  }),
+  metodo: z.string(),
+  note: z.string().max(500),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+interface Props {
   row: AziendaArrears;
   onClose: () => void;
   onSaved: () => void | Promise<void>;
-}) {
+}
+
+export function PaymentDialog({ row, onClose, onSaved }: Props) {
   const { user } = useAuthState();
   const create = useCreatePayment();
-  const [periodo, setPeriodo] = useState(dateInputValue(new Date()));
-  const [importo, setImporto] = useState(
-    row.unpaidTotal > 0 ? String(row.unpaidTotal) : ""
-  );
-  const [metodo, setMetodo] = useState<MetodoPagamento | "">("");
-  const [note, setNote] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const busy = create.isPending;
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      periodo: dateInputValue(new Date()),
+      importo: row.unpaidTotal > 0 ? String(row.unpaidTotal) : "",
+      metodo: "",
+      note: "",
+    },
+    mode: "onSubmit",
+  });
+  const busy = create.isPending || form.formState.isSubmitting;
+  const rootError = form.formState.errors.root?.message;
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function onSubmit(values: FormValues) {
     if (!user) return;
-    const date = parseDateInput(periodo);
+    form.clearErrors("root");
+    const date = parseDateInput(values.periodo);
     if (!date) {
-      setError(t.saveError);
+      form.setError("periodo", { message: "Data non valida" });
       return;
     }
-    const importoTrim = importo.trim();
-    const noteTrim = note.trim();
+    const importoTrim = values.importo.trim();
+    const noteTrim = values.note.trim();
+    const metodo = METODI_PAGAMENTO.includes(values.metodo as MetodoPagamento)
+      ? (values.metodo as MetodoPagamento)
+      : undefined;
     const parsed = paymentInputSchema.safeParse({
       aziendaId: row.azienda.id,
       periodoFinoA: date,
@@ -63,94 +80,87 @@ export function PaymentDialog({
       ...(noteTrim ? { note: noteTrim } : {}),
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? t.saveError);
+      form.setError("root", {
+        message: parsed.error.issues[0]?.message ?? t.saveError,
+      });
       return;
     }
-    setError(null);
     try {
+      const input: PaymentInput = parsed.data;
       await create.mutateAsync({
-        input: parsed.data,
+        input,
         denorm: { aziendaNome: row.azienda.nome },
         actor: user,
       });
       await onSaved();
-    } catch {
-      setError(t.saveError);
+    } catch (err) {
+      console.error("payment create failed", err);
+      form.setError("root", { message: t.saveError });
     }
   }
 
   return (
     <Dialog open onClose={onClose} labelledBy="payment-dialog-title" size="md">
-      <div className="p-5">
-        <h2
-          id="payment-dialog-title"
-          className="text-base font-medium text-(--color-text)"
-        >
-          {row.azienda.nome}
-        </h2>
-        <p className="text-sm text-(--color-text-muted) mt-1">
-          {t.segnaPagato}
-        </p>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-5">
-          <TextField
-            id="pay-periodo"
-            type="date"
-            label={t.campoPeriodoFinoA}
-            value={periodo}
-            onChange={(e) => setPeriodo(e.target.value)}
-            required
-            disabled={busy}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <TextField
-              id="pay-importo"
-              type="number"
-              step="0.01"
-              min="0"
-              label={t.campoImporto}
-              value={importo}
-              onChange={(e) => setImporto(e.target.value)}
+      <FormProvider {...form}>
+        <div className="p-5">
+          <h2
+            id="payment-dialog-title"
+            className="text-base font-medium text-(--color-text)"
+          >
+            {row.azienda.nome}
+          </h2>
+          <p className="text-sm text-(--color-text-muted) mt-1">{t.segnaPagato}</p>
+          <form
+            noValidate
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 mt-5"
+          >
+            <RHFTextField<FormValues>
+              name="periodo"
+              type="date"
+              label={t.campoPeriodoFinoA}
+              required
               disabled={busy}
             />
-            <Select
-              id="pay-metodo"
-              label={t.campoMetodo}
-              value={metodo}
-              onChange={(e) =>
-                setMetodo(
-                  METODI_PAGAMENTO.includes(e.target.value as MetodoPagamento)
-                    ? (e.target.value as MetodoPagamento)
-                    : ""
-                )
-              }
-              options={METODI_OPTIONS}
+            <div className="grid grid-cols-2 gap-3">
+              <RHFTextField<FormValues>
+                name="importo"
+                type="number"
+                step="0.01"
+                min="0"
+                label={t.campoImporto}
+                disabled={busy}
+              />
+              <RHFSelect<FormValues>
+                name="metodo"
+                label={t.campoMetodo}
+                options={METODI_OPTIONS}
+                disabled={busy}
+              />
+            </div>
+            <RHFTextArea<FormValues>
+              name="note"
+              label={t.campoNote}
               disabled={busy}
+              maxLength={500}
             />
-          </div>
-          <TextArea
-            id="pay-note"
-            label={t.campoNote}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            disabled={busy}
-            maxLength={500}
-          />
-          {error ? <InlineError>{error}</InlineError> : null}
-          <div className="flex items-center justify-end gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-              disabled={busy}
-            >
-              {t.annulla}
-            </Button>
-            <Button type="submit" variant="primary" disabled={busy}>
-              {t.salva}
-            </Button>
-          </div>
-        </form>
-      </div>
+            {rootError ? <InlineError>{rootError}</InlineError> : null}
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                disabled={busy}
+              >
+                {t.annulla}
+              </Button>
+              <Button type="submit" variant="primary" disabled={busy}>
+                {t.salva}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </FormProvider>
     </Dialog>
   );
 }
