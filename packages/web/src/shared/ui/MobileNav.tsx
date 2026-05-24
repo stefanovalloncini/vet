@@ -21,7 +21,7 @@ const ITEMS: NavItem[] = [
   { to: "/agenda", label: "Agenda", icon: Calendar, requiredCap: "activities.read.all" },
   { to: "/attivita", label: "Attività", icon: ClipboardList, requiredCap: "activities.read.all" },
   { to: "/aziende", label: "Aziende", icon: Building2, requiredCap: "aziende.read" },
-  { to: "/pagamenti", label: "Pagamenti", icon: Euro, requiredCap: "payments.read" },
+  { to: "/conti", label: "Conti", icon: Euro, requiredCap: "conti.proforma" },
 ];
 
 export function MobileNav() {

@@ -8,8 +8,13 @@ import { useAziendaDetail } from "../hooks/useAziendaDetail";
 import { AziendaDetailSummary } from "./AziendaDetailSummary";
 import { AziendaInfoCard } from "./AziendaInfoCard";
 import { PagamentiTab, PromemoriaTab, StoricoTab } from "./AziendaTabs";
+import {
+  ContiPerAziendaTab,
+  EmettiContoPanel,
+  useContiForAzienda,
+} from "../../conti";
 
-type Tab = "storico" | "pagamenti" | "promemoria";
+type Tab = "storico" | "conti" | "pagamenti" | "promemoria";
 
 export function AziendaDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,11 +25,14 @@ export function AziendaDetailPage() {
   const { tagsFor, setForAzienda } = useTags();
 
   const detail = useAziendaDetail(id);
+  const contiQuery = useContiForAzienda(id);
 
   const reminderCount = useMemo(
     () => reminders.filter((r) => r.aziendaId === id && !r.done).length,
     [reminders, id]
   );
+  const contiCount = contiQuery.data?.length ?? 0;
+  const canViewConti = user?.caps.has("conti.proforma") ?? false;
 
   const total = useMemo(
     () => detail.items.reduce((s, x) => s + x.totale, 0),
@@ -57,8 +65,11 @@ export function AziendaDetailPage() {
   }
 
   const azienda = detail.azienda;
-  const tabs: ReadonlyArray<{ id: Tab; label: string; count?: number }> = [
+  const baseTabs: ReadonlyArray<{ id: Tab; label: string; count?: number }> = [
     { id: "storico", label: "Storico", count: detail.items.length },
+    ...(canViewConti
+      ? [{ id: "conti" as const, label: "Conti", count: contiCount }]
+      : []),
     { id: "pagamenti", label: "Pagamenti", count: detail.payments.length },
     { id: "promemoria", label: "Promemoria", count: reminderCount },
   ];
@@ -78,9 +89,14 @@ export function AziendaDetailPage() {
         onTagsChange={(next) => setForAzienda(azienda.id, next)}
         canExport={canExport}
       />
+      {canViewConti ? (
+        <div className="mb-4">
+          <EmettiContoPanel azienda={azienda} items={detail.items} />
+        </div>
+      ) : null}
       <div className="mb-4">
         <Tabs
-          items={tabs.map((tt) => ({
+          items={baseTabs.map((tt) => ({
             value: tt.id,
             label: tt.label,
             ...(tt.count !== undefined ? { badge: tt.count } : {}),
@@ -91,6 +107,8 @@ export function AziendaDetailPage() {
       </div>
       {tab === "storico" ? (
         <StoricoTab items={detail.items} />
+      ) : tab === "conti" ? (
+        <ContiPerAziendaTab aziendaId={azienda.id} />
       ) : tab === "pagamenti" ? (
         <PagamentiTab payments={detail.payments} />
       ) : (

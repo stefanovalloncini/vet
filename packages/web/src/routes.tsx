@@ -55,6 +55,9 @@ const AuditPage = lazy(() =>
 const PaymentsPage = lazy(() =>
   import("./features/payments").then((m) => ({ default: m.PaymentsPage }))
 );
+const ContiPage = lazy(() =>
+  import("./features/conti").then((m) => ({ default: m.ContiPage }))
+);
 const AgendaPage = lazy(() =>
   import("./features/agenda").then((m) => ({ default: m.AgendaPage }))
 );
@@ -107,6 +110,7 @@ export const PROTECTED_ROUTES: ReadonlyArray<AppRoute> = [
   { path: "/admin/audit", Component: AuditPage },
   { path: "/admin/stats-vet", Component: VetStatsPage },
   { path: "/pagamenti", Component: PaymentsPage },
+  { path: "/conti", Component: ContiPage },
   { path: "/agenda", Component: AgendaPage },
   { path: "/riepilogo", Component: DashboardPage },
   { path: "/strumenti", Component: StrumentiHome },
