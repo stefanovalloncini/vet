@@ -1,6 +1,12 @@
-import type { ReactNode } from "react";
 import { useState } from "react";
-import { AppShell, Button, Card, ConfirmDialog, PageHeader } from "../../../shared/ui";
+import {
+  AppShell,
+  Button,
+  ConfirmDialog,
+  PageHeader,
+  SettingsRow,
+  SettingsSection,
+} from "../../../shared/ui";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { impostazioniI18n as t } from "../i18n";
@@ -14,13 +20,14 @@ export function ImpostazioniPage() {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [gdprError, setGdprError] = useState<string | null>(null);
   const [retention, setRetention] = useRetention();
 
   async function handleExport() {
     setExporting(true);
-    setError(null);
+    setExportError(null);
     try {
       const [az, at, pa, re] = await Promise.all([
         aziende.list(),
@@ -38,7 +45,7 @@ export function ImpostazioniPage() {
       triggerJsonDownload(payload, backupFilename());
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      setError(`Export non riuscito: ${msg}`);
+      setExportError(`Export non riuscito: ${msg}`);
       console.error("export failed", err);
     } finally {
       setExporting(false);
@@ -47,7 +54,7 @@ export function ImpostazioniPage() {
 
   async function handleDelete() {
     setBusy(true);
-    setError(null);
+    setGdprError(null);
     try {
       await trash.gdprDeleteMine();
       setDone(true);
@@ -55,65 +62,73 @@ export function ImpostazioniPage() {
         void auth.signOut();
       }, 1500);
     } catch {
-      setError(t.gdprErrore);
+      setGdprError(t.gdprErrore);
       setBusy(false);
     }
   }
-
-  const profileRows: Array<[string, string]> = [
-    ["Nome", user?.displayName ?? "—"],
-    ["Email", user?.email ?? "—"],
-    ["Ruolo", user?.roleId || "—"],
-  ];
 
   return (
     <AppShell>
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
-      <div className="max-w-2xl">
-        <Card>
-          <SectionLabel className="mb-3">Profilo</SectionLabel>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            {profileRows.map(([label, val]) => (
-              <div key={label}>
-                <dt className="text-(--color-text-subtle) text-xs mb-1">{label}</dt>
-                <dd className="text-(--color-text)">{val}</dd>
-              </div>
-            ))}
-          </dl>
-        </Card>
+      <div className="max-w-3xl">
+        <SettingsSection title="Profilo">
+          <SettingsRow label="Nome">
+            <span className="text-(--color-text)">{user?.displayName ?? "—"}</span>
+          </SettingsRow>
+          <SettingsRow label="Email">
+            <span className="text-(--color-text)">{user?.email ?? "—"}</span>
+          </SettingsRow>
+          <SettingsRow label="Ruolo">
+            <span className="text-(--color-text)">{user?.roleId || "—"}</span>
+          </SettingsRow>
+        </SettingsSection>
 
-        <SectionLabel className="mt-10 mb-3">Cestino</SectionLabel>
-        <RetentionSettings value={retention} onChange={setRetention} />
+        <SettingsSection title="Cestino">
+          <SettingsRow
+            label="Permanenza"
+            description="Giorni in cui le attività eliminate restano recuperabili prima della cancellazione definitiva."
+          >
+            <RetentionSettings value={retention} onChange={setRetention} />
+          </SettingsRow>
+        </SettingsSection>
 
-        <SectionLabel className="mt-10 mb-3">Dati</SectionLabel>
-        <Card>
-          <h2 className="text-base font-medium text-(--color-text)">Esporta i tuoi dati</h2>
-          <p className="text-sm text-(--color-text-muted) mt-2 max-w-prose">
-            Scarica un backup JSON di aziende, attività, pagamenti e promemoria.
-          </p>
-          <div className="mt-5">
-            <Button type="button" variant="secondary" onClick={handleExport} disabled={exporting}>
-              {exporting ? "Esportazione…" : "Scarica backup JSON"}
-            </Button>
-          </div>
-        </Card>
+        <SettingsSection title="Dati">
+          <SettingsRow
+            label="Backup completo"
+            description="Scarica un file JSON con aziende, attività, pagamenti e promemoria."
+          >
+            <div className="flex flex-col items-stretch gap-2 sm:items-end">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                {exporting ? "Esportazione…" : "Scarica JSON"}
+              </Button>
+              {exportError ? (
+                <p role="alert" className="text-xs text-(--color-danger)">
+                  {exportError}
+                </p>
+              ) : null}
+            </div>
+          </SettingsRow>
+        </SettingsSection>
 
-        <SectionLabel className="mt-10 mb-3">{t.gdprSection}</SectionLabel>
-        <Card>
-          <h2 className="text-base font-medium text-(--color-text)">{t.gdprTitle}</h2>
-          <p className="text-sm text-(--color-text-muted) mt-2 max-w-prose">{t.gdprDescr}</p>
-          <GdprAction
-            done={done}
-            busy={busy}
-            onAsk={() => setConfirming(true)}
-          />
-          {error ? (
-            <p role="alert" className="text-sm text-(--color-danger) mt-3">
-              {error}
-            </p>
-          ) : null}
-        </Card>
+        <SettingsSection title={t.gdprSection}>
+          <SettingsRow label={t.gdprTitle} description={t.gdprDescr}>
+            <div className="flex flex-col items-stretch gap-2 sm:items-end">
+              <GdprAction done={done} busy={busy} onAsk={() => setConfirming(true)} />
+              {gdprError ? (
+                <p role="alert" className="text-xs text-(--color-danger)">
+                  {gdprError}
+                </p>
+              ) : null}
+            </div>
+          </SettingsRow>
+        </SettingsSection>
       </div>
 
       <ConfirmDialog
@@ -134,22 +149,18 @@ export function ImpostazioniPage() {
   );
 }
 
-function SectionLabel({ className = "", children }: { className?: string; children: ReactNode }) {
-  return (
-    <p className={`text-xs uppercase tracking-wider text-(--color-text-muted) ${className}`}>
-      {children}
-    </p>
-  );
+interface GdprActionProps {
+  done: boolean;
+  busy: boolean;
+  onAsk: () => void;
 }
 
-function GdprAction({ done, busy, onAsk }: { done: boolean; busy: boolean; onAsk: () => void }) {
-  if (done) return <p className="text-sm text-(--color-text) mt-5">{t.gdprDone}</p>;
-  if (busy) return <p className="text-sm text-(--color-text-muted) mt-5">{t.gdprBusy}</p>;
+function GdprAction({ done, busy, onAsk }: GdprActionProps) {
+  if (done) return <p className="text-xs text-(--color-text)">{t.gdprDone}</p>;
+  if (busy) return <p className="text-xs text-(--color-text-muted)">{t.gdprBusy}</p>;
   return (
-    <div className="mt-5">
-      <Button type="button" variant="danger" onClick={onAsk}>
-        {t.gdprButton}
-      </Button>
-    </div>
+    <Button type="button" variant="danger" size="sm" onClick={onAsk}>
+      Elimina i miei dati
+    </Button>
   );
 }

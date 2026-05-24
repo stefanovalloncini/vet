@@ -26,4 +26,6 @@ export { InlineError } from "./InlineError";
 export { LoadingHint } from "./LoadingHint";
 export { BoxedList } from "./BoxedList";
 export { SectionLabel } from "./SectionLabel";
+export { SettingsSection } from "./SettingsSection";
+export { SettingsRow } from "./SettingsRow";
 export { VirtualList } from "./VirtualList";
