@@ -17,7 +17,10 @@ import {
   parseDateInput,
 } from "../../attivita/lib/format";
 import { queryKeys } from "../../../shared/data/queryClient";
-import { useCreateAttivita } from "../../attivita/hooks/useAttivita";
+import {
+  useCreateAttivita,
+  useLastAttivitaByAziendaAndTipo,
+} from "../../attivita/hooks/useAttivita";
 import type { ReferenceData } from "../../attivita/hooks/useReferenceData";
 import {
   isTariffaOutOfRange,
@@ -140,7 +143,6 @@ export function useQuickEntryFormState({
   const recentQuery = useQuery<Attivita[]>({
     queryKey: queryKeys.attivita(),
     queryFn: () => attivita.list(),
-    enabled: open,
   });
   const items = useMemo(() => recentQuery.data ?? [], [recentQuery.data]);
 
@@ -200,25 +202,21 @@ export function useQuickEntryFormState({
     }
   }, [tipoId, open, ref.tipi, form]);
 
+  const ginQuery = useLastAttivitaByAziendaAndTipo(
+    aziendaId,
+    tipoId,
+    { enabled: open && tipoId === GINECOLOGIA_TIPO_ID && !!aziendaId }
+  );
   useEffect(() => {
     if (!open) return;
     if (tipoId !== GINECOLOGIA_TIPO_ID) return;
     if (!aziendaId) return;
+    if (ginQuery.isPending || ginQuery.isFetching) return;
+    const last = ginQuery.data;
+    if (!last) return;
     if (form.getValues("tariffa").trim() !== "") return;
-    let cancelled = false;
-    void (async () => {
-      const last = await attivita.findLastByAziendaAndTipo(
-        aziendaId,
-        GINECOLOGIA_TIPO_ID
-      );
-      if (cancelled || !last) return;
-      if (form.getValues("tariffa").trim() !== "") return;
-      form.setValue("tariffa", String(last.tariffa), { shouldDirty: false });
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [aziendaId, tipoId, open, attivita, form]);
+    form.setValue("tariffa", String(last.tariffa), { shouldDirty: false });
+  }, [aziendaId, tipoId, open, ginQuery.data, ginQuery.isPending, ginQuery.isFetching, form]);
 
   const resetAll = useCallback(
     (over?: Partial<QuickEntryFormValues>): void => {

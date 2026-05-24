@@ -24,6 +24,16 @@ export const queryKeys = {
     ["attivita", filters ?? {}] as const,
   attivitaById: (id: string | undefined) =>
     ["attivita", "byId", id ?? null] as const,
+  attivitaLastByAziendaAndTipo: (
+    aziendaId: string | undefined,
+    tipoId: string | undefined
+  ) =>
+    [
+      "attivita",
+      "lastByAziendaTipo",
+      aziendaId ?? null,
+      tipoId ?? null,
+    ] as const,
   tipiAttivita: ["tipiAttivita"] as const,
   payments: (filters?: Readonly<Record<string, unknown>>) =>
     ["payments", filters ?? {}] as const,

@@ -36,6 +36,24 @@ export function useAttivita(filters: AttivitaFilters = {}) {
   };
 }
 
+export function useLastAttivitaByAziendaAndTipo(
+  aziendaId: string | undefined,
+  tipoId: string | undefined,
+  options: { enabled?: boolean } = {}
+) {
+  const { attivita: repo } = useRepositories();
+  const ready = !!aziendaId && !!tipoId;
+  const enabled = (options.enabled ?? true) && ready;
+  return useQuery<Attivita | null>({
+    queryKey: queryKeys.attivitaLastByAziendaAndTipo(aziendaId, tipoId),
+    queryFn: () =>
+      ready
+        ? repo.findLastByAziendaAndTipo(aziendaId as string, tipoId as string)
+        : Promise.resolve(null),
+    enabled,
+  });
+}
+
 interface CreateVars {
   input: AttivitaInput;
   denorm: Denorm;
