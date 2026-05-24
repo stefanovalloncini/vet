@@ -13,6 +13,7 @@ interface AziendeListProps {
   searching: boolean;
   isPinned: (id: string) => boolean;
   onTogglePin: (id: string) => void;
+  hasUnsaldatiContiBy?: ReadonlySet<string>;
 }
 
 const CADENZA_LABEL = {
@@ -30,6 +31,7 @@ export function AziendeList({
   searching,
   isPinned,
   onTogglePin,
+  hasUnsaldatiContiBy,
 }: AziendeListProps) {
   return (
     <DataLoader
@@ -46,6 +48,7 @@ export function AziendeList({
               canEdit={canEdit}
               pinned={isPinned(a.id)}
               onTogglePin={() => onTogglePin(a.id)}
+              hasUnsaldatiConti={hasUnsaldatiContiBy?.has(a.id) ?? false}
             />
           </li>
         ))}
@@ -59,9 +62,16 @@ interface AziendaRowProps {
   canEdit: boolean;
   pinned: boolean;
   onTogglePin: () => void;
+  hasUnsaldatiConti: boolean;
 }
 
-function AziendaRow({ azienda: a, canEdit, pinned, onTogglePin }: AziendaRowProps) {
+function AziendaRow({
+  azienda: a,
+  canEdit,
+  pinned,
+  onTogglePin,
+  hasUnsaldatiConti,
+}: AziendaRowProps) {
   const tipo = a.tipoAllevamento
     ? a.tipoAllevamento.charAt(0).toUpperCase() + a.tipoAllevamento.slice(1)
     : null;
@@ -74,7 +84,19 @@ function AziendaRow({ azienda: a, canEdit, pinned, onTogglePin }: AziendaRowProp
   const inner = (
     <div className="flex items-start justify-between gap-4 px-4 py-3 min-h-[56px] hover:bg-(--color-surface-muted) transition-colors">
       <div className="min-w-0 flex-1">
-        <h2 className="text-base font-medium text-(--color-text) truncate">{a.nome}</h2>
+        <div className="flex items-center gap-2">
+          <span
+            aria-hidden="true"
+            title={hasUnsaldatiConti ? "Ci sono conti non saldati" : "Tutti i conti saldati"}
+            className={[
+              "w-2 h-2 rounded-full flex-shrink-0",
+              hasUnsaldatiConti
+                ? "bg-(--color-danger)"
+                : "bg-(--color-success)",
+            ].join(" ")}
+          />
+          <h2 className="text-base font-medium text-(--color-text) truncate">{a.nome}</h2>
+        </div>
         {a.indirizzo ? (
           <p className="text-xs text-(--color-text-subtle) mt-0.5 truncate">{a.indirizzo}</p>
         ) : null}

@@ -56,6 +56,9 @@ importers:
       firebase-functions:
         specifier: ^6.0.0
         version: 6.6.0(firebase-admin@12.7.0)
+      googleapis:
+        specifier: ^172.0.0
+        version: 172.0.0
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -3351,6 +3354,10 @@ packages:
   googleapis-common@8.0.1:
     resolution: {integrity: sha512-eCzNACUXPb1PW5l0ULTzMHaL/ltPRADoPgjBlT8jWsTbxkCp6siv+qKJ/1ldaybCthGwsYFYallF7u9AkU4L+A==}
     engines: {node: '>=18.0.0'}
+
+  googleapis@172.0.0:
+    resolution: {integrity: sha512-cF1m/nwfu9JP+JtR6j2nkQKnhu0z45eUVsWCVeooU8EIvBiPQqbfgAuJsTggCYEpbWJNwq2WS+aigaBC/sriIw==}
+    engines: {node: '>=18'}
 
   gopd@1.2.0:
     resolution: {integrity: sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==}
@@ -9393,6 +9400,13 @@ snapshots:
       google-auth-library: 10.6.2
       qs: 6.15.2
       url-template: 2.0.8
+    transitivePeerDependencies:
+      - supports-color
+
+  googleapis@172.0.0:
+    dependencies:
+      google-auth-library: 10.6.2
+      googleapis-common: 8.0.1
     transitivePeerDependencies:
       - supports-color
 
