@@ -16,6 +16,7 @@ import { nextOrdine } from "../../activity-types/lib/ordine";
 import { formatEuro } from "../../attivita/lib/format";
 import { useQuickEntryForm } from "../hooks/useQuickEntryForm";
 import { useUndoCreateAttivita } from "../hooks/useUndoCreateAttivita";
+import { SuggestionsPanel } from "./SuggestionsPanel";
 
 interface QuickEntryDialogProps {
   open: boolean;
@@ -84,7 +85,18 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
           >
             Voce rapida
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-3 mt-5">
+          <div className="mt-4">
+            <SuggestionsPanel
+              combos={form.combos}
+              active={
+                form.aziendaId && form.tipoId
+                  ? { aziendaId: form.aziendaId, tipoId: form.tipoId }
+                  : null
+              }
+              onPick={(c) => form.setCombo(c)}
+            />
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-3 mt-4">
             <TextField
               id="qe-data"
               type="date"

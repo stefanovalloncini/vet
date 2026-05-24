@@ -18,6 +18,7 @@ export type QuickEntryAction =
   | { type: "set-azienda"; value: string }
   | { type: "set-tipo"; value: string; defaultTariffa: string | null }
   | { type: "set-tariffa"; value: string }
+  | { type: "set-combo"; aziendaId: string; tipoId: string; tariffa: number }
   | { type: "set-error"; value: string | null }
   | { type: "arm-dup-skip" }
   | { type: "reset"; keepDate: boolean };
@@ -59,6 +60,15 @@ export function quickEntryReducer(
     }
     case "set-tariffa":
       return { ...state, tariffa: action.value };
+    case "set-combo":
+      return {
+        ...state,
+        aziendaId: action.aziendaId,
+        tipoId: action.tipoId,
+        tariffa: String(action.tariffa),
+        skipDupCheck: false,
+        error: null,
+      };
     case "set-error":
       return { ...state, error: action.value };
     case "arm-dup-skip":

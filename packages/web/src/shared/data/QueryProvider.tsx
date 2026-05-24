@@ -12,7 +12,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
   return (
     <QueryClientProvider client={client}>
       {children}
-      {import.meta.env.DEV ? (
+      {import.meta.env.DEV && !import.meta.env["VITE_E2E"] ? (
         <ReactQueryDevtools initialIsOpen={false} />
       ) : null}
     </QueryClientProvider>

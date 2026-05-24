@@ -12,6 +12,7 @@ import { formatEuro } from "../../attivita/lib/format";
 import { useCreateAttivita } from "../../attivita/hooks/useAttivita";
 import { queryKeys } from "../../../shared/data/queryClient";
 import { isTariffaOutOfRange, meanTariffaByTipo } from "../lib/tariffStats";
+import { computeCombos, type Combo, type ComputeCombosResult } from "../lib/recentCombos";
 import type { ReferenceData } from "../../attivita/hooks/useReferenceData";
 import {
   defaultTariffaForTipo,
@@ -35,6 +36,7 @@ export interface QuickEntryFormState {
   setTipoId: (next: string) => void;
   tariffa: string;
   setTariffa: (next: string) => void;
+  setCombo: (combo: Combo) => void;
   busy: boolean;
   error: string | null;
   rangeWarning: string | null;
@@ -42,6 +44,7 @@ export interface QuickEntryFormState {
   tariffaNum: number | null;
   aziendaOptions: ReadonlyArray<Option>;
   tipoOptions: ReadonlyArray<Option>;
+  combos: ComputeCombosResult;
   reset: (opts?: { keepDate?: boolean }) => void;
   save: () => Promise<string | null>;
 }
@@ -177,9 +180,20 @@ export function useQuickEntryForm({
     dispatch({ type: "set-tariffa", value });
   }
 
+  function setCombo(combo: Combo): void {
+    dispatch({
+      type: "set-combo",
+      aziendaId: combo.aziendaId,
+      tipoId: combo.tipoId,
+      tariffa: combo.tariffa,
+    });
+  }
+
   function reset(opts: { keepDate?: boolean } = {}): void {
     dispatch({ type: "reset", keepDate: opts.keepDate ?? false });
   }
+
+  const combos = useMemo(() => computeCombos(items), [items]);
 
   async function save(): Promise<string | null> {
     if (!user) return null;
@@ -237,6 +251,7 @@ export function useQuickEntryForm({
     setTipoId,
     tariffa,
     setTariffa,
+    setCombo,
     busy: createMutation.isPending,
     error,
     rangeWarning,
@@ -244,6 +259,7 @@ export function useQuickEntryForm({
     tariffaNum,
     aziendaOptions,
     tipoOptions,
+    combos,
     reset,
     save,
   };

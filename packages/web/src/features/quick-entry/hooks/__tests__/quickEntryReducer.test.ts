@@ -148,6 +148,37 @@ describe("quickEntryReducer", () => {
     expect(next.tipoId).toBe("");
     expect(next.tariffa).toBe("");
   });
+
+  it("set-combo fills azienda, tipo and tariffa atomically", () => {
+    const s = {
+      ...initialQuickEntryFields(),
+      aziendaId: "old",
+      tipoId: "old",
+      tariffa: "10",
+      skipDupCheck: true,
+    };
+    const next = quickEntryReducer(s, {
+      type: "set-combo",
+      aziendaId: "az9",
+      tipoId: "tp9",
+      tariffa: 75,
+    });
+    expect(next.aziendaId).toBe("az9");
+    expect(next.tipoId).toBe("tp9");
+    expect(next.tariffa).toBe("75");
+    expect(next.skipDupCheck).toBe(false);
+  });
+
+  it("set-combo clears a prior error", () => {
+    const s = { ...initialQuickEntryFields(), error: "boom" };
+    const next = quickEntryReducer(s, {
+      type: "set-combo",
+      aziendaId: "az9",
+      tipoId: "tp9",
+      tariffa: 75,
+    });
+    expect(next.error).toBeNull();
+  });
 });
 
 describe("defaultTariffaForTipo", () => {

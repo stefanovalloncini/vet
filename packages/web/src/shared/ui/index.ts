@@ -14,7 +14,7 @@ export { Dialog } from "./Dialog";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { QuickAddDialog } from "./QuickAddDialog";
 export { EmptyState } from "./EmptyState";
-export { Tabs } from "./Tabs";
+export { Tabs, type TabItem } from "./Tabs";
 export { Badge } from "./Badge";
 export { PageHeader } from "./PageHeader";
 export { FormFooter } from "./FormFooter";
