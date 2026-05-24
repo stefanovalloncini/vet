@@ -1,4 +1,4 @@
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Dialog, InlineError } from "../../../shared/ui";
 import { RHFTextField } from "../../../shared/ui/rhf";
@@ -31,7 +31,6 @@ export function QuickAddAziendaDialog({
     mode: "onSubmit",
   });
   const busy = create.isPending || form.formState.isSubmitting;
-  const nome = form.watch("nome");
   const rootError = form.formState.errors.root?.message;
 
   async function onSubmit(values: FormValues) {
@@ -88,12 +87,19 @@ export function QuickAddAziendaDialog({
             <Button type="button" variant="ghost" onClick={handleClose} disabled={busy}>
               Annulla
             </Button>
-            <Button type="submit" variant="primary" disabled={busy || !nome.trim()}>
-              Crea
-            </Button>
+            <SubmitButton busy={busy} />
           </div>
         </form>
       </FormProvider>
     </Dialog>
+  );
+}
+
+function SubmitButton({ busy }: { busy: boolean }) {
+  const nome = useWatch<FormValues>({ name: "nome" }) ?? "";
+  return (
+    <Button type="submit" variant="primary" disabled={busy || !nome.trim()}>
+      Crea
+    </Button>
   );
 }

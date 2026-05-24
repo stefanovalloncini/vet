@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button, Dialog, InlineError } from "../../../shared/ui";
@@ -90,7 +90,6 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
     onClose();
   }
 
-  const nomeWatch = form.watch("nome");
   const rootError = form.formState.errors.root?.message;
 
   return (
@@ -132,16 +131,19 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
             <Button type="button" variant="ghost" onClick={handleClose} disabled={busy}>
               Annulla
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={busy || !nomeWatch.trim()}
-            >
-              Crea
-            </Button>
+            <SubmitButton busy={busy} />
           </div>
         </form>
       </FormProvider>
     </Dialog>
+  );
+}
+
+function SubmitButton({ busy }: { busy: boolean }) {
+  const nome = useWatch<QuickTipoFormValues>({ name: "nome" }) ?? "";
+  return (
+    <Button type="submit" variant="primary" disabled={busy || !nome.trim()}>
+      Crea
+    </Button>
   );
 }

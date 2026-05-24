@@ -1,5 +1,11 @@
 import { useEffect, useRef } from "react";
-import { FormProvider, useController, useForm, useFormContext } from "react-hook-form";
+import {
+  FormProvider,
+  useController,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "../../../shared/ui";
@@ -43,9 +49,7 @@ export function ActivityTypeForm({ id, initial, busy, onSubmit }: Props) {
     }
   }, [initialString, form]);
 
-  const current = form.watch("tariffa");
   const error = form.formState.errors.tariffa?.message;
-  const dirty = current !== initialString;
   const inputId = `tariffa-${id}`;
 
   return (
@@ -64,11 +68,7 @@ export function ActivityTypeForm({ id, initial, busy, onSubmit }: Props) {
           </label>
           <TariffaInput inputId={inputId} disabled={busy} hasError={!!error} />
           <span className="text-xs text-(--color-text-muted)">€</span>
-          {dirty ? (
-            <Button type="submit" variant="primary" size="sm" disabled={busy}>
-              Salva
-            </Button>
-          ) : null}
+          <SubmitButton busy={busy} initialString={initialString} />
         </div>
         {error ? (
           <p className="mt-2 text-xs text-(--color-danger)" role="alert">
@@ -77,6 +77,22 @@ export function ActivityTypeForm({ id, initial, busy, onSubmit }: Props) {
         ) : null}
       </form>
     </FormProvider>
+  );
+}
+
+function SubmitButton({
+  busy,
+  initialString,
+}: {
+  busy: boolean;
+  initialString: string;
+}) {
+  const current = useWatch<TariffaFormValues>({ name: "tariffa" }) ?? "";
+  if (current === initialString) return null;
+  return (
+    <Button type="submit" variant="primary" size="sm" disabled={busy}>
+      Salva
+    </Button>
   );
 }
 
