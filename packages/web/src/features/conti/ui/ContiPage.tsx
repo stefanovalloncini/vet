@@ -14,7 +14,7 @@ import {
   useToast,
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
-import { formatEuro } from "../../../shared/lib/format";
+import { formatDate, formatEuro } from "../../../shared/lib/format";
 import { useConti, useSaldaConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
 
@@ -216,10 +216,3 @@ function SaldaContoDialog({ conto, onClose }: SaldaContoDialogProps) {
   );
 }
 
-function formatDate(d: Date): string {
-  return d.toLocaleDateString("it-IT", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}

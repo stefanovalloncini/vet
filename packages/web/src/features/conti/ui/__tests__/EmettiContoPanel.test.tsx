@@ -13,7 +13,8 @@ import {
 import type { Capability } from "@vet/shared";
 import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { EmettiContoPanel } from "../EmettiContoPanel";
-import { defaultPeriodoFor, dateInputValue } from "../../lib/contoPreview";
+import { defaultPeriodoFor } from "../../lib/contoPreview";
+import { dateInputValue } from "../../../../shared/lib/format";
 
 function actor(caps: Capability[]): ActorContext {
   return {

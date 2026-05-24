@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Conto } from "@vet/shared";
 import { Card, EmptyState, LoadingHint } from "../../../shared/ui";
-import { formatEuro } from "../../../shared/lib/format";
+import { formatDate, formatEuro } from "../../../shared/lib/format";
 import { useContiForAzienda, useSaldaConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
 import { useAuthState } from "../../auth";
@@ -86,10 +86,3 @@ function ContoSummaryRow({ conto }: { conto: Conto }) {
   );
 }
 
-function formatDate(d: Date): string {
-  return d.toLocaleDateString("it-IT", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}

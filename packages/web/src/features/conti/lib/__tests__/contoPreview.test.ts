@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Attivita, Azienda } from "@vet/shared";
 import {
   computeContoPreview,
-  dateInputValue,
+  
   defaultPeriodoFor,
 } from "../contoPreview";
 
@@ -166,17 +166,3 @@ describe("defaultPeriodoFor", () => {
   });
 });
 
-describe("dateInputValue", () => {
-  it("formats as YYYY-MM-DD", () => {
-    expect(dateInputValue(new Date(2026, 0, 5))).toBe("2026-01-05");
-  });
-
-  it("pads single-digit month and day", () => {
-    expect(dateInputValue(new Date(2026, 8, 1))).toBe("2026-09-01");
-  });
-
-  it("preserves local-time fields (not UTC)", () => {
-    const d = new Date(2026, 11, 31, 23, 59, 59);
-    expect(dateInputValue(d)).toBe("2026-12-31");
-  });
-});

@@ -2,12 +2,11 @@ import { useMemo, useState } from "react";
 import type { Attivita, Azienda } from "@vet/shared";
 import { Button, Card, ConfirmDialog, SectionLabel, TextField, useToast } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
-import { formatEuro } from "../../../shared/lib/format";
+import { dateInputValue, formatEuro, parseDateInput } from "../../../shared/lib/format";
 import { useEmettiConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
 import {
   computeContoPreview,
-  dateInputValue,
   defaultPeriodoFor,
 } from "../lib/contoPreview";
 
@@ -25,8 +24,8 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
   const [to, setTo] = useState(() => dateInputValue(defaults.to));
   const [confirmingEmit, setConfirmingEmit] = useState(false);
 
-  const fromDate = parseLocalDate(from);
-  const toDate = parseLocalDate(to);
+  const fromDate = parseDateInput(from);
+  const toDate = parseDateInput(to);
   const periodValid =
     !!fromDate && !!toDate && fromDate.getTime() <= toDate.getTime();
 
@@ -151,13 +150,3 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
   );
 }
 
-function parseLocalDate(value: string): Date | null {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!m) return null;
-  const y = Number(m[1]);
-  const mo = Number(m[2]);
-  const d = Number(m[3]);
-  if (!Number.isInteger(y) || !Number.isInteger(mo) || !Number.isInteger(d))
-    return null;
-  return new Date(y, mo - 1, d, 0, 0, 0, 0);
-}
