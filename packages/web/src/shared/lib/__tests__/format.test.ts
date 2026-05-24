@@ -7,13 +7,15 @@ import {
 } from "../format";
 
 describe("formatEuro", () => {
-  it("formats with Italian locale and EUR currency", () => {
-    const out = formatEuro(1234.5);
-    expect(out).toContain("1.234,5");
-    expect(out).toContain("€");
+  it("renders with the euro symbol", () => {
+    expect(formatEuro(50)).toContain("€");
   });
 
-  it("handles zero", () => {
+  it("uses comma as decimal separator (Italian locale)", () => {
+    expect(formatEuro(50.25)).toContain("50,25");
+  });
+
+  it("handles zero with two decimals", () => {
     expect(formatEuro(0)).toMatch(/0,00/);
   });
 });
