@@ -122,6 +122,19 @@ export {
   type PaymentDoc,
   type MetodoPagamento,
 } from "./domain/schemas/payment.js";
+export type { Conto } from "./domain/entities/Conto.js";
+export type { ContiRepository } from "./domain/ports/ContiRepository.js";
+export {
+  contoEmitInputSchema,
+  contoSaldoInputSchema,
+  contoDocSchema,
+  contoModalitaSchema,
+  CONTO_MODALITA,
+  type ContoEmitInput,
+  type ContoSaldoInput,
+  type ContoDoc,
+  type ContoModalita,
+} from "./domain/schemas/conto.js";
 export type { Reminder } from "./domain/entities/Reminder.js";
 export type { RemindersRepository } from "./domain/ports/RemindersRepository.js";
 export {

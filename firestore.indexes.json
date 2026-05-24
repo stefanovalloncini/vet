@@ -126,6 +126,33 @@
       ]
     },
     {
+      "collectionGroup": "conti",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isDeleted", "order": "ASCENDING" },
+        { "fieldPath": "emittedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "conti",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isDeleted", "order": "ASCENDING" },
+        { "fieldPath": "aziendaId", "order": "ASCENDING" },
+        { "fieldPath": "emittedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "conti",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isDeleted", "order": "ASCENDING" },
+        { "fieldPath": "modalita", "order": "ASCENDING" },
+        { "fieldPath": "saldato", "order": "ASCENDING" },
+        { "fieldPath": "emittedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "reminders",
       "queryScope": "COLLECTION",
       "fields": [

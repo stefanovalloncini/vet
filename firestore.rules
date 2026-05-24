@@ -166,16 +166,20 @@ service cloud.firestore {
       function validCreate() {
         let d = request.resource.data;
         return d.keys().hasAll(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "tariffa", "totale", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "schemaVersion"])
-          && d.keys().hasOnly(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "tariffa", "ore", "totale", "note", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "schemaVersion"])
+          && d.keys().hasOnly(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "adElemento", "tariffa", "ore", "elementi", "totale", "note", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "schemaVersion"])
           && d.data is timestamp
           && d.aziendaId is string && d.aziendaId.size() >= 1 && d.aziendaId.size() <= 64
           && d.aziendaNome is string && d.aziendaNome.size() >= 1 && d.aziendaNome.size() <= 200
           && d.tipoId is string && d.tipoId.size() >= 1 && d.tipoId.size() <= 64
           && d.tipoNome is string && d.tipoNome.size() >= 1 && d.tipoNome.size() <= 80
           && d.oraria is bool
+          && (!("adElemento" in d.keys()) || d.adElemento is bool)
           && d.tariffa is number && d.tariffa > 0 && d.tariffa <= 100000
           && d.oraria == ("ore" in d.keys())
           && (!("ore" in d.keys()) || (d.ore is number && d.ore > 0 && d.ore <= 24))
+          && (!("elementi" in d.keys()) || (d.elementi is int && d.elementi > 0 && d.elementi <= 10000))
+          && (!("adElemento" in d.keys()) || d.adElemento == ("elementi" in d.keys()))
+          && !(d.oraria == true && "elementi" in d.keys())
           && d.totale is number && d.totale >= 0 && d.totale <= 2400000
           && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 2000))
           && d.ownerName is string && d.ownerName.size() >= 1 && d.ownerName.size() <= 80
@@ -186,15 +190,17 @@ service cloud.firestore {
       function validUpdate() {
         let d = request.resource.data;
         return d.keys().hasAll(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "tariffa", "totale", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "schemaVersion"])
-          && d.keys().hasOnly(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "tariffa", "ore", "totale", "note", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "deletedAt", "deletedBy", "updatedBy", "updatedByName", "schemaVersion"])
+          && d.keys().hasOnly(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "adElemento", "tariffa", "ore", "elementi", "totale", "note", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "deletedAt", "deletedBy", "updatedBy", "updatedByName", "schemaVersion"])
           && d.data is timestamp
           && d.aziendaId is string && d.aziendaId.size() >= 1 && d.aziendaId.size() <= 64
           && d.aziendaNome is string && d.aziendaNome.size() >= 1 && d.aziendaNome.size() <= 200
           && d.tipoId is string && d.tipoId.size() >= 1 && d.tipoId.size() <= 64
           && d.tipoNome is string && d.tipoNome.size() >= 1 && d.tipoNome.size() <= 80
           && d.oraria is bool
+          && (!("adElemento" in d.keys()) || d.adElemento is bool)
           && d.tariffa is number && d.tariffa > 0 && d.tariffa <= 100000
           && (!("ore" in d.keys()) || (d.ore is number && d.ore > 0 && d.ore <= 24))
+          && (!("elementi" in d.keys()) || (d.elementi is int && d.elementi > 0 && d.elementi <= 10000))
           && d.totale is number && d.totale >= 0 && d.totale <= 2400000
           && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 2000))
           && (!("updatedBy" in d.keys()) || (d.updatedBy is string && d.updatedBy.size() <= 128))
@@ -330,6 +336,60 @@ service cloud.firestore {
     match /audit/{auditId} {
       allow read: if hasCap("ur");
       allow write: if false;
+    }
+
+    match /conti/{contoId} {
+      function validCreate() {
+        let d = request.resource.data;
+        return d.keys().hasAll(["aziendaId", "aziendaNome", "periodoFrom", "periodoTo", "attivitaIds", "totaleConto", "modalita", "saldato", "emittedAt", "emittedBy", "emittedByName", "isDeleted", "schemaVersion"])
+          && d.keys().hasOnly(["aziendaId", "aziendaNome", "periodoFrom", "periodoTo", "attivitaIds", "totaleConto", "modalita", "saldato", "emittedAt", "emittedBy", "emittedByName", "isDeleted", "schemaVersion"])
+          && d.aziendaId is string && d.aziendaId.size() >= 1 && d.aziendaId.size() <= 64
+          && d.aziendaNome is string && d.aziendaNome.size() >= 1 && d.aziendaNome.size() <= 200
+          && d.periodoFrom is timestamp
+          && d.periodoTo is timestamp
+          && d.attivitaIds is list && d.attivitaIds.size() <= 10000
+          && d.totaleConto is number && d.totaleConto >= 0 && d.totaleConto <= 2400000
+          && d.modalita in ["proforma", "emesso"]
+          && d.saldato == false
+          && d.emittedBy is string && d.emittedBy.size() <= 128
+          && d.emittedByName is string && d.emittedByName.size() >= 1 && d.emittedByName.size() <= 80
+          && !d.emittedByName.matches("^[=+\\-@].*")
+          && d.isDeleted == false
+          && d.schemaVersion == 1;
+      }
+      function validSaldoUpdate() {
+        let d = request.resource.data;
+        return d.diff(resource.data).changedKeys().hasOnly(["saldato", "saldatoAt", "saldatoBy", "saldatoByName", "importoSaldato", "metodoPagamento", "note"])
+          && d.saldato == true
+          && d.saldatoAt is timestamp
+          && d.saldatoBy == request.auth.uid
+          && d.saldatoByName is string && d.saldatoByName.size() >= 1 && d.saldatoByName.size() <= 80
+          && !d.saldatoByName.matches("^[=+\\-@].*")
+          && (!("importoSaldato" in d.keys()) || (d.importoSaldato is number && d.importoSaldato >= 0 && d.importoSaldato <= 1000000))
+          && (!("metodoPagamento" in d.keys()) || d.metodoPagamento in ["bonifico", "contanti", "altro"])
+          && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 500));
+      }
+      function validAnnullaUpdate() {
+        let d = request.resource.data;
+        return d.diff(resource.data).changedKeys().hasOnly(["isDeleted", "deletedAt", "deletedBy"])
+          && d.isDeleted == true
+          && d.deletedAt is timestamp
+          && d.deletedBy == request.auth.uid;
+      }
+      allow read: if hasCap("cp");
+      allow create: if hasCap("cp")
+        && validCreate()
+        && request.resource.data.emittedBy == request.auth.uid
+        && hasTokenName()
+        && request.resource.data.emittedByName == request.auth.token.name
+        && isServerStamped("emittedAt")
+        && (request.resource.data.modalita == "proforma"
+            || (request.resource.data.modalita == "emesso" && hasCap("ce")));
+      allow update: if (
+        (hasCap("cs") && resource.data.modalita == "emesso" && resource.data.saldato == false && validSaldoUpdate() && isServerStamped("saldatoAt"))
+        || (hasCap("ce") && resource.data.isDeleted == false && validAnnullaUpdate() && isServerStamped("deletedAt"))
+      );
+      allow delete: if false;
     }
 
     match /payments/{paymentId} {
