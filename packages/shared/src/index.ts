@@ -218,6 +218,11 @@ export {
   type AttivitaDenorm,
 } from "./firestore-dto/attivita.js";
 export {
+  auditEventDtoSchema,
+  parseAuditEvent,
+  type AuditEventDTO,
+} from "./firestore-dto/audit.js";
+export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
   contoDocSchema,

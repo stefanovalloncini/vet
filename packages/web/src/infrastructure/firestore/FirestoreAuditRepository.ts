@@ -8,13 +8,12 @@ import {
   type Firestore,
   type QueryConstraint,
 } from "firebase/firestore";
-import { PermissionDeniedError } from "@vet/shared";
+import { PermissionDeniedError, parseAuditEvent } from "@vet/shared";
 import type {
   AuditEvent,
   AuditFilters,
   AuditRepository,
 } from "@vet/shared";
-import { toDate } from "./timestamps";
 
 export class FirestoreAuditRepository implements AuditRepository {
   constructor(private readonly db: Firestore) {}
@@ -28,7 +27,7 @@ export class FirestoreAuditRepository implements AuditRepository {
     cs.push(orderBy("at", "desc"));
     cs.push(fsLimit(filters.limit ?? 100));
     const snap = await getDocs(query(collection(this.db, "audit"), ...cs));
-    return snap.docs.map((d) => fromSnap(d.id, d.data()));
+    return snap.docs.map((d) => parseAuditEvent(d.id, d.data()));
   }
 
   async record(): Promise<void> {
@@ -36,17 +35,4 @@ export class FirestoreAuditRepository implements AuditRepository {
       "audit writes must originate from cloud functions"
     );
   }
-}
-
-function fromSnap(id: string, data: Record<string, unknown>): AuditEvent {
-  return {
-    id,
-    at: toDate(data.at),
-    actorUid: (data.actorUid as string) ?? "",
-    actorEmail: (data.actorEmail as string) ?? "",
-    action: data.action as AuditEvent["action"],
-    targetType: data.targetType as AuditEvent["targetType"],
-    targetId: (data.targetId as string) ?? "",
-    ...(data.details ? { details: data.details as Record<string, unknown> } : {}),
-  };
 }

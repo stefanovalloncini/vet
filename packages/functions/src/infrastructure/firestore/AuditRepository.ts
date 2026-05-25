@@ -5,14 +5,7 @@ import type {
   AuditRecordInput,
   AuditRepository,
 } from "@vet/shared";
-
-function toDate(v: unknown): Date {
-  if (v instanceof Date) return v;
-  if (v && typeof v === "object" && "toDate" in v) {
-    return (v as { toDate: () => Date }).toDate();
-  }
-  return new Date(0);
-}
+import { parseAuditEvent } from "@vet/shared";
 
 export class FirestoreAuditRepository implements AuditRepository {
   constructor(private readonly db: Firestore) {}
@@ -26,21 +19,7 @@ export class FirestoreAuditRepository implements AuditRepository {
     if (filters.action) q = q.where("action", "==", filters.action);
     q = q.orderBy("at", "desc").limit(filters.limit ?? 100);
     const snap = await q.get();
-    return snap.docs.map((d) => {
-      const data = d.data();
-      return {
-        id: d.id,
-        at: toDate(data["at"]),
-        actorUid: String(data["actorUid"] ?? ""),
-        actorEmail: String(data["actorEmail"] ?? ""),
-        action: data["action"] as AuditEvent["action"],
-        targetType: data["targetType"] as AuditEvent["targetType"],
-        targetId: String(data["targetId"] ?? ""),
-        ...(data["details"] !== undefined
-          ? { details: data["details"] as Record<string, unknown> }
-          : {}),
-      };
-    });
+    return snap.docs.map((d) => parseAuditEvent(d.id, d.data()));
   }
 
   async record(event: AuditRecordInput): Promise<void> {
