@@ -41,9 +41,15 @@ export function AllowlistPage() {
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
       {showTabs ? (
-        <div className="mb-6">
+        <div className="mb-3">
           <Tabs items={tabs} value={view} onChange={setView} size="sm" />
         </div>
+      ) : null}
+
+      {showTabs ? (
+        <p className="mb-5 text-xs text-(--color-text-subtle) max-w-prose">
+          {viewDescription(view)}
+        </p>
       ) : null}
 
       {view === "pending" ? (
@@ -60,4 +66,10 @@ export function AllowlistPage() {
       )}
     </AdminLayout>
   );
+}
+
+function viewDescription(view: View): string {
+  if (view === "pending") return t.tabPendingDescr;
+  if (view === "requests") return t.tabRequestsDescr;
+  return t.tabAllowlistDescr;
 }

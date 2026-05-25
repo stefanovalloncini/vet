@@ -21,8 +21,14 @@ export const allowlistI18n = {
   confermaRimozione: "Rimuovere l'accesso a questa email? L'utente esistente verrà disconnesso al prossimo refresh.",
   annulla: "Annulla",
   tabAllowlist: "Email autorizzate",
+  tabAllowlistDescr:
+    "Email che possono accedere. Solo chi è in questo elenco può entrare.",
   tabPending: "In attesa",
+  tabPendingDescr:
+    "Utenti che hanno fatto login con un'email autorizzata ma non hanno ancora un profilo confermato.",
   tabRequests: "Richieste accesso",
+  tabRequestsDescr:
+    "Persone non in allowlist che hanno chiesto di entrare. Approva per aggiungere la loro email all'elenco.",
   requestsEmpty: "Nessuna richiesta di accesso.",
   requestAccept: "Aggiungi",
   requestReject: "Rifiuta",
