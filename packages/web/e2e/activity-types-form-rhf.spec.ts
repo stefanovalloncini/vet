@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("activity type forms via react-hook-form", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("admin edits tariffa for a seeded tipo", async ({ signedInAdmin }) => {
     await signedInAdmin.goto("/admin/tipi-attivita");
     await expect(

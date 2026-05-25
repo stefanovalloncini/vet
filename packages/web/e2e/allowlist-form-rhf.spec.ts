@@ -1,6 +1,11 @@
 import { expect, test } from "./setup/auth";
+import { restoreSeededFixture } from "./setup/seed";
 
 test.describe("admin allowlist (rhf forms)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("invalid email shows a field-level error and does not submit", async ({
     signedInAdmin,
   }) => {

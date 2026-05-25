@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("attivita CRUD", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("vet sees seeded attivita in list", async ({ signedInVet }) => {
     await signedInVet.goto("/attivita");
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({

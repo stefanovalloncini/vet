@@ -1,6 +1,11 @@
 import { expect, test } from "./setup/auth";
+import { restoreSeededFixture } from "./setup/seed";
 
 test.describe("admin allowlist (tanstack-query)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("admin sees the seeded entries on the allowlist tab", async ({
     signedInAdmin,
   }) => {

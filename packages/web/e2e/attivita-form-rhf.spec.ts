@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("attivita form (RHF)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("creates a new attivita via the migrated form", async ({
     signedInVet,
   }) => {
