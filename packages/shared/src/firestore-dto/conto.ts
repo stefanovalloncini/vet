@@ -1,6 +1,10 @@
 import { z } from "zod";
 import type { Conto } from "../domain/entities/Conto.js";
-import { contoModalitaSchema } from "../domain/schemas/conto.js";
+import type { ActorContext } from "../domain/entities/ActorContext.js";
+import {
+  contoModalitaSchema,
+  type ContoEmitInput,
+} from "../domain/schemas/conto.js";
 import { metodoPagamentoSchema } from "../domain/schemas/money.js";
 
 const timestampLike = z
@@ -87,14 +91,47 @@ export function parseConto(id: string, raw: unknown): Conto {
   };
 }
 
-/**
- * Permissive variant used when reading old or partial documents that pre-date a
- * schema field. Falls back to defaults on missing keys rather than throwing.
- * Use this in feature-flag transition windows; prefer parseConto in normal flow.
- */
-export function parseContoTolerant(id: string, raw: unknown): Conto {
-  if (raw === null || typeof raw !== "object") {
-    throw new Error("invalid-conto-doc");
-  }
-  return parseConto(id, raw);
+export interface SerializerStampDeps<TStamp, TServerStamp> {
+  fromDate: (d: Date) => TStamp;
+  serverTimestamp: () => TServerStamp;
+}
+
+export interface ContoEmitDenorm {
+  aziendaNome: string;
+  attivitaIds: readonly string[];
+  totaleConto: number;
+}
+
+export type ContoEmitWritePayload<TStamp, TServerStamp> = Omit<
+  z.input<typeof contoDtoSchema>,
+  "periodoFrom" | "periodoTo" | "emittedAt"
+> & {
+  periodoFrom: TStamp;
+  periodoTo: TStamp;
+  emittedAt: TServerStamp;
+};
+
+export function buildContoEmitDoc<TStamp, TServerStamp>(
+  args: {
+    input: ContoEmitInput;
+    denorm: ContoEmitDenorm;
+    actor: ActorContext;
+  },
+  deps: SerializerStampDeps<TStamp, TServerStamp>
+): ContoEmitWritePayload<TStamp, TServerStamp> {
+  return {
+    aziendaId: args.input.aziendaId,
+    aziendaNome: args.denorm.aziendaNome,
+    periodoFrom: deps.fromDate(args.input.periodoFrom),
+    periodoTo: deps.fromDate(args.input.periodoTo),
+    attivitaIds: [...args.denorm.attivitaIds],
+    totaleConto: args.denorm.totaleConto,
+    modalita: args.input.modalita,
+    saldato: false,
+    emittedAt: deps.serverTimestamp(),
+    emittedBy: args.actor.uid,
+    emittedByName: args.actor.displayName,
+    isDeleted: false,
+    schemaVersion: 1,
+  };
 }

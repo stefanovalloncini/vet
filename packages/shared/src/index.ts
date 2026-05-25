@@ -121,7 +121,11 @@ export type { ContiRepository } from "./domain/ports/ContiRepository.js";
 export {
   contoDtoSchema,
   parseConto,
+  buildContoEmitDoc,
   type ContoDTO,
+  type ContoEmitDenorm,
+  type ContoEmitWritePayload,
+  type SerializerStampDeps,
 } from "./firestore-dto/conto.js";
 export {
   contoEmitInputSchema,
