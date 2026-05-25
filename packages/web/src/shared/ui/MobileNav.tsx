@@ -5,18 +5,18 @@ import { PRIMARY_NAV_ITEMS, visibleItems } from "./sidebar/SidebarConfig";
 export function MobileNav() {
   const { user } = useAuthState();
   const location = useLocation();
+  if (!user) return null;
   const items = visibleItems(
     PRIMARY_NAV_ITEMS,
-    user?.caps as ReadonlySet<string> | undefined
+    user.caps as ReadonlySet<string> | undefined
   );
-  if (items.length === 0) return null;
   return (
     <nav
       className="sm:hidden fixed bottom-0 inset-x-0 z-20 border-t border-(--color-border) bg-(--color-surface) print:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Navigazione principale"
     >
-      <div className="flex">
+      <div className="flex min-h-14">
         {items.map((it) => {
           const active = location.pathname.startsWith(it.to);
           const Icon = it.icon;
