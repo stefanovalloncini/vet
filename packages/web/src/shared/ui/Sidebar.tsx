@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Moon, Sun, LogOut, PanelLeftClose, type LucideIcon } from "lucide-react";
+import { Moon, Sun, LogOut, PanelLeftClose, Search, type LucideIcon } from "lucide-react";
 import { useAuthState } from "../../features/auth";
+import { openSearch } from "../../features/search";
 import { BrandMark } from "./Brand";
 import { SidebarSectionHeader } from "./SidebarSectionHeader";
 import { SidebarNavLink } from "./SidebarNavLink";
@@ -115,6 +116,12 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
       <div className="border-t border-(--color-border)">
         <ul>{visibleFooter.map((item) => rowFor(item.to, item.label, item.icon))}</ul>
         <div className="border-t border-(--color-border) pt-1 mt-1">
+          <SidebarActionRow
+            onClick={openSearch}
+            icon={Search}
+            label="Cerca (⌘K)"
+            collapsed={collapsed}
+          />
           <SidebarActionRow
             onClick={onThemeToggle}
             icon={theme === "dark" ? Sun : Moon}

@@ -1,1 +1,1 @@
-export { SearchPalette } from "./SearchPalette";
+export { SearchPalette, openSearch } from "./SearchPalette";

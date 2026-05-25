@@ -8,6 +8,12 @@ import { useAuthState } from "../auth";
 import { queryKeys } from "../../shared/data";
 import type { Attivita, Azienda } from "@vet/shared";
 
+export const SEARCH_OPEN_EVENT = "vet:search:open";
+
+export function openSearch(): void {
+  window.dispatchEvent(new CustomEvent(SEARCH_OPEN_EVENT));
+}
+
 export function SearchPalette() {
   const navigate = useNavigate();
   const { user } = useAuthState();
@@ -25,8 +31,15 @@ export function SearchPalette() {
         setOpen((o) => !o);
       }
     }
+    function onOpenRequested() {
+      setOpen(true);
+    }
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener(SEARCH_OPEN_EVENT, onOpenRequested);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener(SEARCH_OPEN_EVENT, onOpenRequested);
+    };
   }, []);
 
   const aziendeQ = useQuery({

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { LogOut, Moon, Settings, Sun } from "lucide-react";
+import { LogOut, Moon, Search, Settings, Sun } from "lucide-react";
+import { openSearch } from "../../features/search";
 import { Brand } from "./Brand";
 
 interface MobileHeaderProps {
@@ -15,6 +16,14 @@ export function MobileHeader({ theme, onThemeToggle, onLogoutClick }: MobileHead
         <Brand size="sm" />
       </Link>
       <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={openSearch}
+          aria-label="Cerca"
+          className="p-2 text-(--color-text-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart)"
+        >
+          <Search size={16} strokeWidth={1.75} aria-hidden="true" />
+        </button>
         <button
           type="button"
           onClick={onThemeToggle}
