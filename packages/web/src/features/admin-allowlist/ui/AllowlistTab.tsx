@@ -100,18 +100,29 @@ export function AllowlistTab({ entries, roles, loading, error }: AllowlistTabPro
       {entries.length === 0 ? (
         <EmptyState title={t.empty} />
       ) : (
-        <BoxedList>
-          {entries.map((entry) => (
-            <AllowlistEntryRow
-              key={entry.emailNorm}
-              entry={entry}
-              roles={roles}
-              canManage={canManage}
-              busy={remove.isPending}
-              onRemove={(e) => setConfirmingRemove(e.emailNorm)}
-            />
-          ))}
-        </BoxedList>
+        <div className="space-y-1.5">
+          <div
+            aria-hidden="true"
+            className="hidden sm:grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-4 px-4 text-[11px] uppercase tracking-wider text-(--color-text-subtle)"
+          >
+            <span>{t.colEmail}</span>
+            <span>{t.colRuolo}</span>
+            <span>{t.colData}</span>
+            <span className="text-right">{t.colAzioni}</span>
+          </div>
+          <BoxedList>
+            {entries.map((entry) => (
+              <AllowlistEntryRow
+                key={entry.emailNorm}
+                entry={entry}
+                roles={roles}
+                canManage={canManage}
+                busy={remove.isPending}
+                onRemove={(e) => setConfirmingRemove(e.emailNorm)}
+              />
+            ))}
+          </BoxedList>
+        </div>
       )}
 
       <ConfirmDialog

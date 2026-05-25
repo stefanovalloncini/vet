@@ -1,75 +1,73 @@
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ShieldCheck } from "lucide-react";
 import {
-  AppShell,
-  Button,
-  Card,
+  AdminLayout,
+  Badge,
+  BoxedList,
   InlineError,
   LoadingHint,
   PageHeader,
 } from "../../../shared/ui";
-import { useAuthState } from "../../auth";
 import { useRoles } from "../hooks/useRoles";
+import { useRoleUserCounts } from "../hooks/useRoleUserCounts";
 import { rolesI18n as t } from "../i18n";
 
-export function RolesListPage() {
-  const { user } = useAuthState();
-  const { data: roles = [], isLoading, isError } = useRoles();
+function userCountLabel(n: number | null): string {
+  if (n === null) return "…";
+  if (n === 0) return t.nessunUtente;
+  if (n === 1) return t.unUtenteAssegnato;
+  return t.utentiAssegnati(n);
+}
 
-  const canManage = user?.caps.has("roles.manage") ?? false;
+export function RolesListPage() {
+  const { data: roles = [], isLoading, isError } = useRoles();
+  const counts = useRoleUserCounts(roles);
 
   return (
-    <AppShell>
-      <PageHeader
-        title={t.title}
-        subtitle={t.subtitle}
-        {...(canManage
-          ? {
-              actions: (
-                <Link to="/admin/ruoli/nuovo">
-                  <Button type="button" variant="primary">
-                    {t.nuovoRuolo}
-                  </Button>
-                </Link>
-              ),
-            }
-          : {})}
-      />
+    <AdminLayout>
+      <PageHeader title={t.title} subtitle={t.subtitle} />
 
       {isLoading ? (
         <LoadingHint label={t.loading} />
       ) : isError ? (
         <InlineError>{t.loadError}</InlineError>
       ) : (
-        <ul className="space-y-3">
-          {roles.map((role) => (
-            <li key={role.id}>
-              <Link
-                to={`/admin/ruoli/${role.id}`}
-                className="block"
-              >
-                <Card className="hover:border-(--color-border-strong) transition-colors">
-                  <div className="flex items-start justify-between gap-4">
+        <BoxedList>
+          {roles.map((role, idx) => {
+            const count = counts[idx]?.count ?? null;
+            return (
+              <li key={role.id}>
+                <Link
+                  to={`/admin/ruoli/${role.id}`}
+                  className="block px-4 py-3 hover:bg-(--color-surface-muted) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) focus:outline-none focus-visible:bg-(--color-surface-muted)"
+                >
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck
+                      size={16}
+                      strokeWidth={1.75}
+                      className="text-(--color-text-subtle) shrink-0"
+                      aria-hidden="true"
+                    />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline gap-3 flex-wrap">
-                        <h2 className="text-base font-medium text-(--color-text)">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <h2 className="text-sm font-medium text-(--color-text)">
                           {role.name}
                         </h2>
-                        <span className="text-xs text-(--color-text-subtle) font-mono">
+                        <span className="text-[11px] text-(--color-text-subtle) font-mono">
                           {role.id}
                         </span>
                         {role.locked ? (
-                          <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md bg-(--color-surface-muted) text-(--color-text-muted)">
-                            locked
-                          </span>
+                          <Badge tone="neutral">{t.bloccato}</Badge>
                         ) : null}
                       </div>
                       {role.description ? (
-                        <p className="text-sm text-(--color-text-muted) mt-1">
+                        <p className="text-xs text-(--color-text-muted) mt-0.5 truncate">
                           {role.description}
                         </p>
                       ) : null}
-                      <p className="text-xs text-(--color-text-subtle) mt-2">
+                      <p className="text-[11px] text-(--color-text-subtle) mt-1 tabular-nums">
+                        {userCountLabel(count)}
+                        <span aria-hidden="true"> · </span>
                         {role.capabilities.length === 0
                           ? t.nessunaCap
                           : `${role.capabilities.length} ${t.capability.toLowerCase()}`}
@@ -78,16 +76,16 @@ export function RolesListPage() {
                     <ChevronRight
                       size={14}
                       strokeWidth={1.75}
-                      className="text-(--color-text-subtle) flex-shrink-0 mt-1"
+                      className="text-(--color-text-subtle) shrink-0"
                       aria-hidden="true"
                     />
                   </div>
-                </Card>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                </Link>
+              </li>
+            );
+          })}
+        </BoxedList>
       )}
-    </AppShell>
+    </AdminLayout>
   );
 }

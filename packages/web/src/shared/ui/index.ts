@@ -9,6 +9,7 @@ export { Divider } from "./Divider";
 export { GoogleIcon } from "./GoogleIcon";
 export { Brand, BrandMark } from "./Brand";
 export { AppShell } from "./AppShell";
+export { AdminLayout } from "./AdminLayout";
 export { Skeleton, CardSkeleton, ListSkeleton } from "./Skeleton";
 export { MobileNav } from "./MobileNav";
 export { ToastProvider, useToast } from "./Toast";

@@ -1,22 +1,102 @@
 import { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import {
-  AppShell,
+  AdminLayout,
   Card,
+  EmptyState,
   InlineError,
   LoadingHint,
   PageHeader,
-  SectionLabel,
   Select,
 } from "../../../shared/ui";
-import { useVetStats } from "../hooks/useVetStats";
+import { useVetStats, type VetStat } from "../hooks/useVetStats";
 import { formatEuro } from "../../../shared/lib/format";
-import { BarChart } from "../../../shared/ui/charts/BarChart";
 
 type Range = "month" | "year" | "all";
+type SortKey = "nome" | "count" | "total" | "lastActivity";
+type SortDir = "asc" | "desc";
+
+const RANGE_OPTIONS = [
+  { value: "month", label: "Questo mese" },
+  { value: "year", label: "Questo anno" },
+  { value: "all", label: "Sempre" },
+];
+
+function compare(a: VetStat, b: VetStat, key: SortKey): number {
+  if (key === "nome") return a.nome.localeCompare(b.nome, "it");
+  if (key === "count") return a.count - b.count;
+  if (key === "total") return a.total - b.total;
+  const aTime = a.lastActivity?.getTime() ?? 0;
+  const bTime = b.lastActivity?.getTime() ?? 0;
+  return aTime - bTime;
+}
+
+interface SortableTHProps {
+  label: string;
+  sortKey: SortKey;
+  activeKey: SortKey;
+  dir: SortDir;
+  onToggle: (key: SortKey) => void;
+  align?: "left" | "right";
+  className?: string;
+}
+
+function SortableTH({
+  label,
+  sortKey,
+  activeKey,
+  dir,
+  onToggle,
+  align = "left",
+  className = "",
+}: SortableTHProps) {
+  const active = activeKey === sortKey;
+  const ariaSort: "ascending" | "descending" | "none" = active
+    ? dir === "asc"
+      ? "ascending"
+      : "descending"
+    : "none";
+  const thAlign = align === "right" ? "text-right" : "text-left";
+  return (
+    <th
+      scope="col"
+      aria-sort={ariaSort}
+      className={`px-4 py-2.5 ${thAlign} font-normal ${className}`}
+    >
+      <button
+        type="button"
+        onClick={() => onToggle(sortKey)}
+        className={[
+          "inline-flex items-center gap-1 text-[11px] uppercase tracking-wider font-medium transition-colors duration-(--motion-fast) ease-(--ease-out-quart)",
+          active
+            ? "text-(--color-text)"
+            : "text-(--color-text-muted) hover:text-(--color-text)",
+          align === "right" ? "justify-end w-full" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <span>{label}</span>
+        <span aria-hidden="true" className="inline-flex w-3 h-3 items-center">
+          {active ? (
+            dir === "asc" ? (
+              <ArrowUp size={12} strokeWidth={1.75} />
+            ) : (
+              <ArrowDown size={12} strokeWidth={1.75} />
+            )
+          ) : null}
+        </span>
+      </button>
+    </th>
+  );
+}
 
 export function VetStatsPage() {
   const [range, setRange] = useState<Range>("month");
+  const [sortKey, setSortKey] = useState<SortKey>("total");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const now = useMemo(() => new Date(), []);
+
   const filters = useMemo(() => {
     if (range === "month") {
       return {
@@ -34,82 +114,128 @@ export function VetStatsPage() {
   }, [range, now]);
 
   const { data, isLoading, isError } = useVetStats(filters);
-  const stats = data ?? [];
+  const stats = useMemo(() => data ?? [], [data]);
+
+  const sorted = useMemo(() => {
+    const arr = [...stats];
+    arr.sort((a, b) => {
+      const cmp = compare(a, b, sortKey);
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return arr;
+  }, [stats, sortKey, sortDir]);
+
+  function toggleSort(key: SortKey): void {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    setSortDir(key === "nome" ? "asc" : "desc");
+  }
 
   const totalAll = stats.reduce((s, v) => s + v.total, 0);
 
   return (
-    <AppShell>
+    <AdminLayout>
       <PageHeader
         title="Statistiche veterinari"
-        subtitle="Incassi e visite raggruppati per veterinario."
+        subtitle="Visite, incassi e ultima attività per veterinario."
       />
 
-      <Card className="mb-6 max-w-xs">
+      <div className="mb-5 max-w-xs">
         <Select
           id="range"
           label="Periodo"
           value={range}
-          options={[
-            { value: "month", label: "Questo mese" },
-            { value: "year", label: "Questo anno" },
-            { value: "all", label: "Sempre" },
-          ]}
+          options={RANGE_OPTIONS}
           onChange={(e) => setRange(e.target.value as Range)}
         />
-      </Card>
+      </div>
 
       {isLoading ? (
         <LoadingHint />
       ) : isError ? (
         <InlineError>Caricamento fallito.</InlineError>
       ) : stats.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            Nessun dato per il periodo.
-          </p>
-        </Card>
+        <EmptyState title="Nessun dato per il periodo." />
       ) : (
-        <>
-          <Card className="mb-6">
-            <SectionLabel className="mb-3">Distribuzione incassi</SectionLabel>
-            <BarChart
-              bars={stats.map((s) => ({ label: s.nome, value: s.total }))}
-              formatValue={formatEuro}
-            />
-          </Card>
-
-          <ul className="space-y-2">
-            {stats.map((s) => {
-              const pct = totalAll > 0 ? Math.round((s.total / totalAll) * 100) : 0;
-              return (
-                <li key={s.uid}>
-                  <Card>
-                    <div className="flex items-baseline justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-base font-medium text-(--color-text)">
+        <Card padded={false}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-(--color-border) bg-(--color-surface-muted)/50">
+                  <SortableTH
+                    label="Veterinario"
+                    sortKey="nome"
+                    activeKey={sortKey}
+                    dir={sortDir}
+                    onToggle={toggleSort}
+                  />
+                  <SortableTH
+                    label="Visite"
+                    sortKey="count"
+                    activeKey={sortKey}
+                    dir={sortDir}
+                    onToggle={toggleSort}
+                    align="right"
+                  />
+                  <SortableTH
+                    label="Totale"
+                    sortKey="total"
+                    activeKey={sortKey}
+                    dir={sortDir}
+                    onToggle={toggleSort}
+                    align="right"
+                  />
+                  <SortableTH
+                    label="Ultima attività"
+                    sortKey="lastActivity"
+                    activeKey={sortKey}
+                    dir={sortDir}
+                    onToggle={toggleSort}
+                    align="right"
+                    className="hidden sm:table-cell"
+                  />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-(--color-border)">
+                {sorted.map((s) => {
+                  const pct = totalAll > 0 ? Math.round((s.total / totalAll) * 100) : 0;
+                  return (
+                    <tr key={s.uid}>
+                      <td className="px-4 py-2.5">
+                        <p className="text-sm font-medium text-(--color-text) truncate">
                           {s.nome}
                         </p>
-                        <p className="text-xs text-(--color-text-muted) mt-1 truncate">
-                          {s.email} · {s.count} visite
+                        <p className="text-[11px] text-(--color-text-subtle) font-mono truncate">
+                          {s.email}
                         </p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <span className="text-lg font-medium text-(--color-text) tabular-nums">
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-(--color-text-muted)">
+                        {s.count}
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <p className="text-sm font-medium text-(--color-text) tabular-nums">
                           {formatEuro(s.total)}
-                        </span>
-                        <p className="text-xs text-(--color-text-subtle) mt-0.5 tabular-nums">
+                        </p>
+                        <p className="text-[11px] text-(--color-text-subtle) tabular-nums">
                           {pct}%
                         </p>
-                      </div>
-                    </div>
-                  </Card>
-                </li>
-              );
-            })}
-          </ul>
-        </>
+                      </td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-(--color-text-muted) hidden sm:table-cell">
+                        {s.lastActivity
+                          ? s.lastActivity.toLocaleDateString("it-IT")
+                          : ""}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
-    </AppShell>
+    </AdminLayout>
   );
 }

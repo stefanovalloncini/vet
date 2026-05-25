@@ -1,5 +1,6 @@
 import type { AccessRequest } from "@vet/shared";
-import { Button } from "../../../shared/ui";
+import { Check, X } from "lucide-react";
+import { Badge, Button } from "../../../shared/ui";
 import { allowlistI18n as t } from "../i18n";
 
 interface AccessRequestRowProps {
@@ -32,29 +33,36 @@ export function AccessRequestRow({
   ].filter(Boolean) as string[];
 
   return (
-    <li className="px-4 py-3 flex items-start justify-between gap-4">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-(--color-text) truncate">
-          {request.email}
-        </p>
+    <li className="px-4 py-2.5 grid grid-cols-[1fr_auto] items-center gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] sm:gap-4">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <p className="text-sm font-mono text-(--color-text) truncate">
+            {request.email}
+          </p>
+          <Badge tone="danger" aria-label={t.statoRichiesta}>
+            {t.statoRichiesta}
+          </Badge>
+        </div>
         {request.displayName ? (
           <p className="text-xs text-(--color-text-muted) mt-0.5 truncate">
             {request.displayName}
           </p>
         ) : null}
-        <p className="text-xs text-(--color-text-subtle) mt-1.5">
-          {meta.join(" · ")}
-        </p>
       </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <p className="hidden sm:block text-xs text-(--color-text-muted) truncate">
+        {meta.join(" · ")}
+      </p>
+      <div className="flex items-center gap-1 justify-end">
         <Button
           type="button"
-          variant="primary"
+          variant="ghost"
           size="sm"
           onClick={() => onAccept(request)}
           disabled={busy}
+          aria-label={t.requestAccept}
+          leadingIcon={<Check size={14} strokeWidth={1.75} aria-hidden="true" />}
         >
-          + {t.requestAccept}
+          <span className="hidden md:inline">{t.requestAccept}</span>
         </Button>
         <Button
           type="button"
@@ -62,8 +70,10 @@ export function AccessRequestRow({
           size="sm"
           onClick={() => onReject(request)}
           disabled={busy}
+          aria-label={t.requestReject}
+          leadingIcon={<X size={14} strokeWidth={1.75} aria-hidden="true" />}
         >
-          {t.requestReject}
+          <span className="hidden md:inline">{t.requestReject}</span>
         </Button>
       </div>
     </li>
