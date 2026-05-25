@@ -17,6 +17,7 @@ import type {
   SerializerStampDeps,
 } from "@vet/shared";
 import {
+  buildOptimisticEntity,
   buildRoleCreateDoc,
   buildRoleSeedDoc,
   buildRoleUpdatePatch,
@@ -43,7 +44,7 @@ export class FirestoreRoleRepository implements RoleRepository {
     return snap.docs.map((d) => parseRole(d.id, d.data()));
   }
 
-  async create(id: string, input: RoleInput, actor: string): Promise<void> {
+  async create(id: string, input: RoleInput, actor: string): Promise<Role> {
     const batch = writeBatch(this.db);
     batch.set(doc(this.db, "roleNames", roleNameKey(input.name)), {
       roleId: id,
@@ -53,6 +54,12 @@ export class FirestoreRoleRepository implements RoleRepository {
       buildRoleCreateDoc({ input, actor }, stampDeps)
     );
     await batch.commit();
+    return buildOptimisticEntity({
+      id,
+      buildDoc: (deps) => buildRoleCreateDoc({ input, actor }, deps),
+      parse: parseRole,
+      now: new Date(),
+    });
   }
 
   async update(id: string, input: RoleInput, actor: string): Promise<void> {
