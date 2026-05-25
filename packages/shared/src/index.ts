@@ -181,6 +181,18 @@ export {
   type UserRevokeSessionPatch,
 } from "./firestore-dto/user.js";
 export {
+  roleDtoSchema,
+  parseRole,
+  roleNameKey,
+  buildRoleCreateDoc,
+  buildRoleUpdatePatch,
+  buildRoleSeedDoc,
+  type RoleDTO,
+  type RoleCreateWritePayload,
+  type RoleUpdatePatch,
+  type RoleSeedWritePayload,
+} from "./firestore-dto/role.js";
+export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
   contoDocSchema,
