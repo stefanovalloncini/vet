@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ChevronRight, ShieldCheck } from "lucide-react";
+import type { Role } from "@vet/shared";
 import {
   AdminLayout,
   Badge,
@@ -12,6 +13,8 @@ import { useRoles } from "../hooks/useRoles";
 import { useRoleUserCounts } from "../hooks/useRoleUserCounts";
 import { rolesI18n as t } from "../i18n";
 
+const EMPTY_ROLES: ReadonlyArray<Role> = [];
+
 function userCountLabel(n: number | null): string {
   if (n === null) return "…";
   if (n === 0) return t.nessunUtente;
@@ -20,7 +23,10 @@ function userCountLabel(n: number | null): string {
 }
 
 export function RolesListPage() {
-  const { data: roles = [], isLoading, isError } = useRoles();
+  const rolesQuery = useRoles();
+  const roles = rolesQuery.data ?? EMPTY_ROLES;
+  const isLoading = rolesQuery.isLoading;
+  const isError = rolesQuery.isError;
   const counts = useRoleUserCounts(roles);
 
   return (
