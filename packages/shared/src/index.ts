@@ -156,6 +156,11 @@ export {
   type AllowlistEntryAddWritePayload,
 } from "./firestore-dto/allowlist.js";
 export {
+  accessRequestDtoSchema,
+  parseAccessRequest,
+  type AccessRequestDTO,
+} from "./firestore-dto/accessRequest.js";
+export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
   contoDocSchema,
