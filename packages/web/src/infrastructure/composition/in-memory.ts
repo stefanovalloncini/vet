@@ -1,6 +1,7 @@
 import {
   SystemClock,
   type Repositories,
+  type Tx,
 } from "@vet/shared";
 import {
   InMemoryUserRepository,
@@ -14,13 +15,14 @@ import {
   InMemoryAuditRepository,
   InMemoryContiRepository,
   InMemoryRemindersRepository,
+  InMemoryMailRepository,
   InMemoryAuthService,
 } from "@vet/shared/testing";
 
 export function createInMemoryRepositories(): Repositories {
   const auth = new InMemoryAuthService();
   const attivita = new InMemoryAttivitaRepository();
-  return {
+  const tx: Tx = {
     clock: new SystemClock(),
     users: new InMemoryUserRepository(),
     roles: new InMemoryRoleRepository(),
@@ -33,6 +35,11 @@ export function createInMemoryRepositories(): Repositories {
     audit: new InMemoryAuditRepository(),
     conti: new InMemoryContiRepository(),
     reminders: new InMemoryRemindersRepository(),
+    mail: new InMemoryMailRepository(),
     auth,
+  };
+  return {
+    ...tx,
+    run: <T>(work: (tx: Tx) => Promise<T>): Promise<T> => work(tx),
   };
 }

@@ -7,31 +7,27 @@ const adminAuth = {
   updateUser: vi.fn().mockResolvedValue(undefined),
 };
 
-const docSet = vi.fn().mockResolvedValue(undefined);
-const collectionAdd = vi.fn().mockResolvedValue(undefined);
-const adminDb = {
-  collection: vi.fn((name: string) => {
-    if (name === "users") {
-      return { doc: vi.fn(() => ({ set: docSet })) };
-    }
-    if (name === "audit") {
-      return { add: collectionAdd };
-    }
-    throw new Error("unexpected collection " + name);
-  }),
-};
+const applyRevokeSessionPatch = vi.fn().mockResolvedValue(undefined);
+const auditRecord = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("../../admin/firebaseAdmin.js", () => ({
   adminAuth,
-  adminDb,
+  adminDb: {},
+}));
+
+vi.mock("../../infrastructure/composition.js", () => ({
+  getRepositories: () => ({
+    users: { applyRevokeSessionPatch },
+    audit: { record: auditRecord },
+  }),
 }));
 
 const { revokeForDeletedAllowlistEntry } = await import("../onAllowlistDelete.js");
 
 beforeEach(() => {
   vi.clearAllMocks();
-  docSet.mockResolvedValue(undefined);
-  collectionAdd.mockResolvedValue(undefined);
+  applyRevokeSessionPatch.mockResolvedValue(undefined);
+  auditRecord.mockResolvedValue(undefined);
 });
 
 describe("revokeForDeletedAllowlistEntry", () => {
@@ -76,9 +72,14 @@ describe("revokeForDeletedAllowlistEntry", () => {
     expect(adminAuth.revokeRefreshTokens).toHaveBeenCalledWith("u42");
     expect(adminAuth.setCustomUserClaims).toHaveBeenCalledWith("u42", null);
     expect(adminAuth.updateUser).toHaveBeenCalledWith("u42", { disabled: true });
-    expect(docSet).toHaveBeenCalledTimes(1);
-    expect(collectionAdd).toHaveBeenCalledTimes(1);
-    const auditPayload = collectionAdd.mock.calls[0]?.[0] as {
+    expect(applyRevokeSessionPatch).toHaveBeenCalledTimes(1);
+    expect(applyRevokeSessionPatch.mock.calls[0]?.[0]).toBe("u42");
+    expect(applyRevokeSessionPatch.mock.calls[0]?.[1]).toMatchObject({
+      disabled: true,
+      approved: false,
+    });
+    expect(auditRecord).toHaveBeenCalledTimes(1);
+    const auditPayload = auditRecord.mock.calls[0]?.[0] as {
       action: string;
       targetId: string;
     };

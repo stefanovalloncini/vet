@@ -6,6 +6,7 @@ export interface Role {
   description?: string;
   capabilities: Capability[];
   locked: boolean;
+  capsVer?: number;
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;

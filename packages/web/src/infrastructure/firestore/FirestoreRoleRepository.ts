@@ -6,14 +6,29 @@ import {
   setDoc,
   serverTimestamp,
   writeBatch,
+  Timestamp,
+  type FieldValue,
   type Firestore,
 } from "firebase/firestore";
-import type { Capability, Role, RoleInput, RoleRepository } from "@vet/shared";
-import { toDate } from "./timestamps";
+import type {
+  Role,
+  RoleInput,
+  RoleRepository,
+  SerializerStampDeps,
+} from "@vet/shared";
+import {
+  buildOptimisticEntity,
+  buildRoleCreateDoc,
+  buildRoleSeedDoc,
+  buildRoleUpdatePatch,
+  parseRole,
+  roleNameKey,
+} from "@vet/shared";
 
-function nameKey(name: string): string {
-  return name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-");
-}
+const stampDeps: SerializerStampDeps<Timestamp, FieldValue> = {
+  fromDate: (d) => Timestamp.fromDate(d),
+  serverTimestamp: (): FieldValue => serverTimestamp(),
+};
 
 export class FirestoreRoleRepository implements RoleRepository {
   constructor(private readonly db: Firestore) {}
@@ -21,83 +36,60 @@ export class FirestoreRoleRepository implements RoleRepository {
   async getById(id: string): Promise<Role | null> {
     const snap = await getDoc(doc(this.db, "roles", id));
     if (!snap.exists()) return null;
-    return this.fromSnap(id, snap.data());
+    return parseRole(id, snap.data());
   }
 
   async list(): Promise<Role[]> {
     const snap = await getDocs(collection(this.db, "roles"));
-    return snap.docs.map((d) => this.fromSnap(d.id, d.data()));
+    return snap.docs.map((d) => parseRole(d.id, d.data()));
   }
 
-  async create(id: string, input: RoleInput, actor: string): Promise<void> {
+  async create(id: string, input: RoleInput, actor: string): Promise<Role> {
     const batch = writeBatch(this.db);
-    batch.set(doc(this.db, "roleNames", nameKey(input.name)), { roleId: id });
-    batch.set(doc(this.db, "roles", id), {
-      name: input.name,
-      ...(input.description !== undefined ? { description: input.description } : {}),
-      capabilities: [...input.capabilities],
-      locked: false,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      createdBy: actor,
-      updatedBy: actor,
-      schemaVersion: 1,
+    batch.set(doc(this.db, "roleNames", roleNameKey(input.name)), {
+      roleId: id,
     });
+    batch.set(
+      doc(this.db, "roles", id),
+      buildRoleCreateDoc({ input, actor }, stampDeps)
+    );
     await batch.commit();
+    return buildOptimisticEntity({
+      id,
+      buildDoc: (deps) => buildRoleCreateDoc({ input, actor }, deps),
+      parse: parseRole,
+      now: new Date(),
+    });
   }
 
   async update(id: string, input: RoleInput, actor: string): Promise<void> {
-    await setDoc(
-      doc(this.db, "roles", id),
-      {
-        ...(input.description !== undefined ? { description: input.description } : {}),
-        capabilities: [...input.capabilities],
-        updatedAt: serverTimestamp(),
-        updatedBy: actor,
-      },
-      { merge: true }
-    );
+    const patch = buildRoleUpdatePatch({ input, actor }, stampDeps);
+    await setDoc(doc(this.db, "roles", id), { ...patch }, { merge: true });
   }
 
   async delete(id: string): Promise<void> {
     const snap = await getDoc(doc(this.db, "roles", id));
     if (!snap.exists()) return;
-    const name = snap.data()["name"] as string | undefined;
+    const name = parseRole(id, snap.data()).name;
     const batch = writeBatch(this.db);
     batch.delete(doc(this.db, "roles", id));
-    if (name) batch.delete(doc(this.db, "roleNames", nameKey(name)));
+    batch.delete(doc(this.db, "roleNames", roleNameKey(name)));
     await batch.commit();
   }
 
   async seed(role: Role): Promise<void> {
     const batch = writeBatch(this.db);
-    batch.set(doc(this.db, "roleNames", nameKey(role.name)), { roleId: role.id });
-    batch.set(doc(this.db, "roles", role.id), {
-      name: role.name,
-      ...(role.description !== undefined ? { description: role.description } : {}),
-      capabilities: role.capabilities,
-      locked: role.locked,
-      createdAt: role.createdAt,
-      updatedAt: role.updatedAt,
-      createdBy: role.createdBy,
-      updatedBy: role.updatedBy,
-      schemaVersion: 1,
+    batch.set(doc(this.db, "roleNames", roleNameKey(role.name)), {
+      roleId: role.id,
     });
+    batch.set(
+      doc(this.db, "roles", role.id),
+      buildRoleSeedDoc({ role }, stampDeps)
+    );
     await batch.commit();
   }
 
-  private fromSnap(id: string, data: Record<string, unknown>): Role {
-    return {
-      id,
-      name: data.name as string,
-      ...(data.description ? { description: data.description as string } : {}),
-      capabilities: (data.capabilities as Capability[]) ?? [],
-      locked: (data.locked as boolean) ?? false,
-      createdAt: toDate(data.createdAt),
-      updatedAt: toDate(data.updatedAt),
-      createdBy: (data.createdBy as string) ?? "",
-      updatedBy: (data.updatedBy as string) ?? "",
-      schemaVersion: 1,
-    };
+  async bumpCapsVer(): Promise<number> {
+    throw new Error("RoleRepository.bumpCapsVer is server-only");
   }
 }

@@ -17,7 +17,7 @@ const actor: ActorContext = {
 };
 
 async function seed(repos: Repositories): Promise<{ aziendaId: string }> {
-  const aziendaId = await repos.aziende.create(
+  const { id: aziendaId } = await repos.aziende.create(
     { nome: "Allevamento Demo", indirizzo: "Via 1", piva: "12345" },
     actor
   );

@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
-import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { adminAuth } from "../admin/firebaseAdmin.js";
+import { getRepositories } from "../infrastructure/composition.js";
 import { decodeCaps } from "@vet/shared";
 
 const inputSchema = z.object({ uid: z.string().min(1).max(128) }).strict();
@@ -34,14 +35,15 @@ export const revokeUserSession = onCall(
       throw new HttpsError("invalid-argument", "");
     }
 
+    const repos = getRepositories();
+
     await adminAuth.revokeRefreshTokens(uid);
     await adminAuth.updateUser(uid, { disabled: true });
-    await adminDb.collection("users").doc(uid).set(
-      { disabled: true, minCapsVer: Date.now(), updatedAt: new Date() },
-      { merge: true }
-    );
-    await adminDb.collection("audit").add({
-      at: new Date(),
+    await repos.users.applyRevokeSessionPatch(uid, {
+      disabled: true,
+      minCapsVer: Date.now(),
+    });
+    await repos.audit.record({
       actorUid: caller!.uid,
       actorEmail: (auth?.token.email as string) ?? "",
       action: "user.session.revoke",

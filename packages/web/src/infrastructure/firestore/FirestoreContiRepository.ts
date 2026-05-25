@@ -10,6 +10,7 @@ import {
   where,
   orderBy,
   Timestamp,
+  type FieldValue,
   type Firestore,
 } from "firebase/firestore";
 import type {
@@ -19,7 +20,7 @@ import type {
   ContoSaldoInput,
   ContiRepository,
 } from "@vet/shared";
-import { parseConto } from "@vet/shared";
+import { buildContoEmitDoc, parseConto } from "@vet/shared";
 
 export class FirestoreContiRepository implements ContiRepository {
   constructor(private readonly db: Firestore) {}
@@ -78,21 +79,14 @@ export class FirestoreContiRepository implements ContiRepository {
     actor: ActorContext
   ): Promise<string> {
     const ref = doc(collection(this.db, "conti"));
-    await setDoc(ref, {
-      aziendaId: input.aziendaId,
-      aziendaNome: denorm.aziendaNome,
-      periodoFrom: Timestamp.fromDate(input.periodoFrom),
-      periodoTo: Timestamp.fromDate(input.periodoTo),
-      attivitaIds: denorm.attivitaIds,
-      totaleConto: denorm.totaleConto,
-      modalita: input.modalita,
-      saldato: false,
-      emittedAt: serverTimestamp(),
-      emittedBy: actor.uid,
-      emittedByName: actor.displayName,
-      isDeleted: false,
-      schemaVersion: 1,
-    });
+    const payload = buildContoEmitDoc(
+      { input, denorm, actor },
+      {
+        fromDate: (d) => Timestamp.fromDate(d),
+        serverTimestamp: (): FieldValue => serverTimestamp(),
+      }
+    );
+    await setDoc(ref, payload);
     return ref.id;
   }
 

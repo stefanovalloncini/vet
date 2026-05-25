@@ -4,6 +4,17 @@
   "private": true,
   "type": "module",
   "main": "lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
+    },
+    "./infrastructure": {
+      "types": "./lib/infrastructure/composition.d.ts",
+      "import": "./lib/infrastructure/composition.js"
+    }
+  },
   "engines": {
     "node": ">=20"
   },

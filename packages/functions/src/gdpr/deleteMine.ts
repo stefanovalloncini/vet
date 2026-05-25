@@ -1,9 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue } from "firebase-admin/firestore";
-import { normalizeEmail } from "@vet/shared";
+import { adminAuth } from "../admin/firebaseAdmin.js";
+import { getRepositories } from "../infrastructure/composition.js";
 
-const BATCH_SIZE = 400;
 const ANON_UID = "deleted-user";
 const ANON_NAME = "—";
 
@@ -15,10 +13,41 @@ export const gdprDeleteMine = onCall(
     const uid = auth.uid;
     const email = (auth.token.email as string) ?? "";
 
-    const erased = await eraseUserData(uid, email);
+    const repos = getRepositories();
+    const attivita = await repos.attivita.deleteAllForOwner(uid);
+    const aziendeAnon = await repos.aziende.anonymizeOwnerReferences(uid, {
+      anonUid: ANON_UID,
+      anonName: ANON_NAME,
+    });
+    const remindersAnon = await repos.reminders.anonymizeCreatedBy(
+      uid,
+      ANON_UID
+    );
 
-    await adminDb.collection("audit").add({
-      at: FieldValue.serverTimestamp(),
+    let userDoc = false;
+    if ((await repos.users.getById(uid)) !== null) {
+      await repos.users.hardDelete(uid);
+      userDoc = true;
+    }
+
+    let allowlistDoc = false;
+    if (email) {
+      const allow = await repos.allowlist.getByEmail(email);
+      if (allow) {
+        await repos.allowlist.remove(email);
+        allowlistDoc = true;
+      }
+    }
+
+    const erased = {
+      attivita,
+      aziendeAnon,
+      remindersAnon,
+      userDoc,
+      allowlistDoc,
+    };
+
+    await repos.audit.record({
       actorUid: ANON_UID,
       actorEmail: "",
       action: "gdpr.erasure",
@@ -37,113 +66,3 @@ export const gdprDeleteMine = onCall(
     return { ok: true, erased };
   }
 );
-
-async function eraseUserData(
-  uid: string,
-  email: string
-): Promise<{
-  attivita: number;
-  aziendeAnon: number;
-  remindersAnon: number;
-  userDoc: boolean;
-  allowlistDoc: boolean;
-}> {
-  let attivitaDeleted = 0;
-  for (;;) {
-    const snap = await adminDb
-      .collection("attivita")
-      .where("ownerUid", "==", uid)
-      .limit(BATCH_SIZE)
-      .get();
-    if (snap.empty) break;
-    const batch = adminDb.batch();
-    for (const doc of snap.docs) batch.delete(doc.ref);
-    await batch.commit();
-    attivitaDeleted += snap.size;
-    if (snap.size < BATCH_SIZE) break;
-  }
-
-  const aziendeAnon = await anonymizeReferences("aziende", uid);
-  const remindersAnon = await anonymizeReminders(uid);
-
-  let userDoc = false;
-  const userRef = adminDb.collection("users").doc(uid);
-  const userSnap = await userRef.get();
-  if (userSnap.exists) {
-    await userRef.delete();
-    userDoc = true;
-  }
-
-  let allowlistDoc = false;
-  if (email) {
-    const norm = normalizeEmail(email);
-    const allowRef = adminDb.collection("allowlist").doc(norm);
-    const allowSnap = await allowRef.get();
-    if (allowSnap.exists) {
-      await allowRef.delete();
-      allowlistDoc = true;
-    }
-  }
-
-  return {
-    attivita: attivitaDeleted,
-    aziendeAnon,
-    remindersAnon,
-    userDoc,
-    allowlistDoc,
-  };
-}
-
-async function anonymizeReferences(
-  collection: "aziende",
-  uid: string
-): Promise<number> {
-  let count = 0;
-  for (const field of ["createdBy", "updatedBy"] as const) {
-    for (;;) {
-      const snap = await adminDb
-        .collection(collection)
-        .where(field, "==", uid)
-        .limit(BATCH_SIZE)
-        .get();
-      if (snap.empty) break;
-      const batch = adminDb.batch();
-      for (const doc of snap.docs) {
-        const update: Record<string, string> = {};
-        if (doc.get("createdBy") === uid) {
-          update["createdBy"] = ANON_UID;
-          update["createdByName"] = ANON_NAME;
-        }
-        if (doc.get("updatedBy") === uid) {
-          update["updatedBy"] = ANON_UID;
-          update["updatedByName"] = ANON_NAME;
-        }
-        batch.update(doc.ref, update);
-      }
-      await batch.commit();
-      count += snap.size;
-      if (snap.size < BATCH_SIZE) break;
-    }
-  }
-  return count;
-}
-
-async function anonymizeReminders(uid: string): Promise<number> {
-  let count = 0;
-  for (;;) {
-    const snap = await adminDb
-      .collection("reminders")
-      .where("createdBy", "==", uid)
-      .limit(BATCH_SIZE)
-      .get();
-    if (snap.empty) break;
-    const batch = adminDb.batch();
-    for (const doc of snap.docs) {
-      batch.update(doc.ref, { createdBy: ANON_UID });
-    }
-    await batch.commit();
-    count += snap.size;
-    if (snap.size < BATCH_SIZE) break;
-  }
-  return count;
-}

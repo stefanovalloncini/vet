@@ -1,7 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
-import { adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue } from "firebase-admin/firestore";
+import { getRepositories } from "../infrastructure/composition.js";
 import { decodeCaps } from "@vet/shared";
 
 const inputSchema = z.object({ id: z.string().min(1).max(64) }).strict();
@@ -40,23 +39,21 @@ export const purgeAttivita = onCall(
       throw new HttpsError("invalid-argument", "");
     }
 
-    const ref = adminDb.collection("attivita").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) throw new HttpsError("not-found", "");
-    const data = snap.data();
-    if (!data || data["isDeleted"] !== true) {
+    const repos = getRepositories();
+    const attivita = await repos.attivita.getById(id);
+    if (!attivita) throw new HttpsError("not-found", "");
+    if (!attivita.isDeleted) {
       throw new HttpsError("failed-precondition", "");
     }
 
-    await ref.delete();
-    await adminDb.collection("audit").add({
-      at: FieldValue.serverTimestamp(),
+    await repos.attivita.hardDelete(id);
+    await repos.audit.record({
       actorUid: caller!.uid,
       actorEmail: caller!.email,
       action: "attivita.purge",
       targetType: "attivita",
       targetId: id,
-      details: { ownerUid: data["ownerUid"] },
+      details: { ownerUid: attivita.ownerUid },
     });
 
     return { ok: true };

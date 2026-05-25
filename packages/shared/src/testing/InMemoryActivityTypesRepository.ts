@@ -29,6 +29,10 @@ export class InMemoryActivityTypesRepository implements ActivityTypesRepository 
       input.tariffaStandard !== undefined
         ? { tariffaStandard: input.tariffaStandard }
         : {};
+    const modalitaPart =
+      input.modalitaDefault !== undefined
+        ? { modalitaDefault: input.modalitaDefault }
+        : {};
     if (existing) {
       this.map.set(id, {
         ...existing,
@@ -36,6 +40,7 @@ export class InMemoryActivityTypesRepository implements ActivityTypesRepository 
         ordine: input.ordine,
         attivo: input.attivo,
         ...tariffaPart,
+        ...modalitaPart,
         updatedAt: now,
       });
     } else {
@@ -45,6 +50,7 @@ export class InMemoryActivityTypesRepository implements ActivityTypesRepository 
         ordine: input.ordine,
         attivo: input.attivo,
         ...tariffaPart,
+        ...modalitaPart,
         createdAt: now,
         updatedAt: now,
         schemaVersion: 1,

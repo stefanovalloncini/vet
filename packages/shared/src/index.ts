@@ -1,7 +1,15 @@
 export const SHARED_PACKAGE_VERSION = "0.0.0";
 
+export {
+  DomainError,
+  NotFoundError,
+  PermissionDeniedError,
+  ConflictError,
+  StaleStateError,
+} from "./domain/errors.js";
+
 export type { Clock } from "./domain/ports/Clock.js";
-export type { Repositories } from "./domain/ports/Repositories.js";
+export type { Repositories, Tx } from "./domain/ports/Repositories.js";
 
 export { SystemClock } from "./infrastructure/SystemClock.js";
 
@@ -97,8 +105,14 @@ export type { Attivita } from "./domain/entities/Attivita.js";
 export type { UserRepository } from "./domain/ports/UserRepository.js";
 export type { RoleRepository } from "./domain/ports/RoleRepository.js";
 export type { AllowlistRepository } from "./domain/ports/AllowlistRepository.js";
-export type { AccessRequestRepository } from "./domain/ports/AccessRequestRepository.js";
-export type { AziendeRepository } from "./domain/ports/AziendeRepository.js";
+export type {
+  AccessRequestRepository,
+  AccessRequestRecordResult,
+} from "./domain/ports/AccessRequestRepository.js";
+export type {
+  AziendeRepository,
+  AnonymizeAziendaArgs,
+} from "./domain/ports/AziendeRepository.js";
 export type { ActivityTypesRepository } from "./domain/ports/ActivityTypesRepository.js";
 export type {
   AttivitaRepository,
@@ -106,7 +120,12 @@ export type {
   TrashFilters,
 } from "./domain/ports/AttivitaRepository.js";
 export type { TrashService } from "./domain/ports/TrashService.js";
-export type { AuditEvent, AuditAction } from "./domain/entities/AuditEvent.js";
+export type {
+  AuditEvent,
+  AuditAction,
+  AuditTargetType,
+  AuditRecordInput,
+} from "./domain/entities/AuditEvent.js";
 export type {
   AuditRepository,
   AuditFilters,
@@ -118,11 +137,105 @@ export {
 } from "./domain/schemas/money.js";
 export type { Conto } from "./domain/entities/Conto.js";
 export type { ContiRepository } from "./domain/ports/ContiRepository.js";
+export { buildOptimisticEntity } from "./firestore-dto/_shared.js";
 export {
   contoDtoSchema,
   parseConto,
+  buildContoEmitDoc,
   type ContoDTO,
+  type ContoEmitDenorm,
+  type ContoEmitWritePayload,
+  type SerializerStampDeps,
 } from "./firestore-dto/conto.js";
+export {
+  activityTypeDtoSchema,
+  parseActivityType,
+  buildActivityTypeCreateDoc,
+  buildActivityTypeUpdateDoc,
+  type ActivityTypeDTO,
+  type ActivityTypeCreateWritePayload,
+} from "./firestore-dto/activityType.js";
+export {
+  allowlistEntryDtoSchema,
+  parseAllowlistEntry,
+  buildAllowlistEntryAddDoc,
+  type AllowlistEntryDTO,
+  type AllowlistEntryAddWritePayload,
+} from "./firestore-dto/allowlist.js";
+export {
+  accessRequestDtoSchema,
+  parseAccessRequest,
+  decideAccessRequestUpdate,
+  type AccessRequestDTO,
+  type AccessRequestRecordInput,
+  type AccessRequestDecision,
+  type AccessRequestExisting,
+} from "./firestore-dto/accessRequest.js";
+export {
+  reminderDtoSchema,
+  parseReminder,
+  buildReminderCreateDoc,
+  buildReminderMarkDonePatch,
+  type ReminderDTO,
+  type ReminderCreateWritePayload,
+  type ReminderMarkDonePayload,
+} from "./firestore-dto/reminder.js";
+export {
+  userDtoSchema,
+  parseUser,
+  buildUserSignInPatch,
+  buildUserApprovePatch,
+  buildUserRevokeSessionPatch,
+  type UserDTO,
+  type UserSignInPatch,
+  type UserApprovePatch,
+  type UserRevokeSessionPatch,
+  type UserApprovePatchArgs,
+  type UserSignInPatchArgs,
+  type UserRevokeSessionPatchArgs,
+} from "./firestore-dto/user.js";
+export {
+  roleDtoSchema,
+  parseRole,
+  roleNameKey,
+  buildRoleCreateDoc,
+  buildRoleUpdatePatch,
+  buildRoleSeedDoc,
+  type RoleDTO,
+  type RoleCreateWritePayload,
+  type RoleUpdatePatch,
+  type RoleSeedWritePayload,
+} from "./firestore-dto/role.js";
+export {
+  aziendaDtoSchema,
+  parseAzienda,
+  buildAziendaCreateDoc,
+  buildAziendaUpdatePatch,
+  buildAziendaSoftDeletePatch,
+  type AziendaDTO,
+  type AziendaCreateWritePayload,
+  type AziendaUpdatePatch,
+  type AziendaUpdateDeps,
+  type AziendaSoftDeletePatch,
+} from "./firestore-dto/azienda.js";
+export {
+  attivitaDtoSchema,
+  parseAttivita,
+  buildAttivitaCreateDoc,
+  buildAttivitaUpdatePatch,
+  buildAttivitaSoftDeletePatch,
+  type AttivitaDTO,
+  type AttivitaCreateWritePayload,
+  type AttivitaUpdatePatch,
+  type AttivitaUpdateDeps,
+  type AttivitaSoftDeletePatch,
+  type AttivitaDenorm,
+} from "./firestore-dto/attivita.js";
+export {
+  auditEventDtoSchema,
+  parseAuditEvent,
+  type AuditEventDTO,
+} from "./firestore-dto/audit.js";
 export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
@@ -136,6 +249,11 @@ export {
 } from "./domain/schemas/conto.js";
 export type { Reminder } from "./domain/entities/Reminder.js";
 export type { RemindersRepository } from "./domain/ports/RemindersRepository.js";
+export type {
+  MailRepository,
+  MailMessage,
+  MailSendInput,
+} from "./domain/ports/MailRepository.js";
 export {
   reminderInputSchema,
   reminderDocSchema,

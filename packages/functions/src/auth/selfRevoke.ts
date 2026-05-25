@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { Timestamp } from "firebase-admin/firestore";
-import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { adminAuth } from "../admin/firebaseAdmin.js";
+import { getRepositories } from "../infrastructure/composition.js";
 
 interface Caller {
   uid: string;
@@ -21,14 +21,14 @@ export const selfRevoke = onCall(
 
     ensureCallerSignedIn(caller);
 
-    await adminAuth.revokeRefreshTokens(caller.uid);
-    await adminDb.collection("users").doc(caller.uid).set(
-      { minCapsVer: Date.now(), updatedAt: Timestamp.now() },
-      { merge: true }
-    );
+    const repos = getRepositories();
 
-    await adminDb.collection("audit").add({
-      at: Timestamp.now(),
+    await adminAuth.revokeRefreshTokens(caller.uid);
+    await repos.users.applyRevokeSessionPatch(caller.uid, {
+      minCapsVer: Date.now(),
+    });
+
+    await repos.audit.record({
       actorUid: caller.uid,
       actorEmail: caller.email,
       action: "user.session.self-revoke",

@@ -12,6 +12,7 @@ import {
   orderBy,
   limit,
   Timestamp,
+  type FieldValue,
   type Firestore,
   type QueryConstraint,
 } from "firebase/firestore";
@@ -21,10 +22,26 @@ import type {
   AttivitaFilters,
   AttivitaInput,
   AttivitaRepository,
+  AttivitaUpdateDeps,
   TrashFilters,
 } from "@vet/shared";
-import { computeTotale } from "@vet/shared";
-import { toDate } from "./timestamps";
+import {
+  buildAttivitaCreateDoc,
+  buildAttivitaSoftDeletePatch,
+  buildAttivitaUpdatePatch,
+  buildOptimisticEntity,
+  parseAttivita,
+} from "@vet/shared";
+
+const stampDeps = {
+  fromDate: (d: Date): Timestamp => Timestamp.fromDate(d),
+  serverTimestamp: (): FieldValue => serverTimestamp(),
+};
+
+const updateDeps: AttivitaUpdateDeps<Timestamp, FieldValue, FieldValue> = {
+  ...stampDeps,
+  deleteField: (): FieldValue => deleteField(),
+};
 
 export class FirestoreAttivitaRepository implements AttivitaRepository {
   constructor(private readonly db: Firestore) {}
@@ -38,7 +55,7 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     if (filters.to) constraints.push(where("data", "<=", Timestamp.fromDate(filters.to)));
     constraints.push(orderBy("data", "desc"));
     const snap = await getDocs(query(collection(this.db, "attivita"), ...constraints));
-    return snap.docs.map((d) => fromSnap(d.id, d.data()));
+    return snap.docs.map((d) => parseAttivita(d.id, d.data()));
   }
 
   async listDeleted(filters: TrashFilters = {}): Promise<Attivita[]> {
@@ -46,13 +63,13 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     if (filters.ownerUid) constraints.push(where("ownerUid", "==", filters.ownerUid));
     constraints.push(orderBy("deletedAt", "desc"));
     const snap = await getDocs(query(collection(this.db, "attivita"), ...constraints));
-    return snap.docs.map((d) => fromSnap(d.id, d.data()));
+    return snap.docs.map((d) => parseAttivita(d.id, d.data()));
   }
 
   async getById(id: string): Promise<Attivita | null> {
     const snap = await getDoc(doc(this.db, "attivita", id));
     if (!snap.exists()) return null;
-    return fromSnap(id, snap.data());
+    return parseAttivita(id, snap.data());
   }
 
   async findLastByAziendaAndTipo(
@@ -70,37 +87,22 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     const snap = await getDocs(q);
     const first = snap.docs[0];
     if (!first) return null;
-    return fromSnap(first.id, first.data());
+    return parseAttivita(first.id, first.data());
   }
 
   async create(
     input: AttivitaInput,
     denorm: { aziendaNome: string; tipoNome: string },
     actor: ActorContext
-  ): Promise<string> {
+  ): Promise<Attivita> {
     const ref = doc(collection(this.db, "attivita"));
-    await setDoc(ref, {
-      data: Timestamp.fromDate(input.data),
-      aziendaId: input.aziendaId,
-      aziendaNome: denorm.aziendaNome,
-      tipoId: input.tipoId,
-      tipoNome: denorm.tipoNome,
-      oraria: input.oraria,
-      adElemento: input.adElemento,
-      tariffa: input.tariffa,
-      ...(input.ore !== undefined ? { ore: input.ore } : {}),
-      ...(input.elementi !== undefined ? { elementi: input.elementi } : {}),
-      totale: computeTotale(input),
-      ...(input.note !== undefined ? { note: input.note } : {}),
-      ownerUid: actor.uid,
-      ownerEmail: actor.email,
-      ownerName: actor.displayName,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      isDeleted: false,
-      schemaVersion: 1,
+    await setDoc(ref, buildAttivitaCreateDoc({ input, denorm, actor }, stampDeps));
+    return buildOptimisticEntity({
+      id: ref.id,
+      buildDoc: (deps) => buildAttivitaCreateDoc({ input, denorm, actor }, deps),
+      parse: parseAttivita,
+      now: new Date(),
     });
-    return ref.id;
   }
 
   async update(
@@ -109,64 +111,31 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     denorm: { aziendaNome: string; tipoNome: string },
     actor: ActorContext
   ): Promise<void> {
-    await updateDoc(doc(this.db, "attivita", id), {
-      data: Timestamp.fromDate(input.data),
-      aziendaId: input.aziendaId,
-      aziendaNome: denorm.aziendaNome,
-      tipoId: input.tipoId,
-      tipoNome: denorm.tipoNome,
-      oraria: input.oraria,
-      adElemento: input.adElemento,
-      tariffa: input.tariffa,
-      ore: input.ore !== undefined ? input.ore : deleteField(),
-      elementi: input.elementi !== undefined ? input.elementi : deleteField(),
-      totale: computeTotale(input),
-      note: input.note !== undefined ? input.note : deleteField(),
-      updatedAt: serverTimestamp(),
-      updatedBy: actor.uid,
-      updatedByName: actor.displayName,
-    });
+    const patch = buildAttivitaUpdatePatch(
+      { input, denorm, actor },
+      updateDeps
+    );
+    await updateDoc(doc(this.db, "attivita", id), { ...patch });
   }
 
   async softDelete(id: string, actor: ActorContext): Promise<void> {
-    await updateDoc(doc(this.db, "attivita", id), {
-      isDeleted: true,
-      deletedAt: serverTimestamp(),
-      deletedBy: actor.uid,
-      updatedAt: serverTimestamp(),
-    });
+    const patch = buildAttivitaSoftDeletePatch({ actor }, stampDeps);
+    await updateDoc(doc(this.db, "attivita", id), { ...patch });
   }
-}
 
-function fromSnap(id: string, data: Record<string, unknown>): Attivita {
-  return {
-    id,
-    data: toDate(data.data),
-    aziendaId: data.aziendaId as string,
-    aziendaNome: data.aziendaNome as string,
-    tipoId: data.tipoId as string,
-    tipoNome: data.tipoNome as string,
-    oraria: (data.oraria as boolean) ?? false,
-    adElemento: (data.adElemento as boolean) ?? false,
-    tariffa: (data.tariffa as number) ?? 0,
-    ...(data.ore !== undefined && data.ore !== null
-      ? { ore: data.ore as number }
-      : {}),
-    ...(data.elementi !== undefined && data.elementi !== null
-      ? { elementi: data.elementi as number }
-      : {}),
-    totale: (data.totale as number) ?? 0,
-    ...(data.note ? { note: data.note as string } : {}),
-    ownerUid: data.ownerUid as string,
-    ownerEmail: data.ownerEmail as string,
-    ownerName: data.ownerName as string,
-    createdAt: toDate(data.createdAt),
-    updatedAt: toDate(data.updatedAt),
-    isDeleted: (data.isDeleted as boolean) ?? false,
-    ...(data.deletedAt ? { deletedAt: toDate(data.deletedAt) } : {}),
-    ...(data.deletedBy ? { deletedBy: data.deletedBy as string } : {}),
-    ...(data.updatedBy ? { updatedBy: data.updatedBy as string } : {}),
-    ...(data.updatedByName ? { updatedByName: data.updatedByName as string } : {}),
-    schemaVersion: 1,
-  };
+  async restore(): Promise<void> {
+    throw new Error("AttivitaRepository.restore is server-only");
+  }
+
+  async hardDelete(): Promise<void> {
+    throw new Error("AttivitaRepository.hardDelete is server-only");
+  }
+
+  async purgeOlderThanDeletedAt(): Promise<number> {
+    throw new Error("AttivitaRepository.purgeOlderThanDeletedAt is server-only");
+  }
+
+  async deleteAllForOwner(): Promise<number> {
+    throw new Error("AttivitaRepository.deleteAllForOwner is server-only");
+  }
 }

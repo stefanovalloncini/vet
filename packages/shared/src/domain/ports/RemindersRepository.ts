@@ -9,7 +9,9 @@ export interface RemindersRepository {
     input: ReminderInput,
     denorm: { aziendaNome: string },
     actor: ActorContext
-  ): Promise<string>;
+  ): Promise<Reminder>;
   markDone(id: string, done: boolean): Promise<void>;
   delete(id: string): Promise<void>;
+  /** GDPR: replace createdBy refs to the given uid with anon. */
+  anonymizeCreatedBy(uid: string, anonUid: string): Promise<number>;
 }

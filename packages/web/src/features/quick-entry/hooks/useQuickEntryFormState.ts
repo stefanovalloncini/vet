@@ -269,12 +269,12 @@ export function useQuickEntryFormState({
       }
       const input: AttivitaInput = parsed.data;
       try {
-        const id = await createMutation.mutateAsync({
+        const created = await createMutation.mutateAsync({
           input,
           denorm: { aziendaNome: azienda.nome, tipoNome: tipo.nome },
           actor: user,
         });
-        return { ok: true, id };
+        return { ok: true, id: created.id };
       } catch (err) {
         console.error("quick entry save failed", err);
         form.setError("root", { message: "Salvataggio non riuscito" });

@@ -1,7 +1,8 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
 import { z } from "zod";
-import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { adminAuth } from "../admin/firebaseAdmin.js";
+import { getRepositories } from "../infrastructure/composition.js";
 import { decodeCaps } from "@vet/shared";
 
 const inputSchema = z.object({ uid: z.string().min(1).max(128) }).strict();
@@ -25,29 +26,27 @@ export const rejectUser = onCall(
       throw new HttpsError("failed-precondition", "cannot-reject-self");
     }
 
-    const userSnap = await adminDb.collection("users").doc(targetUid).get();
-    if (!userSnap.exists) {
+    const repos = getRepositories();
+    const user = await repos.users.getById(targetUid);
+    if (!user) {
       throw new HttpsError("not-found", "user");
     }
 
-    const now = new Date();
     const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
-    const targetEmail = (userSnap.data()?.["email"] as string | undefined) ?? "";
 
-    await adminDb.collection("users").doc(targetUid).delete();
+    await repos.users.hardDelete(targetUid);
     try {
       await adminAuth.deleteUser(targetUid);
     } catch (err) {
       logger.warn("auth.rejectUser.authDeleteFailed", { targetUid, err: String(err) });
     }
-    await adminDb.collection("audit").add({
-      at: now,
+    await repos.audit.record({
       actorUid,
       actorEmail,
       action: "user.reject",
       targetType: "user",
       targetId: targetUid,
-      details: { email: targetEmail },
+      details: { email: user.email },
     });
 
     logger.info("auth.rejectUser", { actorUid, targetUid });

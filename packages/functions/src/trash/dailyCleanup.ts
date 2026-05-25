@@ -1,9 +1,7 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { getRepositories } from "../infrastructure/composition.js";
 
 const TRASH_TTL_DAYS = 7;
-const BATCH_SIZE = 200;
 
 export function computeTrashCutoff(now: Date, ttlDays = TRASH_TTL_DAYS): Date {
   const cutoff = new Date(now);
@@ -19,10 +17,10 @@ export const dailyTrashCleanup = onSchedule(
   },
   async () => {
     const cutoff = computeTrashCutoff(new Date());
-    const purged = await purgeExpired(cutoff);
+    const repos = getRepositories();
+    const purged = await repos.attivita.purgeOlderThanDeletedAt(cutoff);
     if (purged > 0) {
-      await adminDb.collection("audit").add({
-        at: FieldValue.serverTimestamp(),
+      await repos.audit.record({
         actorUid: "system",
         actorEmail: "scheduled@vet",
         action: "attivita.purge.auto",
@@ -33,22 +31,3 @@ export const dailyTrashCleanup = onSchedule(
     }
   }
 );
-
-async function purgeExpired(cutoff: Date): Promise<number> {
-  let total = 0;
-  for (;;) {
-    const snap = await adminDb
-      .collection("attivita")
-      .where("isDeleted", "==", true)
-      .where("deletedAt", "<", Timestamp.fromDate(cutoff))
-      .limit(BATCH_SIZE)
-      .get();
-    if (snap.empty) break;
-    const batch = adminDb.batch();
-    for (const doc of snap.docs) batch.delete(doc.ref);
-    await batch.commit();
-    total += snap.size;
-    if (snap.size < BATCH_SIZE) break;
-  }
-  return total;
-}

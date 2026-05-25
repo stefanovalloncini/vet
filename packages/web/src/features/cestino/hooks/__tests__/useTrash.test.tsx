@@ -34,13 +34,13 @@ async function seedDeleted(repos: Repositories): Promise<{
     caps: new Set<never>(),
     approved: true,
   };
-  const aziendaId = await repos.aziende.create({ nome: "Azienda A" }, actor);
+  const { id: aziendaId } = await repos.aziende.create({ nome: "Azienda A" }, actor);
   await repos.activityTypes.upsert("visita", {
     nome: "Visita",
     ordine: 10,
     attivo: true,
   });
-  const id = await repos.attivita.create(
+  const { id } = await repos.attivita.create(
     {
       data: new Date(2026, 4, 10),
       aziendaId,

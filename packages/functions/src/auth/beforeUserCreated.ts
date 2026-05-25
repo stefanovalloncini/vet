@@ -1,15 +1,9 @@
 import { beforeUserCreated as beforeUserCreatedFn, HttpsError } from "firebase-functions/v2/identity";
 import { logger } from "firebase-functions/v2";
-import { adminDb } from "../admin/firebaseAdmin.js";
 import { normalizeEmail } from "@vet/shared";
+import { getRepositories } from "../infrastructure/composition.js";
 import { recordAccessRequest } from "./accessRequestLog.js";
 import { recordAuthDenyAudit, type AuthDenyReason } from "./auditDenyLog.js";
-
-export {
-  decideAccessRequestUpdate,
-  type AccessRequestDecisionInput,
-  type AccessRequestDecision,
-} from "./accessRequestLog.js";
 
 function denyAndThrow(reason: AuthDenyReason, context: Record<string, unknown>): never {
   logger.warn("auth.beforeUserCreated.deny", { reason, ...context });
@@ -63,8 +57,8 @@ export const beforeUserCreated: ReturnType<typeof beforeUserCreatedFn> =
       });
       denyAndThrow("email-not-verified", { email: norm, uid, provider, eventType });
     }
-    const allowSnap = await adminDb.collection("allowlist").doc(norm).get();
-    if (allowSnap.exists) {
+    const allow = await getRepositories().allowlist.getByEmail(email);
+    if (allow) {
       logger.info("auth.beforeUserCreated.allow", { email: norm, uid, eventType });
       return {};
     }

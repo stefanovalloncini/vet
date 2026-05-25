@@ -30,11 +30,11 @@ export class InMemoryAziendeRepository implements AziendeRepository {
     return null;
   }
 
-  async create(input: AziendaInput, actor: ActorContext): Promise<string> {
+  async create(input: AziendaInput, actor: ActorContext): Promise<Azienda> {
     const id = `azienda-${++this.seq}`;
     const now = this.clock();
     const nomeNorm = normalizeAziendaNome(input.nome);
-    this.map.set(id, {
+    const created: Azienda = {
       id,
       nome: input.nome,
       nomeNorm,
@@ -60,8 +60,9 @@ export class InMemoryAziendeRepository implements AziendeRepository {
       updatedByName: actor.displayName,
       isDeleted: false,
       schemaVersion: 1,
-    });
-    return id;
+    };
+    this.map.set(id, created);
+    return created;
   }
 
   async update(
@@ -115,5 +116,31 @@ export class InMemoryAziendeRepository implements AziendeRepository {
       updatedBy: actor.uid,
       updatedByName: actor.displayName,
     });
+  }
+
+  async anonymizeOwnerReferences(
+    ownerUid: string,
+    args: { anonUid: string; anonName: string }
+  ): Promise<number> {
+    let count = 0;
+    for (const [id, a] of [...this.map.entries()]) {
+      let changed = false;
+      const next = { ...a };
+      if (a.createdBy === ownerUid) {
+        next.createdBy = args.anonUid;
+        next.createdByName = args.anonName;
+        changed = true;
+      }
+      if (a.updatedBy === ownerUid) {
+        next.updatedBy = args.anonUid;
+        next.updatedByName = args.anonName;
+        changed = true;
+      }
+      if (changed) {
+        this.map.set(id, next);
+        count++;
+      }
+    }
+    return count;
   }
 }

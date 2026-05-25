@@ -13,10 +13,10 @@ export class InMemoryRoleRepository implements RoleRepository {
     return [...this.map.values()];
   }
 
-  async create(id: string, input: RoleInput, actor: string): Promise<void> {
+  async create(id: string, input: RoleInput, actor: string): Promise<Role> {
     if (this.map.has(id)) throw new Error(`role ${id} already exists`);
     const now = new Date();
-    this.map.set(id, {
+    const created: Role = {
       id,
       name: input.name,
       ...(input.description !== undefined ? { description: input.description } : {}),
@@ -27,7 +27,9 @@ export class InMemoryRoleRepository implements RoleRepository {
       createdBy: actor,
       updatedBy: actor,
       schemaVersion: 1,
-    });
+    };
+    this.map.set(id, created);
+    return created;
   }
 
   async update(id: string, input: RoleInput, actor: string): Promise<void> {
@@ -58,5 +60,13 @@ export class InMemoryRoleRepository implements RoleRepository {
 
   async seed(role: Role): Promise<void> {
     this.map.set(role.id, role);
+  }
+
+  async bumpCapsVer(id: string): Promise<number> {
+    const existing = this.map.get(id);
+    if (!existing) throw new Error(`role ${id} not found`);
+    const next = (existing.capsVer ?? 0) + 1;
+    this.map.set(id, { ...existing, capsVer: next, updatedAt: new Date() });
+    return next;
   }
 }

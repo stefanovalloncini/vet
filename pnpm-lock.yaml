@@ -212,6 +212,9 @@ importers:
 
   scripts:
     dependencies:
+      '@vet/functions':
+        specifier: workspace:*
+        version: link:../packages/functions
       '@vet/shared':
         specifier: workspace:*
         version: link:../packages/shared

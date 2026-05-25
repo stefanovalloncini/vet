@@ -1,6 +1,7 @@
 import { onDocumentDeleted } from "firebase-functions/v2/firestore";
 import { logger } from "firebase-functions/v2";
-import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { adminAuth } from "../admin/firebaseAdmin.js";
+import { getRepositories } from "../infrastructure/composition.js";
 
 export interface AllowlistDeleteRevocation {
   uid: string | null;
@@ -21,24 +22,17 @@ export async function revokeForDeletedAllowlistEntry(args: {
   try {
     const userRecord = await adminAuth.getUserByEmail(email);
     const uid = userRecord.uid;
+    const repos = getRepositories();
     await Promise.all([
       adminAuth.revokeRefreshTokens(uid),
       adminAuth.setCustomUserClaims(uid, null),
       adminAuth.updateUser(uid, { disabled: true }),
-      adminDb
-        .collection("users")
-        .doc(uid)
-        .set(
-          {
-            disabled: true,
-            approved: false,
-            minCapsVer: Date.now(),
-            updatedAt: new Date(),
-          },
-          { merge: true }
-        ),
-      adminDb.collection("audit").add({
-        at: new Date(),
+      repos.users.applyRevokeSessionPatch(uid, {
+        disabled: true,
+        approved: false,
+        minCapsVer: Date.now(),
+      }),
+      repos.audit.record({
         actorUid: "system:onAllowlistDelete",
         actorEmail: "system",
         action: "allowlist.delete.cascade",

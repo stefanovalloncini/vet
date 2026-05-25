@@ -1,4 +1,4 @@
-import { SystemClock, type Repositories } from "@vet/shared";
+import { SystemClock, type Repositories, type Tx } from "@vet/shared";
 import { initFirebase } from "../firestore/client";
 import { FirestoreUserRepository } from "../firestore/FirestoreUserRepository";
 import { FirestoreRoleRepository } from "../firestore/FirestoreRoleRepository";
@@ -9,6 +9,7 @@ import { FirestoreActivityTypesRepository } from "../firestore/FirestoreActivity
 import { FirestoreAttivitaRepository } from "../firestore/FirestoreAttivitaRepository";
 import { FirestoreAuditRepository } from "../firestore/FirestoreAuditRepository";
 import { FirestoreContiRepository } from "../firestore/FirestoreContiRepository";
+import { FirestoreMailRepository } from "../firestore/FirestoreMailRepository";
 import { FirestoreRemindersRepository } from "../firestore/FirestoreRemindersRepository";
 import { FirebaseAuthService } from "../firebase/FirebaseAuthService";
 import { FirebaseTrashService } from "../firebase/FirebaseTrashService";
@@ -17,7 +18,7 @@ import { loadVetEnv } from "./env";
 export function createFirestoreRepositories(): Repositories {
   const env = loadVetEnv();
   const { firestore, auth, functions } = initFirebase(env);
-  return {
+  const tx: Tx = {
     clock: new SystemClock(),
     users: new FirestoreUserRepository(firestore),
     roles: new FirestoreRoleRepository(firestore),
@@ -30,6 +31,11 @@ export function createFirestoreRepositories(): Repositories {
     audit: new FirestoreAuditRepository(firestore),
     conti: new FirestoreContiRepository(firestore),
     reminders: new FirestoreRemindersRepository(firestore),
+    mail: new FirestoreMailRepository(),
     auth: new FirebaseAuthService(auth, firestore),
+  };
+  return {
+    ...tx,
+    run: <T>(work: (tx: Tx) => Promise<T>): Promise<T> => work(tx),
   };
 }

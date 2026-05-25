@@ -1,6 +1,5 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue } from "firebase-admin/firestore";
+import { getAuditRepository } from "../infrastructure/composition.js";
 
 interface TokenResponse {
   access_token: string;
@@ -44,8 +43,7 @@ export const scheduledFirestoreBackup = onSchedule(
       const text = await res.text();
       throw new Error(`firestore export failed: ${res.status} ${text}`);
     }
-    await adminDb.collection("audit").add({
-      at: FieldValue.serverTimestamp(),
+    await getAuditRepository().record({
       actorUid: "system",
       actorEmail: "scheduled@vet",
       action: "backup.firestore.export",

@@ -94,6 +94,10 @@ describe("useUndoCreateAttivita", () => {
       softDelete: async () => {
         throw new Error("boom");
       },
+      restore: (id) => repo.restore(id),
+      hardDelete: (id) => repo.hardDelete(id),
+      purgeOlderThanDeletedAt: (c) => repo.purgeOlderThanDeletedAt(c),
+      deleteAllForOwner: (o) => repo.deleteAllForOwner(o),
     };
     const { Wrapper, client } = buildWrapper(failing);
     const seeded = [fakeAttivita("a-1"), fakeAttivita("a-2")];
@@ -116,7 +120,7 @@ describe("useUndoCreateAttivita", () => {
 
   it("invalidates the attivita queries on settle", async () => {
     const repo = new InMemoryAttivitaRepository();
-    const id = await repo.create(
+    const { id } = await repo.create(
       {
         data: new Date("2026-05-01"),
         aziendaId: "az-1",

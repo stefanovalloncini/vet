@@ -10,4 +10,5 @@ export { InMemoryTrashService } from "./InMemoryTrashService.js";
 export { InMemoryAuditRepository } from "./InMemoryAuditRepository.js";
 export { InMemoryContiRepository } from "./InMemoryContiRepository.js";
 export { InMemoryRemindersRepository } from "./InMemoryRemindersRepository.js";
+export { InMemoryMailRepository } from "./InMemoryMailRepository.js";
 export { InMemoryAuthService } from "./InMemoryAuthService.js";
