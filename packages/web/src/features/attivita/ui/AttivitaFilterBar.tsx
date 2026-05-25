@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
-import { Badge, Button, Card, Dialog, Select, TextField } from "../../../shared/ui";
+import { Badge, Button, Card, Dialog, IconButton, Select, TextField } from "../../../shared/ui";
 import { attivitaI18n as t } from "../i18n";
 import { dateInputValue } from "../../../shared/lib/format";
 
@@ -306,27 +306,3 @@ export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
   );
 }
 
-interface IconButtonProps {
-  label: string;
-  onClick: () => void;
-  icon: ReactNode;
-  size?: "sm" | "md";
-}
-
-function IconButton({ label, onClick, icon, size = "md" }: IconButtonProps) {
-  const sizing =
-    size === "sm"
-      ? "h-9 w-9 rounded-lg"
-      : "h-11 w-11 rounded-xl border border-(--color-border) bg-(--color-surface)";
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className={`${sizing} inline-flex items-center justify-center text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong) hover:bg-(--color-surface-muted) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 active:scale-[0.97] active:duration-(--motion-press) flex-shrink-0`}
-    >
-      {icon}
-    </button>
-  );
-}

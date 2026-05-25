@@ -34,4 +34,5 @@ export { SettingsSection } from "./SettingsSection";
 export { SettingsRow } from "./SettingsRow";
 export { VirtualList } from "./VirtualList";
 export { AddLink } from "./AddLink";
+export { IconButton, type IconButtonProps } from "./IconButton";
 export { Switch } from "./Switch";
