@@ -104,4 +104,28 @@ export class FirestoreRoleRepository implements RoleRepository {
     );
     await batch.commit();
   }
+
+  async bumpCapsVer(id: string): Promise<number> {
+    const ref = this.db.collection("roles").doc(id);
+    if (this.tx) {
+      const snap = await this.tx.get(ref);
+      const prev =
+        typeof snap.data()?.["capsVer"] === "number"
+          ? (snap.data()!["capsVer"] as number)
+          : 0;
+      const next = prev + 1;
+      this.tx.update(ref, { capsVer: next });
+      return next;
+    }
+    return this.db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const prev =
+        typeof snap.data()?.["capsVer"] === "number"
+          ? (snap.data()!["capsVer"] as number)
+          : 0;
+      const next = prev + 1;
+      tx.update(ref, { capsVer: next });
+      return next;
+    });
+  }
 }

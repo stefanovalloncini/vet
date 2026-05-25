@@ -1,8 +1,8 @@
 import { beforeUserSignedIn, HttpsError } from "firebase-functions/v2/identity";
 import { logger } from "firebase-functions/v2";
-import { adminDb } from "../admin/firebaseAdmin.js";
 import type { Capability } from "@vet/shared";
 import { encodeCaps, normalizeEmail } from "@vet/shared";
+import { getRepositories } from "../infrastructure/composition.js";
 import { recordAccessRequest } from "./accessRequestLog.js";
 import { recordAuthDenyAudit, type AuthDenyReason } from "./auditDenyLog.js";
 
@@ -25,38 +25,21 @@ interface DecideInput {
   allow: { defaultRoleId: string };
   existing: { approved?: boolean; roleId?: string; displayName?: string } | null;
   role: { capabilities: ReadonlyArray<Capability>; capsVer?: number };
-  email: string;
   displayName: string;
-  now: Date;
 }
 
 interface DecideOutput {
   customClaims?: object;
-  userPatch: Record<string, unknown>;
   isFirst: boolean;
 }
 
 export function decideAuthResult(input: DecideInput): DecideOutput {
-  const { allow, existing, role, email, displayName, now } = input;
+  const { allow, existing, role, displayName } = input;
   const isFirst = !existing;
   const approved = existing?.approved === true;
 
-  const basePatch: Record<string, unknown> = {
-    email,
-    displayName,
-    disabled: false,
-    updatedAt: now,
-    lastSignInAt: now,
-    schemaVersion: 1,
-  };
-  if (isFirst) {
-    basePatch["createdAt"] = now;
-    basePatch["approved"] = false;
-    basePatch["roleId"] = allow.defaultRoleId;
-  }
-
   if (!approved) {
-    return { userPatch: basePatch, isFirst };
+    return { isFirst };
   }
 
   const roleId = existing?.roleId ?? allow.defaultRoleId;
@@ -69,7 +52,7 @@ export function decideAuthResult(input: DecideInput): DecideOutput {
     name: existing?.displayName ?? displayName,
   };
 
-  return { customClaims: claims, userPatch: basePatch, isFirst };
+  return { customClaims: claims, isFirst };
 }
 
 function denyAndThrow(reason: AuthDenyReason, context: Record<string, unknown>): never {
@@ -125,8 +108,10 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
       });
       denyAndThrow("email-not-verified", { email: norm, uid, provider, eventType });
     }
-    const allowSnap = await adminDb.collection("allowlist").doc(norm).get();
-    if (!allowSnap.exists) {
+
+    const repos = getRepositories();
+    const allow = await repos.allowlist.getByEmail(email);
+    if (!allow) {
       await recordAccessRequest({
         email,
         displayName: event.data?.displayName,
@@ -144,18 +129,11 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
       });
       denyAndThrow("allowlist-miss", { email: norm, uid, eventType });
     }
-    const allow = allowSnap.data() as { defaultRoleId: string };
 
-    type ExistingUser = { approved?: boolean; roleId?: string; displayName?: string };
-    let existingUser: ExistingUser | null = null;
-    if (uid) {
-      const userSnap = await adminDb.collection("users").doc(uid).get();
-      existingUser = userSnap.exists ? ((userSnap.data() ?? null) as ExistingUser | null) : null;
-    }
-
+    const existingUser = uid ? await repos.users.getById(uid) : null;
     const roleId = existingUser?.roleId ?? allow.defaultRoleId;
-    const roleSnap = await adminDb.collection("roles").doc(roleId).get();
-    if (!roleSnap.exists) {
+    const role = await repos.roles.getById(roleId);
+    if (!role) {
       await recordAuthDenyAudit({
         emailNorm: norm,
         email,
@@ -166,24 +144,35 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
       });
       denyAndThrow("role-missing", { email: norm, uid, roleId, eventType });
     }
-    const role = roleSnap.data() as { capabilities: Capability[]; capsVer?: number };
 
-    const displayName = existingUser?.displayName
+    const displayName =
+      existingUser?.displayName
       ?? event.data?.displayName
       ?? email.split("@")[0]
       ?? email;
-    const now = new Date();
     const decision = decideAuthResult({
       allow,
-      existing: existingUser,
-      role,
-      email,
+      existing: existingUser
+        ? {
+            approved: existingUser.approved,
+            roleId: existingUser.roleId,
+            displayName: existingUser.displayName,
+          }
+        : null,
+      role: {
+        capabilities: role.capabilities,
+        ...(role.capsVer !== undefined ? { capsVer: role.capsVer } : {}),
+      },
       displayName,
-      now,
     });
 
     if (uid) {
-      await adminDb.collection("users").doc(uid).set(decision.userPatch, { merge: true });
+      await repos.users.applySignInPatch(uid, {
+        email,
+        displayName,
+        isFirst: decision.isFirst,
+        defaultRoleId: allow.defaultRoleId,
+      });
     }
 
     logger.info(

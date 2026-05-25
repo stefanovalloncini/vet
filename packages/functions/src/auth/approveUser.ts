@@ -1,9 +1,9 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
 import { z } from "zod";
-import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
-import { getAuditRepository } from "../infrastructure/composition.js";
-import { decodeCaps, encodeCaps, type Capability } from "@vet/shared";
+import { adminAuth } from "../admin/firebaseAdmin.js";
+import { getRepositories } from "../infrastructure/composition.js";
+import { decodeCaps, encodeCaps } from "@vet/shared";
 
 const inputSchema = z
   .object({
@@ -11,22 +11,6 @@ const inputSchema = z
     roleId: z.string().min(1).max(60),
   })
   .strict();
-
-interface BuildInput {
-  actorUid: string;
-  roleId: string;
-  now: Date;
-}
-
-export function buildApprovePatch(input: BuildInput) {
-  return {
-    approved: true,
-    roleId: input.roleId,
-    approvedAt: input.now,
-    approvedBy: input.actorUid,
-    updatedAt: input.now,
-  };
-}
 
 export const approveUser = onCall(
   { region: "europe-west8", enforceAppCheck: true },
@@ -48,35 +32,27 @@ export const approveUser = onCall(
       throw new HttpsError("permission-denied", "");
     }
 
-    const [userSnap, roleSnap] = await Promise.all([
-      adminDb.collection("users").doc(targetUid).get(),
-      adminDb.collection("roles").doc(roleId).get(),
+    const repos = getRepositories();
+    const [user, role] = await Promise.all([
+      repos.users.getById(targetUid),
+      repos.roles.getById(roleId),
     ]);
-    if (!userSnap.exists) throw new HttpsError("not-found", "user");
-    if (!roleSnap.exists) throw new HttpsError("not-found", "role");
-    const role = roleSnap.data() as { capabilities: Capability[] };
+    if (!user) throw new HttpsError("not-found", "user");
+    if (!role) throw new HttpsError("not-found", "role");
 
-    const now = new Date();
-    await adminDb.collection("users").doc(targetUid).set(
-      buildApprovePatch({ actorUid, roleId, now }),
-      { merge: true }
-    );
+    await repos.users.applyApprovePatch(targetUid, { actorUid, roleId });
 
-    const userData = userSnap.data() ?? {};
-    const displayName = typeof userData["displayName"] === "string"
-      ? (userData["displayName"] as string)
-      : undefined;
     await adminAuth.setCustomUserClaims(targetUid, {
       vet: true,
       roleId,
       caps: encodeCaps(role.capabilities),
       capsVer: Date.now(),
-      ...(displayName ? { name: displayName } : {}),
+      ...(user.displayName ? { name: user.displayName } : {}),
     });
     await adminAuth.revokeRefreshTokens(targetUid);
 
     const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
-    await getAuditRepository().record({
+    await repos.audit.record({
       actorUid,
       actorEmail,
       action: "user.approve",

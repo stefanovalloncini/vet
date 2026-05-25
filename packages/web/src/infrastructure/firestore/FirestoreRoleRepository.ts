@@ -88,4 +88,8 @@ export class FirestoreRoleRepository implements RoleRepository {
     );
     await batch.commit();
   }
+
+  async bumpCapsVer(): Promise<number> {
+    throw new Error("RoleRepository.bumpCapsVer is server-only");
+  }
 }

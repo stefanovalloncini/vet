@@ -187,6 +187,9 @@ export {
   type UserSignInPatch,
   type UserApprovePatch,
   type UserRevokeSessionPatch,
+  type UserApprovePatchArgs,
+  type UserSignInPatchArgs,
+  type UserRevokeSessionPatchArgs,
 } from "./firestore-dto/user.js";
 export {
   roleDtoSchema,

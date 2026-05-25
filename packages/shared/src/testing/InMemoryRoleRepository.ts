@@ -61,4 +61,12 @@ export class InMemoryRoleRepository implements RoleRepository {
   async seed(role: Role): Promise<void> {
     this.map.set(role.id, role);
   }
+
+  async bumpCapsVer(id: string): Promise<number> {
+    const existing = this.map.get(id);
+    if (!existing) throw new Error(`role ${id} not found`);
+    const next = (existing.capsVer ?? 0) + 1;
+    this.map.set(id, { ...existing, capsVer: next, updatedAt: new Date() });
+    return next;
+  }
 }

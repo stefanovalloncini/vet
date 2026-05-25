@@ -9,7 +9,7 @@ import {
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import type { User, UserRepository } from "@vet/shared";
-import { parseUser } from "@vet/shared";
+import { PermissionDeniedError, parseUser } from "@vet/shared";
 
 export class FirestoreUserRepository implements UserRepository {
   constructor(private readonly db: Firestore) {}
@@ -40,5 +40,23 @@ export class FirestoreUserRepository implements UserRepository {
   async delete(uid: string): Promise<void> {
     const fn = httpsCallable(getFunctions(undefined, "europe-west8"), "rejectUser");
     await fn({ uid });
+  }
+
+  async applyApprovePatch(): Promise<void> {
+    throw new PermissionDeniedError("UserRepository.applyApprovePatch is server-only");
+  }
+
+  async applySignInPatch(): Promise<void> {
+    throw new PermissionDeniedError("UserRepository.applySignInPatch is server-only");
+  }
+
+  async applyRevokeSessionPatch(): Promise<void> {
+    throw new PermissionDeniedError(
+      "UserRepository.applyRevokeSessionPatch is server-only"
+    );
+  }
+
+  async hardDelete(): Promise<void> {
+    throw new PermissionDeniedError("UserRepository.hardDelete is server-only");
   }
 }

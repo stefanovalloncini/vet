@@ -8,4 +8,6 @@ export interface RoleRepository {
   update(id: string, input: RoleInput, actor: string): Promise<void>;
   delete(id: string): Promise<void>;
   seed(role: Role): Promise<void>;
+  /** Atomic increment of capsVer used by the onRoleChange propagator. */
+  bumpCapsVer(id: string): Promise<number>;
 }
