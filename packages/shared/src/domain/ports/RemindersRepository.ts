@@ -9,7 +9,7 @@ export interface RemindersRepository {
     input: ReminderInput,
     denorm: { aziendaNome: string },
     actor: ActorContext
-  ): Promise<string>;
+  ): Promise<Reminder>;
   markDone(id: string, done: boolean): Promise<void>;
   delete(id: string): Promise<void>;
 }

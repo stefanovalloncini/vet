@@ -21,6 +21,7 @@ import type {
   SerializerStampDeps,
 } from "@vet/shared";
 import {
+  buildOptimisticEntity,
   buildReminderCreateDoc,
   buildReminderMarkDonePatch,
   parseReminder,
@@ -63,10 +64,15 @@ export class FirestoreRemindersRepository implements RemindersRepository {
     input: ReminderInput,
     denorm: { aziendaNome: string },
     actor: ActorContext
-  ): Promise<string> {
+  ): Promise<Reminder> {
     const ref = doc(collection(this.db, "reminders"));
     await setDoc(ref, buildReminderCreateDoc({ input, denorm, actor }, stampDeps));
-    return ref.id;
+    return buildOptimisticEntity({
+      id: ref.id,
+      buildDoc: (deps) => buildReminderCreateDoc({ input, denorm, actor }, deps),
+      parse: parseReminder,
+      now: new Date(),
+    });
   }
 
   async markDone(id: string, done: boolean): Promise<void> {

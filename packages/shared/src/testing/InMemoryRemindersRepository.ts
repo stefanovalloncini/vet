@@ -27,10 +27,10 @@ export class InMemoryRemindersRepository implements RemindersRepository {
     input: ReminderInput,
     denorm: { aziendaNome: string },
     actor: ActorContext
-  ): Promise<string> {
+  ): Promise<Reminder> {
     const id = `reminder-${++this.seq}`;
     const now = this.clock();
-    this.map.set(id, {
+    const created: Reminder = {
       id,
       aziendaId: input.aziendaId,
       aziendaNome: denorm.aziendaNome,
@@ -42,8 +42,9 @@ export class InMemoryRemindersRepository implements RemindersRepository {
       updatedAt: now,
       createdBy: actor.uid,
       schemaVersion: 1,
-    });
-    return id;
+    };
+    this.map.set(id, created);
+    return created;
   }
 
   async markDone(id: string, done: boolean): Promise<void> {

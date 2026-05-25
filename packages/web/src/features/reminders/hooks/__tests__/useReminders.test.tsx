@@ -67,7 +67,7 @@ describe("useReminders", () => {
   it("respects the onlyOpen filter", async () => {
     const repos = createInMemoryRepositories();
     const aziendaId = await seed(repos);
-    const id = await repos.reminders.create(
+    const { id } = await repos.reminders.create(
       {
         aziendaId,
         titolo: "Fatto",
