@@ -18,6 +18,10 @@ vi.mock("../../../onboarding/OnboardingBanner", () => ({
   OnboardingBanner: () => null,
 }));
 
+vi.mock("../../../onboarding", () => ({
+  Onboarding: () => null,
+}));
+
 vi.mock("../../../auth", async () => {
   const actual = await vi.importActual<typeof import("../../../auth")>("../../../auth");
   return {

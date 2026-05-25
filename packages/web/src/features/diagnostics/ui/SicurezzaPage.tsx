@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Spinner } from "../../../shared/ui";
-import { AuthLayout } from "../../auth/ui/AuthLayout";
+import { CenteredAuthLayout } from "../../auth/ui/CenteredAuthLayout";
 import {
   probeAppCheckToken,
   probeCookies,
@@ -41,10 +41,10 @@ export function SicurezzaPage() {
   const failed = results.filter((r) => !r.ok);
 
   return (
-    <AuthLayout
-      eyebrow={t.eyebrow}
+    <CenteredAuthLayout
       title={t.title}
-      footer={<p>{t.subtitle}</p>}
+      subtitle={t.subtitle}
+      footer={<span>{t.eyebrow}</span>}
     >
       <ul className="space-y-3">
         {ORDER.map((name) => {
@@ -110,6 +110,6 @@ export function SicurezzaPage() {
           {t.retry}
         </Button>
       </div>
-    </AuthLayout>
+    </CenteredAuthLayout>
   );
 }

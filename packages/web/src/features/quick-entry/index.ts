@@ -1,1 +1,1 @@
-export { QuickEntryFab } from "./QuickEntryFab";
+export { QuickEntryFab, openQuickEntry } from "./QuickEntryFab";
