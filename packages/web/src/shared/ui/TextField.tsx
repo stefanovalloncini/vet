@@ -17,7 +17,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
 }, ref) {
   const isDateLike = rest.type === "date" || rest.type === "datetime-local" || rest.type === "time" || rest.type === "month" || rest.type === "week";
   const inputCls = [
-    "block w-full min-w-0 box-border rounded-lg border bg-(--color-surface) px-3.5 py-2.5 text-sm text-(--color-text)",
+    "block w-full min-w-0 box-border h-11 rounded-lg border bg-(--color-surface) px-3.5 text-sm text-(--color-text)",
     "placeholder:text-(--color-text-subtle)",
     "focus:outline-none disabled:opacity-50",
     "transition-[border-color] duration-(--motion-fast) ease-(--ease-out-quart)",

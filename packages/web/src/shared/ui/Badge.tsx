@@ -5,7 +5,9 @@ type Tone = "neutral" | "accent" | "success" | "warning" | "danger";
 interface BadgeProps {
   tone?: Tone;
   size?: "sm" | "md";
-  children: ReactNode;
+  dot?: boolean;
+  children?: ReactNode;
+  "aria-label"?: string;
 }
 
 const toneMap: Record<Tone, string> = {
@@ -16,17 +18,33 @@ const toneMap: Record<Tone, string> = {
   success:
     "bg-(--color-success)/10 text-(--color-success) border-(--color-success)/20",
   warning:
-    "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900",
+    "bg-(--color-warning)/15 text-(--color-warning) border-(--color-warning)/30",
   danger:
     "bg-(--color-danger)/10 text-(--color-danger) border-(--color-danger)/20",
 };
 
-export function Badge({ tone = "neutral", size = "sm", children }: BadgeProps) {
+const dotMap: Record<Tone, string> = {
+  neutral: "bg-(--color-text-subtle)",
+  accent: "bg-(--color-accent)",
+  success: "bg-(--color-success)",
+  warning: "bg-(--color-warning)",
+  danger: "bg-(--color-danger)",
+};
+
+export function Badge({ tone = "neutral", size = "sm", dot, children, ...rest }: BadgeProps) {
+  if (dot && !children) {
+    return (
+      <span
+        className={`inline-block h-2 w-2 rounded-full ${dotMap[tone]}`}
+        role={rest["aria-label"] ? "img" : undefined}
+        {...rest}
+      />
+    );
+  }
   const padding = size === "sm" ? "px-1.5 py-0.5 text-[11px]" : "px-2 py-1 text-xs";
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-md border ${padding} ${toneMap[tone]} font-medium`}
-    >
+    <span className={`inline-flex items-center gap-1.5 rounded-md border ${padding} ${toneMap[tone]} font-medium`} {...rest}>
+      {dot ? <span className={`h-1.5 w-1.5 rounded-full ${dotMap[tone]}`} aria-hidden="true" /> : null}
       {children}
     </span>
   );
