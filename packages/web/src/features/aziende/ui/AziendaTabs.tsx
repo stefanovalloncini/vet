@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { ClipboardList, Euro, Bell } from "lucide-react";
+import { ClipboardList, Bell } from "lucide-react";
 import { Card, EmptyState } from "../../../shared/ui";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { formatDate, formatEuro } from "../../../shared/lib/format";
-import type { Attivita, Payment } from "@vet/shared";
+import type { Attivita } from "@vet/shared";
 
 export function StoricoTab({ items }: { items: Attivita[] }) {
   if (items.length === 0) {
@@ -40,43 +40,6 @@ export function StoricoTab({ items }: { items: Attivita[] }) {
               </div>
             </Card>
           </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-export function PagamentiTab({ payments }: { payments: Payment[] }) {
-  if (payments.length === 0) {
-    return (
-      <EmptyState
-        title="Nessun pagamento registrato."
-        icon={<Euro size={28} strokeWidth={1.5} />}
-      />
-    );
-  }
-  return (
-    <ul className="space-y-2">
-      {payments.map((p) => (
-        <li key={p.id}>
-          <Card>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-base text-(--color-text)">
-                  Pagato fino al {p.periodoFinoA.toLocaleDateString("it-IT")}
-                </p>
-                <p className="text-xs text-(--color-text-muted) mt-1">
-                  {p.metodoPagamento ?? "metodo non indicato"}
-                  {p.note ? ` · ${p.note}` : ""}
-                </p>
-              </div>
-              {p.importoPagato !== undefined ? (
-                <span className="text-base font-medium text-(--color-text) tabular-nums">
-                  {formatEuro(p.importoPagato)}
-                </span>
-              ) : null}
-            </div>
-          </Card>
         </li>
       ))}
     </ul>

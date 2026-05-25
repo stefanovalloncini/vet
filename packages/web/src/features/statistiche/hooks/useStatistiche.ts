@@ -1,14 +1,12 @@
 import { useMemo } from "react";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
 import { useAziende } from "../../aziende/hooks/useAziende";
-import { usePayments } from "../../payments/hooks/usePayments";
 import { SHORT_MONTHS_IT as SHORT_MONTHS } from "../../../shared/i18n/months";
-import type { Attivita, Azienda, Payment } from "@vet/shared";
+import type { Attivita, Azienda } from "@vet/shared";
 
 export type StatistichePeriodo = "12m" | "ytd" | "all";
 
 const EMPTY_AZIENDE: Azienda[] = [];
-const EMPTY_PAYMENTS: Payment[] = [];
 
 interface AttivitaFilter {
   from?: Date;
@@ -51,7 +49,6 @@ export interface StatisticheData {
   loading: boolean;
   items: Attivita[];
   aziende: Azienda[];
-  payments: Payment[];
   byTipo: SimpleSlice[];
   topClients: ClientSlice[];
   monthlyComparison: MonthlyComparison;
@@ -164,21 +161,11 @@ function stackedMonthsOf(
 
 function funnelOf(
   items: ReadonlyArray<Attivita>,
-  aziende: ReadonlyArray<Azienda>,
-  payments: ReadonlyArray<Payment>
+  aziende: ReadonlyArray<Azienda>
 ): FunnelStage[] {
-  const latestPaidUpTo = new Map<string, number>();
-  for (const p of payments) {
-    const cur = latestPaidUpTo.get(p.aziendaId);
-    const t = p.periodoFinoA.getTime();
-    if (cur === undefined || t > cur) latestPaidUpTo.set(p.aziendaId, t);
-  }
-  const aziendaById = new Map(aziende.map((a) => [a.id, a]));
-  let paidCount = 0;
   let invoicedCount = 0;
+  const aziendaById = new Map(aziende.map((a) => [a.id, a]));
   for (const a of items) {
-    const paidUpTo = latestPaidUpTo.get(a.aziendaId);
-    if (paidUpTo !== undefined && a.data.getTime() <= paidUpTo) paidCount++;
     const az = aziendaById.get(a.aziendaId);
     if (az?.cadenzaFatturazione) invoicedCount++;
   }
@@ -188,11 +175,6 @@ function funnelOf(
       label: "In aziende con cadenza fatturazione",
       value: invoicedCount,
       hint: "Aziende con cadenza monthly/quarterly/semiannual impostata",
-    },
-    {
-      label: "Già coperte da un pagamento",
-      value: paidCount,
-      hint: "Visite con data ≤ ultimo periodoFinoA dell'azienda",
     },
   ];
 }
@@ -209,9 +191,7 @@ export function useStatistiche(range: StatistichePeriodo, now: Date): Statistich
   );
   const { items: lastYearItems } = useAttivita(lastYearFilters);
   const aziendeQuery = useAziende();
-  const paymentsQuery = usePayments();
   const aziende = aziendeQuery.data ?? EMPTY_AZIENDE;
-  const payments = paymentsQuery.data ?? EMPTY_PAYMENTS;
 
   const byTipo = useMemo(() => byTipoSlices(items), [items]);
   const topClients = useMemo(() => topClientsSlices(items), [items]);
@@ -220,10 +200,7 @@ export function useStatistiche(range: StatistichePeriodo, now: Date): Statistich
     [items, lastYearItems, now]
   );
   const stackedMonths = useMemo(() => stackedMonthsOf(items, now), [items, now]);
-  const funnel = useMemo(
-    () => funnelOf(items, aziende, payments),
-    [items, aziende, payments]
-  );
+  const funnel = useMemo(() => funnelOf(items, aziende), [items, aziende]);
   const totalRange = useMemo(
     () => items.reduce((s, a) => s + a.totale, 0),
     [items]
@@ -241,7 +218,6 @@ export function useStatistiche(range: StatistichePeriodo, now: Date): Statistich
     loading,
     items,
     aziende,
-    payments,
     byTipo,
     topClients,
     monthlyComparison,

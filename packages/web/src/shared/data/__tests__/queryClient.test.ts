@@ -47,12 +47,7 @@ describe("queryKeys", () => {
     expect(queryKeys.aziendaDetail("az1")).toEqual(["aziende", "az1", "detail"]);
   });
 
-  it("exposes payments and reminders keys with and without filters", () => {
-    expect(queryKeys.payments()).toEqual(["payments", {}]);
-    expect(queryKeys.payments({ aziendaId: "az1" })).toEqual([
-      "payments",
-      { aziendaId: "az1" },
-    ]);
+  it("exposes reminders keys with and without filters", () => {
     expect(queryKeys.reminders()).toEqual(["reminders", {}]);
     expect(queryKeys.reminders({ onlyOpen: true })).toEqual([
       "reminders",

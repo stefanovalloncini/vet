@@ -42,8 +42,8 @@ For function-keys (filtered queries), invalidation by prefix uses the bare strin
 array — TanStack Query matches by prefix:
 
 ```ts
-// invalidate every payments-filtered variant
-qc.invalidateQueries({ queryKey: ["payments"] });
+// invalidate every attivita-filtered variant
+qc.invalidateQueries({ queryKey: ["attivita"] });
 ```
 
 ### Mutation pattern
@@ -70,9 +70,9 @@ example. Default to invalidate-and-refetch unless you have a concrete reason.
 
 A mutation may need to invalidate more than one entity. Examples:
 
-- `useCreatePayment` invalidates both `["payments"]` and `["aziende"]` because
-  `useAziendaDetail` is keyed under the aziende prefix and its payments slice
-  must refresh after a new payment.
+- `useCreateConto` invalidates both `["conti"]` and `["aziende"]` because
+  `useAziendaDetail` is keyed under the aziende prefix and the conti tab must
+  refresh after a new conto is emitted.
 - `useRestoreTrashed` invalidates both `["trash"]` and `["attivita"]`.
 
 When this happens, extract a small `invalidate<Scope>(qc)` helper in the same
@@ -81,16 +81,16 @@ file to make the scope obvious at the mutation site.
 ### Composite hooks
 
 Most "composite" reads are a single `useQuery` with a `Promise.all` in the
-`queryFn` (see `useAziendaDetail`, `usePaymentsData`, `useAllowlist`). This keeps
-loading/error states unified and the cache entry atomic.
+`queryFn` (see `useAziendaDetail`, `useAllowlist`). This keeps loading/error
+states unified and the cache entry atomic.
 
 If you need to compose two existing top-level hooks (e.g. dashboards), call them
 side-by-side and derive flags inline:
 
 ```ts
 const att = useAttivita(filters);
-const pay = usePaymentsData();
-const loading = att.isLoading || pay.loading;
+const az = useAziende();
+const loading = att.isLoading || az.isLoading;
 ```
 
 Don't build a "combineQueries" helper until at least three call sites need the

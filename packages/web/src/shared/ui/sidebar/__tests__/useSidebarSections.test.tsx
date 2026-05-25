@@ -7,7 +7,6 @@ const FULL_CAPS: ReadonlySet<string> = new Set([
   "activities.read.all",
   "aziende.read",
   "reminders.read",
-  "payments.read",
   "activity_types.read",
   "roles.read",
   "allowlist.read",

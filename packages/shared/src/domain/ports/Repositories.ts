@@ -8,7 +8,6 @@ import type { ActivityTypesRepository } from "./ActivityTypesRepository.js";
 import type { AttivitaRepository } from "./AttivitaRepository.js";
 import type { TrashService } from "./TrashService.js";
 import type { AuditRepository } from "./AuditRepository.js";
-import type { PaymentsRepository } from "./PaymentsRepository.js";
 import type { ContiRepository } from "./ContiRepository.js";
 import type { RemindersRepository } from "./RemindersRepository.js";
 import type { AuthService } from "./AuthService.js";
@@ -24,7 +23,6 @@ export interface Repositories {
   readonly attivita: AttivitaRepository;
   readonly trash: TrashService;
   readonly audit: AuditRepository;
-  readonly payments: PaymentsRepository;
   readonly conti: ContiRepository;
   readonly reminders: RemindersRepository;
   readonly auth: AuthService;

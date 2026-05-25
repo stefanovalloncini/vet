@@ -16,7 +16,7 @@ import { useRetention } from "../lib/useRetention";
 
 export function ImpostazioniPage() {
   const { user } = useAuthState();
-  const { trash, auth, aziende, attivita, payments, reminders } = useRepositories();
+  const { trash, auth, aziende, attivita, reminders } = useRepositories();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -29,17 +29,15 @@ export function ImpostazioniPage() {
     setExporting(true);
     setExportError(null);
     try {
-      const [az, at, pa, re] = await Promise.all([
+      const [az, at, re] = await Promise.all([
         aziende.list(),
         attivita.list(),
-        payments.list(),
         reminders.list(),
       ]);
       const payload = buildBackupPayload({
         exportedBy: user?.email ?? "",
         aziende: az,
         attivita: at,
-        payments: pa,
         reminders: re,
       });
       triggerJsonDownload(payload, backupFilename());
@@ -96,7 +94,7 @@ export function ImpostazioniPage() {
         <SettingsSection title="Dati">
           <SettingsRow
             label="Backup completo"
-            description="Scarica un file JSON con aziende, attività, pagamenti e promemoria."
+            description="Scarica un file JSON con aziende, attività e promemoria."
           >
             <div className="flex flex-col items-stretch gap-2 sm:items-end">
               <Button

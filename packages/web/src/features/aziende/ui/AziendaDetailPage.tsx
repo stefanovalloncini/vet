@@ -7,14 +7,14 @@ import { useTags } from "../hooks/useTags";
 import { useAziendaDetail } from "../hooks/useAziendaDetail";
 import { AziendaDetailSummary } from "./AziendaDetailSummary";
 import { AziendaInfoCard } from "./AziendaInfoCard";
-import { PagamentiTab, PromemoriaTab, StoricoTab } from "./AziendaTabs";
+import { PromemoriaTab, StoricoTab } from "./AziendaTabs";
 import {
   ContiPerAziendaTab,
   EmettiContoPanel,
   useContiForAzienda,
 } from "../../conti";
 
-type Tab = "storico" | "conti" | "pagamenti" | "promemoria";
+type Tab = "storico" | "conti" | "promemoria";
 
 export function AziendaDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,10 +38,7 @@ export function AziendaDetailPage() {
     () => detail.items.reduce((s, x) => s + x.totale, 0),
     [detail.items]
   );
-  const paidTotal = useMemo(
-    () => detail.payments.reduce((s, x) => s + (x.importoPagato ?? 0), 0),
-    [detail.payments]
-  );
+  const paidTotal = 0;
 
   const canUpdate = user?.caps.has("aziende.update") ?? false;
   const canExport = user?.caps.has("activities.export") ?? false;
@@ -70,7 +67,6 @@ export function AziendaDetailPage() {
     ...(canViewConti
       ? [{ id: "conti" as const, label: "Conti", count: contiCount }]
       : []),
-    { id: "pagamenti", label: "Pagamenti", count: detail.payments.length },
     { id: "promemoria", label: "Promemoria", count: reminderCount },
   ];
 
@@ -109,8 +105,6 @@ export function AziendaDetailPage() {
         <StoricoTab items={detail.items} />
       ) : tab === "conti" ? (
         <ContiPerAziendaTab aziendaId={azienda.id} />
-      ) : tab === "pagamenti" ? (
-        <PagamentiTab payments={detail.payments} />
       ) : (
         <PromemoriaTab aziendaId={azienda.id} />
       )}
