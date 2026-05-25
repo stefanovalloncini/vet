@@ -1,4 +1,4 @@
-import type { Conto } from "@vet/shared";
+import type { Azienda, Conto } from "@vet/shared";
 
 export interface ContiByAzienda {
   readonly conti: ReadonlyArray<Conto>;
@@ -9,6 +9,35 @@ export interface ContiByAzienda {
 }
 
 export type ContiByAziendaMap = ReadonlyMap<string, ContiByAzienda>;
+
+export interface ContiCounters {
+  readonly pending: number;
+  readonly total: number;
+  readonly totaleUnsaldati: number;
+}
+
+export function computeContiCounters(
+  aziende: ReadonlyArray<Azienda>,
+  grouped: ContiByAziendaMap
+): ContiCounters {
+  let pending = 0;
+  let total = 0;
+  let totaleUnsaldati = 0;
+  for (const azienda of aziende) {
+    const bucket = grouped.get(azienda.id);
+    if (!bucket) continue;
+    total += 1;
+    if (bucket.hasUnsaldati) {
+      pending += 1;
+      totaleUnsaldati += bucket.totaleUnsaldati;
+    }
+  }
+  return {
+    pending,
+    total,
+    totaleUnsaldati: Math.round(totaleUnsaldati * 100) / 100,
+  };
+}
 
 interface Bucket {
   conti: Conto[];

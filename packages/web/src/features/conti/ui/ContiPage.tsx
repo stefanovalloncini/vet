@@ -16,6 +16,7 @@ import { formatDate, formatEuro } from "../../../shared/lib/format";
 import { useAziende } from "../../aziende/hooks/useAziende";
 import { useConti } from "../hooks/useConti";
 import {
+  computeContiCounters,
   groupContiByAzienda,
   type ContiByAzienda,
   type ContiByAziendaMap,
@@ -41,7 +42,7 @@ export function ContiPage() {
   );
 
   const counters = useMemo(
-    () => computeCounters(aziende ?? [], grouped),
+    () => computeContiCounters(aziende ?? [], grouped),
     [aziende, grouped]
   );
 
@@ -103,30 +104,6 @@ export function ContiPage() {
   );
 }
 
-interface Counters {
-  pending: number;
-  total: number;
-  totaleUnsaldati: number;
-}
-
-function computeCounters(
-  aziende: ReadonlyArray<Azienda>,
-  grouped: ContiByAziendaMap
-): Counters {
-  let pending = 0;
-  let total = 0;
-  let totaleUnsaldati = 0;
-  for (const azienda of aziende) {
-    const bucket = grouped.get(azienda.id);
-    if (!bucket) continue;
-    total += 1;
-    if (bucket.hasUnsaldati) {
-      pending += 1;
-      totaleUnsaldati += bucket.totaleUnsaldati;
-    }
-  }
-  return { pending, total, totaleUnsaldati: Math.round(totaleUnsaldati * 100) / 100 };
-}
 
 interface Row {
   readonly azienda: Azienda;

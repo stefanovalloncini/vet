@@ -6,9 +6,13 @@ export {
   useContiForAzienda,
   useContiUnsaldati,
 } from "./hooks/useConti";
-export { groupContiByAzienda } from "./lib/groupContiByAzienda";
+export {
+  computeContiCounters,
+  groupContiByAzienda,
+} from "./lib/groupContiByAzienda";
 export type {
   ContiByAzienda,
   ContiByAziendaMap,
+  ContiCounters,
 } from "./lib/groupContiByAzienda";
 export { aziendeNeedingNewConto } from "./lib/expirationCheck";

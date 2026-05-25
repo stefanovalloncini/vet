@@ -1,6 +1,25 @@
 import { describe, expect, it } from "vitest";
-import type { Conto } from "@vet/shared";
-import { groupContiByAzienda } from "../groupContiByAzienda";
+import type { Azienda, Conto } from "@vet/shared";
+import {
+  computeContiCounters,
+  groupContiByAzienda,
+} from "../groupContiByAzienda";
+
+function azienda(id: string, nome: string = id): Azienda {
+  return {
+    id,
+    nome,
+    nomeNorm: nome.toLowerCase(),
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    updatedAt: new Date("2026-01-01T00:00:00Z"),
+    createdBy: "u1",
+    updatedBy: "u1",
+    createdByName: "U1",
+    updatedByName: "U1",
+    isDeleted: false,
+    schemaVersion: 1,
+  };
+}
 
 function conto(over: Partial<Conto>): Conto {
   return {
@@ -85,5 +104,68 @@ describe("groupContiByAzienda", () => {
       conto({ id: "c3", aziendaId: "az1", totaleConto: 33.334 }),
     ]);
     expect(grouped.get("az1")?.totaleUnsaldati).toBe(100);
+  });
+});
+
+describe("computeContiCounters", () => {
+  it("returns zero counters when no aziende exist", () => {
+    const grouped = groupContiByAzienda([]);
+    expect(computeContiCounters([], grouped)).toEqual({
+      pending: 0,
+      total: 0,
+      totaleUnsaldati: 0,
+    });
+  });
+
+  it("counts only aziende that appear in the grouped map", () => {
+    const grouped = groupContiByAzienda([
+      conto({ id: "c1", aziendaId: "az1", saldato: true }),
+    ]);
+    const counters = computeContiCounters(
+      [azienda("az1"), azienda("az2")],
+      grouped
+    );
+    expect(counters.total).toBe(1);
+    expect(counters.pending).toBe(0);
+  });
+
+  it("sums totaleUnsaldati across all aziende with non-saldati conti", () => {
+    const grouped = groupContiByAzienda([
+      conto({ id: "c1", aziendaId: "az1", saldato: false, totaleConto: 250 }),
+      conto({ id: "c2", aziendaId: "az2", saldato: false, totaleConto: 100 }),
+      conto({ id: "c3", aziendaId: "az2", saldato: true, totaleConto: 999 }),
+    ]);
+    const counters = computeContiCounters(
+      [azienda("az1"), azienda("az2")],
+      grouped
+    );
+    expect(counters.pending).toBe(2);
+    expect(counters.totaleUnsaldati).toBe(350);
+  });
+
+  it("ignores aziende not present in the grouped map", () => {
+    const grouped = groupContiByAzienda([
+      conto({ id: "c1", aziendaId: "az1", saldato: false, totaleConto: 100 }),
+    ]);
+    const counters = computeContiCounters(
+      [azienda("az1"), azienda("nonexistent")],
+      grouped
+    );
+    expect(counters.total).toBe(1);
+    expect(counters.pending).toBe(1);
+    expect(counters.totaleUnsaldati).toBe(100);
+  });
+
+  it("rounds total to two decimals", () => {
+    const grouped = groupContiByAzienda([
+      conto({ id: "c1", aziendaId: "az1", saldato: false, totaleConto: 33.34 }),
+      conto({ id: "c2", aziendaId: "az2", saldato: false, totaleConto: 33.33 }),
+      conto({ id: "c3", aziendaId: "az3", saldato: false, totaleConto: 33.33 }),
+    ]);
+    const counters = computeContiCounters(
+      [azienda("az1"), azienda("az2"), azienda("az3")],
+      grouped
+    );
+    expect(counters.totaleUnsaldati).toBe(100);
   });
 });
