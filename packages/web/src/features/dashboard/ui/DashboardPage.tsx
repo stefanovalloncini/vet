@@ -3,6 +3,7 @@ import { AppShell, Card, InlineError, SectionLabel, Skeleton } from "../../../sh
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../../shared/lib/format";
 import { TrailingBarChart } from "../../../shared/ui/charts/TrailingBarChart";
+import { Onboarding } from "../../onboarding";
 import { OnboardingBanner } from "../../onboarding/OnboardingBanner";
 import { useDashboardStats, type DashboardStats } from "../hooks/useDashboardStats";
 
@@ -29,6 +30,7 @@ export function DashboardPage() {
         </p>
       </header>
 
+      <Onboarding />
       <OnboardingBanner
         hasAziende={stats.aziende.length > 0}
         hasAttivita={stats.items.length > 0}

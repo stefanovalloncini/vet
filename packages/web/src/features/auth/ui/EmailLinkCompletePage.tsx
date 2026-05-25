@@ -7,7 +7,7 @@ import {
   useEmailLinkSignIn,
   type EmailLinkSignInState,
 } from "../hooks/useEmailLinkSignIn";
-import { AuthLayout } from "./AuthLayout";
+import { CenteredAuthLayout } from "./CenteredAuthLayout";
 
 export function EmailLinkCompletePage() {
   const { auth } = useRepositories();
@@ -27,10 +27,10 @@ export function EmailLinkCompletePage() {
 
   if (state.kind === "needsEmail" || state.kind === "submittingWithEmail") {
     return (
-      <AuthLayout eyebrow="Accesso · verifica" title="Conferma l'indirizzo email">
-        <p className="text-sm text-(--color-text-muted) mb-6">
-          Per sicurezza, ridigita l&apos;indirizzo a cui è stato spedito il link.
-        </p>
+      <CenteredAuthLayout
+        title="Conferma l'indirizzo email"
+        subtitle="Per sicurezza, ridigita l'indirizzo a cui è stato spedito il link."
+      >
         <EmailConfirmationForm
           email={email}
           onEmailChange={setEmail}
@@ -38,20 +38,20 @@ export function EmailLinkCompletePage() {
           submitting={state.kind === "submittingWithEmail"}
           errorMessage={null}
         />
-      </AuthLayout>
+      </CenteredAuthLayout>
     );
   }
 
   if (state.kind === "error") {
     return (
-      <AuthLayout eyebrow="Accesso · errore" title="Link non valido">
-        <p role="alert" className="text-sm text-(--color-text)">
-          {state.message}
-        </p>
-        <p className="mt-4 text-sm text-(--color-text-muted)">
-          Richiedi un nuovo link dalla pagina di accesso.
-        </p>
-        <div className="mt-6">
+      <CenteredAuthLayout title="Link non valido">
+        <div className="space-y-6">
+          <p role="alert" className="text-sm text-(--color-text)">
+            {state.message}
+          </p>
+          <p className="text-sm text-(--color-text-muted)">
+            Richiedi un nuovo link dalla pagina di accesso.
+          </p>
           <Link
             to="/login"
             className="inline-flex items-center gap-2 text-sm font-medium text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
@@ -59,7 +59,7 @@ export function EmailLinkCompletePage() {
             Torna all&apos;accesso
           </Link>
         </div>
-      </AuthLayout>
+      </CenteredAuthLayout>
     );
   }
 
@@ -68,12 +68,15 @@ export function EmailLinkCompletePage() {
 
 function VerifyingState() {
   return (
-    <AuthLayout eyebrow="Accesso · verifica" title="Verifica del link in corso">
-      <Spinner size={18} label="Verifica del link" />
-      <p className="mt-6 text-xs text-(--color-text-subtle)">
-        Non chiudere questa scheda. L&apos;app apre la sessione appena la verifica si completa.
-      </p>
-    </AuthLayout>
+    <CenteredAuthLayout title="Verifica del link in corso">
+      <div className="space-y-6">
+        <Spinner size={18} label="Verifica del link" />
+        <p className="text-xs text-(--color-text-subtle)">
+          Non chiudere questa scheda. L&apos;app apre la sessione appena la
+          verifica si completa.
+        </p>
+      </div>
+    </CenteredAuthLayout>
   );
 }
 
@@ -108,6 +111,7 @@ function EmailConfirmationForm({
       <Button
         type="submit"
         variant="primary"
+        size="lg"
         fullWidth
         disabled={submitting || email.length === 0}
       >

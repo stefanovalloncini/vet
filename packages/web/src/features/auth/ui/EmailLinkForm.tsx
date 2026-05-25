@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,7 +15,6 @@ interface EmailLinkFormProps {
   defaultEmail?: string;
   busy: boolean;
   onSubmit: (values: EmailFormValues) => Promise<void>;
-  onBack: () => void;
   onEmailChange?: (email: string) => void;
 }
 
@@ -24,7 +22,6 @@ export function EmailLinkForm({
   defaultEmail = "",
   busy,
   onSubmit,
-  onBack,
   onEmailChange,
 }: EmailLinkFormProps) {
   const form = useForm<EmailFormValues>({
@@ -38,7 +35,7 @@ export function EmailLinkForm({
       <form
         noValidate
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-5"
+        className="space-y-4"
       >
         <RHFTextField<EmailFormValues>
           name="email"
@@ -57,17 +54,8 @@ export function EmailLinkForm({
           fullWidth
           disabled={busy}
         >
-          {busy ? "Invio in corso…" : "Inviami il link"}
+          {busy ? "Invio in corso…" : "Invia magic link"}
         </Button>
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={busy}
-          className="inline-flex items-center gap-1.5 text-sm text-(--color-text-muted) hover:text-(--color-text) disabled:opacity-50 focus:outline-none focus-visible:underline underline-offset-4"
-        >
-          <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
-          Indietro
-        </button>
       </form>
     </FormProvider>
   );

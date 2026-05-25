@@ -20,62 +20,48 @@ function mountLogin(reposOverride?: Repositories) {
   };
 }
 
-async function openEmailFlow() {
-  fireEvent.click(
-    await screen.findByRole("button", { name: /Entra con email/i })
-  );
-}
-
 describe("LoginPage", () => {
-  it("renders Google and Email as equal CTAs and switches to the email view on demand", async () => {
+  it("renders email as primary, Google as secondary, and the request-access link", async () => {
     mountLogin();
     await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /Entra con Google/i })
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
     });
     expect(
-      screen.getByRole("button", { name: /Entra con email/i })
-    ).toBeInTheDocument();
-    expect(screen.queryByLabelText(/Email/i)).toBeNull();
-    await openEmailFlow();
-    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Inviami il link/i })
+      screen.getByRole("button", { name: /Invia magic link/i })
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Entra con Google/i })
-    ).toBeNull();
-  });
-
-  it("returns to choice view from the email form via Indietro", async () => {
-    mountLogin();
-    await openEmailFlow();
-    await screen.findByLabelText(/Email/i);
-    fireEvent.click(screen.getByRole("button", { name: /Indietro/i }));
-    await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /Entra con Google/i })
-      ).toBeInTheDocument();
-    });
-    expect(screen.queryByLabelText(/Email/i)).toBeNull();
-  });
-
-  it("preserves the draft email when the user goes Indietro and back", async () => {
-    mountLogin();
-    await openEmailFlow();
-    const emailField = await screen.findByLabelText(/Email/i);
-    fireEvent.change(emailField, { target: { value: "draft@example.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /Indietro/i }));
-    await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /Entra con Google/i })
-      ).toBeInTheDocument();
-    });
-    await openEmailFlow();
+      screen.getByRole("button", { name: /Entra con Google/i })
+    ).toBeInTheDocument();
     expect(
-      (await screen.findByLabelText(/Email/i)) as HTMLInputElement
-    ).toHaveValue("draft@example.com");
+      screen.getByRole("button", { name: /Richiedi accesso/i })
+    ).toBeInTheDocument();
+  });
+
+  it("switches to the access-request form when Richiedi accesso is clicked", async () => {
+    mountLogin();
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Richiedi accesso/i })
+    );
+    expect(await screen.findByLabelText(/Nome e cognome/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Motivazione/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Invia richiesta/i })
+    ).toBeInTheDocument();
+  });
+
+  it("goes back from the access-request form via Indietro", async () => {
+    mountLogin();
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Richiedi accesso/i })
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Indietro/i })
+    );
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Invia magic link/i })
+      ).toBeInTheDocument();
+    });
   });
 
   it("shows unauthorized message and Cambia account button on allowlist denial", async () => {
@@ -155,17 +141,43 @@ describe("LoginPage", () => {
     errSpy.mockRestore();
   });
 
-  it("shows confirmation message after a successful email link send", async () => {
+  it("shows confirmation panel after a successful email link send", async () => {
     const repos = createInMemoryRepositories();
     vi.spyOn(repos.auth, "sendEmailSignInLink").mockResolvedValue();
     mountLogin(repos);
-    await openEmailFlow();
-    const emailField = await screen.findByLabelText(/Email/i);
-    fireEvent.change(emailField, { target: { value: "tester@example.com" } });
-    fireEvent.click(screen.getByRole("button", { name: /Inviami il link/i }));
+    fireEvent.change(await screen.findByLabelText(/Email/i), {
+      target: { value: "tester@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Invia magic link/i }));
     await waitFor(() => {
-      expect(screen.getByText(/Link inviato a/i)).toBeInTheDocument();
+      expect(screen.getByText(/Controlla la tua email/i)).toBeInTheDocument();
     });
     expect(screen.getByText(/tester@example\.com/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Invia di nuovo/i })
+    ).toBeInTheDocument();
+  });
+
+  it("submits the access-request form and shows the confirmation message", async () => {
+    const repos = createInMemoryRepositories();
+    const spy = vi
+      .spyOn(repos.auth, "sendEmailSignInLink")
+      .mockResolvedValue();
+    mountLogin(repos);
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Richiedi accesso/i })
+    );
+    fireEvent.change(await screen.findByLabelText(/Email/i), {
+      target: { value: "new@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Nome e cognome/i), {
+      target: { value: "Mario Rossi" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Invia richiesta/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/Richiesta inviata per/i)).toBeInTheDocument();
+    });
+    expect(spy).toHaveBeenCalledWith("new@example.com");
+    expect(screen.getByText(/new@example\.com/)).toBeInTheDocument();
   });
 });
