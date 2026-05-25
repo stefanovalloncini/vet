@@ -1,5 +1,13 @@
 export const SHARED_PACKAGE_VERSION = "0.0.0";
 
+export {
+  DomainError,
+  NotFoundError,
+  PermissionDeniedError,
+  ConflictError,
+  StaleStateError,
+} from "./domain/errors.js";
+
 export type { Clock } from "./domain/ports/Clock.js";
 export type { Repositories } from "./domain/ports/Repositories.js";
 
