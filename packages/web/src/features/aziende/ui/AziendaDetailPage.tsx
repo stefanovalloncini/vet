@@ -1,13 +1,16 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AppShell, Tabs } from "../../../shared/ui";
+import type { Attivita } from "@vet/shared";
+import { AppShell, ConfirmDialog, Tabs, useToast } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { useTags } from "../hooks/useTags";
 import { useAziendaDetail } from "../hooks/useAziendaDetail";
+import { useDeleteAzienda } from "../hooks/useAziende";
 import { AziendaDetailSummary } from "./AziendaDetailSummary";
 import { AziendaInfoCard } from "./AziendaInfoCard";
 import { PromemoriaTab, StoricoTab } from "./AziendaTabs";
+import { aziendeI18n as t } from "../i18n";
 import {
   ContiPerAziendaTab,
   EmettiContoPanel,
@@ -20,12 +23,15 @@ export function AziendaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuthState();
+  const { notify } = useToast();
   const [tab, setTab] = useState<Tab>("storico");
+  const [confirmArchive, setConfirmArchive] = useState(false);
   const { reminders } = useReminders();
   const { tagsFor, setForAzienda } = useTags();
 
   const detail = useAziendaDetail(id);
   const contiQuery = useContiForAzienda(id);
+  const del = useDeleteAzienda();
 
   const reminderCount = useMemo(
     () => reminders.filter((r) => r.aziendaId === id && !r.done).length,
@@ -35,13 +41,26 @@ export function AziendaDetailPage() {
   const canViewConti = user?.caps.has("conti.proforma") ?? false;
 
   const total = useMemo(
-    () => detail.items.reduce((s, x) => s + x.totale, 0),
+    () => detail.items.reduce((s: number, x: Attivita) => s + x.totale, 0),
     [detail.items]
   );
   const paidTotal = 0;
 
   const canUpdate = user?.caps.has("aziende.update") ?? false;
   const canExport = user?.caps.has("activities.export") ?? false;
+
+  async function onConfirmArchive(): Promise<void> {
+    if (!user || !id) return;
+    try {
+      await del.mutateAsync({ id, actor: user });
+      notify("Azienda archiviata", "success");
+      navigate("/aziende");
+    } catch {
+      notify(t.erroreSalvataggio, "error");
+    } finally {
+      setConfirmArchive(false);
+    }
+  }
 
   if (detail.isError) {
     return (
@@ -75,39 +94,61 @@ export function AziendaDetailPage() {
       <AziendaDetailSummary
         azienda={azienda}
         canEdit={canUpdate}
-        onBack={() => navigate("/aziende")}
+        {...(canUpdate
+          ? { onArchive: () => setConfirmArchive(true) }
+          : {})}
       />
-      <AziendaInfoCard
-        azienda={azienda}
-        total={total}
-        paidTotal={paidTotal}
-        tags={tagsFor(azienda.id)}
-        onTagsChange={(next) => setForAzienda(azienda.id, next)}
-        canExport={canExport}
-      />
-      {canViewConti ? (
-        <div className="mb-4">
-          <EmettiContoPanel azienda={azienda} items={detail.items} />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+        <div className="space-y-4 min-w-0">
+          <div>
+            <Tabs
+              items={baseTabs.map((tt) => ({
+                value: tt.id,
+                label: tt.label,
+                ...(tt.count !== undefined ? { badge: tt.count } : {}),
+              }))}
+              value={tab}
+              onChange={setTab}
+            />
+          </div>
+          <div className="min-w-0">
+            {tab === "storico" ? (
+              <StoricoTab items={detail.items} />
+            ) : tab === "conti" ? (
+              <ContiPerAziendaTab aziendaId={azienda.id} />
+            ) : (
+              <PromemoriaTab aziendaId={azienda.id} />
+            )}
+          </div>
         </div>
-      ) : null}
-      <div className="mb-4">
-        <Tabs
-          items={baseTabs.map((tt) => ({
-            value: tt.id,
-            label: tt.label,
-            ...(tt.count !== undefined ? { badge: tt.count } : {}),
-          }))}
-          value={tab}
-          onChange={setTab}
-        />
+        <aside className="space-y-4 min-w-0">
+          <AziendaInfoCard
+            azienda={azienda}
+            total={total}
+            paidTotal={paidTotal}
+            tags={tagsFor(azienda.id)}
+            onTagsChange={(next) => setForAzienda(azienda.id, next)}
+            canExport={canExport}
+          />
+          {canViewConti ? (
+            <EmettiContoPanel azienda={azienda} items={detail.items} />
+          ) : null}
+        </aside>
       </div>
-      {tab === "storico" ? (
-        <StoricoTab items={detail.items} />
-      ) : tab === "conti" ? (
-        <ContiPerAziendaTab aziendaId={azienda.id} />
-      ) : (
-        <PromemoriaTab aziendaId={azienda.id} />
-      )}
+      <ConfirmDialog
+        open={confirmArchive}
+        title="Archiviare questa azienda?"
+        message={t.confermaEliminazioneDescr}
+        confirmLabel="Archivia"
+        cancelLabel={t.annulla}
+        variant="danger"
+        busy={del.isPending}
+        onConfirm={onConfirmArchive}
+        onClose={() => {
+          if (del.isPending) return;
+          setConfirmArchive(false);
+        }}
+      />
     </AppShell>
   );
 }

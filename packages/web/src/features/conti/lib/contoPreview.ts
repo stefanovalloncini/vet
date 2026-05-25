@@ -34,12 +34,52 @@ export function defaultPeriodoFor(
   azienda: Pick<Azienda, "cadenzaFatturazione"> | undefined,
   now: Date = new Date()
 ): { from: Date; to: Date } {
-  const cadenza: CadenzaFatturazione =
-    azienda?.cadenzaFatturazione ?? "quarterly";
-  const monthsBack =
-    cadenza === "monthly" ? 1 : cadenza === "semiannual" ? 6 : 3;
-  const start = new Date(now.getFullYear(), now.getMonth() - monthsBack, 1);
-  const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-  return { from: start, to: end };
+  const cadenza: CadenzaFatturazione | undefined = azienda?.cadenzaFatturazione;
+  if (cadenza === "monthly") return previousCalendarMonth(now);
+  if (cadenza === "quarterly") return previousCalendarQuarter(now);
+  if (cadenza === "semiannual") return previousCalendarSemester(now);
+  return rollingLastMonths(now, 3);
+}
+
+function previousCalendarMonth(now: Date): { from: Date; to: Date } {
+  const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+  return { from, to };
+}
+
+function previousCalendarQuarter(now: Date): { from: Date; to: Date } {
+  const currentQuarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+  const fromMonth = currentQuarterStartMonth - 3;
+  const from = new Date(now.getFullYear(), fromMonth, 1);
+  const to = new Date(
+    now.getFullYear(),
+    currentQuarterStartMonth,
+    0,
+    23,
+    59,
+    59,
+    999
+  );
+  return { from, to };
+}
+
+function previousCalendarSemester(now: Date): { from: Date; to: Date } {
+  const inH1 = now.getMonth() < 6;
+  const from = inH1
+    ? new Date(now.getFullYear() - 1, 6, 1)
+    : new Date(now.getFullYear(), 0, 1);
+  const to = inH1
+    ? new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999)
+    : new Date(now.getFullYear(), 5, 30, 23, 59, 59, 999);
+  return { from, to };
+}
+
+function rollingLastMonths(
+  now: Date,
+  monthsBack: number
+): { from: Date; to: Date } {
+  const from = new Date(now.getFullYear(), now.getMonth() - monthsBack, 1);
+  const to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+  return { from, to };
 }
 
