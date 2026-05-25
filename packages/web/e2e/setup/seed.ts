@@ -251,6 +251,17 @@ async function wipeCollection(
 export async function restoreSeededFixture(): Promise<void> {
   const app = adminApp();
   const db = getFirestore(app);
-  await Promise.all([wipeCollection(db, "attivita"), wipeCollection(db, "aziende")]);
-  await Promise.all([seedActivityType(db), seedAzienda(db), seedAttivita(db)]);
+  await Promise.all([
+    wipeCollection(db, "attivita"),
+    wipeCollection(db, "aziende"),
+    wipeCollection(db, "activity_types"),
+    wipeCollection(db, "allowlist"),
+    wipeCollection(db, "reminders"),
+  ]);
+  await Promise.all([
+    seedActivityType(db),
+    seedAzienda(db),
+    seedAttivita(db),
+    seedAllowlist(db),
+  ]);
 }

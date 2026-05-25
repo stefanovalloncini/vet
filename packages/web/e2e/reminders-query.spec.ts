@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("reminders page (tanstack query)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("vet sees the empty reminders state", async ({ signedInVet }) => {
     await signedInVet.goto("/promemoria");
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({

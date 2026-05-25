@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("activity types via tanstack query", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("admin sees seeded tipo and edits tariffa", async ({ signedInAdmin }) => {
     await signedInAdmin.goto("/admin/tipi-attivita");
     await expect(
