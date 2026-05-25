@@ -2,7 +2,28 @@ import { CAPABILITIES, type Capability, type Role } from "@vet/shared";
 import { getRepositories } from "@vet/functions/infrastructure";
 import { runScript } from "./lib/runScript.js";
 
-const amministratoreCaps: Capability[] = [...CAPABILITIES];
+const titolareCaps: Capability[] = [...CAPABILITIES];
+
+const amministratoreCaps: Capability[] = [
+  "activities.read.all",
+  "activities.create",
+  "activities.update.own",
+  "activities.delete.own",
+  "activities.export",
+  "aziende.read",
+  "aziende.create",
+  "aziende.update",
+  "activity_types.read",
+  "trash.read.own",
+  "trash.restore.own",
+  "conti.proforma",
+  "conti.emit",
+  "conti.saldo",
+  "reminders.read",
+  "reminders.create",
+  "reminders.update.own",
+  "reminders.delete.own",
+];
 
 const veterinarioCapoCaps: Capability[] = [
   "activities.read.all",
@@ -50,6 +71,7 @@ const SEEDS: ReadonlyArray<{
   caps: Capability[];
   locked: boolean;
 }> = [
+  { id: "titolare", name: "Titolare", caps: titolareCaps, locked: true },
   { id: "amministratore", name: "Amministratore", caps: amministratoreCaps, locked: true },
   { id: "veterinario_capo", name: "Veterinario capo", caps: veterinarioCapoCaps, locked: true },
   { id: "veterinario_semplice", name: "Veterinario semplice", caps: veterinarioSempliceCaps, locked: true },
