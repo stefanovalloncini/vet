@@ -2,6 +2,7 @@ import {
   FieldValue,
   Timestamp,
   type Firestore,
+  type Transaction,
 } from "firebase-admin/firestore";
 import type {
   Role,
@@ -23,20 +24,32 @@ const stampDeps: SerializerStampDeps<Timestamp, FieldValue> = {
 };
 
 export class FirestoreRoleRepository implements RoleRepository {
-  constructor(private readonly db: Firestore) {}
+  constructor(
+    private readonly db: Firestore,
+    private readonly tx?: Transaction
+  ) {}
 
   async getById(id: string): Promise<Role | null> {
-    const snap = await this.db.collection("roles").doc(id).get();
+    const ref = this.db.collection("roles").doc(id);
+    const snap = this.tx ? await this.tx.get(ref) : await ref.get();
     if (!snap.exists) return null;
     return parseRole(id, snap.data());
   }
 
   async list(): Promise<Role[]> {
+    if (this.tx) {
+      throw new Error("RoleRepository.list is not supported in a transaction");
+    }
     const snap = await this.db.collection("roles").get();
     return snap.docs.map((d) => parseRole(d.id, d.data()));
   }
 
   async create(id: string, input: RoleInput, actor: string): Promise<Role> {
+    if (this.tx) {
+      throw new Error(
+        "RoleRepository.create is not supported in a transaction"
+      );
+    }
     const batch = this.db.batch();
     batch.set(this.db.collection("roleNames").doc(roleNameKey(input.name)), {
       roleId: id,
@@ -51,6 +64,11 @@ export class FirestoreRoleRepository implements RoleRepository {
   }
 
   async update(id: string, input: RoleInput, actor: string): Promise<void> {
+    if (this.tx) {
+      throw new Error(
+        "RoleRepository.update is not supported in a transaction"
+      );
+    }
     await this.db
       .collection("roles")
       .doc(id)
@@ -58,6 +76,11 @@ export class FirestoreRoleRepository implements RoleRepository {
   }
 
   async delete(id: string): Promise<void> {
+    if (this.tx) {
+      throw new Error(
+        "RoleRepository.delete is not supported in a transaction"
+      );
+    }
     const snap = await this.db.collection("roles").doc(id).get();
     if (!snap.exists) return;
     const name = parseRole(id, snap.data()).name;
@@ -68,6 +91,9 @@ export class FirestoreRoleRepository implements RoleRepository {
   }
 
   async seed(role: Role): Promise<void> {
+    if (this.tx) {
+      throw new Error("RoleRepository.seed is not supported in a transaction");
+    }
     const batch = this.db.batch();
     batch.set(this.db.collection("roleNames").doc(roleNameKey(role.name)), {
       roleId: role.id,

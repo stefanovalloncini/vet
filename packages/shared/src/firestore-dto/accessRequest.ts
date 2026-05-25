@@ -36,3 +36,66 @@ export function parseAccessRequest(
     schemaVersion: dto.schemaVersion,
   };
 }
+
+const MAX_ATTEMPTS = 10000;
+
+export interface AccessRequestRecordInput {
+  email: string;
+  emailNorm: string;
+  displayName?: string | undefined;
+  photoURL?: string | undefined;
+  providerId?: string | undefined;
+}
+
+export interface AccessRequestExisting {
+  attempts?: number;
+}
+
+export type AccessRequestDecision<TStamp> =
+  | { kind: "create"; doc: Record<string, unknown> }
+  | { kind: "update"; patch: Record<string, unknown> }
+  | { kind: "storm"; attempts: number; patch: { lastAttemptAt: TStamp } };
+
+export function decideAccessRequestUpdate<TStamp>(input: {
+  existing: AccessRequestExisting | null;
+  input: AccessRequestRecordInput;
+  now: TStamp;
+}): AccessRequestDecision<TStamp> {
+  const optionals = {
+    ...(input.input.displayName ? { displayName: input.input.displayName } : {}),
+    ...(input.input.photoURL ? { photoURL: input.input.photoURL } : {}),
+    ...(input.input.providerId ? { providerId: input.input.providerId } : {}),
+  };
+  if (!input.existing) {
+    return {
+      kind: "create",
+      doc: {
+        emailNorm: input.input.emailNorm,
+        email: input.input.email,
+        ...optionals,
+        firstAttemptAt: input.now,
+        lastAttemptAt: input.now,
+        attempts: 1,
+        schemaVersion: 1,
+      },
+    };
+  }
+  const prevAttempts =
+    typeof input.existing.attempts === "number" ? input.existing.attempts : 0;
+  if (prevAttempts >= MAX_ATTEMPTS) {
+    return {
+      kind: "storm",
+      attempts: prevAttempts,
+      patch: { lastAttemptAt: input.now },
+    };
+  }
+  return {
+    kind: "update",
+    patch: {
+      email: input.input.email,
+      ...optionals,
+      lastAttemptAt: input.now,
+      attempts: prevAttempts + 1,
+    },
+  };
+}

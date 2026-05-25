@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
-import { adminDb } from "../admin/firebaseAdmin.js";
-import { getAuditRepository } from "../infrastructure/composition.js";
+import { getRepositories } from "../infrastructure/composition.js";
+import { toHttpsError } from "../infrastructure/httpsErrors.js";
 import {
   decodeCaps,
   normalizeEmail,
@@ -25,19 +25,22 @@ export const rejectAccessRequest = onCall(
     }
 
     const emailNorm = normalizeEmail(input.email);
-    const requestRef = adminDb.collection("accessRequests").doc(emailNorm);
-
     const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
+    const repos = getRepositories();
 
-    await adminDb.runTransaction(async (tx) => {
-      const snap = await tx.get(requestRef);
-      if (!snap.exists) {
-        throw new HttpsError("not-found", "");
-      }
-      tx.delete(requestRef);
-    });
+    try {
+      await repos.run(async (tx) => {
+        const existing = await tx.accessRequests.getByEmail(emailNorm);
+        if (!existing) {
+          throw new HttpsError("not-found", "");
+        }
+        await tx.accessRequests.delete(emailNorm);
+      });
+    } catch (err) {
+      throw toHttpsError(err);
+    }
 
-    await getAuditRepository().record({
+    await repos.audit.record({
       actorUid,
       actorEmail,
       action: "access_request.reject",

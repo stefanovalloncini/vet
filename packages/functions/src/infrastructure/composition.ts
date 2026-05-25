@@ -4,6 +4,7 @@ import {
   type Repositories,
   type Tx,
 } from "@vet/shared";
+import { type Transaction } from "firebase-admin/firestore";
 import { adminDb } from "../admin/firebaseAdmin.js";
 import { FirestoreAccessRequestRepository } from "./firestore/AccessRequestRepository.js";
 import { FirestoreActivityTypesRepository } from "./firestore/ActivityTypesRepository.js";
@@ -20,18 +21,18 @@ import { FirestoreUserRepository } from "./firestore/UserRepository.js";
 
 let repositoriesCache: Repositories | null = null;
 
-function buildTx(): Tx {
+function buildTx(tx?: Transaction): Tx {
   return {
     clock: new SystemClock(),
     users: new FirestoreUserRepository(adminDb),
-    roles: new FirestoreRoleRepository(adminDb),
-    allowlist: new FirestoreAllowlistRepository(adminDb),
-    accessRequests: new FirestoreAccessRequestRepository(adminDb),
+    roles: new FirestoreRoleRepository(adminDb, tx),
+    allowlist: new FirestoreAllowlistRepository(adminDb, tx),
+    accessRequests: new FirestoreAccessRequestRepository(adminDb, tx),
     aziende: new FirestoreAziendeRepository(adminDb),
     activityTypes: new FirestoreActivityTypesRepository(adminDb),
     attivita: new FirestoreAttivitaRepository(adminDb),
     trash: new NotSupportedTrashService(),
-    audit: new FirestoreAuditRepository(adminDb),
+    audit: new FirestoreAuditRepository(adminDb, tx),
     conti: new FirestoreContiRepository(adminDb),
     reminders: new FirestoreRemindersRepository(adminDb),
     auth: new NotSupportedAuthService(),
@@ -40,11 +41,11 @@ function buildTx(): Tx {
 
 export function getRepositories(): Repositories {
   if (!repositoriesCache) {
-    const tx = buildTx();
+    const nonTx = buildTx();
     repositoriesCache = {
-      ...tx,
+      ...nonTx,
       run: <T>(work: (tx: Tx) => Promise<T>): Promise<T> =>
-        adminDb.runTransaction(async () => work(tx)),
+        adminDb.runTransaction((transaction) => work(buildTx(transaction))),
     };
   }
   return repositoriesCache;
@@ -52,4 +53,8 @@ export function getRepositories(): Repositories {
 
 export function getAuditRepository(): AuditRepository {
   return getRepositories().audit;
+}
+
+export function resetRepositoriesForTest(): void {
+  repositoriesCache = null;
 }

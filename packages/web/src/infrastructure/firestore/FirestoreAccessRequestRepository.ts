@@ -9,7 +9,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import type { AccessRequest, AccessRequestRepository } from "@vet/shared";
-import { parseAccessRequest } from "@vet/shared";
+import { PermissionDeniedError, parseAccessRequest } from "@vet/shared";
 
 const PAGE_SIZE = 200;
 
@@ -30,5 +30,17 @@ export class FirestoreAccessRequestRepository implements AccessRequestRepository
     const snap = await getDoc(doc(this.db, "accessRequests", emailNorm));
     if (!snap.exists()) return null;
     return parseAccessRequest(snap.id, snap.data());
+  }
+
+  async delete(): Promise<void> {
+    throw new PermissionDeniedError(
+      "accessRequests writes must originate from cloud functions"
+    );
+  }
+
+  async record(): Promise<never> {
+    throw new PermissionDeniedError(
+      "accessRequests writes must originate from cloud functions"
+    );
   }
 }

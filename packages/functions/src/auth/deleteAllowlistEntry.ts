@@ -1,7 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
-import { adminDb } from "../admin/firebaseAdmin.js";
-import { getAuditRepository } from "../infrastructure/composition.js";
+import { getRepositories } from "../infrastructure/composition.js";
 import { decodeCaps, normalizeEmail } from "@vet/shared";
 
 const inputSchema = z
@@ -43,9 +42,9 @@ export const deleteAllowlistEntry = onCall(
     }
 
     const emailNorm = normalizeEmail(email);
-    const ref = adminDb.collection("allowlist").doc(emailNorm);
+    const repos = getRepositories();
 
-    await getAuditRepository().record({
+    await repos.audit.record({
       actorUid: caller.uid,
       actorEmail: caller.email,
       action: "allowlist.delete",
@@ -54,7 +53,7 @@ export const deleteAllowlistEntry = onCall(
       details: { email },
     });
 
-    await ref.delete();
+    await repos.allowlist.remove(email);
 
     return { ok: true as const };
   }

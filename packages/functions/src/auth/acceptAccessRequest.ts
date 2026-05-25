@@ -1,30 +1,12 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
-import { Timestamp } from "firebase-admin/firestore";
-import { adminDb } from "../admin/firebaseAdmin.js";
-import { getAuditRepository } from "../infrastructure/composition.js";
+import { getRepositories } from "../infrastructure/composition.js";
+import { toHttpsError } from "../infrastructure/httpsErrors.js";
 import {
   acceptAccessRequestInputSchema,
   decodeCaps,
   normalizeEmail,
 } from "@vet/shared";
-
-interface BuildAllowlistInput {
-  email: string;
-  roleId: string;
-  actorUid: string;
-  now: Timestamp;
-}
-
-export function buildAllowlistEntry(input: BuildAllowlistInput) {
-  return {
-    email: input.email,
-    defaultRoleId: input.roleId,
-    invitedBy: input.actorUid,
-    invitedAt: input.now,
-    schemaVersion: 1,
-  };
-}
 
 export const acceptAccessRequest = onCall(
   { region: "europe-west8", enforceAppCheck: true },
@@ -43,40 +25,35 @@ export const acceptAccessRequest = onCall(
     }
 
     const emailNorm = normalizeEmail(input.email);
-    const requestRef = adminDb.collection("accessRequests").doc(emailNorm);
-    const allowRef = adminDb.collection("allowlist").doc(emailNorm);
-    const roleRef = adminDb.collection("roles").doc(input.roleId);
-
-    const now = Timestamp.now();
     const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
+    const repos = getRepositories();
 
-    await adminDb.runTransaction(async (tx) => {
-      const [requestSnap, roleSnap, allowSnap] = await Promise.all([
-        tx.get(requestRef),
-        tx.get(roleRef),
-        tx.get(allowRef),
-      ]);
-      if (!requestSnap.exists) {
-        throw new HttpsError("not-found", "");
-      }
-      if (!roleSnap.exists) {
-        throw new HttpsError("failed-precondition", "");
-      }
-      if (!allowSnap.exists) {
-        tx.set(
-          allowRef,
-          buildAllowlistEntry({
-            email: input.email,
-            roleId: input.roleId,
-            actorUid,
-            now,
-          })
-        );
-      }
-      tx.delete(requestRef);
-    });
+    try {
+      await repos.run(async (tx) => {
+        const [requestEntry, role, existingAllow] = await Promise.all([
+          tx.accessRequests.getByEmail(emailNorm),
+          tx.roles.getById(input.roleId),
+          tx.allowlist.getByEmail(input.email),
+        ]);
+        if (!requestEntry) {
+          throw new HttpsError("not-found", "");
+        }
+        if (!role) {
+          throw new HttpsError("failed-precondition", "");
+        }
+        if (!existingAllow) {
+          await tx.allowlist.add(
+            { email: input.email, defaultRoleId: input.roleId },
+            actorUid
+          );
+        }
+        await tx.accessRequests.delete(emailNorm);
+      });
+    } catch (err) {
+      throw toHttpsError(err);
+    }
 
-    await getAuditRepository().record({
+    await repos.audit.record({
       actorUid,
       actorEmail,
       action: "access_request.accept",

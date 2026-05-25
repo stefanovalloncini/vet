@@ -1,4 +1,8 @@
-import { FieldValue, type Firestore } from "firebase-admin/firestore";
+import {
+  FieldValue,
+  type Firestore,
+  type Transaction,
+} from "firebase-admin/firestore";
 import type {
   AuditEvent,
   AuditFilters,
@@ -8,9 +12,15 @@ import type {
 import { parseAuditEvent } from "@vet/shared";
 
 export class FirestoreAuditRepository implements AuditRepository {
-  constructor(private readonly db: Firestore) {}
+  constructor(
+    private readonly db: Firestore,
+    private readonly tx?: Transaction
+  ) {}
 
   async list(filters: AuditFilters = {}): Promise<AuditEvent[]> {
+    if (this.tx) {
+      throw new Error("AuditRepository.list is not supported in a transaction");
+    }
     let q: FirebaseFirestore.Query = this.db.collection("audit");
     if (filters.actorUid) q = q.where("actorUid", "==", filters.actorUid);
     if (filters.targetType)
@@ -23,7 +33,7 @@ export class FirestoreAuditRepository implements AuditRepository {
   }
 
   async record(event: AuditRecordInput): Promise<void> {
-    await this.db.collection("audit").add({
+    const payload = {
       at: FieldValue.serverTimestamp(),
       actorUid: event.actorUid,
       actorEmail: event.actorEmail,
@@ -31,6 +41,12 @@ export class FirestoreAuditRepository implements AuditRepository {
       targetType: event.targetType,
       targetId: event.targetId,
       ...(event.details !== undefined ? { details: event.details } : {}),
-    });
+    };
+    if (this.tx) {
+      const ref = this.db.collection("audit").doc();
+      this.tx.set(ref, payload);
+      return;
+    }
+    await this.db.collection("audit").add(payload);
   }
 }

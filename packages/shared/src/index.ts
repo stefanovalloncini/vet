@@ -105,7 +105,10 @@ export type { Attivita } from "./domain/entities/Attivita.js";
 export type { UserRepository } from "./domain/ports/UserRepository.js";
 export type { RoleRepository } from "./domain/ports/RoleRepository.js";
 export type { AllowlistRepository } from "./domain/ports/AllowlistRepository.js";
-export type { AccessRequestRepository } from "./domain/ports/AccessRequestRepository.js";
+export type {
+  AccessRequestRepository,
+  AccessRequestRecordResult,
+} from "./domain/ports/AccessRequestRepository.js";
 export type { AziendeRepository } from "./domain/ports/AziendeRepository.js";
 export type { ActivityTypesRepository } from "./domain/ports/ActivityTypesRepository.js";
 export type {
@@ -159,7 +162,11 @@ export {
 export {
   accessRequestDtoSchema,
   parseAccessRequest,
+  decideAccessRequestUpdate,
   type AccessRequestDTO,
+  type AccessRequestRecordInput,
+  type AccessRequestDecision,
+  type AccessRequestExisting,
 } from "./firestore-dto/accessRequest.js";
 export {
   reminderDtoSchema,
