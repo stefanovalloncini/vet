@@ -9,8 +9,8 @@ import {
   Select,
 } from "../../../shared/ui";
 import { useVetStats } from "../hooks/useVetStats";
-import { formatEuro } from "../../attivita/lib/format";
-import { BarChart } from "../../dashboard/ui/BarChart";
+import { formatEuro } from "../../../shared/lib/format";
+import { BarChart } from "../../../shared/ui/charts/BarChart";
 
 type Range = "month" | "year" | "all";
 

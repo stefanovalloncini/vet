@@ -9,6 +9,7 @@ import { FirestoreActivityTypesRepository } from "../firestore/FirestoreActivity
 import { FirestoreAttivitaRepository } from "../firestore/FirestoreAttivitaRepository";
 import { FirestoreAuditRepository } from "../firestore/FirestoreAuditRepository";
 import { FirestorePaymentsRepository } from "../firestore/FirestorePaymentsRepository";
+import { FirestoreContiRepository } from "../firestore/FirestoreContiRepository";
 import { FirestoreRemindersRepository } from "../firestore/FirestoreRemindersRepository";
 import { FirebaseAuthService } from "../firebase/FirebaseAuthService";
 import { FirebaseTrashService } from "../firebase/FirebaseTrashService";
@@ -29,6 +30,7 @@ export function createFirestoreRepositories(): Repositories {
     trash: new FirebaseTrashService(functions),
     audit: new FirestoreAuditRepository(firestore),
     payments: new FirestorePaymentsRepository(firestore),
+    conti: new FirestoreContiRepository(firestore),
     reminders: new FirestoreRemindersRepository(firestore),
     auth: new FirebaseAuthService(auth, firestore),
   };

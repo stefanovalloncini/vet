@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import type { Attivita } from "@vet/shared";
 import { EmptyState } from "../../../shared/ui";
 import { attivitaI18n as t } from "../i18n";
-import { formatEuro } from "../lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import type { Group } from "../lib/totals";
 import { AttivitaRow } from "./AttivitaRow";
 

@@ -1,9 +1,12 @@
 import { z } from "zod";
 import { safeName } from "./safeString.js";
+import { metodoPagamentoSchema } from "./money.js";
 
-export const METODI_PAGAMENTO = ["bonifico", "contanti", "altro"] as const;
-export type MetodoPagamento = (typeof METODI_PAGAMENTO)[number];
-export const metodoPagamentoSchema = z.enum(METODI_PAGAMENTO);
+export {
+  METODI_PAGAMENTO,
+  metodoPagamentoSchema,
+  type MetodoPagamento,
+} from "./money.js";
 
 export const paymentInputSchema = z
   .object({

@@ -1,6 +1,6 @@
 import { SectionLabel } from "../../../shared/ui";
 import { attivitaI18n as t } from "../i18n";
-import { formatEuro } from "../lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import type { computeTotals } from "../lib/totals";
 
 export function AttivitaTotalsBar({

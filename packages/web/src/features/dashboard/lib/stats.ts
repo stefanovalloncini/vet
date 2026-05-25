@@ -83,8 +83,9 @@ export function trailingMonths(
   items: Attivita[],
   now: Date,
   months = 12
-): { totals: number[]; labels: string[] } {
+): { totals: number[]; counts: number[]; labels: string[] } {
   const totals: number[] = [];
+  const counts: number[] = [];
   const labels: string[] = [];
   for (let i = months - 1; i >= 0; i--) {
     const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -98,13 +99,16 @@ export function trailingMonths(
       999
     );
     let sum = 0;
+    let count = 0;
     for (const a of items) {
       if (a.data.getTime() >= start.getTime() && a.data.getTime() <= end.getTime()) {
         sum += a.totale;
+        count += 1;
       }
     }
     totals.push(Math.round(sum * 100) / 100);
+    counts.push(count);
     labels.push(SHORT_MONTHS[start.getMonth()]!);
   }
-  return { totals, labels };
+  return { totals, counts, labels };
 }

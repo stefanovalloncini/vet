@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ClipboardList, Euro, Bell } from "lucide-react";
 import { Card, EmptyState } from "../../../shared/ui";
 import { useReminders } from "../../reminders/hooks/useReminders";
-import { formatDate, formatEuro } from "../../attivita/lib/format";
+import { formatDate, formatEuro } from "../../../shared/lib/format";
 import type { Attivita, Payment } from "@vet/shared";
 
 export function StoricoTab({ items }: { items: Attivita[] }) {

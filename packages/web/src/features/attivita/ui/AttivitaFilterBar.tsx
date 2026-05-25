@@ -1,6 +1,6 @@
 import { Select, TextField } from "../../../shared/ui";
 import { attivitaI18n as t } from "../i18n";
-import { dateInputValue } from "../lib/format";
+import { dateInputValue } from "../../../shared/lib/format";
 import type { GroupKey } from "../lib/totals";
 
 const QUICK_RANGES = [
@@ -58,9 +58,11 @@ interface AttivitaFilterBarProps {
   to: string;
   aziendaId: string;
   tipoId: string;
+  vetUid: string;
   group: GroupKey;
   aziendaOptions: ReadonlyArray<{ value: string; label: string }>;
   tipoOptions: ReadonlyArray<{ value: string; label: string }>;
+  vetOptions: ReadonlyArray<{ value: string; label: string }>;
   groupOptions: ReadonlyArray<{ value: string; label: string }>;
   onChange: (key: string, value: string) => void;
 }
@@ -137,6 +139,13 @@ export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
           value={props.tipoId}
           options={props.tipoOptions}
           onChange={(e) => props.onChange("tipo", e.target.value)}
+        />
+        <Select
+          id="filtro-vet"
+          label={t.filtroVet}
+          value={props.vetUid}
+          options={props.vetOptions}
+          onChange={(e) => props.onChange("vet", e.target.value)}
         />
         <Select
           id="raggruppa"

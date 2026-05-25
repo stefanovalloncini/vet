@@ -11,7 +11,7 @@ import {
   type MetodoPagamento,
   type PaymentInput,
 } from "@vet/shared";
-import { dateInputValue, parseDateInput } from "../../attivita/lib/format";
+import { dateInputValue, parseDateInput } from "../../../shared/lib/format";
 import { useCreatePayment } from "../hooks/usePayments";
 import type { AziendaArrears } from "../lib/arrears";
 

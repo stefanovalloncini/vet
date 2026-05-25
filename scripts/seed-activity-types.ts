@@ -7,17 +7,16 @@ await runScript({
   run: async () => {
     const db = getFirestore();
     for (const t of ACTIVITY_TYPE_SEEDS) {
-      await db.collection("activity_types").doc(t.id).set(
-        {
-          nome: t.nome,
-          ordine: t.ordine,
-          attivo: true,
-          createdAt: FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp(),
-          schemaVersion: 1,
-        },
-        { merge: true }
-      );
+      const payload: Record<string, unknown> = {
+        nome: t.nome,
+        ordine: t.ordine,
+        attivo: true,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        schemaVersion: 1,
+      };
+      if (t.tariffaStandard !== undefined) payload["tariffaStandard"] = t.tariffaStandard;
+      await db.collection("activity_types").doc(t.id).set(payload, { merge: true });
       process.stdout.write(`seeded type ${t.id}\n`);
     }
   },

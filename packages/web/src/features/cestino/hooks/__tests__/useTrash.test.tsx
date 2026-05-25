@@ -45,7 +45,7 @@ async function seedDeleted(repos: Repositories): Promise<{
       data: new Date(2026, 4, 10),
       aziendaId,
       tipoId: "visita",
-      oraria: false,
+      oraria: false, adElemento: false,
       tariffa: 50,
     },
     { aziendaNome: "Azienda A", tipoNome: "Visita" },

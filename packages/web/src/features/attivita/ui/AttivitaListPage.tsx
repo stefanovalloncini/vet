@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { AppShell, Button } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useAttivita } from "../hooks/useAttivita";
 import { useAttivitaFilters } from "../hooks/useAttivitaFilters";
 import { useReferenceData } from "../hooks/useReferenceData";
+import { useVetOptions } from "../hooks/useVetOptions";
 import { attivitaI18n as t } from "../i18n";
 import { computeTotals, groupAttivita } from "../lib/totals";
 import { AttivitaTotalsBar } from "./AttivitaTotalsBar";
-import { AttivitaFilterBar, AttivitaQuickRanges } from "./AttivitaFilterBar";
+import {
+  AttivitaFilterBar,
+  AttivitaQuickRanges,
+} from "./AttivitaFilterBar";
 import { AttivitaGroups } from "./AttivitaGroups";
 import { ExportDialog } from "./ExportDialog";
 
@@ -22,10 +25,11 @@ const groupOptions = [
 export function AttivitaListPage() {
   const { user } = useAuthState();
   const ref = useReferenceData();
+  const vets = useVetOptions();
   const [showExport, setShowExport] = useState(false);
-  const fs = useAttivitaFilters({ ownerUid: user?.uid });
+  const fs = useAttivitaFilters();
   const attivitaQuery = useAttivita(fs.filters);
-  const items = attivitaQuery.data ?? [];
+  const items = attivitaQuery.items;
 
   const totals = useMemo(() => computeTotals(items), [items]);
   const groups = useMemo(() => groupAttivita(items, fs.group), [items, fs.group]);
@@ -47,25 +51,28 @@ export function AttivitaListPage() {
     ],
     [ref.tipi]
   );
+  const vetOptions = useMemo(
+    () => [
+      { value: "", label: t.filtroTutti },
+      ...vets.map((v) => ({ value: v.uid, label: v.nome })),
+    ],
+    [vets]
+  );
 
   return (
     <AppShell>
-      <ListHeader
-        mineOnly={fs.mineOnly}
-        canCreate={canCreate}
-        canExport={canExport}
-        onToggleMine={(v) => fs.setParam("mine", v ? "1" : "")}
-        onExport={() => setShowExport(true)}
-      />
+      <ListHeader canExport={canExport} onExport={() => setShowExport(true)} />
       <AttivitaQuickRanges from={fs.from} to={fs.to} onChange={fs.setParam} />
       <AttivitaFilterBar
         from={fs.from}
         to={fs.to}
         aziendaId={fs.aziendaId}
         tipoId={fs.tipoId}
+        vetUid={fs.vetUid}
         group={fs.group}
         aziendaOptions={aziendaOptions}
         tipoOptions={tipoOptions}
+        vetOptions={vetOptions}
         groupOptions={groupOptions}
         onChange={fs.setParam}
       />
@@ -84,43 +91,22 @@ export function AttivitaListPage() {
 }
 
 interface ListHeaderProps {
-  mineOnly: boolean;
-  canCreate: boolean;
   canExport: boolean;
-  onToggleMine: (next: boolean) => void;
   onExport: () => void;
 }
 
-function ListHeader({ mineOnly, canCreate, canExport, onToggleMine, onExport }: ListHeaderProps) {
+function ListHeader({ canExport, onExport }: ListHeaderProps) {
   return (
     <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
       <div>
         <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">{t.title}</h1>
         <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
       </div>
-      <div className="flex items-center gap-2">
-        <label className="flex items-center gap-2 text-xs text-(--color-text-muted) cursor-pointer mr-2">
-          <input
-            type="checkbox"
-            checked={mineOnly}
-            onChange={(e) => onToggleMine(e.target.checked)}
-            className="w-4 h-4 accent-(--color-accent)"
-          />
-          Solo mie
-        </label>
-        {canExport ? (
-          <Button type="button" variant="secondary" onClick={onExport}>
-            {t.esporta}
-          </Button>
-        ) : null}
-        {canCreate ? (
-          <Link to="/attivita/nuova">
-            <Button type="button" variant="primary">
-              {t.nuovaAttivita}
-            </Button>
-          </Link>
-        ) : null}
-      </div>
+      {canExport ? (
+        <Button type="button" variant="secondary" onClick={onExport}>
+          {t.esporta}
+        </Button>
+      ) : null}
     </header>
   );
 }

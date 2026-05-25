@@ -6,7 +6,7 @@ import {
   type ActorContext,
   type Azienda,
 } from "@vet/shared";
-import { dateInputValue, parseDateInput } from "../../attivita/lib/format";
+import { dateInputValue, parseDateInput } from "../../../shared/lib/format";
 import { remindersI18n as t } from "../i18n";
 import { addDays } from "../lib/dates";
 import { useCreateReminder } from "./useReminders";

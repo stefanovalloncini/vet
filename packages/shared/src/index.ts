@@ -76,8 +76,11 @@ export {
   slugify,
   ACTIVITY_TYPE_SEEDS,
   GINECOLOGIA_TIPO_ID,
+  ALTRO_TIPO_ID,
+  modalitaSchema,
   type ActivityTypeInput,
   type ActivityTypeDoc,
+  type Modalita,
 } from "./domain/schemas/activityType.js";
 export {
   attivitaInputSchema,
@@ -119,6 +122,24 @@ export {
   type PaymentDoc,
   type MetodoPagamento,
 } from "./domain/schemas/payment.js";
+export type { Conto } from "./domain/entities/Conto.js";
+export type { ContiRepository } from "./domain/ports/ContiRepository.js";
+export {
+  contoDtoSchema,
+  parseConto,
+  type ContoDTO,
+} from "./firestore-dto/conto.js";
+export {
+  contoEmitInputSchema,
+  contoSaldoInputSchema,
+  contoDocSchema,
+  contoModalitaSchema,
+  CONTO_MODALITA,
+  type ContoEmitInput,
+  type ContoSaldoInput,
+  type ContoDoc,
+  type ContoModalita,
+} from "./domain/schemas/conto.js";
 export type { Reminder } from "./domain/entities/Reminder.js";
 export type { RemindersRepository } from "./domain/ports/RemindersRepository.js";
 export {

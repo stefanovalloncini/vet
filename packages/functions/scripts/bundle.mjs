@@ -19,6 +19,9 @@ const externals = [
   "zod",
   "@google-cloud/billing",
   "@google-cloud/*",
+  "googleapis",
+  "googleapis/*",
+  "google-auth-library",
 ];
 
 await build({
@@ -47,6 +50,7 @@ const deployPkg = {
     "@google-cloud/billing": orig.dependencies["@google-cloud/billing"],
     "firebase-admin": orig.dependencies["firebase-admin"],
     "firebase-functions": orig.dependencies["firebase-functions"],
+    googleapis: orig.dependencies.googleapis,
     zod: orig.dependencies.zod,
   },
   overrides: {

@@ -1,6 +1,6 @@
 import type { Attivita } from "@vet/shared";
 import { Button, Card } from "../../../shared/ui";
-import { formatDate, formatEuro } from "../../attivita/lib/format";
+import { formatDate, formatEuro } from "../../../shared/lib/format";
 import { cestinoI18n as t } from "../i18n";
 
 interface CestinoRowProps {

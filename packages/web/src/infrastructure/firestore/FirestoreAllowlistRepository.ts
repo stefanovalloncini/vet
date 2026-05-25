@@ -14,6 +14,7 @@ import type {
   AllowlistRepository,
 } from "@vet/shared";
 import { normalizeEmail } from "@vet/shared";
+import { toDate } from "./timestamps";
 
 export class FirestoreAllowlistRepository implements AllowlistRepository {
   constructor(private readonly db: Firestore) {}
@@ -61,12 +62,4 @@ export class FirestoreAllowlistRepository implements AllowlistRepository {
       schemaVersion: 1,
     };
   }
-}
-
-function toDate(value: unknown): Date {
-  if (value instanceof Date) return value;
-  if (value && typeof value === "object" && "toDate" in value) {
-    return (value as { toDate: () => Date }).toDate();
-  }
-  return new Date(0);
 }

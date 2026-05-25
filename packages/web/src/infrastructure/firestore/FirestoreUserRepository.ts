@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import type { User, UserRepository } from "@vet/shared";
+import { toDate } from "./timestamps";
 
 export class FirestoreUserRepository implements UserRepository {
   constructor(private readonly db: Firestore) {}
@@ -57,17 +58,4 @@ export class FirestoreUserRepository implements UserRepository {
       schemaVersion: 1,
     };
   }
-}
-
-function toDate(value: unknown): Date {
-  if (value instanceof Date) return value;
-  if (
-    value &&
-    typeof value === "object" &&
-    "toDate" in value &&
-    typeof (value as { toDate: () => Date }).toDate === "function"
-  ) {
-    return (value as { toDate: () => Date }).toDate();
-  }
-  return new Date(0);
 }

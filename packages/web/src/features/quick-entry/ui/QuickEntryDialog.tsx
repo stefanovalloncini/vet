@@ -13,7 +13,7 @@ import { useReferenceData } from "../../attivita/hooks/useReferenceData";
 import { QuickAddAziendaDialog } from "../../aziende/ui/QuickAddAziendaDialog";
 import { QuickAddTipoDialog } from "../../activity-types/ui/QuickAddTipoDialog";
 import { nextOrdine } from "../../activity-types/lib/ordine";
-import { formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import { useUndoCreateAttivita } from "../hooks/useUndoCreateAttivita";
 import {
   useQuickEntryFormState,

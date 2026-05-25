@@ -42,7 +42,7 @@ async function seedActivity(
     attivo: true,
   });
   await repos.attivita.create(
-    { data, aziendaId, tipoId: "visita", oraria: false, tariffa },
+    { data, aziendaId, tipoId: "visita", oraria: false, adElemento: false, tariffa },
     { aziendaNome: "Az A", tipoNome: "Visita" },
     actor
   );

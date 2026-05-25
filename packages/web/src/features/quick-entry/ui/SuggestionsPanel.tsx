@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Tabs, type TabItem } from "../../../shared/ui";
-import { formatEuro } from "../../attivita/lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import type { Combo, ComputeCombosResult } from "../lib/recentCombos";
 import { formatRelativeDay } from "../lib/formatRelativeDay";
 

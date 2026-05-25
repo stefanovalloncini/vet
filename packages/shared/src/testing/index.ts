@@ -9,5 +9,6 @@ export { InMemoryAttivitaRepository } from "./InMemoryAttivitaRepository.js";
 export { InMemoryTrashService } from "./InMemoryTrashService.js";
 export { InMemoryAuditRepository } from "./InMemoryAuditRepository.js";
 export { InMemoryPaymentsRepository } from "./InMemoryPaymentsRepository.js";
+export { InMemoryContiRepository } from "./InMemoryContiRepository.js";
 export { InMemoryRemindersRepository } from "./InMemoryRemindersRepository.js";
 export { InMemoryAuthService } from "./InMemoryAuthService.js";

@@ -3,7 +3,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { Card, SectionLabel } from "../../../shared/ui";
 import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { attivitaI18n as t } from "../i18n";
-import { formatEuro } from "../lib/format";
+import { formatEuro } from "../../../shared/lib/format";
 import type { AttivitaFormValues } from "../lib/formSchema";
 import { AttivitaReminderField } from "./AttivitaReminderField";
 
@@ -30,6 +30,7 @@ export function AttivitaFormFields({
 }: AttivitaFormFieldsProps) {
   const { control, register, setValue } = useFormContext<AttivitaFormValues>();
   const oraria = useWatch({ control, name: "oraria" });
+  const adElemento = useWatch({ control, name: "adElemento" });
 
   return (
     <Card>
@@ -58,31 +59,60 @@ export function AttivitaFormFields({
           action={tipoAction}
         />
 
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            {...register("oraria", {
-              onChange: (e) => {
-                if (!(e.target as HTMLInputElement).checked) {
-                  setValue("ore", "", { shouldValidate: false });
-                }
-              },
-            })}
-            disabled={busy}
-            className="w-4 h-4 accent-(--color-accent)"
-          />
-          <span className="text-sm text-(--color-text)">{t.campoOraria}</span>
-        </label>
-        <p className="text-xs text-(--color-text-subtle) -mt-3 ml-7">
-          {t.campoOrariaHint}
-        </p>
+        <div className="space-y-2">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              {...register("oraria", {
+                onChange: (e) => {
+                  const checked = (e.target as HTMLInputElement).checked;
+                  if (!checked) setValue("ore", "", { shouldValidate: false });
+                  if (checked) {
+                    setValue("adElemento", false, { shouldValidate: false });
+                    setValue("elementi", "", { shouldValidate: false });
+                  }
+                },
+              })}
+              disabled={busy}
+              className="w-4 h-4 accent-(--color-accent)"
+            />
+            <span className="text-sm text-(--color-text)">{t.campoOraria}</span>
+          </label>
+          <p className="text-xs text-(--color-text-subtle) ml-7">
+            {t.campoOrariaHint}
+          </p>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              {...register("adElemento", {
+                onChange: (e) => {
+                  const checked = (e.target as HTMLInputElement).checked;
+                  if (!checked)
+                    setValue("elementi", "", { shouldValidate: false });
+                  if (checked) {
+                    setValue("oraria", false, { shouldValidate: false });
+                    setValue("ore", "", { shouldValidate: false });
+                  }
+                },
+              })}
+              disabled={busy}
+              className="w-4 h-4 accent-(--color-accent)"
+            />
+            <span className="text-sm text-(--color-text)">
+              {t.campoAdElemento}
+            </span>
+          </label>
+          <p className="text-xs text-(--color-text-subtle) ml-7">
+            {t.campoAdElementoHint}
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <RHFTextField<AttivitaFormValues>
             name="tariffa"
             type="number"
-            step="0.01"
-            min="0.01"
+            step="10"
+            min="1"
             max="100000"
             label={t.campoTariffa}
             required
@@ -97,6 +127,18 @@ export function AttivitaFormFields({
               min="0.25"
               max="24"
               label={t.campoOre}
+              required
+              disabled={busy}
+            />
+          ) : null}
+          {adElemento ? (
+            <RHFTextField<AttivitaFormValues>
+              name="elementi"
+              type="number"
+              step="1"
+              min="1"
+              max="10000"
+              label={t.campoElementi}
               required
               disabled={busy}
             />

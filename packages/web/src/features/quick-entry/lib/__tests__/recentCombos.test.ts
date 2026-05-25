@@ -10,7 +10,7 @@ function make(overrides: Partial<Attivita> = {}): Attivita {
     aziendaNome: "Bianchi",
     tipoId: "tp1",
     tipoNome: "Visita",
-    oraria: false,
+    oraria: false, adElemento: false,
     tariffa: 40,
     totale: 40,
     ownerUid: "u1",

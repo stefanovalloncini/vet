@@ -7,7 +7,7 @@ import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useReferenceData } from "../hooks/useReferenceData";
 import { attivitaI18n as t } from "../i18n";
 import { csvFilename, downloadCsv, toCsvItalian } from "../lib/csv";
-import { parseDateInput } from "../lib/format";
+import { parseDateInput } from "../../../shared/lib/format";
 
 const formSchema = z.object({
   from: z.string(),

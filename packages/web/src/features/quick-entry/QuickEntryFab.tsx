@@ -30,7 +30,7 @@ export function QuickEntryFab() {
         type="button"
         aria-label="Voce rapida"
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-5 sm:bottom-5 z-30 w-12 h-12 rounded-full bg-(--color-accent) text-white shadow-lg hover:bg-(--color-accent-hover) print:hidden flex items-center justify-center"
+        className="fixed right-5 bottom-[var(--fab-bottom)] sm:bottom-5 z-30 w-12 h-12 rounded-full bg-(--color-accent) text-white shadow-lg hover:bg-(--color-accent-hover) print:hidden flex items-center justify-center"
       >
         <Plus size={22} strokeWidth={2} aria-hidden="true" />
       </button>

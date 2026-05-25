@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ALTRO_TIPO_ID } from "./activityType.js";
 import { safeName } from "./safeString.js";
 
 function hasAtMostTwoDecimals(n: number): boolean {
@@ -12,18 +13,28 @@ const tariffaSchema = z
   .refine(hasAtMostTwoDecimals, { message: "Massimo 2 decimali" });
 
 const oreSchema = z.number().positive().max(24);
+const elementiSchema = z.number().int().positive().max(10_000);
 
 const inputBase = z.object({
   data: z.date(),
   aziendaId: z.string().min(1).max(64),
   tipoId: z.string().min(1).max(64),
   oraria: z.boolean(),
+  adElemento: z.boolean().default(false),
   tariffa: tariffaSchema,
   ore: oreSchema.optional(),
+  elementi: elementiSchema.optional(),
   note: z.string().max(2000).optional(),
 });
 
 export const attivitaInputSchema = inputBase.strict().superRefine((val, ctx) => {
+  if (val.oraria && val.adElemento) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["adElemento"],
+      message: "Non si può essere oraria e ad elemento insieme",
+    });
+  }
   if (val.oraria && val.ore === undefined) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -38,6 +49,27 @@ export const attivitaInputSchema = inputBase.strict().superRefine((val, ctx) => 
       message: "Le ore non vanno indicate quando oraria=false",
     });
   }
+  if (val.adElemento && val.elementi === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["elementi"],
+      message: "Gli elementi sono obbligatori quando adElemento=true",
+    });
+  }
+  if (!val.adElemento && val.elementi !== undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["elementi"],
+      message: "Gli elementi non vanno indicati quando adElemento=false",
+    });
+  }
+  if (val.tipoId === ALTRO_TIPO_ID && (val.note === undefined || val.note.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["note"],
+      message: "La nota è obbligatoria per il tipo 'Altro'",
+    });
+  }
 });
 
 export const attivitaDocSchema = z
@@ -48,8 +80,10 @@ export const attivitaDocSchema = z
     tipoId: z.string().min(1).max(64),
     tipoNome: z.string().min(1).max(80),
     oraria: z.boolean(),
+    adElemento: z.boolean().default(false),
     tariffa: tariffaSchema,
     ore: oreSchema.optional(),
+    elementi: elementiSchema.optional(),
     totale: z.number().nonnegative().max(2_400_000),
     note: z.string().max(2000).optional(),
     ownerUid: z.string().min(1).max(128),
@@ -71,11 +105,18 @@ export type AttivitaDoc = z.infer<typeof attivitaDocSchema>;
 
 export function computeTotale(input: {
   oraria: boolean;
+  adElemento?: boolean;
   tariffa: number;
   ore?: number | undefined;
+  elementi?: number | undefined;
 }): number {
-  const raw = input.oraria && input.ore !== undefined
-    ? input.tariffa * input.ore
-    : input.tariffa;
+  let raw: number;
+  if (input.oraria && input.ore !== undefined) {
+    raw = input.tariffa * input.ore;
+  } else if (input.adElemento && input.elementi !== undefined) {
+    raw = input.tariffa * input.elementi;
+  } else {
+    raw = input.tariffa;
+  }
   return Math.round(raw * 100) / 100;
 }

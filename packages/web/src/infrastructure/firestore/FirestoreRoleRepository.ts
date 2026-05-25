@@ -9,6 +9,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import type { Capability, Role, RoleInput, RoleRepository } from "@vet/shared";
+import { toDate } from "./timestamps";
 
 function nameKey(name: string): string {
   return name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-");
@@ -99,12 +100,4 @@ export class FirestoreRoleRepository implements RoleRepository {
       schemaVersion: 1,
     };
   }
-}
-
-function toDate(value: unknown): Date {
-  if (value instanceof Date) return value;
-  if (value && typeof value === "object" && "toDate" in value) {
-    return (value as { toDate: () => Date }).toDate();
-  }
-  return new Date(0);
 }

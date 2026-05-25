@@ -1,4 +1,4 @@
-import { formatDate, formatEuro } from "../../attivita/lib/format";
+import { formatDate, formatEuro } from "../../../shared/lib/format";
 import { riepilogoI18n as t } from "../i18n";
 import type { RiepilogoSummary } from "../hooks/useRiepilogoPdf";
 

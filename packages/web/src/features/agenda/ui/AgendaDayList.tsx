@@ -3,7 +3,7 @@ import { Card, LoadingHint } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import type { Attivita } from "@vet/shared";
 import { agendaI18n as t } from "../i18n";
-import { dateInputValue, formatEuro } from "../../attivita/lib/format";
+import { dateInputValue, formatEuro } from "../../../shared/lib/format";
 
 interface AgendaDayListProps {
   readonly date: Date;
@@ -33,15 +33,6 @@ export function AgendaDayList({ date, items, loading = false }: AgendaDayListPro
           {formatHeading(date)}
         </h2>
         <div className="flex items-center gap-3 shrink-0">
-          {dayItems.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="text-sm text-(--color-text-muted) hover:text-(--color-text) print:hidden transition-colors"
-            >
-              Stampa
-            </button>
-          ) : null}
           {canCreate ? (
             <Link
               to={`/attivita/nuova?data=${dateInputValue(date)}`}
