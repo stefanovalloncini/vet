@@ -1,5 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { dateInputValue } from "../../../shared/lib/format";
+import { defaultPeriodoFor } from "../../conti";
 import { useRiepilogoPdf } from "../hooks/useRiepilogoPdf";
 import { RiepilogoFilters } from "./RiepilogoFilters";
 import { RiepilogoPreview } from "./RiepilogoPreview";
@@ -22,11 +24,29 @@ export function RiepilogoPdfPage() {
     [params, setParams]
   );
 
+  const setPeriodRange = useCallback(
+    (from: Date, to: Date) => {
+      const next = new URLSearchParams(params);
+      next.set("from", dateInputValue(from));
+      next.set("to", dateInputValue(to));
+      setParams(next, { replace: true });
+    },
+    [params, setParams]
+  );
+
   const { loading, error, summary, generatePdf, shareWhatsApp } = useRiepilogoPdf({
     aziendaId: id ?? "",
     fromStr,
     toStr,
   });
+
+  useEffect(() => {
+    if (fromStr || toStr) return;
+    const azienda = summary?.azienda;
+    if (!azienda) return;
+    const defaults = defaultPeriodoFor(azienda);
+    setPeriodRange(defaults.from, defaults.to);
+  }, [summary?.azienda, fromStr, toStr, setPeriodRange]);
 
   if (loading) {
     return (
@@ -55,6 +75,10 @@ export function RiepilogoPdfPage() {
           from={fromStr}
           to={toStr}
           onPeriodChange={setPeriod}
+          onPeriodRange={setPeriodRange}
+          {...(summary.azienda.cadenzaFatturazione
+            ? { cadenza: summary.azienda.cadenzaFatturazione }
+            : {})}
         />
         <RiepilogoPreview summary={summary} />
       </div>

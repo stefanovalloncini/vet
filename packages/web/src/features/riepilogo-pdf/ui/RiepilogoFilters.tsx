@@ -1,5 +1,8 @@
 import { Printer, Share2 } from "lucide-react";
-import { Button, TextField } from "../../../shared/ui";
+import type { CadenzaFatturazione } from "@vet/shared";
+import { Button } from "../../../shared/ui";
+import { PeriodPicker } from "../../conti";
+import { dateInputValue } from "../../../shared/lib/format";
 import { riepilogoI18n as t } from "../i18n";
 
 interface RiepilogoFiltersProps {
@@ -10,6 +13,8 @@ interface RiepilogoFiltersProps {
   from: string;
   to: string;
   onPeriodChange: (key: "from" | "to", value: string) => void;
+  onPeriodRange?: (from: Date, to: Date) => void;
+  cadenza?: CadenzaFatturazione;
 }
 
 export function RiepilogoFilters({
@@ -20,7 +25,18 @@ export function RiepilogoFilters({
   from,
   to,
   onPeriodChange,
+  onPeriodRange,
+  cadenza,
 }: RiepilogoFiltersProps) {
+  function handleRange(nextFrom: Date, nextTo: Date): void {
+    if (onPeriodRange) {
+      onPeriodRange(nextFrom, nextTo);
+      return;
+    }
+    onPeriodChange("from", dateInputValue(nextFrom));
+    onPeriodChange("to", dateInputValue(nextTo));
+  }
+
   return (
     <div className="mb-6 print:hidden">
       <button
@@ -31,24 +47,19 @@ export function RiepilogoFilters({
         <span aria-hidden="true">←</span>
         <span>{t.back}</span>
       </button>
-      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="grid grid-cols-2 gap-3 max-w-md">
-          <TextField
-            id="riepilogo-from"
-            type="date"
-            label={t.filtroDa}
-            value={from}
-            onChange={(e) => onPeriodChange("from", e.target.value)}
-          />
-          <TextField
-            id="riepilogo-to"
-            type="date"
-            label={t.filtroA}
-            value={to}
-            onChange={(e) => onPeriodChange("to", e.target.value)}
+
+      <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex-1 max-w-xl">
+          <PeriodPicker
+            from={from}
+            to={to}
+            onChange={handleRange}
+            onCustomFromChange={(v) => onPeriodChange("from", v)}
+            onCustomToChange={(v) => onPeriodChange("to", v)}
+            {...(cadenza ? { cadenza } : {})}
           />
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap lg:flex-shrink-0">
           {canShare ? (
             <Button
               type="button"
