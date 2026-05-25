@@ -35,8 +35,24 @@ export function QuickEntryFab() {
   useEffect(() => {
     if (!enabled) return undefined;
     const handler = () => setOpen(true);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "n" && e.key !== "N") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target;
+      if (target instanceof HTMLElement) {
+        const tag = target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (target.isContentEditable) return;
+      }
+      e.preventDefault();
+      setOpen(true);
+    };
     window.addEventListener(QUICK_ENTRY_OPEN_EVENT, handler);
-    return () => window.removeEventListener(QUICK_ENTRY_OPEN_EVENT, handler);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener(QUICK_ENTRY_OPEN_EVENT, handler);
+      window.removeEventListener("keydown", onKey);
+    };
   }, [enabled]);
 
   if (!enabled) return null;

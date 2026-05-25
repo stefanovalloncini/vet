@@ -8,6 +8,7 @@ interface Shortcut {
 
 const SHORTCUTS: ReadonlyArray<Shortcut> = [
   { keys: ["⌘", "K"], description: "Apri la ricerca rapida" },
+  { keys: ["N"], description: "Aggiungi una nuova attività" },
   { keys: ["?"], description: "Mostra questa lista di scorciatoie" },
   { keys: ["Esc"], description: "Chiudi dialoghi e popup" },
 ];
