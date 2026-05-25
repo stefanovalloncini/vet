@@ -7,6 +7,7 @@ interface DialogProps {
   describedBy?: string;
   size?: "sm" | "md" | "lg";
   sheet?: boolean;
+  showHandle?: boolean;
   children: ReactNode;
   className?: string;
 }
@@ -26,6 +27,7 @@ export function Dialog({
   describedBy,
   size = "md",
   sheet = true,
+  showHandle = false,
   children,
   className = "",
 }: DialogProps) {
@@ -80,6 +82,11 @@ export function Dialog({
         tabIndex={-1}
         className={`${surfaceShape} bg-(--color-surface) border border-(--color-border) shadow-[var(--shadow-popover)] animate-scale-in overflow-hidden focus:outline-none ${className}`}
       >
+        {showHandle && sheet ? (
+          <div className="sm:hidden flex justify-center pt-2 pb-1" aria-hidden="true">
+            <span className="block h-1 w-10 rounded-full bg-(--color-border-strong)" />
+          </div>
+        ) : null}
         {children}
       </div>
     </div>

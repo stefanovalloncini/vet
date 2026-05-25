@@ -4,8 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import {
+  ALTRO_TIPO_ID,
   GINECOLOGIA_TIPO_ID,
   attivitaInputSchema,
+  modalitaSchema,
   type ActorContext,
   type Attivita,
   type AttivitaInput,
@@ -30,28 +32,79 @@ import {
   defaultTariffaForTipo,
   hasDuplicateAttivita,
   parseTariffa,
+  sortTipiForQuickEntry,
 } from "../lib/quickEntryHelpers";
 import { computeCombos, type ComputeCombosResult } from "../lib/recentCombos";
 
 const RECENT_AZIENDE_LIMIT = 6;
 
-const formSchema = z.object({
-  data: z.string().min(1, "Data obbligatoria"),
-  aziendaId: z.string().min(1, "Scegli un'azienda"),
-  tipoId: z.string().min(1, "Scegli un tipo"),
-  tariffa: z
-    .string()
-    .min(1, "Tariffa obbligatoria")
-    .superRefine((value, ctx) => {
-      const num = Number(value);
-      if (!Number.isFinite(num) || num <= 0) {
+const positiveNumberString = z.string().superRefine((value, ctx) => {
+  if (value.trim() === "") return;
+  const num = Number(value);
+  if (!Number.isFinite(num) || num <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Valore non valido",
+    });
+  }
+});
+
+const formSchema = z
+  .object({
+    data: z.string().min(1, "Data obbligatoria"),
+    aziendaId: z.string().min(1, "Scegli un'azienda"),
+    tipoId: z.string().min(1, "Scegli un tipo"),
+    modalita: modalitaSchema,
+    tariffa: z
+      .string()
+      .min(1, "Tariffa obbligatoria")
+      .superRefine((value, ctx) => {
+        const num = Number(value);
+        if (!Number.isFinite(num) || num <= 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Tariffa non valida",
+          });
+        }
+      }),
+    ore: positiveNumberString,
+    elementi: positiveNumberString,
+    note: z.string().max(2000),
+  })
+  .superRefine((val, ctx) => {
+    if (val.modalita === "oraria") {
+      const oreNum = Number(val.ore);
+      if (!val.ore.trim() || !Number.isFinite(oreNum) || oreNum <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Tariffa non valida",
+          path: ["ore"],
+          message: "Ore obbligatorie",
         });
       }
-    }),
-});
+    }
+    if (val.modalita === "adElemento") {
+      const elNum = Number(val.elementi);
+      if (
+        !val.elementi.trim() ||
+        !Number.isFinite(elNum) ||
+        elNum <= 0 ||
+        !Number.isInteger(elNum)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["elementi"],
+          message: "Numero elementi non valido",
+        });
+      }
+    }
+    if (val.tipoId === ALTRO_TIPO_ID && val.note.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["note"],
+        message: "La nota è obbligatoria per il tipo Altro",
+      });
+    }
+  });
 
 export type QuickEntryFormValues = z.infer<typeof formSchema>;
 
@@ -81,7 +134,11 @@ function defaultValues(): QuickEntryFormValues {
     data: dateInputValue(new Date()),
     aziendaId: "",
     tipoId: "",
+    modalita: "fissa",
     tariffa: "",
+    ore: "",
+    elementi: "",
+    note: "",
   };
 }
 
@@ -114,7 +171,7 @@ function aziendaOptionsFor(
 function tipoOptionsFor(tipi: ReferenceData["tipi"]): ReadonlyArray<Option> {
   return [
     { value: "", label: "Scegli tipo" },
-    ...tipi.map((t) => ({ value: t.id, label: t.nome })),
+    ...sortTipiForQuickEntry(tipi).map((t) => ({ value: t.id, label: t.nome })),
   ];
 }
 
@@ -195,10 +252,20 @@ export function useQuickEntryFormState({
     if (tipoId === prevTipoRef.current) return;
     prevTipoRef.current = tipoId;
     if (!tipoId) return;
-    if (form.getValues("tariffa").trim() !== "") return;
-    const fallback = defaultTariffaForTipo(tipoId, ref.tipi);
-    if (fallback !== null) {
-      form.setValue("tariffa", fallback, { shouldDirty: false });
+    const tipo = ref.tipi.find((t) => t.id === tipoId);
+    const nextModalita = tipo?.modalitaDefault ?? "fissa";
+    form.setValue("modalita", nextModalita, { shouldDirty: false });
+    if (nextModalita !== "oraria") {
+      form.setValue("ore", "", { shouldDirty: false });
+    }
+    if (nextModalita !== "adElemento") {
+      form.setValue("elementi", "", { shouldDirty: false });
+    }
+    if (form.getValues("tariffa").trim() === "") {
+      const fallback = defaultTariffaForTipo(tipoId, ref.tipi);
+      if (fallback !== null) {
+        form.setValue("tariffa", fallback, { shouldDirty: false });
+      }
     }
   }, [tipoId, open, ref.tipi, form]);
 
@@ -256,12 +323,19 @@ export function useQuickEntryFormState({
         dupSkipRef.current = true;
         return { ok: false };
       }
+      const note = values.note.trim();
+      const oraria = values.modalita === "oraria";
+      const adElemento = values.modalita === "adElemento";
       const parsed = attivitaInputSchema.safeParse({
         data: parsedDate,
         aziendaId: values.aziendaId,
         tipoId: values.tipoId,
-        oraria: false,
+        oraria,
+        adElemento,
         tariffa: Number(values.tariffa),
+        ...(oraria ? { ore: Number(values.ore) } : {}),
+        ...(adElemento ? { elementi: Number(values.elementi) } : {}),
+        ...(note ? { note } : {}),
       });
       if (!parsed.success) {
         form.setError("root", { message: "Dati non validi" });

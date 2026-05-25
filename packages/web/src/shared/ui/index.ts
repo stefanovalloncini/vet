@@ -17,6 +17,7 @@ export { ConfirmDialog } from "./ConfirmDialog";
 export { QuickAddDialog } from "./QuickAddDialog";
 export { EmptyState } from "./EmptyState";
 export { Tabs, type TabItem } from "./Tabs";
+export { SegmentedControl } from "./SegmentedControl";
 export { Badge } from "./Badge";
 export { PageHeader } from "./PageHeader";
 export { FormFooter } from "./FormFooter";

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ActorContext, Repositories } from "@vet/shared";
-import { GINECOLOGIA_TIPO_ID } from "@vet/shared";
+import { ALTRO_TIPO_ID, GINECOLOGIA_TIPO_ID } from "@vet/shared";
 import {
   InMemoryActivityTypesRepository,
   InMemoryAttivitaRepository,
@@ -48,6 +48,18 @@ async function buildWorld(): Promise<World> {
     ordine: 2,
     attivo: true,
   });
+  await tipi.upsert(ALTRO_TIPO_ID, {
+    nome: "Altro",
+    ordine: 999,
+    attivo: true,
+  });
+  await tipi.upsert("oraria-tipo", {
+    nome: "Esame orario",
+    ordine: 3,
+    attivo: true,
+    tariffaStandard: 50,
+    modalitaDefault: "oraria",
+  });
   return {
     repos: { auth, aziende, activityTypes: tipi, attivita } as unknown as Repositories,
     aziende,
@@ -92,7 +104,7 @@ describe("QuickEntryDialog", () => {
     fireEvent.change(screen.getByLabelText(/Azienda/i), {
       target: { value: aziendaId },
     });
-    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+    fireEvent.change(screen.getByLabelText(/^Tipo$/i), {
       target: { value: "visita" },
     });
     await waitFor(() => {
@@ -106,16 +118,14 @@ describe("QuickEntryDialog", () => {
   it("keeps user-typed tariffa when tipo changes after typing", async () => {
     const world = await buildWorld();
     const { container } = await mount(world);
-    fireEvent.change(screen.getByLabelText(/Tariffa/i), {
-      target: { value: "75" },
-    });
-    fireEvent.change(screen.getByLabelText(/Tipo/i), {
-      target: { value: "visita" },
-    });
-    const tariffa = container.querySelector(
+    const tariffaInput = container.querySelector(
       'input[name="tariffa"]'
     ) as HTMLInputElement;
-    expect(tariffa.value).toBe("75");
+    fireEvent.change(tariffaInput, { target: { value: "75" } });
+    fireEvent.change(screen.getByLabelText(/^Tipo$/i), {
+      target: { value: "visita" },
+    });
+    expect(tariffaInput.value).toBe("75");
   });
 
   it("requires a second submit when duplicate exists, then persists", async () => {
@@ -138,7 +148,7 @@ describe("QuickEntryDialog", () => {
     fireEvent.change(screen.getByLabelText(/Azienda/i), {
       target: { value: aziendaId },
     });
-    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+    fireEvent.change(screen.getByLabelText(/^Tipo$/i), {
       target: { value: "visita" },
     });
     await waitFor(() => {
@@ -169,12 +179,13 @@ describe("QuickEntryDialog", () => {
     fireEvent.change(screen.getByLabelText(/Azienda/i), {
       target: { value: aziendaId },
     });
-    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+    fireEvent.change(screen.getByLabelText(/^Tipo$/i), {
       target: { value: "visita" },
     });
-    fireEvent.change(screen.getByLabelText(/Tariffa/i), {
-      target: { value: "55" },
-    });
+    const tariffaInput = container.querySelector(
+      'input[name="tariffa"]'
+    ) as HTMLInputElement;
+    fireEvent.change(tariffaInput, { target: { value: "55" } });
 
     fireEvent.click(screen.getByRole("button", { name: /Salva e nuova/i }));
 
@@ -202,24 +213,92 @@ describe("QuickEntryDialog", () => {
     expect(screen.getByRole("button", { name: /\+ Nuova/i })).toBeInTheDocument();
   });
 
-  it("closes via Chiudi", async () => {
+  it("closes via Annulla", async () => {
     const world = await buildWorld();
     const { onClose } = await mount(world);
-    fireEvent.click(screen.getByRole("button", { name: /Chiudi/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^Annulla$/i }));
     expect(onClose).toHaveBeenCalled();
   });
 
   it("shows totale once a positive tariffa is set", async () => {
     const world = await buildWorld();
-    await mount(world);
-    fireEvent.change(screen.getByLabelText(/Tariffa/i), {
-      target: { value: "42" },
-    });
-    const totaleRow = await screen.findByText(/Totale/i);
-    const container = totaleRow.closest("div");
-    expect(container).not.toBeNull();
-    if (container) {
-      expect(within(container).getByText(/42/)).toBeInTheDocument();
+    const { container } = await mount(world);
+    const tariffaInput = container.querySelector(
+      'input[name="tariffa"]'
+    ) as HTMLInputElement;
+    fireEvent.change(tariffaInput, { target: { value: "42" } });
+    const totaleRow = await screen.findByText(/^Totale$/i);
+    const row = totaleRow.closest("div");
+    expect(row).not.toBeNull();
+    if (row) {
+      expect(within(row).getByText(/42/)).toBeInTheDocument();
     }
+  });
+
+  it("requires note when tipo is Altro and shows inline error", async () => {
+    const world = await buildWorld();
+    const { container } = await mount(world);
+    const aziendaId = (await world.aziende.list())[0]?.id ?? "";
+    fireEvent.change(screen.getByLabelText(/Azienda/i), {
+      target: { value: aziendaId },
+    });
+    fireEvent.change(screen.getByLabelText(/^Tipo$/i), {
+      target: { value: ALTRO_TIPO_ID },
+    });
+    const tariffaInput = container.querySelector(
+      'input[name="tariffa"]'
+    ) as HTMLInputElement;
+    fireEvent.change(tariffaInput, { target: { value: "50" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Salva$/i }));
+    await waitFor(() => {
+      expect(
+        screen.getByText(/La nota è obbligatoria per il tipo Altro/i)
+      ).toBeInTheDocument();
+    });
+    expect(await world.attivita.list()).toEqual([]);
+  });
+
+  it("orders Tipo dropdown with Ginecologia first and Altro last", async () => {
+    const world = await buildWorld();
+    await mount(world);
+    const select = screen.getByLabelText(/^Tipo$/i) as HTMLSelectElement;
+    const values = Array.from(select.options)
+      .map((o) => o.value)
+      .filter((v) => v !== "");
+    expect(values[0]).toBe(GINECOLOGIA_TIPO_ID);
+    expect(values[values.length - 1]).toBe(ALTRO_TIPO_ID);
+  });
+
+  it("pre-fills modalita from tipo.modalitaDefault when picking a tipo", async () => {
+    const world = await buildWorld();
+    await mount(world);
+    fireEvent.change(screen.getByLabelText(/^Tipo$/i), {
+      target: { value: "oraria-tipo" },
+    });
+    await waitFor(() => {
+      const orariaBtn = screen.getByRole("radio", { name: /^Oraria$/ });
+      expect(orariaBtn).toHaveAttribute("aria-checked", "true");
+    });
+  });
+
+  it("uses NumberField with step=10 for tariffa and no native arrows", async () => {
+    const world = await buildWorld();
+    const { container } = await mount(world);
+    const tariffaInput = container.querySelector(
+      'input[name="tariffa"]'
+    ) as HTMLInputElement;
+    expect(tariffaInput.step).toBe("10");
+    expect(tariffaInput.type).toBe("number");
+    expect(screen.getByRole("button", { name: /Aumenta/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Diminuisci/i })).toBeInTheDocument();
+  });
+
+  it("Salva button is full-width and Annulla is the ghost cancel", async () => {
+    const world = await buildWorld();
+    await mount(world);
+    const salva = screen.getByRole("button", { name: /^Salva$/ });
+    expect(salva.className).toContain("w-full");
+    const annulla = screen.getByRole("button", { name: /^Annulla$/ });
+    expect(annulla).toBeInTheDocument();
   });
 });
