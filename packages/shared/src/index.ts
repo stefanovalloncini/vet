@@ -149,6 +149,13 @@ export {
   type ActivityTypeCreateWritePayload,
 } from "./firestore-dto/activityType.js";
 export {
+  allowlistEntryDtoSchema,
+  parseAllowlistEntry,
+  buildAllowlistEntryAddDoc,
+  type AllowlistEntryDTO,
+  type AllowlistEntryAddWritePayload,
+} from "./firestore-dto/allowlist.js";
+export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
   contoDocSchema,
