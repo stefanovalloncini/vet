@@ -24,8 +24,9 @@ export function AziendaInfoCard({
   canExport,
 }: AziendaInfoCardProps) {
   return (
-    <Card className="mb-6">
-      <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+    <Card>
+      <SectionLabel className="mb-3">Anagrafica</SectionLabel>
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
         {azienda.tipoAllevamento ? (
           <Field label="Allevamento" value={azienda.tipoAllevamento} capitalize />
         ) : null}

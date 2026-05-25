@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { Star, ChevronRight } from "lucide-react";
-import { DataLoader, EmptyState } from "../../../shared/ui";
+import { Badge, DataLoader, EmptyState } from "../../../shared/ui";
 import { aziendeI18n as t } from "../i18n";
-import type { Azienda } from "@vet/shared";
+import type { Azienda, CadenzaFatturazione } from "@vet/shared";
 
 interface AziendeListProps {
   items: ReadonlyArray<Azienda>;
@@ -17,11 +17,24 @@ interface AziendeListProps {
   needsNewContoBy?: ReadonlySet<string>;
 }
 
-const CADENZA_LABEL = {
+const CADENZA_LABEL: Record<CadenzaFatturazione, string> = {
   monthly: t.campoCadenzaMensile,
   quarterly: t.campoCadenzaTrimestrale,
   semiannual: t.campoCadenzaSemestrale,
-} as const;
+};
+
+type StatusTone = "success" | "warning" | "danger";
+
+interface Status {
+  tone: StatusTone;
+  label: string;
+}
+
+function statusFor(hasUnsaldatiConti: boolean, needsNewConto: boolean): Status {
+  if (hasUnsaldatiConti) return { tone: "danger", label: "Conti non saldati" };
+  if (needsNewConto) return { tone: "warning", label: "Da emettere" };
+  return { tone: "success", label: "Tutto saldato" };
+}
 
 export function AziendeList({
   items,
@@ -42,10 +55,10 @@ export function AziendeList({
       empty={items.length === 0}
       emptyState={renderEmpty(searching, canCreate)}
     >
-      <ul className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden divide-y divide-(--color-border)">
+      <ul className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((a) => (
           <li key={a.id}>
-            <AziendaRow
+            <AziendaCard
               azienda={a}
               canEdit={canEdit}
               pinned={isPinned(a.id)}
@@ -60,7 +73,7 @@ export function AziendeList({
   );
 }
 
-interface AziendaRowProps {
+interface AziendaCardProps {
   azienda: Azienda;
   canEdit: boolean;
   pinned: boolean;
@@ -69,85 +82,112 @@ interface AziendaRowProps {
   needsNewConto: boolean;
 }
 
-function dotColorClass(
-  hasUnsaldatiConti: boolean,
-  needsNewConto: boolean
-): { className: string; title: string } {
-  if (hasUnsaldatiConti)
-    return { className: "bg-(--color-danger)", title: "Conti non saldati" };
-  if (needsNewConto)
-    return {
-      className: "bg-amber-500",
-      title: "È tempo di emettere un nuovo conto",
-    };
-  return { className: "bg-(--color-success)", title: "Tutto in regola" };
-}
-
-function AziendaRow({
+function AziendaCard({
   azienda: a,
   canEdit,
   pinned,
   onTogglePin,
   hasUnsaldatiConti,
   needsNewConto,
-}: AziendaRowProps) {
-  const dot = dotColorClass(hasUnsaldatiConti, needsNewConto);
+}: AziendaCardProps) {
+  const status = statusFor(hasUnsaldatiConti, needsNewConto);
   const tipo = a.tipoAllevamento
     ? a.tipoAllevamento.charAt(0).toUpperCase() + a.tipoAllevamento.slice(1)
     : null;
-  const meta = [
-    tipo,
-    a.numeroCapi !== undefined ? `${a.numeroCapi} capi` : null,
-    a.cadenzaFatturazione ? CADENZA_LABEL[a.cadenzaFatturazione] : null,
-    a.telefono ?? null,
-  ].filter(Boolean) as string[];
+  const capi = a.numeroCapi !== undefined ? `${a.numeroCapi} capi` : null;
+  const meta = [tipo, capi].filter((x): x is string => Boolean(x));
+
   const inner = (
-    <div className="flex items-start justify-between gap-4 px-4 py-3 min-h-[56px] hover:bg-(--color-surface-muted) transition-colors">
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+    <article
+      className={[
+        "group h-full bg-(--color-surface) border border-(--color-border) rounded-2xl",
+        "p-4 sm:p-5 flex flex-col gap-3",
+        "transition-[border-color,background-color] duration-(--motion-fast) ease-(--ease-out-quart)",
+        canEdit
+          ? "hover:border-(--color-border-strong) hover:bg-(--color-surface-muted)/40 cursor-pointer"
+          : "",
+      ].join(" ")}
+    >
+      <header className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 flex items-start gap-2.5">
           <span
-            aria-hidden="true"
-            title={dot.title}
-            className={`w-2 h-2 rounded-full flex-shrink-0 ${dot.className}`}
-          />
-          <h2 className="text-base font-medium text-(--color-text) truncate">{a.nome}</h2>
-          {needsNewConto && !hasUnsaldatiConti ? (
-            <span className="text-[10px] uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded">
-              Da emettere
-            </span>
+            aria-label={status.label}
+            title={status.label}
+            className="mt-2"
+          >
+            <Badge dot tone={status.tone} aria-label={status.label} />
+          </span>
+          <h2 className="text-base sm:text-lg font-medium text-(--color-text) leading-snug break-words">
+            {a.nome}
+          </h2>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onTogglePin();
+            }}
+            aria-label={pinned ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
+            className={[
+              "p-1.5 rounded-md transition-colors duration-(--motion-fast)",
+              pinned
+                ? "text-(--color-accent)"
+                : "text-(--color-text-subtle) hover:text-(--color-text-muted)",
+            ].join(" ")}
+          >
+            <Star
+              size={16}
+              strokeWidth={1.75}
+              fill={pinned ? "currentColor" : "none"}
+              aria-hidden="true"
+            />
+          </button>
+          {canEdit ? (
+            <ChevronRight
+              size={16}
+              strokeWidth={1.75}
+              className="text-(--color-text-subtle) group-hover:text-(--color-text-muted)"
+              aria-hidden="true"
+            />
           ) : null}
         </div>
-        {a.indirizzo ? (
-          <p className="text-xs text-(--color-text-subtle) mt-0.5 truncate">{a.indirizzo}</p>
+      </header>
+
+      {a.indirizzo ? (
+        <p className="text-xs text-(--color-text-subtle) leading-relaxed line-clamp-2">
+          {a.indirizzo}
+        </p>
+      ) : null}
+
+      {meta.length > 0 ? (
+        <p className="text-xs text-(--color-text-muted) tabular-nums">
+          {meta.join(" · ")}
+        </p>
+      ) : null}
+
+      <footer className="mt-auto flex items-center justify-between gap-2 pt-1">
+        {a.cadenzaFatturazione ? (
+          <Badge tone="neutral" size="sm">
+            {CADENZA_LABEL[a.cadenzaFatturazione]}
+          </Badge>
+        ) : (
+          <span className="text-[11px] text-(--color-text-subtle)">
+            Cadenza non impostata
+          </span>
+        )}
+        {a.telefono ? (
+          <span className="text-[11px] text-(--color-text-muted) tabular-nums truncate">
+            {a.telefono}
+          </span>
         ) : null}
-        {meta.length > 0 ? (
-          <p className="text-xs text-(--color-text-muted) mt-1 truncate">{meta.join(" · ")}</p>
-        ) : null}
-      </div>
-      <div className="flex items-center gap-1 flex-shrink-0 self-center">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onTogglePin();
-          }}
-          aria-label={pinned ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
-          className={[
-            "p-2 rounded-md hover:bg-(--color-surface)",
-            pinned ? "text-(--color-accent)" : "text-(--color-text-subtle)",
-          ].join(" ")}
-        >
-          <Star size={16} strokeWidth={1.75} fill={pinned ? "currentColor" : "none"} aria-hidden="true" />
-        </button>
-        {canEdit ? (
-          <ChevronRight size={16} strokeWidth={1.75} className="text-(--color-text-subtle)" aria-hidden="true" />
-        ) : null}
-      </div>
-    </div>
+      </footer>
+    </article>
   );
+
   return canEdit ? (
-    <Link to={`/aziende/${a.id}`} className="block">
+    <Link to={`/aziende/${a.id}`} className="block h-full">
       {inner}
     </Link>
   ) : (
@@ -162,7 +202,10 @@ function renderEmpty(searching: boolean, canCreate: boolean) {
     <EmptyState
       title={t.empty}
       action={
-        <Link to="/aziende/nuova" className="text-sm text-(--color-accent) hover:underline">
+        <Link
+          to="/aziende/nuova"
+          className="text-sm text-(--color-accent) hover:underline"
+        >
           {t.nuovaAzienda}
         </Link>
       }
