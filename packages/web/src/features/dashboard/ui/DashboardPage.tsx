@@ -1,12 +1,10 @@
 import { useMemo, useState } from "react";
-import { ClipboardList, Building2 } from "lucide-react";
-import { AppShell, Card, CardSkeleton, InlineError, SectionLabel } from "../../../shared/ui";
+import { AppShell, Card, InlineError, SectionLabel, Skeleton } from "../../../shared/ui";
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../../shared/lib/format";
 import { TrailingBarChart } from "../../../shared/ui/charts/TrailingBarChart";
 import { OnboardingBanner } from "../../onboarding/OnboardingBanner";
 import { useDashboardStats, type DashboardStats } from "../hooks/useDashboardStats";
-import { MetricCard } from "../../../shared/ui/charts/MetricCard";
 
 import { MONTHS_IT } from "../../../shared/i18n/months";
 
@@ -37,11 +35,11 @@ export function DashboardPage() {
       />
 
       {stats.loading ? (
-        <CardSkeleton rows={3} />
+        <DashboardSkeleton />
       ) : stats.isError ? (
         <InlineError>{t.loadError}</InlineError>
       ) : stats.items.length === 0 ? (
-        <p className="text-sm text-(--color-text-muted) py-2">{t.noActivity}</p>
+        <DashboardEmpty />
       ) : (
         <DashboardBody stats={stats} />
       )}
@@ -58,23 +56,21 @@ function DashboardBody({ stats }: { stats: DashboardStats }) {
     mode === "attivita" ? (v: number) => String(v) : (v: number) => formatEuro(v);
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 mb-4 auto-rows-fr">
-        <MetricCard
-          label={t.visiteMese}
-          value={String(stats.thisMonth.count)}
-          trend={stats.countDiff}
-          icon={ClipboardList}
-        />
-        <MetricCard
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <KpiCard label={t.visiteMese} value={String(stats.thisMonth.count)} />
+        <KpiCard
           label={t.aziendeAttive}
           value={String(stats.aziendeAttiveCount)}
-          icon={Building2}
+        />
+        <KpiCard
+          label={t.incassiMese}
+          value={formatEuro(stats.thisMonth.total)}
         />
       </div>
       <Card>
         <div className="flex items-center justify-between gap-3 mb-3">
           <SectionLabel as="span">
-            {mode === "attivita" ? "Attività ultimi 12 mesi" : "Incassi ultimi 12 mesi"}
+            {mode === "attivita" ? t.chartTitleAttivita : t.chartTitleIncassi}
           </SectionLabel>
           <ChartModeToggle mode={mode} onChange={setMode} />
         </div>
@@ -84,6 +80,53 @@ function DashboardBody({ stats }: { stats: DashboardStats }) {
           formatValue={formatValue}
           totalLabel={t.totaleAnno}
         />
+      </Card>
+    </>
+  );
+}
+
+interface KpiCardProps {
+  label: string;
+  value: string;
+}
+
+function KpiCard({ label, value }: KpiCardProps) {
+  return (
+    <Card className="flex flex-col gap-3">
+      <p className="text-sm text-(--color-text-muted)">{label}</p>
+      <p className="font-semibold tabular-nums text-(--color-text) text-3xl leading-none">
+        {value}
+      </p>
+    </Card>
+  );
+}
+
+function DashboardEmpty() {
+  return (
+    <Card className="flex flex-col gap-2">
+      <p className="text-sm text-(--color-text)">{t.noActivity}</p>
+      <p className="text-xs text-(--color-text-muted)">{t.noActivityHint}</p>
+    </Card>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i} className="flex flex-col gap-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-9 w-20" />
+          </Card>
+        ))}
+      </div>
+      <Card>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-7 w-32" />
+        </div>
+        <Skeleton className="h-28 w-full" />
       </Card>
     </>
   );
