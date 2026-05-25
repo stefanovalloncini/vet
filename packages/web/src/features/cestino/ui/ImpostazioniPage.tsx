@@ -22,6 +22,7 @@ import {
   triggerCsvDownload,
   triggerJsonDownload,
 } from "../lib/exportBackup";
+import { backupAge } from "../lib/backupReminderLogic";
 import { toCsvItalian } from "../../attivita";
 import { useRetention } from "../lib/useRetention";
 
@@ -90,20 +91,23 @@ export function ImpostazioniPage() {
   }
 
   function formatLastBackup(ts: number | null): string {
-    if (!ts) return t.datiBackupMaiFatto;
-    const d = new Date(ts);
+    const age = backupAge(ts);
+    if (age.kind === "never") return t.datiBackupMaiFatto;
+    const d = new Date(ts!);
     const dt = d.toLocaleDateString("it-IT", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
-    const days = Math.floor((Date.now() - ts) / (24 * 60 * 60 * 1000));
-    let relative: string;
-    if (days < 1) relative = "oggi";
-    else if (days === 1) relative = "ieri";
-    else if (days < 30) relative = `${days} giorni fa`;
-    else relative = dt;
-    return days < 30
+    const relative =
+      age.kind === "today"
+        ? "oggi"
+        : age.kind === "yesterday"
+          ? "ieri"
+          : age.kind === "days-ago"
+            ? `${age.days} giorni fa`
+            : null;
+    return relative
       ? `${t.datiBackupUltimo}: ${relative} (${dt})`
       : `${t.datiBackupUltimo}: ${dt}`;
   }

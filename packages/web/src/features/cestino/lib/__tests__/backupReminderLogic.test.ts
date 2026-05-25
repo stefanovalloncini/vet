@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  backupAge,
   decideBackupReminder,
   REMINDER_INTERVAL_MS,
   SHOWN_THROTTLE_MS,
@@ -86,5 +87,44 @@ describe("decideBackupReminder", () => {
       lastShown: T0 - 1000,
     });
     expect(r).toEqual({ show: false, reason: "throttled" });
+  });
+});
+
+describe("backupAge", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const NOW = Date.UTC(2026, 4, 26, 12, 0, 0);
+
+  it("returns kind 'never' when no backup exists", () => {
+    expect(backupAge(null, NOW)).toEqual({ kind: "never", days: 0 });
+  });
+
+  it("returns 'today' for a backup taken a few hours ago", () => {
+    expect(backupAge(NOW - 1000, NOW)).toEqual({ kind: "today", days: 0 });
+    expect(backupAge(NOW - DAY + 1, NOW).kind).toBe("today");
+  });
+
+  it("returns 'yesterday' for a backup ~24h-48h ago", () => {
+    expect(backupAge(NOW - DAY, NOW)).toEqual({ kind: "yesterday", days: 1 });
+    expect(backupAge(NOW - 2 * DAY + 1, NOW).kind).toBe("yesterday");
+  });
+
+  it("returns 'days-ago' for 2-29 days", () => {
+    expect(backupAge(NOW - 5 * DAY, NOW)).toEqual({
+      kind: "days-ago",
+      days: 5,
+    });
+    expect(backupAge(NOW - 29 * DAY, NOW)).toEqual({
+      kind: "days-ago",
+      days: 29,
+    });
+  });
+
+  it("returns 'old' for >=30 days", () => {
+    expect(backupAge(NOW - 30 * DAY, NOW).kind).toBe("old");
+    expect(backupAge(NOW - 365 * DAY, NOW).kind).toBe("old");
+  });
+
+  it("clamps negative diffs (future timestamp due to clock skew) to today", () => {
+    expect(backupAge(NOW + DAY, NOW)).toEqual({ kind: "today", days: 0 });
   });
 });

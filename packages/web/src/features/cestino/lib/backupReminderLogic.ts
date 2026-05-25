@@ -25,3 +25,22 @@ export function decideBackupReminder(args: {
   }
   return { show: false, reason: "not-due" };
 }
+
+export interface BackupAge {
+  kind: "never" | "today" | "yesterday" | "days-ago" | "old";
+  days: number;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export function backupAge(
+  lastBackup: number | null,
+  now: number = Date.now()
+): BackupAge {
+  if (lastBackup === null) return { kind: "never", days: 0 };
+  const days = Math.max(0, Math.floor((now - lastBackup) / DAY_MS));
+  if (days < 1) return { kind: "today", days };
+  if (days === 1) return { kind: "yesterday", days };
+  if (days < 30) return { kind: "days-ago", days };
+  return { kind: "old", days };
+}
