@@ -20,6 +20,8 @@ export function MobileHeader({ theme, onThemeToggle, onLogoutClick }: MobileHead
           type="button"
           onClick={openSearch}
           aria-label="Cerca"
+          aria-keyshortcuts="Meta+K Control+K"
+          title="Cerca (⌘K)"
           className="p-2 text-(--color-text-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart)"
         >
           <Search size={16} strokeWidth={1.75} aria-hidden="true" />

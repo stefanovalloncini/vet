@@ -121,6 +121,7 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
             icon={Search}
             label="Cerca (⌘K)"
             collapsed={collapsed}
+            ariaKeyshortcuts="Meta+K Control+K"
           />
           <SidebarActionRow
             onClick={onThemeToggle}
