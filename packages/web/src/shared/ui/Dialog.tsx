@@ -7,8 +7,6 @@ interface DialogProps {
   labelledBy?: string;
   describedBy?: string;
   size?: "sm" | "md" | "lg";
-  sheet?: boolean;
-  showHandle?: boolean;
   children: ReactNode;
   className?: string;
 }
@@ -27,8 +25,6 @@ export function Dialog({
   labelledBy,
   describedBy,
   size = "md",
-  sheet = true,
-  showHandle = false,
   children,
   className = "",
 }: DialogProps) {
@@ -60,21 +56,13 @@ export function Dialog({
 
   if (!open) return null;
 
-  const layout = sheet
-    ? "items-end sm:items-center justify-center p-0 sm:p-8"
-    : "items-start sm:items-center justify-center p-4 sm:p-8";
-  const heightCap = "max-h-[100dvh] sm:max-h-[90dvh]";
-  const surfaceShape = sheet
-    ? `w-full sm:w-auto sm:min-w-0 ${sizeMap[size]} ${heightCap} rounded-t-2xl sm:rounded-2xl`
-    : `w-full min-w-0 ${sizeMap[size]} ${heightCap} rounded-2xl`;
-
   const node = (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby={labelledBy}
       aria-describedby={describedBy}
-      className={`fixed inset-0 z-40 flex ${layout} bg-(--color-overlay) animate-fade-in-soft`}
+      className="fixed inset-0 z-40 flex items-center justify-center p-4 sm:p-8 bg-(--color-overlay) animate-fade-in-soft"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -82,13 +70,8 @@ export function Dialog({
       <div
         ref={surfaceRef}
         tabIndex={-1}
-        className={`${surfaceShape} bg-(--color-surface) border border-(--color-border) shadow-[var(--shadow-popover)] animate-scale-in overflow-y-auto overscroll-contain focus:outline-none ${className}`}
+        className={`w-full min-w-0 ${sizeMap[size]} max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] rounded-2xl bg-(--color-surface) border border-(--color-border) shadow-[var(--shadow-popover)] animate-scale-in overflow-y-auto overscroll-contain focus:outline-none ${className}`}
       >
-        {showHandle && sheet ? (
-          <div className="sm:hidden flex justify-center pt-2 pb-1" aria-hidden="true">
-            <span className="block h-1 w-10 rounded-full bg-(--color-border-strong)" />
-          </div>
-        ) : null}
         {children}
       </div>
     </div>
