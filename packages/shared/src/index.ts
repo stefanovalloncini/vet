@@ -205,6 +205,19 @@ export {
   type AziendaSoftDeletePatch,
 } from "./firestore-dto/azienda.js";
 export {
+  attivitaDtoSchema,
+  parseAttivita,
+  buildAttivitaCreateDoc,
+  buildAttivitaUpdatePatch,
+  buildAttivitaSoftDeletePatch,
+  type AttivitaDTO,
+  type AttivitaCreateWritePayload,
+  type AttivitaUpdatePatch,
+  type AttivitaUpdateDeps,
+  type AttivitaSoftDeletePatch,
+  type AttivitaDenorm,
+} from "./firestore-dto/attivita.js";
+export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
   contoDocSchema,
