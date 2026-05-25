@@ -43,14 +43,22 @@ export function AppShell({ children, rightRail, wide = false }: AppShellProps) {
 
   return (
     <div className="min-h-screen flex bg-(--color-background)">
+      <a
+        href="#contenuto-principale"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-(--color-accent) focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent) focus:ring-offset-2"
+      >
+        Vai al contenuto
+      </a>
       <Sidebar theme={theme} onThemeToggle={toggle} onLogoutClick={askLogout} />
 
       <div className="flex-1 flex flex-col min-w-0">
         <MobileHeader theme={theme} onThemeToggle={toggle} onLogoutClick={askLogout} />
 
         <main
+          id="contenuto-principale"
           key={location.pathname}
-          className={`flex-1 w-full ${maxW} px-4 py-5 pb-[var(--page-bottom-pad)] sm:py-6 sm:pb-6 sm:px-7 animate-fade-in`}
+          tabIndex={-1}
+          className={`flex-1 w-full ${maxW} px-4 py-5 pb-[var(--page-bottom-pad)] sm:py-6 sm:pb-6 sm:px-7 animate-fade-in focus:outline-none`}
         >
           {rightRail ? (
             <div className="lg:grid lg:grid-cols-3 lg:gap-6">
