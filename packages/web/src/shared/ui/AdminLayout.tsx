@@ -37,9 +37,9 @@ export function AdminLayout({ children, wide = false }: AdminLayoutProps) {
       {items.length > 1 ? (
         <nav
           aria-label="Amministrazione"
-          className="-mx-4 sm:-mx-7 px-4 sm:px-7 mb-6 border-b border-(--color-border) overflow-x-auto scrollbar-thin"
+          className="sm:hidden -mx-4 px-4 mb-5 border-b border-(--color-border) overflow-x-auto"
         >
-          <ul className="flex items-center gap-1 sm:gap-2 min-w-max">
+          <ul className="flex items-center gap-1 min-w-max">
             {items.map((item) => {
               const active = isActive(location.pathname, item.to);
               return (
@@ -48,10 +48,10 @@ export function AdminLayout({ children, wide = false }: AdminLayoutProps) {
                     to={item.to}
                     aria-current={active ? "page" : undefined}
                     className={[
-                      "inline-flex items-center h-11 px-4 -mb-px border-b-2 text-sm transition-[color,border-color] duration-(--motion-fast) ease-(--ease-out-quart) whitespace-nowrap focus:outline-none focus-visible:bg-(--color-surface-muted)",
+                      "inline-flex items-center h-11 px-3 -mb-px border-b-2 text-sm transition-[color,border-color] duration-(--motion-fast) ease-(--ease-out-quart) whitespace-nowrap focus:outline-none focus-visible:bg-(--color-surface-muted)",
                       active
                         ? "border-(--color-accent) text-(--color-accent) font-medium"
-                        : "border-transparent text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border)",
+                        : "border-transparent text-(--color-text-muted) hover:text-(--color-text)",
                     ].join(" ")}
                   >
                     {item.label}
