@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AppShell, Button } from "../../../shared/ui";
+import { AppShell, PageHeader } from "../../../shared/ui";
 import { withAllOption } from "../../../shared/lib/options";
 import { useAuthState } from "../../auth";
 import { useAttivita } from "../hooks/useAttivita";
@@ -35,7 +35,6 @@ export function AttivitaListPage() {
   const totals = useMemo(() => computeTotals(items), [items]);
   const groups = useMemo(() => groupAttivita(items, fs.group), [items, fs.group]);
 
-  const canCreate = user?.caps.has("activities.create") ?? false;
   const canExport = user?.caps.has("activities.export") ?? false;
 
   const aziendaOptions = useMemo(
@@ -65,7 +64,7 @@ export function AttivitaListPage() {
 
   return (
     <AppShell>
-      <ListHeader canExport={canExport} onExport={() => setShowExport(true)} />
+      <PageHeader title={t.title} subtitle={t.subtitle} />
       <AttivitaQuickRanges from={fs.from} to={fs.to} onChange={fs.setParam} />
       <AttivitaFilterBar
         from={fs.from}
@@ -78,7 +77,10 @@ export function AttivitaListPage() {
         tipoOptions={tipoOptions}
         vetOptions={vetOptions}
         groupOptions={groupOptions}
+        canExport={canExport}
         onChange={fs.setParam}
+        onClearAll={fs.clearAll}
+        onExport={() => setShowExport(true)}
       />
       <AttivitaTotalsBar totals={totals} />
       <AttivitaGroups
@@ -86,31 +88,9 @@ export function AttivitaListPage() {
         isError={attivitaQuery.isError}
         items={items}
         groups={groups}
-        canCreate={canCreate}
         filtersActive={Object.keys(fs.filters).length > 0}
       />
       {showExport ? <ExportDialog onClose={() => setShowExport(false)} /> : null}
     </AppShell>
-  );
-}
-
-interface ListHeaderProps {
-  canExport: boolean;
-  onExport: () => void;
-}
-
-function ListHeader({ canExport, onExport }: ListHeaderProps) {
-  return (
-    <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-      <div>
-        <h1 className="text-3xl font-medium tracking-tight text-(--color-text)">{t.title}</h1>
-        <p className="text-(--color-text-muted) mt-2 text-sm">{t.subtitle}</p>
-      </div>
-      {canExport ? (
-        <Button type="button" variant="secondary" onClick={onExport}>
-          {t.esporta}
-        </Button>
-      ) : null}
-    </header>
   );
 }

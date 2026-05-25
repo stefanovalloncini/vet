@@ -112,4 +112,20 @@ describe("useAttivitaFilters", () => {
     expect(result.current.filters.from).toBeUndefined();
     expect(result.current.filters.to).toBeUndefined();
   });
+
+  it("clearAll removes every filter key in one URL update", () => {
+    const { result } = renderHook(() => useAttivitaFilters(), {
+      wrapper: wrapperWithUrl(
+        "/attivita?from=2026-01-01&to=2026-01-31&azienda=az1&tipo=t1&vet=u-1&group=azienda"
+      ),
+    });
+    act(() => result.current.clearAll());
+    expect(result.current.from).toBe("");
+    expect(result.current.to).toBe("");
+    expect(result.current.aziendaId).toBe("");
+    expect(result.current.tipoId).toBe("");
+    expect(result.current.vetUid).toBe("");
+    expect(result.current.group).toBe("none");
+    expect(result.current.filters).toEqual({});
+  });
 });

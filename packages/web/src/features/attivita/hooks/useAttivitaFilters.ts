@@ -13,7 +13,10 @@ export interface AttivitaFiltersState {
   group: GroupKey;
   filters: AttivitaFilters;
   setParam: (key: string, value: string) => void;
+  clearAll: () => void;
 }
+
+const PARAM_KEYS = ["from", "to", "azienda", "tipo", "vet", "group"] as const;
 
 function parseGroup(value: string | null): GroupKey {
   if (value === "azienda") return "azienda";
@@ -69,5 +72,11 @@ export function useAttivitaFilters(): AttivitaFiltersState {
     [params, setParams]
   );
 
-  return { from, to, aziendaId, tipoId, vetUid, group, filters, setParam };
+  const clearAll = useCallback(() => {
+    const next = new URLSearchParams(params);
+    for (const k of PARAM_KEYS) next.delete(k);
+    setParams(next, { replace: true });
+  }, [params, setParams]);
+
+  return { from, to, aziendaId, tipoId, vetUid, group, filters, setParam, clearAll };
 }
