@@ -9,7 +9,7 @@ test.describe("impostazioni", () => {
       signedInVet.getByRole("heading", { level: 1, name: /Impostazioni/i })
     ).toBeVisible({ timeout: 15_000 });
 
-    for (const title of ["Profilo", "Cestino", "Dati", "Privacy"]) {
+    for (const title of ["Account", "Tema", "Cestino", "Backup", "Privacy"]) {
       await expect(
         signedInVet.getByRole("heading", { level: 2, name: title })
       ).toBeVisible();

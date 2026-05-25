@@ -21,7 +21,7 @@ test.describe("agenda (tanstack query)", () => {
       timeout: 15_000,
     });
     await signedInVet
-      .getByRole("button", { name: /Mese precedente/i })
+      .getByRole("button", { name: /Settimana precedente/i })
       .click();
     await signedInVet.getByRole("button", { name: /Oggi/i }).click();
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible();

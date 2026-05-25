@@ -33,7 +33,7 @@ test.describe("voce rapida — suggestions panel", () => {
     await expect(dialog.getByLabel("Tipo", { exact: true })).toHaveValue(
       FIXTURE.tipo.id
     );
-    await expect(dialog.getByLabel(/Tariffa/i)).toHaveValue("80");
+    await expect(dialog.getByRole("spinbutton", { name: /Tariffa/i })).toHaveValue("80");
   });
 
   test("does not show the Frequenti tab with a single combo", async ({

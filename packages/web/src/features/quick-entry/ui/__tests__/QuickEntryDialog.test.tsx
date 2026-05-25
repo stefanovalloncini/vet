@@ -99,7 +99,7 @@ describe("QuickEntryDialog", () => {
 
   it("auto-fills tariffa from tipo.tariffaStandard when tipo changes and tariffa is empty", async () => {
     const world = await buildWorld();
-    const { container } = await mount(world);
+    await mount(world);
     const aziendaId = (await world.aziende.list())[0]?.id ?? "";
     fireEvent.change(screen.getByLabelText(/Azienda/i), {
       target: { value: aziendaId },
@@ -108,7 +108,7 @@ describe("QuickEntryDialog", () => {
       target: { value: "visita" },
     });
     await waitFor(() => {
-      const tariffa = container.querySelector(
+      const tariffa = document.querySelector(
         'input[name="tariffa"]'
       ) as HTMLInputElement;
       expect(tariffa.value).toBe("30");
@@ -117,8 +117,8 @@ describe("QuickEntryDialog", () => {
 
   it("keeps user-typed tariffa when tipo changes after typing", async () => {
     const world = await buildWorld();
-    const { container } = await mount(world);
-    const tariffaInput = container.querySelector(
+    await mount(world);
+    const tariffaInput = document.querySelector(
       'input[name="tariffa"]'
     ) as HTMLInputElement;
     fireEvent.change(tariffaInput, { target: { value: "75" } });
@@ -171,7 +171,7 @@ describe("QuickEntryDialog", () => {
 
   it("Salva e nuova persists then clears the form preserving the date", async () => {
     const world = await buildWorld();
-    const { container, onClose } = await mount(world);
+    const { onClose } = await mount(world);
     const aziendaId = (await world.aziende.list())[0]?.id ?? "";
     fireEvent.change(screen.getByLabelText(/Data/i), {
       target: { value: "2026-06-10" },
@@ -182,7 +182,7 @@ describe("QuickEntryDialog", () => {
     fireEvent.change(screen.getByLabelText(/^Tipo$/i), {
       target: { value: "visita" },
     });
-    const tariffaInput = container.querySelector(
+    const tariffaInput = document.querySelector(
       'input[name="tariffa"]'
     ) as HTMLInputElement;
     fireEvent.change(tariffaInput, { target: { value: "55" } });
@@ -195,10 +195,10 @@ describe("QuickEntryDialog", () => {
     });
     expect(onClose).not.toHaveBeenCalled();
 
-    const dataInput = container.querySelector(
+    const dataInput = document.querySelector(
       'input[name="data"]'
     ) as HTMLInputElement;
-    const aziendaSel = container.querySelector(
+    const aziendaSel = document.querySelector(
       'select[name="aziendaId"]'
     ) as HTMLSelectElement;
     await waitFor(() => {
@@ -222,8 +222,8 @@ describe("QuickEntryDialog", () => {
 
   it("shows totale once a positive tariffa is set", async () => {
     const world = await buildWorld();
-    const { container } = await mount(world);
-    const tariffaInput = container.querySelector(
+    await mount(world);
+    const tariffaInput = document.querySelector(
       'input[name="tariffa"]'
     ) as HTMLInputElement;
     fireEvent.change(tariffaInput, { target: { value: "42" } });
@@ -237,7 +237,7 @@ describe("QuickEntryDialog", () => {
 
   it("requires note when tipo is Altro and shows inline error", async () => {
     const world = await buildWorld();
-    const { container } = await mount(world);
+    await mount(world);
     const aziendaId = (await world.aziende.list())[0]?.id ?? "";
     fireEvent.change(screen.getByLabelText(/Azienda/i), {
       target: { value: aziendaId },
@@ -245,7 +245,7 @@ describe("QuickEntryDialog", () => {
     fireEvent.change(screen.getByLabelText(/^Tipo$/i), {
       target: { value: ALTRO_TIPO_ID },
     });
-    const tariffaInput = container.querySelector(
+    const tariffaInput = document.querySelector(
       'input[name="tariffa"]'
     ) as HTMLInputElement;
     fireEvent.change(tariffaInput, { target: { value: "50" } });
@@ -283,8 +283,8 @@ describe("QuickEntryDialog", () => {
 
   it("uses NumberField with step=10 for tariffa and no native arrows", async () => {
     const world = await buildWorld();
-    const { container } = await mount(world);
-    const tariffaInput = container.querySelector(
+    await mount(world);
+    const tariffaInput = document.querySelector(
       'input[name="tariffa"]'
     ) as HTMLInputElement;
     expect(tariffaInput.step).toBe("10");

@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 interface DialogProps {
   open: boolean;
@@ -66,7 +67,7 @@ export function Dialog({
     ? `w-full sm:w-auto sm:min-w-0 ${sizeMap[size]} rounded-t-2xl sm:rounded-2xl`
     : `w-full min-w-0 ${sizeMap[size]} rounded-2xl`;
 
-  return (
+  const node = (
     <div
       role="dialog"
       aria-modal="true"
@@ -91,6 +92,9 @@ export function Dialog({
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") return node;
+  return createPortal(node, document.body);
 }
 
 function trapTab(e: KeyboardEvent, surface: HTMLElement) {

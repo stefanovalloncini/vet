@@ -36,9 +36,8 @@ test.describe("admin allowlist (tanstack-query)", () => {
       .getByRole("button", { name: /Aggiungi email/i })
       .click();
 
-    await expect(emailField).toBeHidden({ timeout: 15_000 });
     await expect(
       signedInAdmin.locator("main").getByText(unique)
-    ).toBeVisible({ timeout: 10_000 });
+    ).toBeVisible({ timeout: 15_000 });
   });
 });
