@@ -34,19 +34,25 @@ test.describe("activity types via tanstack query", () => {
     const attiviSection = signedInAdmin
       .locator("section")
       .filter({ has: signedInAdmin.getByRole("heading", { name: /^Attivi$/i }) });
-    await expect(
-      attiviSection.getByText(new RegExp(FIXTURE.tipo.nome))
-    ).toBeVisible({ timeout: 10_000 });
-
-    await attiviSection.getByRole("button", { name: /Disattiva/i }).click();
-
     const archiviatiSection = signedInAdmin
       .locator("section")
       .filter({
         has: signedInAdmin.getByRole("heading", { name: /Archiviati/i }),
       });
+
+    const tipoRowInAttivi = attiviSection.getByText(new RegExp(FIXTURE.tipo.nome));
+    if (!(await tipoRowInAttivi.isVisible())) {
+      await archiviatiSection.getByRole("button", { name: /Attiva/i }).first().click();
+      await expect(tipoRowInAttivi).toBeVisible({ timeout: 10_000 });
+    }
+
+    await attiviSection.getByRole("button", { name: /Disattiva/i }).click();
+
     await expect(
       archiviatiSection.getByText(new RegExp(FIXTURE.tipo.nome))
     ).toBeVisible({ timeout: 10_000 });
+
+    await archiviatiSection.getByRole("button", { name: /Attiva/i }).first().click();
+    await expect(tipoRowInAttivi).toBeVisible({ timeout: 10_000 });
   });
 });
