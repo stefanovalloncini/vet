@@ -58,6 +58,17 @@ export function ContiPage() {
     <AppShell>
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
+      {counters.totaleUnsaldati > 0 ? (
+        <div className="mb-4 rounded-2xl border border-(--color-danger)/30 bg-(--color-danger)/5 px-4 py-3 flex items-baseline justify-between gap-3">
+          <span className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+            {t.totaleDaRiscuotere}
+          </span>
+          <span className="font-mono text-xl font-semibold text-(--color-danger) tabular-nums">
+            {formatEuro(counters.totaleUnsaldati)}
+          </span>
+        </div>
+      ) : null}
+
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Switch
           checked={onlyUnsaldati}
@@ -95,6 +106,7 @@ export function ContiPage() {
 interface Counters {
   pending: number;
   total: number;
+  totaleUnsaldati: number;
 }
 
 function computeCounters(
@@ -103,13 +115,17 @@ function computeCounters(
 ): Counters {
   let pending = 0;
   let total = 0;
+  let totaleUnsaldati = 0;
   for (const azienda of aziende) {
     const bucket = grouped.get(azienda.id);
     if (!bucket) continue;
     total += 1;
-    if (bucket.hasUnsaldati) pending += 1;
+    if (bucket.hasUnsaldati) {
+      pending += 1;
+      totaleUnsaldati += bucket.totaleUnsaldati;
+    }
   }
-  return { pending, total };
+  return { pending, total, totaleUnsaldati: Math.round(totaleUnsaldati * 100) / 100 };
 }
 
 interface Row {
