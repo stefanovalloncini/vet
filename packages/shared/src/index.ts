@@ -141,6 +141,14 @@ export {
   type SerializerStampDeps,
 } from "./firestore-dto/conto.js";
 export {
+  activityTypeDtoSchema,
+  parseActivityType,
+  buildActivityTypeCreateDoc,
+  buildActivityTypeUpdateDoc,
+  type ActivityTypeDTO,
+  type ActivityTypeCreateWritePayload,
+} from "./firestore-dto/activityType.js";
+export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
   contoDocSchema,

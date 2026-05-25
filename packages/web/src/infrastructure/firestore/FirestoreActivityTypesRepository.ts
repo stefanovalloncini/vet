@@ -10,14 +10,26 @@ import {
   orderBy,
   where,
   deleteField,
+  Timestamp,
+  type FieldValue,
   type Firestore,
 } from "firebase/firestore";
 import type {
   ActivityType,
   ActivityTypeInput,
   ActivityTypesRepository,
+  SerializerStampDeps,
 } from "@vet/shared";
-import { toDate } from "./timestamps";
+import {
+  buildActivityTypeCreateDoc,
+  buildActivityTypeUpdateDoc,
+  parseActivityType,
+} from "@vet/shared";
+
+const stampDeps: SerializerStampDeps<Timestamp, FieldValue> = {
+  fromDate: (d) => Timestamp.fromDate(d),
+  serverTimestamp: (): FieldValue => serverTimestamp(),
+};
 
 export class FirestoreActivityTypesRepository
   implements ActivityTypesRepository
@@ -27,7 +39,7 @@ export class FirestoreActivityTypesRepository
   async list(): Promise<ActivityType[]> {
     const q = query(collection(this.db, "activity_types"), orderBy("ordine", "asc"));
     const snap = await getDocs(q);
-    return snap.docs.map((d) => fromSnap(d.id, d.data()));
+    return snap.docs.map((d) => parseActivityType(d.id, d.data()));
   }
 
   async listActive(): Promise<ActivityType[]> {
@@ -37,41 +49,23 @@ export class FirestoreActivityTypesRepository
       orderBy("ordine", "asc")
     );
     const snap = await getDocs(q);
-    return snap.docs.map((d) => fromSnap(d.id, d.data()));
+    return snap.docs.map((d) => parseActivityType(d.id, d.data()));
   }
 
   async getById(id: string): Promise<ActivityType | null> {
     const snap = await getDoc(doc(this.db, "activity_types", id));
     if (!snap.exists()) return null;
-    return fromSnap(id, snap.data());
+    return parseActivityType(id, snap.data());
   }
 
   async upsert(id: string, input: ActivityTypeInput): Promise<void> {
     const ref = doc(this.db, "activity_types", id);
     const snap = await getDoc(ref);
-    const tariffaPatch =
-      input.tariffaStandard !== undefined
-        ? { tariffaStandard: input.tariffaStandard }
-        : {};
     if (snap.exists()) {
-      await updateDoc(ref, {
-        nome: input.nome,
-        ordine: input.ordine,
-        attivo: input.attivo,
-        ...tariffaPatch,
-        updatedAt: serverTimestamp(),
-      });
+      await updateDoc(ref, buildActivityTypeUpdateDoc({ input }, stampDeps));
       return;
     }
-    await setDoc(ref, {
-      nome: input.nome,
-      ordine: input.ordine,
-      attivo: input.attivo,
-      ...tariffaPatch,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      schemaVersion: 1,
-    });
+    await setDoc(ref, buildActivityTypeCreateDoc({ input }, stampDeps));
   }
 
   async setActive(id: string, attivo: boolean): Promise<void> {
@@ -92,18 +86,4 @@ export class FirestoreActivityTypesRepository
       { merge: true }
     );
   }
-}
-
-function fromSnap(id: string, data: Record<string, unknown>): ActivityType {
-  const tariffa = data.tariffaStandard;
-  return {
-    id,
-    nome: data.nome as string,
-    ordine: (data.ordine as number) ?? 0,
-    attivo: (data.attivo as boolean) ?? true,
-    ...(typeof tariffa === "number" ? { tariffaStandard: tariffa } : {}),
-    createdAt: toDate(data.createdAt),
-    updatedAt: toDate(data.updatedAt),
-    schemaVersion: 1,
-  };
 }

@@ -6,24 +6,13 @@ import {
   type ContoEmitInput,
 } from "../domain/schemas/conto.js";
 import { metodoPagamentoSchema } from "../domain/schemas/money.js";
+import {
+  timestampLike,
+  timestampToDate,
+  type SerializerStampDeps,
+} from "./_shared.js";
 
-const timestampLike = z
-  .unknown()
-  .refine(
-    (v) =>
-      v instanceof Date ||
-      (typeof v === "object" &&
-        v !== null &&
-        "toDate" in v &&
-        typeof (v as { toDate: () => Date }).toDate === "function"),
-    { message: "expected Firestore Timestamp or Date" }
-  );
-
-function timestampToDate(value: unknown): Date {
-  if (value instanceof Date) return value;
-  const asTimestamp = value as { toDate: () => Date };
-  return asTimestamp.toDate();
-}
+export type { SerializerStampDeps };
 
 export const contoDtoSchema = z
   .object({
@@ -89,11 +78,6 @@ export function parseConto(id: string, raw: unknown): Conto {
     ...(dto.deletedBy !== undefined ? { deletedBy: dto.deletedBy } : {}),
     schemaVersion: dto.schemaVersion,
   };
-}
-
-export interface SerializerStampDeps<TStamp, TServerStamp> {
-  fromDate: (d: Date) => TStamp;
-  serverTimestamp: () => TServerStamp;
 }
 
 export interface ContoEmitDenorm {
