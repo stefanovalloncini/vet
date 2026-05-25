@@ -42,6 +42,7 @@ export function Tabs<T extends string>({
             className={[
               padding,
               "inline-flex items-center gap-2 -mb-px border-b-2 transition-[color,border-color] duration-(--motion-base) ease-(--ease-out-quart)",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 rounded-t-md",
               active
                 ? "border-(--color-accent) text-(--color-text) font-medium"
                 : "border-transparent text-(--color-text-muted) hover:text-(--color-text)",
