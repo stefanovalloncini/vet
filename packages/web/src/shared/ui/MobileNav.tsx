@@ -1,34 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Calendar,
-  ClipboardList,
-  Building2,
-  Euro,
-  type LucideIcon,
-} from "lucide-react";
 import { useAuthState } from "../../features/auth";
-
-interface NavItem {
-  to: string;
-  label: string;
-  icon: LucideIcon;
-  requiredCap?: string;
-}
-
-const ITEMS: NavItem[] = [
-  { to: "/riepilogo", label: "Riepilogo", icon: LayoutDashboard, requiredCap: "activities.read.all" },
-  { to: "/agenda", label: "Agenda", icon: Calendar, requiredCap: "activities.read.all" },
-  { to: "/attivita", label: "Attività", icon: ClipboardList, requiredCap: "activities.read.all" },
-  { to: "/aziende", label: "Aziende", icon: Building2, requiredCap: "aziende.read" },
-  { to: "/conti", label: "Conti", icon: Euro, requiredCap: "conti.proforma" },
-];
+import { PRIMARY_NAV_ITEMS, visibleItems } from "./sidebar/SidebarConfig";
 
 export function MobileNav() {
   const { user } = useAuthState();
   const location = useLocation();
-  const items = ITEMS.filter(
-    (it) => !it.requiredCap || user?.caps.has(it.requiredCap as never)
+  const items = visibleItems(
+    PRIMARY_NAV_ITEMS,
+    user?.caps as ReadonlySet<string> | undefined
   );
   if (items.length === 0) return null;
   return (
