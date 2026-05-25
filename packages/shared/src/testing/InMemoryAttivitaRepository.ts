@@ -128,6 +128,42 @@ export class InMemoryAttivitaRepository implements AttivitaRepository {
       updatedAt: now,
     });
   }
+
+  async restore(id: string): Promise<void> {
+    const existing = this.map.get(id);
+    if (!existing || !existing.isDeleted) return;
+    const now = this.clock();
+    const { deletedAt: _da, deletedBy: _db, ...rest } = existing;
+    void _da;
+    void _db;
+    this.map.set(id, { ...rest, isDeleted: false, updatedAt: now });
+  }
+
+  async hardDelete(id: string): Promise<void> {
+    this.map.delete(id);
+  }
+
+  async purgeOlderThanDeletedAt(cutoff: Date): Promise<number> {
+    let count = 0;
+    for (const [id, a] of [...this.map.entries()]) {
+      if (a.isDeleted && a.deletedAt && a.deletedAt.getTime() < cutoff.getTime()) {
+        this.map.delete(id);
+        count++;
+      }
+    }
+    return count;
+  }
+
+  async deleteAllForOwner(ownerUid: string): Promise<number> {
+    let count = 0;
+    for (const [id, a] of [...this.map.entries()]) {
+      if (a.ownerUid === ownerUid) {
+        this.map.delete(id);
+        count++;
+      }
+    }
+    return count;
+  }
 }
 
 function match(a: Attivita, f: AttivitaFilters): boolean {

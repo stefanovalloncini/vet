@@ -114,4 +114,56 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     const patch = buildAttivitaSoftDeletePatch({ actor }, stampDeps);
     await this.db.collection("attivita").doc(id).update({ ...patch });
   }
+
+  async restore(id: string): Promise<void> {
+    await this.db.collection("attivita").doc(id).update({
+      isDeleted: false,
+      deletedAt: FieldValue.delete(),
+      deletedBy: FieldValue.delete(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  async hardDelete(id: string): Promise<void> {
+    await this.db.collection("attivita").doc(id).delete();
+  }
+
+  async purgeOlderThanDeletedAt(cutoff: Date): Promise<number> {
+    let total = 0;
+    const BATCH_SIZE = 200;
+    for (;;) {
+      const snap = await this.db
+        .collection("attivita")
+        .where("isDeleted", "==", true)
+        .where("deletedAt", "<", Timestamp.fromDate(cutoff))
+        .limit(BATCH_SIZE)
+        .get();
+      if (snap.empty) break;
+      const batch = this.db.batch();
+      for (const d of snap.docs) batch.delete(d.ref);
+      await batch.commit();
+      total += snap.size;
+      if (snap.size < BATCH_SIZE) break;
+    }
+    return total;
+  }
+
+  async deleteAllForOwner(ownerUid: string): Promise<number> {
+    let total = 0;
+    const BATCH_SIZE = 400;
+    for (;;) {
+      const snap = await this.db
+        .collection("attivita")
+        .where("ownerUid", "==", ownerUid)
+        .limit(BATCH_SIZE)
+        .get();
+      if (snap.empty) break;
+      const batch = this.db.batch();
+      for (const d of snap.docs) batch.delete(d.ref);
+      await batch.commit();
+      total += snap.size;
+      if (snap.size < BATCH_SIZE) break;
+    }
+    return total;
+  }
 }

@@ -97,4 +97,8 @@ export class FirestoreAziendeRepository implements AziendeRepository {
     const patch = buildAziendaSoftDeletePatch({ actor }, stampDeps);
     await updateDoc(doc(this.db, "aziende", id), { ...patch });
   }
+
+  async anonymizeOwnerReferences(): Promise<number> {
+    throw new Error("AziendeRepository.anonymizeOwnerReferences is server-only");
+  }
 }

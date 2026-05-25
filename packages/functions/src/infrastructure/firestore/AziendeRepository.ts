@@ -82,4 +82,39 @@ export class FirestoreAziendeRepository implements AziendeRepository {
     const patch = buildAziendaSoftDeletePatch({ actor }, stampDeps);
     await this.db.collection("aziende").doc(id).update({ ...patch });
   }
+
+  async anonymizeOwnerReferences(
+    ownerUid: string,
+    args: { anonUid: string; anonName: string }
+  ): Promise<number> {
+    const BATCH_SIZE = 400;
+    let count = 0;
+    for (const field of ["createdBy", "updatedBy"] as const) {
+      for (;;) {
+        const snap = await this.db
+          .collection("aziende")
+          .where(field, "==", ownerUid)
+          .limit(BATCH_SIZE)
+          .get();
+        if (snap.empty) break;
+        const batch = this.db.batch();
+        for (const d of snap.docs) {
+          const update: Record<string, string> = {};
+          if (d.get("createdBy") === ownerUid) {
+            update["createdBy"] = args.anonUid;
+            update["createdByName"] = args.anonName;
+          }
+          if (d.get("updatedBy") === ownerUid) {
+            update["updatedBy"] = args.anonUid;
+            update["updatedByName"] = args.anonName;
+          }
+          batch.update(d.ref, update);
+        }
+        await batch.commit();
+        count += snap.size;
+        if (snap.size < BATCH_SIZE) break;
+      }
+    }
+    return count;
+  }
 }

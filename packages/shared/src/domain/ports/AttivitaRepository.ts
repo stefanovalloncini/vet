@@ -34,4 +34,12 @@ export interface AttivitaRepository {
     actor: ActorContext
   ): Promise<void>;
   softDelete(id: string, actor: ActorContext): Promise<void>;
+  /** Restore a previously soft-deleted attivita (clears isDeleted/deletedAt/deletedBy). */
+  restore(id: string): Promise<void>;
+  /** Hard-delete an attivita doc (purge). */
+  hardDelete(id: string): Promise<void>;
+  /** Purge all attivita matching the predicate; returns how many were deleted. */
+  purgeOlderThanDeletedAt(cutoff: Date): Promise<number>;
+  /** Delete all attivita owned by the given uid (GDPR). Returns count. */
+  deleteAllForOwner(ownerUid: string): Promise<number>;
 }

@@ -109,7 +109,10 @@ export type {
   AccessRequestRepository,
   AccessRequestRecordResult,
 } from "./domain/ports/AccessRequestRepository.js";
-export type { AziendeRepository } from "./domain/ports/AziendeRepository.js";
+export type {
+  AziendeRepository,
+  AnonymizeAziendaArgs,
+} from "./domain/ports/AziendeRepository.js";
 export type { ActivityTypesRepository } from "./domain/ports/ActivityTypesRepository.js";
 export type {
   AttivitaRepository,

@@ -122,4 +122,20 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     const patch = buildAttivitaSoftDeletePatch({ actor }, stampDeps);
     await updateDoc(doc(this.db, "attivita", id), { ...patch });
   }
+
+  async restore(): Promise<void> {
+    throw new Error("AttivitaRepository.restore is server-only");
+  }
+
+  async hardDelete(): Promise<void> {
+    throw new Error("AttivitaRepository.hardDelete is server-only");
+  }
+
+  async purgeOlderThanDeletedAt(): Promise<number> {
+    throw new Error("AttivitaRepository.purgeOlderThanDeletedAt is server-only");
+  }
+
+  async deleteAllForOwner(): Promise<number> {
+    throw new Error("AttivitaRepository.deleteAllForOwner is server-only");
+  }
 }

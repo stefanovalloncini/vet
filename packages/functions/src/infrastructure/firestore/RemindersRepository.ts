@@ -69,4 +69,25 @@ export class FirestoreRemindersRepository implements RemindersRepository {
   async delete(id: string): Promise<void> {
     await this.db.collection("reminders").doc(id).delete();
   }
+
+  async anonymizeCreatedBy(uid: string, anonUid: string): Promise<number> {
+    const BATCH_SIZE = 400;
+    let count = 0;
+    for (;;) {
+      const snap = await this.db
+        .collection("reminders")
+        .where("createdBy", "==", uid)
+        .limit(BATCH_SIZE)
+        .get();
+      if (snap.empty) break;
+      const batch = this.db.batch();
+      for (const d of snap.docs) {
+        batch.update(d.ref, { createdBy: anonUid });
+      }
+      await batch.commit();
+      count += snap.size;
+      if (snap.size < BATCH_SIZE) break;
+    }
+    return count;
+  }
 }

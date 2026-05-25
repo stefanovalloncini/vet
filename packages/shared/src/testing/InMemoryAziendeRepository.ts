@@ -117,4 +117,30 @@ export class InMemoryAziendeRepository implements AziendeRepository {
       updatedByName: actor.displayName,
     });
   }
+
+  async anonymizeOwnerReferences(
+    ownerUid: string,
+    args: { anonUid: string; anonName: string }
+  ): Promise<number> {
+    let count = 0;
+    for (const [id, a] of [...this.map.entries()]) {
+      let changed = false;
+      const next = { ...a };
+      if (a.createdBy === ownerUid) {
+        next.createdBy = args.anonUid;
+        next.createdByName = args.anonName;
+        changed = true;
+      }
+      if (a.updatedBy === ownerUid) {
+        next.updatedBy = args.anonUid;
+        next.updatedByName = args.anonName;
+        changed = true;
+      }
+      if (changed) {
+        this.map.set(id, next);
+        count++;
+      }
+    }
+    return count;
+  }
 }

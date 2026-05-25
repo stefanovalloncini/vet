@@ -59,4 +59,15 @@ export class InMemoryRemindersRepository implements RemindersRepository {
   async delete(id: string): Promise<void> {
     this.map.delete(id);
   }
+
+  async anonymizeCreatedBy(uid: string, anonUid: string): Promise<number> {
+    let count = 0;
+    for (const [id, r] of [...this.map.entries()]) {
+      if (r.createdBy === uid) {
+        this.map.set(id, { ...r, createdBy: anonUid });
+        count++;
+      }
+    }
+    return count;
+  }
 }

@@ -83,4 +83,8 @@ export class FirestoreRemindersRepository implements RemindersRepository {
   async delete(id: string): Promise<void> {
     await deleteDoc(doc(this.db, "reminders", id));
   }
+
+  async anonymizeCreatedBy(): Promise<number> {
+    throw new Error("RemindersRepository.anonymizeCreatedBy is server-only");
+  }
 }
