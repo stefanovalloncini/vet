@@ -63,9 +63,7 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
         actor: user,
       });
       notify(
-        modalita === "proforma"
-          ? "Pro forma generato"
-          : "Conto emesso e aggiunto ai pagamenti",
+        modalita === "proforma" ? "Pro forma generato" : "Conto emesso",
         "success"
       );
     } catch {

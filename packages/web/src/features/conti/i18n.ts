@@ -1,14 +1,17 @@
 export const contiI18n = {
   title: "Conti",
-  subtitle: "Conti emessi e da saldare.",
+  subtitle: "Aziende con conti emessi.",
   emptyAll: "Nessun conto emesso.",
-  emptyFiltered: "Nessun conto corrisponde al filtro.",
-  mostraSoloNonSaldati: "Mostra solo non saldati",
+  emptyFiltered: "Nessuna azienda con conti non saldati.",
+  mostraSoloNonSaldati: "Mostra solo aziende con non saldati",
+  contiNonSaldatiSuffix: "non saldati",
+  ultimoConto: "Ultimo conto",
+  tuttiSaldati: "Tutto saldato",
   emit: "Emetti conto",
   emitProforma: "Salva come pro forma",
   emetti: "Emetti",
   confermaEmessi:
-    "Verrà aggiunto ai pagamenti e dovrà essere saldato. Continuare?",
+    "Verrà registrato come conto da saldare. Continuare?",
   noActivities:
     "Nessuna attività nel periodo scelto. Aggiungi attività prima di emettere il conto.",
   totale: "Totale",

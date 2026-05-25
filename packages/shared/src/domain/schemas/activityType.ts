@@ -55,4 +55,5 @@ export const ACTIVITY_TYPE_SEEDS: ReadonlyArray<{
   modalitaDefault?: Modalita;
 }> = [
   { id: GINECOLOGIA_TIPO_ID, nome: "Ginecologia", ordine: 1 },
+  { id: ALTRO_TIPO_ID, nome: "Altro", ordine: 999 },
 ];
