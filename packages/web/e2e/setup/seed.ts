@@ -39,6 +39,7 @@ const VET_CAPS: Capability[] = [
   "activity_types.read",
   "trash.read.own",
   "trash.restore.own",
+  "conti.proforma",
   "reminders.read",
   "reminders.create",
   "reminders.update.own",
