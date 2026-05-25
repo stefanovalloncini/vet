@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
 import { useAziende } from "../../aziende/hooks/useAziende";
 import { usePayments } from "../../payments/hooks/usePayments";
-import { SHORT_MONTHS } from "../../dashboard/lib/stats";
+import { SHORT_MONTHS_IT as SHORT_MONTHS } from "../../../shared/i18n/months";
 import type { Attivita, Azienda, Payment } from "@vet/shared";
 
 export type StatistichePeriodo = "12m" | "ytd" | "all";

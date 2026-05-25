@@ -10,9 +10,8 @@ import { RHFSelect, RHFTextField } from "../../../shared/ui/rhf";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../../attivita/hooks/useReferenceData";
-import { QuickAddAziendaDialog } from "../../aziende/ui/QuickAddAziendaDialog";
-import { QuickAddTipoDialog } from "../../activity-types/ui/QuickAddTipoDialog";
-import { nextOrdine } from "../../activity-types/lib/ordine";
+import { QuickAddAziendaDialog } from "../../aziende";
+import { QuickAddTipoDialog, nextOrdine } from "../../activity-types";
 import { formatEuro } from "../../../shared/lib/format";
 import { useUndoCreateAttivita } from "../hooks/useUndoCreateAttivita";
 import {
