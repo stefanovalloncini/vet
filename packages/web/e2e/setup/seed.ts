@@ -211,6 +211,7 @@ async function seedAttivita(db: FirebaseFirestore.Firestore): Promise<void> {
     tipoId: FIXTURE.tipo.id,
     tipoNome: FIXTURE.tipo.nome,
     oraria: false,
+    adElemento: false,
     tariffa: 80,
     totale: 80,
     ownerUid: FIXTURE.vet.uid,
