@@ -107,7 +107,6 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
         onClose={onClose}
         labelledBy="quick-entry-title"
         size="md"
-        showHandle
       >
         <FormProvider {...s.form}>
           <div className="p-5 sm:p-6">

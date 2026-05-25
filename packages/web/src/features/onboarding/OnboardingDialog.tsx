@@ -33,7 +33,6 @@ export function OnboardingDialog({
       onClose={onClose}
       labelledBy={TITLE_ID}
       size="sm"
-      sheet
     >
       <div className="p-6 sm:p-7 space-y-6">
         <StepIndicator current={step} />
