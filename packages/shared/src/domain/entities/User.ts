@@ -10,5 +10,6 @@ export interface User {
   lastSignInAt?: Date;
   approvedAt?: Date;
   approvedBy?: string;
+  minCapsVer?: number;
   schemaVersion: number;
 }

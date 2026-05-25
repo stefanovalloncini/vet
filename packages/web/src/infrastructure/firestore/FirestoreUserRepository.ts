@@ -9,7 +9,7 @@ import {
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import type { User, UserRepository } from "@vet/shared";
-import { toDate } from "./timestamps";
+import { parseUser } from "@vet/shared";
 
 export class FirestoreUserRepository implements UserRepository {
   constructor(private readonly db: Firestore) {}
@@ -17,19 +17,19 @@ export class FirestoreUserRepository implements UserRepository {
   async getById(uid: string): Promise<User | null> {
     const snap = await getDoc(doc(this.db, "users", uid));
     if (!snap.exists()) return null;
-    return this.fromSnap(uid, snap.data());
+    return parseUser(uid, snap.data());
   }
 
   async listByRole(roleId: string): Promise<User[]> {
     const q = query(collection(this.db, "users"), where("roleId", "==", roleId));
     const snap = await getDocs(q);
-    return snap.docs.map((d) => this.fromSnap(d.id, d.data()));
+    return snap.docs.map((d) => parseUser(d.id, d.data()));
   }
 
   async listPending(): Promise<User[]> {
     const q = query(collection(this.db, "users"), where("approved", "==", false));
     const snap = await getDocs(q);
-    return snap.docs.map((d) => this.fromSnap(d.id, d.data()));
+    return snap.docs.map((d) => parseUser(d.id, d.data()));
   }
 
   async approve(uid: string, roleId: string): Promise<void> {
@@ -40,22 +40,5 @@ export class FirestoreUserRepository implements UserRepository {
   async delete(uid: string): Promise<void> {
     const fn = httpsCallable(getFunctions(undefined, "europe-west8"), "rejectUser");
     await fn({ uid });
-  }
-
-  private fromSnap(uid: string, data: Record<string, unknown>): User {
-    return {
-      uid,
-      email: data.email as string,
-      displayName: data.displayName as string,
-      roleId: data.roleId as string,
-      approved: (data.approved as boolean) ?? false,
-      disabled: (data.disabled as boolean) ?? false,
-      createdAt: toDate(data.createdAt),
-      updatedAt: toDate(data.updatedAt),
-      ...(data.lastSignInAt ? { lastSignInAt: toDate(data.lastSignInAt) } : {}),
-      ...(data.approvedAt ? { approvedAt: toDate(data.approvedAt) } : {}),
-      ...(data.approvedBy ? { approvedBy: data.approvedBy as string } : {}),
-      schemaVersion: 1,
-    };
   }
 }

@@ -170,6 +170,17 @@ export {
   type ReminderMarkDonePayload,
 } from "./firestore-dto/reminder.js";
 export {
+  userDtoSchema,
+  parseUser,
+  buildUserSignInPatch,
+  buildUserApprovePatch,
+  buildUserRevokeSessionPatch,
+  type UserDTO,
+  type UserSignInPatch,
+  type UserApprovePatch,
+  type UserRevokeSessionPatch,
+} from "./firestore-dto/user.js";
+export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
   contoDocSchema,
