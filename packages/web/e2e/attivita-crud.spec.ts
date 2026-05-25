@@ -8,10 +8,9 @@ test.describe("attivita CRUD", () => {
       timeout: 15_000,
     });
     await expect(
-      signedInVet.getByRole("heading", {
-        level: 2,
-        name: new RegExp(FIXTURE.azienda.nome),
-      })
+      signedInVet
+        .getByRole("link", { name: new RegExp(FIXTURE.azienda.nome) })
+        .first()
     ).toBeVisible({ timeout: 10_000 });
   });
 

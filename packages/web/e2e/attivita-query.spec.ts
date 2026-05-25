@@ -8,17 +8,16 @@ test.describe("attivita query layer", () => {
       timeout: 15_000,
     });
     await expect(
-      signedInVet.getByRole("heading", {
-        level: 2,
-        name: new RegExp(FIXTURE.azienda.nome),
-      })
+      signedInVet
+        .getByRole("link", { name: new RegExp(FIXTURE.azienda.nome) })
+        .first()
     ).toBeVisible({ timeout: 10_000 });
   });
 
   test("create invalidates the list so the new attivita shows without reload", async ({
     signedInVet,
   }) => {
-    const tariffaMarker = 1000 + (Date.now() % 8000);
+    const tariffaMarker = 100 + (Date.now() % 800);
     await signedInVet.goto("/attivita/nuova");
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({
       timeout: 15_000,

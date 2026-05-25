@@ -5,7 +5,7 @@ test.describe("attivita form (RHF)", () => {
   test("creates a new attivita via the migrated form", async ({
     signedInVet,
   }) => {
-    const tariffaMarker = 2000 + (Date.now() % 7000);
+    const tariffaMarker = 200 + (Date.now() % 700);
     await signedInVet.goto("/attivita/nuova");
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({
       timeout: 15_000,
