@@ -14,6 +14,7 @@ import { FirestoreAuditRepository } from "./firestore/AuditRepository.js";
 import { NotSupportedAuthService } from "./firestore/AuthService.js";
 import { FirestoreAziendeRepository } from "./firestore/AziendeRepository.js";
 import { FirestoreContiRepository } from "./firestore/ContiRepository.js";
+import { FirestoreMailRepository } from "./firestore/MailRepository.js";
 import { FirestoreRemindersRepository } from "./firestore/RemindersRepository.js";
 import { FirestoreRoleRepository } from "./firestore/RoleRepository.js";
 import { NotSupportedTrashService } from "./firestore/TrashService.js";
@@ -35,6 +36,7 @@ function buildTx(tx?: Transaction): Tx {
     audit: new FirestoreAuditRepository(adminDb, tx),
     conti: new FirestoreContiRepository(adminDb),
     reminders: new FirestoreRemindersRepository(adminDb),
+    mail: new FirestoreMailRepository(adminDb),
     auth: new NotSupportedAuthService(),
   };
 }

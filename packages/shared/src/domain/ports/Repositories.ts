@@ -9,6 +9,7 @@ import type { AttivitaRepository } from "./AttivitaRepository.js";
 import type { TrashService } from "./TrashService.js";
 import type { AuditRepository } from "./AuditRepository.js";
 import type { ContiRepository } from "./ContiRepository.js";
+import type { MailRepository } from "./MailRepository.js";
 import type { RemindersRepository } from "./RemindersRepository.js";
 import type { AuthService } from "./AuthService.js";
 
@@ -25,6 +26,7 @@ export interface Tx {
   readonly audit: AuditRepository;
   readonly conti: ContiRepository;
   readonly reminders: RemindersRepository;
+  readonly mail: MailRepository;
   readonly auth: AuthService;
 }
 

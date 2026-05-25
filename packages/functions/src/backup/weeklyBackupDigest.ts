@@ -2,9 +2,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions/v2";
 import { defineSecret } from "firebase-functions/params";
 import { google, type drive_v3 } from "googleapis";
-import { adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue } from "firebase-admin/firestore";
-import { getAuditRepository } from "../infrastructure/composition.js";
+import { getRepositories } from "../infrastructure/composition.js";
 import type { BackupManifest } from "./dailyDriveExport.js";
 
 const DRIVE_BACKUP_KEY = defineSecret("drive-backup-key");
@@ -167,16 +165,16 @@ export const weeklyBackupDigest = onSchedule(
     }
     const label = weekLabel(new Date());
     const html = renderDigestHtml({ weekLabel: label, days });
-    await adminDb.collection("mail").add({
+    const repos = getRepositories();
+    await repos.mail.send({
       to: recipient,
       message: {
         subject: `Backup settimanale Drive (${label})`,
         html,
       },
-      createdAt: FieldValue.serverTimestamp(),
       kind: "drive_backup_digest",
     });
-    await getAuditRepository().record({
+    await repos.audit.record({
       actorUid: "system",
       actorEmail: "scheduled@vet",
       action: "backup.drive.digest.sent",

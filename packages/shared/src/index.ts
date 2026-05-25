@@ -246,6 +246,11 @@ export {
 } from "./domain/schemas/conto.js";
 export type { Reminder } from "./domain/entities/Reminder.js";
 export type { RemindersRepository } from "./domain/ports/RemindersRepository.js";
+export type {
+  MailRepository,
+  MailMessage,
+  MailSendInput,
+} from "./domain/ports/MailRepository.js";
 export {
   reminderInputSchema,
   reminderDocSchema,

@@ -1,15 +1,7 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import { getAuditRepository } from "../infrastructure/composition.js";
+import { Timestamp } from "firebase-admin/firestore";
+import { getRepositories } from "../infrastructure/composition.js";
 import { isCadenzaDue, periodFor, type Cadenza } from "./period.js";
-
-interface Azienda {
-  id: string;
-  nome: string;
-  cadenzaFatturazione?: Cadenza;
-  emailFatturazione?: string;
-}
 
 interface Attivita {
   data: Timestamp;
@@ -30,56 +22,57 @@ export const monthlyInvoicePush = onSchedule(
   },
   async () => {
     const runAt = new Date();
-    const aziendeSnap = await adminDb
-      .collection("aziende")
-      .where("isDeleted", "==", false)
-      .get();
+    const repos = getRepositories();
+    const aziende = await repos.aziende.list();
 
-    for (const doc of aziendeSnap.docs) {
-      const data = doc.data() as Partial<Azienda>;
-      const cadenza = data.cadenzaFatturazione;
-      const email = data.emailFatturazione;
+    for (const azienda of aziende) {
+      const cadenza = azienda.cadenzaFatturazione as Cadenza | undefined;
+      const email = azienda.emailFatturazione;
       if (!cadenza || !email) continue;
       if (!isCadenzaDue(cadenza, runAt)) continue;
 
       const period = periodFor(cadenza, runAt);
-      const attivitaSnap = await adminDb
-        .collection("attivita")
-        .where("isDeleted", "==", false)
-        .where("aziendaId", "==", doc.id)
-        .where("data", ">=", Timestamp.fromDate(period.start))
-        .where("data", "<=", Timestamp.fromDate(period.end))
-        .get();
-      const items = attivitaSnap.docs.map(
-        (d) => d.data() as Attivita
-      );
+      const items = await repos.attivita.list({
+        aziendaId: azienda.id,
+        from: period.start,
+        to: period.end,
+      });
       if (items.length === 0) continue;
 
       const total = items.reduce((s, a) => s + a.totale, 0);
+      const renderableItems: Attivita[] = items.map((a) => ({
+        data: Timestamp.fromDate(a.data),
+        aziendaNome: a.aziendaNome,
+        tipoNome: a.tipoNome,
+        tariffa: a.tariffa,
+        ...(a.ore !== undefined ? { ore: a.ore } : {}),
+        totale: a.totale,
+        oraria: a.oraria,
+        ...(a.note !== undefined ? { note: a.note } : {}),
+      }));
       const html = renderHtmlReport({
-        aziendaNome: data.nome ?? "",
+        aziendaNome: azienda.nome,
         periodLabel: period.label,
-        items,
+        items: renderableItems,
         total,
       });
 
-      await adminDb.collection("mail").add({
+      await repos.mail.send({
         to: email,
         message: {
-          subject: `Riepilogo attività ${period.label} — ${data.nome ?? ""}`,
+          subject: `Riepilogo attività ${period.label} — ${azienda.nome}`,
           html,
         },
-        createdAt: FieldValue.serverTimestamp(),
-        aziendaId: doc.id,
+        aziendaId: azienda.id,
         period: period.label,
       });
 
-      await getAuditRepository().record({
+      await repos.audit.record({
         actorUid: "system",
         actorEmail: "scheduled@vet",
         action: "invoicing.monthly.push",
         targetType: "azienda",
-        targetId: doc.id,
+        targetId: azienda.id,
         details: {
           period: period.label,
           count: items.length,

@@ -15,6 +15,7 @@ import {
   InMemoryAuditRepository,
   InMemoryContiRepository,
   InMemoryRemindersRepository,
+  InMemoryMailRepository,
   InMemoryAuthService,
 } from "@vet/shared/testing";
 
@@ -34,6 +35,7 @@ export function createInMemoryRepositories(): Repositories {
     audit: new InMemoryAuditRepository(),
     conti: new InMemoryContiRepository(),
     reminders: new InMemoryRemindersRepository(),
+    mail: new InMemoryMailRepository(),
     auth,
   };
   return {
