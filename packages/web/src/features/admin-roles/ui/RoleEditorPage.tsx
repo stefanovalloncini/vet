@@ -9,7 +9,7 @@ import {
   type RoleInput,
 } from "@vet/shared";
 import {
-  AppShell,
+  AdminLayout,
   Button,
   Card,
   InlineError,
@@ -123,16 +123,16 @@ export function RoleEditorPage() {
 
   if (loading) {
     return (
-      <AppShell>
+      <AdminLayout>
         <LoadingHint label={t.loading} />
-      </AppShell>
+      </AdminLayout>
     );
   }
 
   const rootError = form.formState.errors.root?.message;
 
   return (
-    <AppShell>
+    <AdminLayout>
       <PageHeader
         title={isEdit ? t.titoloModifica : t.titoloNuovo}
         back={{ to: "/admin/ruoli", label: t.back }}
@@ -209,6 +209,6 @@ export function RoleEditorPage() {
           )}
         </form>
       </FormProvider>
-    </AppShell>
+    </AdminLayout>
   );
 }

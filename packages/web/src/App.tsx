@@ -21,6 +21,12 @@ const DevPrimitivesPage = import.meta.env.DEV
     )
   : null;
 
+const AdminPreviewPage = import.meta.env.DEV
+  ? lazy(() =>
+      import("./features/dev-primitives").then((m) => ({ default: m.AdminPreviewPage }))
+    )
+  : null;
+
 export function App() {
   return (
     <BrowserRouter
@@ -66,6 +72,16 @@ function AppRoutes() {
             element={
               <RouteShell pathname={pathname}>
                 <DevPrimitivesPage />
+              </RouteShell>
+            }
+          />
+        ) : null}
+        {AdminPreviewPage ? (
+          <Route
+            path="/dev/admin"
+            element={
+              <RouteShell pathname={pathname}>
+                <AdminPreviewPage />
               </RouteShell>
             }
           />

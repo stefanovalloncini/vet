@@ -49,4 +49,13 @@ export const allowlistI18n = {
   pendingApprovaErrore: "Approvazione non riuscita.",
   pendingRifiutaErrore: "Rifiuto non riuscito.",
   pendingSignedUpAt: "Registrato il",
+  colEmail: "Email",
+  colRuolo: "Ruolo",
+  colData: "Data",
+  colStato: "Stato",
+  colTentativi: "Tentativi",
+  colAzioni: "Azioni",
+  statoApprovato: "Approvato",
+  statoInAttesa: "In attesa",
+  statoRichiesta: "Richiesta",
 } as const;

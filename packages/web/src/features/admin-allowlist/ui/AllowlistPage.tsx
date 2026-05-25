@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AppShell, PageHeader, Tabs } from "../../../shared/ui";
+import { AdminLayout, PageHeader, Tabs } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useAllowlist } from "../hooks/useAllowlist";
 import { useAccessRequests } from "../hooks/useAccessRequests";
@@ -37,7 +37,7 @@ export function AllowlistPage() {
   ];
 
   return (
-    <AppShell>
+    <AdminLayout>
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
       {showTabs ? (
@@ -58,6 +58,6 @@ export function AllowlistPage() {
           error={error}
         />
       )}
-    </AppShell>
+    </AdminLayout>
   );
 }

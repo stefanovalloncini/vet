@@ -12,6 +12,9 @@ export const auditI18n = {
   filtroTutti: "Tutte",
   filtroAzione: "Filtra per azione",
   filtroTarget: "Filtra per target",
+  filtroAttore: "Filtra per attore",
+  filtroDal: "Dal",
+  filtroAl: "Al",
 } as const;
 
 import type { AuditAction } from "@vet/shared";
