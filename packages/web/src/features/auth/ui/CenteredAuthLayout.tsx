@@ -62,8 +62,8 @@ export function CenteredAuthLayout({
         </div>
       </div>
 
-      <div className="mt-10 mx-auto w-full max-w-sm flex items-center justify-between text-xs text-(--color-text-subtle)">
-        <span>{footer ?? null}</span>
+      <div className="mt-10 mx-auto w-full max-w-sm flex flex-col items-center gap-2 text-xs text-(--color-text-subtle) sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <span className="text-center sm:text-left">{footer ?? null}</span>
         <VersionBadge />
       </div>
     </main>

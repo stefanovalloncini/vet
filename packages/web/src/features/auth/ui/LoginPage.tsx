@@ -34,11 +34,12 @@ export function LoginPage() {
   const [view, setView] = useState<View>("signIn");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<ClassifiedAuthError | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [linkBusy, setLinkBusy] = useState(false);
 
   async function googleSignIn(selectAccount = false) {
     setError(null);
-    setBusy(true);
+    setGoogleBusy(true);
     try {
       await auth.signInWithGoogle({ selectAccount });
     } catch (err) {
@@ -46,13 +47,13 @@ export function LoginPage() {
       const classified = classifyAuthError(err);
       if (classified.kind !== "userCancelled") setError(classified);
     } finally {
-      setBusy(false);
+      setGoogleBusy(false);
     }
   }
 
   async function sendLink(target: string, nextView: "linkSent" | "requestSent") {
     setError(null);
-    setBusy(true);
+    setLinkBusy(true);
     try {
       await auth.sendEmailSignInLink(target);
       setEmail(target);
@@ -61,7 +62,7 @@ export function LoginPage() {
       console.error("send email link failed", err);
       setError(classifyAuthError(err));
     } finally {
-      setBusy(false);
+      setLinkBusy(false);
     }
   }
 
@@ -102,7 +103,7 @@ export function LoginPage() {
       {error ? (
         <AuthErrorBanner
           error={error}
-          busy={busy}
+          busy={googleBusy}
           onRetryGoogle={() => googleSignIn(true)}
         />
       ) : null}
@@ -110,7 +111,8 @@ export function LoginPage() {
       {view === "signIn" ? (
         <SignInView
           email={email}
-          busy={busy}
+          linkBusy={linkBusy}
+          googleBusy={googleBusy}
           onEmailChange={setEmail}
           onEmailSubmit={handleEmailSubmit}
           onGoogle={() => googleSignIn(false)}
@@ -124,14 +126,14 @@ export function LoginPage() {
       {view === "linkSent" ? (
         <EmailLinkSent
           email={email}
-          busy={busy}
+          busy={linkBusy}
           onResend={handleResend}
         />
       ) : null}
 
       {view === "requestAccess" ? (
         <AccessRequestForm
-          busy={busy}
+          busy={linkBusy}
           onSubmit={handleAccessRequestSubmit}
           onBack={() => {
             setError(null);
@@ -147,7 +149,8 @@ export function LoginPage() {
 
 interface SignInViewProps {
   email: string;
-  busy: boolean;
+  linkBusy: boolean;
+  googleBusy: boolean;
   onEmailChange: (next: string) => void;
   onEmailSubmit: (values: EmailFormValues) => Promise<void>;
   onGoogle: () => void;
@@ -156,17 +159,19 @@ interface SignInViewProps {
 
 function SignInView({
   email,
-  busy,
+  linkBusy,
+  googleBusy,
   onEmailChange,
   onEmailSubmit,
   onGoogle,
   onRequestAccess,
 }: SignInViewProps) {
+  const anyBusy = linkBusy || googleBusy;
   return (
     <div className="space-y-6">
       <EmailLinkForm
         defaultEmail={email}
-        busy={busy}
+        busy={linkBusy}
         onSubmit={onEmailSubmit}
         onEmailChange={onEmailChange}
       />
@@ -186,10 +191,10 @@ function SignInView({
         variant="secondary"
         size="lg"
         fullWidth
-        disabled={busy}
+        disabled={anyBusy}
         onClick={onGoogle}
         leadingIcon={
-          busy ? (
+          googleBusy ? (
             <Loader2
               size={18}
               strokeWidth={2}
@@ -209,7 +214,7 @@ function SignInView({
         <button
           type="button"
           onClick={onRequestAccess}
-          disabled={busy}
+          disabled={anyBusy}
           className="text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline disabled:opacity-50"
         >
           Richiedi accesso
