@@ -19,6 +19,7 @@
     "seed:roles": "pnpm -F vet-scripts seed:roles",
     "seed:activity-types": "pnpm -F vet-scripts seed:activity-types",
     "wipe:types": "pnpm -F vet-scripts wipe:types",
+    "create:test-users": "pnpm -F vet-scripts create:test-users",
     "rescue:admin": "pnpm -F vet-scripts rescue:admin",
     "dev": "pnpm -F @vet/shared build && pnpm -F @vet/functions build && concurrently -k -n 'emulator,web' -c 'magenta,cyan' 'firebase emulators:start --project=vet-dev' 'pnpm -F @vet/web dev'",
     "deploy:rules": "firebase deploy --project vet-marinoni --only firestore:rules",
