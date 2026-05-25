@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  AddLink,
   AppShell,
   Button,
   ConfirmDialog,
@@ -173,18 +174,6 @@ export function AttivitaFormPage() {
         onClose={() => setConfirmDelete(false)}
       />
     </AppShell>
-  );
-}
-
-function AddLink({ onClick, label }: { onClick: () => void; label: string }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="text-(--color-accent) hover:underline font-medium"
-    >
-      {label}
-    </button>
   );
 }
 

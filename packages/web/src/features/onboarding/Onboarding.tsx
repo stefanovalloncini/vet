@@ -12,7 +12,6 @@ export function Onboarding() {
   return (
     <OnboardingDialog
       open={open}
-      displayName={user.displayName}
       onClose={dismiss}
       onStartFirstEntry={openQuickEntry}
     />

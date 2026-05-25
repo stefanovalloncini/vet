@@ -33,3 +33,5 @@ export { SectionLabel } from "./SectionLabel";
 export { SettingsSection } from "./SettingsSection";
 export { SettingsRow } from "./SettingsRow";
 export { VirtualList } from "./VirtualList";
+export { AddLink } from "./AddLink";
+export { Switch } from "./Switch";

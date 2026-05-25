@@ -3,35 +3,21 @@ import { describe, expect, it, vi } from "vitest";
 import { OnboardingDialog } from "../OnboardingDialog";
 
 describe("OnboardingDialog", () => {
-  it("greets the user by first name on step 1", () => {
+  it("shows the welcome step on first render", () => {
     render(
       <OnboardingDialog
         open
-        displayName="Mario Rossi"
         onClose={vi.fn()}
         onStartFirstEntry={vi.fn()}
       />
     );
-    expect(screen.getByText(/Benvenuto, Mario\./i)).toBeInTheDocument();
-  });
-
-  it("falls back to a generic greeting when displayName is empty", () => {
-    render(
-      <OnboardingDialog
-        open
-        displayName=""
-        onClose={vi.fn()}
-        onStartFirstEntry={vi.fn()}
-      />
-    );
-    expect(screen.getByText(/^Benvenuto\.$/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pronto a iniziare/i)).toBeInTheDocument();
   });
 
   it("advances to step 2 on Avanti and shows the quick-entry CTA", () => {
     render(
       <OnboardingDialog
         open
-        displayName="Mario"
         onClose={vi.fn()}
         onStartFirstEntry={vi.fn()}
       />
@@ -51,7 +37,6 @@ describe("OnboardingDialog", () => {
     render(
       <OnboardingDialog
         open
-        displayName="Mario"
         onClose={onClose}
         onStartFirstEntry={onStart}
       />
@@ -68,7 +53,6 @@ describe("OnboardingDialog", () => {
     render(
       <OnboardingDialog
         open
-        displayName="Mario"
         onClose={onClose}
         onStartFirstEntry={onStart}
       />

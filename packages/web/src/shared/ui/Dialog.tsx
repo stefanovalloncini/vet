@@ -63,8 +63,17 @@ export function Dialog({
       aria-labelledby={labelledBy}
       aria-describedby={describedBy}
       className="fixed inset-0 z-40 flex items-center justify-center p-4 sm:p-8 bg-(--color-overlay) animate-fade-in-soft"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+      onPointerDown={(e) => {
+        e.currentTarget.dataset["downTarget"] = e.target === e.currentTarget ? "self" : "child";
+      }}
+      onClick={(e) => {
+        if (
+          e.target === e.currentTarget &&
+          e.currentTarget.dataset["downTarget"] === "self"
+        ) {
+          onClose();
+        }
+        delete e.currentTarget.dataset["downTarget"];
       }}
     >
       <div

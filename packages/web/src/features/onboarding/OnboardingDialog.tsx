@@ -9,14 +9,12 @@ const TOTAL_STEPS = 2;
 
 interface OnboardingDialogProps {
   open: boolean;
-  displayName: string;
   onClose: () => void;
   onStartFirstEntry: () => void;
 }
 
 export function OnboardingDialog({
   open,
-  displayName,
   onClose,
   onStartFirstEntry,
 }: OnboardingDialogProps) {
@@ -40,7 +38,7 @@ export function OnboardingDialog({
         {step === 1 ? (
           <StepBody
             icon={<Sparkles size={18} strokeWidth={1.75} />}
-            title={welcomeGreeting(displayName)}
+            title="Pronto a iniziare"
           >
             Da qui registri le visite, vedi i riepiloghi e esporti i conti.
             Sempre offline, sempre in italiano.
@@ -126,9 +124,3 @@ function StepBody({ icon, title, children }: StepBodyProps) {
   );
 }
 
-function welcomeGreeting(displayName: string): string {
-  const trimmed = displayName.trim();
-  if (trimmed.length === 0) return "Benvenuto.";
-  const first = trimmed.split(/\s+/)[0] ?? trimmed;
-  return `Benvenuto, ${first}.`;
-}
