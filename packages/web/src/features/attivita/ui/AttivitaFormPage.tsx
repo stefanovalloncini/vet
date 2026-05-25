@@ -18,9 +18,8 @@ import {
   useAttivitaSubmit,
   useExistingAttivita,
 } from "../hooks/useAttivitaForm";
-import { QuickAddAziendaDialog } from "../../aziende/ui/QuickAddAziendaDialog";
-import { QuickAddTipoDialog } from "../../activity-types/ui/QuickAddTipoDialog";
-import { nextOrdine } from "../../activity-types/lib/ordine";
+import { QuickAddAziendaDialog } from "../../aziende";
+import { QuickAddTipoDialog, nextOrdine } from "../../activity-types";
 import { attivitaI18n as t } from "../i18n";
 import {
   attivitaFormSchema,

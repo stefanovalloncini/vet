@@ -44,7 +44,6 @@ async function eraseUserData(
 ): Promise<{
   attivita: number;
   aziendeAnon: number;
-  paymentsAnon: number;
   remindersAnon: number;
   userDoc: boolean;
   allowlistDoc: boolean;
@@ -65,7 +64,6 @@ async function eraseUserData(
   }
 
   const aziendeAnon = await anonymizeReferences("aziende", uid);
-  const paymentsAnon = await anonymizeReferences("payments", uid);
   const remindersAnon = await anonymizeReminders(uid);
 
   let userDoc = false;
@@ -90,7 +88,6 @@ async function eraseUserData(
   return {
     attivita: attivitaDeleted,
     aziendeAnon,
-    paymentsAnon,
     remindersAnon,
     userDoc,
     allowlistDoc,
@@ -98,7 +95,7 @@ async function eraseUserData(
 }
 
 async function anonymizeReferences(
-  collection: "aziende" | "payments",
+  collection: "aziende",
   uid: string
 ): Promise<number> {
   let count = 0;

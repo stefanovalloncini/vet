@@ -1,5 +1,5 @@
 import type { Attivita } from "@vet/shared";
-import { WEEKDAYS } from "../../agenda/i18n";
+import { WEEKDAYS_IT as WEEKDAYS } from "../../../shared/i18n/months";
 
 interface WeekdayChartProps {
   items: Attivita[];

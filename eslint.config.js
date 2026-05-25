@@ -68,6 +68,25 @@ export default [
     },
   },
   {
+    files: ["packages/web/src/features/**/*.{ts,tsx}"],
+    ignores: ["**/__tests__/**", "**/*.test.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex:
+                "^\\.\\./\\.\\./(?!shared|auth|infrastructure|onboarding)[a-z-]+/(ui|lib|i18n)",
+              message:
+                "Cross-feature UI/lib/i18n import forbidden. Use the feature's barrel (import from \"../<feature>\") or move shared code to packages/web/src/shared/. Data hooks (../X/hooks/) are temporarily allowed pending migration to shared/data/.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: [
       "**/*.test.ts",
       "**/*.test.tsx",

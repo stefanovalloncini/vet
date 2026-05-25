@@ -392,37 +392,6 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    match /payments/{paymentId} {
-      function valid() {
-        let d = request.resource.data;
-        return d.keys().hasAll(["aziendaId", "aziendaNome", "periodoFinoA", "createdAt", "updatedAt", "createdBy", "updatedBy", "createdByName", "updatedByName", "schemaVersion"])
-          && d.keys().hasOnly(["aziendaId", "aziendaNome", "periodoFinoA", "importoPagato", "metodoPagamento", "note", "createdAt", "updatedAt", "createdBy", "updatedBy", "createdByName", "updatedByName", "schemaVersion"])
-          && d.aziendaId is string && d.aziendaId.size() >= 1 && d.aziendaId.size() <= 64
-          && d.aziendaNome is string && d.aziendaNome.size() >= 1 && d.aziendaNome.size() <= 200
-          && d.periodoFinoA is timestamp
-          && (!("importoPagato" in d.keys()) || (d.importoPagato is number && d.importoPagato >= 0 && d.importoPagato <= 1000000))
-          && (!("metodoPagamento" in d.keys()) || d.metodoPagamento in ["bonifico", "contanti", "altro"])
-          && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 500))
-          && d.createdBy is string && d.createdBy.size() <= 128
-          && d.updatedBy is string && d.updatedBy.size() <= 128
-          && d.createdByName is string && d.createdByName.size() >= 1 && d.createdByName.size() <= 80
-          && d.updatedByName is string && d.updatedByName.size() >= 1 && d.updatedByName.size() <= 80
-          && d.schemaVersion == 1;
-      }
-      allow read: if (hasCap("pr") && resource.data.createdBy == request.auth.uid)
-        || hasCap("pra");
-      allow create: if hasCap("pm")
-        && tokenIsFresh()
-        && valid()
-        && request.resource.data.createdBy == request.auth.uid
-        && isServerStamped("createdAt")
-        && isServerStamped("updatedAt");
-      allow update: if false;
-      allow delete: if tokenIsFresh()
-        && ((hasCap("pm") && resource.data.createdBy == request.auth.uid)
-            || hasCap("pma"));
-    }
-
     match /reminders/{reminderId} {
       function valid() {
         let d = request.resource.data;

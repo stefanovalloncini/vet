@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { AppShell, Button } from "../../../shared/ui";
+import { withAllOption } from "../../../shared/lib/options";
 import { useAuthState } from "../../auth";
 import { useAttivita } from "../hooks/useAttivita";
 import { useAttivitaFilters } from "../hooks/useAttivitaFilters";
@@ -38,24 +39,27 @@ export function AttivitaListPage() {
   const canExport = user?.caps.has("activities.export") ?? false;
 
   const aziendaOptions = useMemo(
-    () => [
-      { value: "", label: t.filtroTutti },
-      ...ref.aziende.map((a) => ({ value: a.id, label: a.nome })),
-    ],
+    () =>
+      withAllOption(
+        ref.aziende.map((a) => ({ value: a.id, label: a.nome })),
+        t.filtroTutti
+      ),
     [ref.aziende]
   );
   const tipoOptions = useMemo(
-    () => [
-      { value: "", label: t.filtroTutti },
-      ...ref.tipi.map((tipo) => ({ value: tipo.id, label: tipo.nome })),
-    ],
+    () =>
+      withAllOption(
+        ref.tipi.map((tipo) => ({ value: tipo.id, label: tipo.nome })),
+        t.filtroTutti
+      ),
     [ref.tipi]
   );
   const vetOptions = useMemo(
-    () => [
-      { value: "", label: t.filtroTutti },
-      ...vets.map((v) => ({ value: v.uid, label: v.nome })),
-    ],
+    () =>
+      withAllOption(
+        vets.map((v) => ({ value: v.uid, label: v.nome })),
+        t.filtroTutti
+      ),
     [vets]
   );
 

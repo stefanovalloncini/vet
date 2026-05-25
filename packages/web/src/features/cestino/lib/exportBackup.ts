@@ -4,7 +4,6 @@ export interface BackupPayload {
   version: 1;
   aziende: unknown[];
   attivita: unknown[];
-  payments: unknown[];
   reminders: unknown[];
 }
 
@@ -12,7 +11,6 @@ export function buildBackupPayload(args: {
   exportedBy: string;
   aziende: unknown[];
   attivita: unknown[];
-  payments: unknown[];
   reminders: unknown[];
   now?: Date;
 }): BackupPayload {
@@ -23,7 +21,6 @@ export function buildBackupPayload(args: {
     version: 1,
     aziende: args.aziende,
     attivita: args.attivita,
-    payments: args.payments,
     reminders: args.reminders,
   };
 }

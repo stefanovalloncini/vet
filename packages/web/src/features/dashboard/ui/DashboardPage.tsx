@@ -8,10 +8,7 @@ import { OnboardingBanner } from "../../onboarding/OnboardingBanner";
 import { useDashboardStats, type DashboardStats } from "../hooks/useDashboardStats";
 import { MetricCard } from "../../../shared/ui/charts/MetricCard";
 
-const MONTHS_IT = [
-  "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
-  "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre",
-];
+import { MONTHS_IT } from "../../../shared/i18n/months";
 
 function periodLabel(now: Date): string {
   const m = MONTHS_IT[now.getMonth()] ?? "";

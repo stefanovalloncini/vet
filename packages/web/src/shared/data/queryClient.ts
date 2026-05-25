@@ -35,8 +35,6 @@ export const queryKeys = {
       tipoId ?? null,
     ] as const,
   tipiAttivita: ["tipiAttivita"] as const,
-  payments: (filters?: Readonly<Record<string, unknown>>) =>
-    ["payments", filters ?? {}] as const,
   reminders: (filters?: Readonly<Record<string, unknown>>) =>
     ["reminders", filters ?? {}] as const,
   vetStats: (filters?: Readonly<Record<string, unknown>>) =>
@@ -66,7 +64,6 @@ export const queryKeys = {
 export const ATTIVITA_DEPENDENT_KEYS = [
   ["attivita"],
   ["agenda"],
-  ["payments"],
   ["vetStats"],
   ["dashboardStats"],
   ["statistiche"],
@@ -75,7 +72,6 @@ export const ATTIVITA_DEPENDENT_KEYS = [
 
 export const AZIENDE_DEPENDENT_KEYS = [
   ["aziende"],
-  ["payments"],
 ] as const;
 
 export const REMINDERS_DEPENDENT_KEYS = [

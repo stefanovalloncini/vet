@@ -44,7 +44,6 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "Gestione",
     items: [
       { to: "/conti", label: "Conti", icon: Wallet, requiredCap: "conti.proforma" },
-      { to: "/pagamenti", label: "Pagamenti (legacy)", icon: Wallet, requiredCap: "payments.read" },
       { to: "/statistiche", label: "Statistiche", icon: BarChart3, requiredCap: "activities.read.all" },
       { to: "/strumenti", label: "Strumenti", icon: Wrench },
     ],

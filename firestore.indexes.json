@@ -118,14 +118,6 @@
       ]
     },
     {
-      "collectionGroup": "payments",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "aziendaId", "order": "ASCENDING" },
-        { "fieldPath": "periodoFinoA", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "conti",
       "queryScope": "COLLECTION",
       "fields": [

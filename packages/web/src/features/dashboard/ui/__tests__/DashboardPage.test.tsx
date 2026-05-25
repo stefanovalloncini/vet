@@ -31,7 +31,6 @@ vi.mock("../../../auth", async () => {
         caps: new Set([
           "activities.read.all",
           "aziende.read",
-          "payments.read",
           "activities.create",
         ]),
       },
