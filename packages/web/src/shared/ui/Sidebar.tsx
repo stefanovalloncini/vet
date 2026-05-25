@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { Moon, Sun, LogOut, PanelLeftClose, Search, type LucideIcon } from "lucide-react";
+import { Moon, Sun, LogOut, PanelLeftClose, Search, Keyboard, type LucideIcon } from "lucide-react";
 import { useAuthState } from "../../features/auth";
 import { openSearch } from "../../features/search";
 import { BrandMark } from "./Brand";
+import { SHORTCUTS_OPEN_EVENT } from "./ShortcutsDialog";
 import { SidebarSectionHeader } from "./SidebarSectionHeader";
 import { SidebarNavLink } from "./SidebarNavLink";
 import { SidebarActionRow } from "./SidebarActionRow";
@@ -122,6 +123,13 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
             label="Cerca (⌘K)"
             collapsed={collapsed}
             ariaKeyshortcuts="Meta+K Control+K"
+          />
+          <SidebarActionRow
+            onClick={() => window.dispatchEvent(new CustomEvent(SHORTCUTS_OPEN_EVENT))}
+            icon={Keyboard}
+            label="Scorciatoie (?)"
+            collapsed={collapsed}
+            ariaKeyshortcuts="?"
           />
           <SidebarActionRow
             onClick={onThemeToggle}
