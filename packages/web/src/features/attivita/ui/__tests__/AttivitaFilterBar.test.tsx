@@ -8,7 +8,6 @@ const baseProps = {
   aziendaId: "",
   tipoId: "",
   vetUid: "",
-  group: "none" as const,
   aziendaOptions: [
     { value: "", label: "Tutti" },
     { value: "az1", label: "Cascina" },
@@ -22,18 +21,11 @@ const baseProps = {
     { value: "u-1", label: "Vet One" },
     { value: "u-2", label: "Vet Two" },
   ],
-  groupOptions: [
-    { value: "none", label: "Nessuno" },
-    { value: "azienda", label: "Azienda" },
-    { value: "vet", label: "Veterinario" },
-  ],
-  canExport: false,
-  onExport: vi.fn(),
   onClearAll: vi.fn(),
 };
 
 describe("AttivitaFilterBar", () => {
-  it("renders all 6 controls on desktop", () => {
+  it("renders 5 filter controls on desktop", () => {
     const onChange = vi.fn();
     render(<AttivitaFilterBar {...baseProps} onChange={onChange} />);
     expect(screen.getByLabelText("Da")).toBeInTheDocument();
@@ -41,7 +33,7 @@ describe("AttivitaFilterBar", () => {
     expect(screen.getByLabelText("Azienda")).toBeInTheDocument();
     expect(screen.getByLabelText("Tipo")).toBeInTheDocument();
     expect(screen.getByLabelText("Veterinario")).toBeInTheDocument();
-    expect(screen.getByLabelText("Raggruppa per")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Raggruppa per")).not.toBeInTheDocument();
   });
 
   it("emits onChange with 'vet' when the vet dropdown changes", () => {
@@ -92,24 +84,26 @@ describe("AttivitaFilterBar", () => {
     expect(screen.getByLabelText("2 filtri attivi")).toBeInTheDocument();
   });
 
-  it("shows export icon-button when canExport is true", () => {
-    const onExport = vi.fn();
+  it("shows clear button when at least one filter is active", () => {
+    const onClearAll = vi.fn();
     render(
       <AttivitaFilterBar
         {...baseProps}
-        canExport
-        onExport={onExport}
+        aziendaId="az1"
+        onClearAll={onClearAll}
         onChange={vi.fn()}
       />
     );
-    const exportButtons = screen.getAllByLabelText("Esporta CSV");
-    expect(exportButtons.length).toBeGreaterThan(0);
-    fireEvent.click(exportButtons[0]!);
-    expect(onExport).toHaveBeenCalledTimes(1);
+    const clearButtons = screen.getAllByRole("button", { name: "Pulisci filtri" });
+    expect(clearButtons.length).toBeGreaterThan(0);
+    fireEvent.click(clearButtons[0]!);
+    expect(onClearAll).toHaveBeenCalledTimes(1);
   });
 
-  it("hides export button when canExport is false", () => {
+  it("hides clear button when no filter is active", () => {
     render(<AttivitaFilterBar {...baseProps} onChange={vi.fn()} />);
-    expect(screen.queryByLabelText("Esporta CSV")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Pulisci filtri" })
+    ).not.toBeInTheDocument();
   });
 });

@@ -6,6 +6,7 @@ export const attivitaI18n = {
   emptyFiltered: "Nessun risultato per i filtri scelti.",
   emptyFilteredHint: "Allarga il periodo o rimuovi un filtro.",
   pulisciFiltri: "Pulisci filtri",
+  filtriNessuno: "Nessun filtro",
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   filtri: "Filtri",
