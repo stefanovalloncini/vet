@@ -1,7 +1,6 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import {
   initializeFirestore,
-  memoryLocalCache,
   persistentLocalCache,
   type Firestore,
   connectFirestoreEmulator,
@@ -82,7 +81,7 @@ export function initFirebase(config: VetFirebaseConfig): {
     }
 
     firestore = initializeFirestore(app, {
-      localCache: config.useEmulator ? memoryLocalCache() : persistentLocalCache(),
+      localCache: persistentLocalCache(),
     });
     auth = getAuth(app);
     functions = getFunctions(app, "europe-west8");
