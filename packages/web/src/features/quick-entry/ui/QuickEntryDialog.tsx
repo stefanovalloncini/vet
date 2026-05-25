@@ -176,7 +176,7 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
               <RHFTextArea<QuickEntryFormValues>
                 name="note"
                 label="Note"
-                rows={3}
+                rows={2}
                 placeholder="Dettagli aggiuntivi"
               />
               {s.tariffaNum !== null && s.tariffaNum > 0 ? (
