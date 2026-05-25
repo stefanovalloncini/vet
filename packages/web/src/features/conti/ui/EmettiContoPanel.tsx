@@ -5,7 +5,6 @@ import {
   Card,
   ConfirmDialog,
   SectionLabel,
-  TextField,
   Toolbar,
   useToast,
 } from "../../../shared/ui";
@@ -18,6 +17,7 @@ import {
 import { useEmettiConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
 import { computeContoPreview, defaultPeriodoFor } from "../lib/contoPreview";
+import { PeriodPicker } from "./PeriodPicker";
 
 interface EmettiContoPanelProps {
   azienda: Azienda;
@@ -145,23 +145,25 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
 
   const disabled = !periodValid || preview.count === 0 || emit.isPending;
 
+  function applyRange(nextFrom: Date, nextTo: Date): void {
+    setFrom(dateInputValue(nextFrom));
+    setTo(dateInputValue(nextTo));
+  }
+
   return (
     <Card>
       <SectionLabel>{t.emit}</SectionLabel>
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <TextField
-          id="conto-from"
-          type="date"
-          label={t.daLabel}
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-        />
-        <TextField
-          id="conto-to"
-          type="date"
-          label={t.aLabel}
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
+
+      <div className="mt-3">
+        <PeriodPicker
+          from={from}
+          to={to}
+          onChange={applyRange}
+          onCustomFromChange={setFrom}
+          onCustomToChange={setTo}
+          {...(azienda.cadenzaFatturazione
+            ? { cadenza: azienda.cadenzaFatturazione }
+            : {})}
         />
       </div>
 
