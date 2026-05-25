@@ -1,5 +1,5 @@
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getRepositories } from "@vet/functions/infrastructure";
 import { runScript } from "./lib/runScript.js";
 
 const BASE_EMAIL = process.env["VET_TEST_BASE_EMAIL"] ?? "stefano.valloncini@gmail.com";
@@ -29,14 +29,10 @@ function plusAddress(base: string, suffix: string): string {
   return `${local}+${suffix}@${domain}`;
 }
 
-function norm(email: string): string {
-  return email.trim().toLowerCase();
-}
-
 await runScript({
   scriptName: "create-test-users",
   run: async () => {
-    const db = getFirestore();
+    const repos = getRepositories();
     const auth = getAuth();
     const continueUrl =
       process.env["VET_TEST_CONTINUE_URL"] ??
@@ -47,20 +43,16 @@ await runScript({
 
     for (const u of TEST_USERS) {
       const email = plusAddress(BASE_EMAIL, u.suffix);
-      const emailNorm = norm(email);
 
-      await db.collection("allowlist").doc(emailNorm).set(
+      await repos.allowlist.add(
         {
           email,
           defaultRoleId: u.roleId,
-          invitedBy: "create-test-users",
-          invitedAt: FieldValue.serverTimestamp(),
           notes: `Test account for role ${u.roleId}`,
-          schemaVersion: 1,
         },
-        { merge: true }
+        "create-test-users"
       );
-      process.stdout.write(`allowlist/${emailNorm} -> ${u.roleId}\n`);
+      process.stdout.write(`allowlist/${email} -> ${u.roleId}\n`);
 
       try {
         await auth.getUserByEmail(email);

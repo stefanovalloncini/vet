@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "seed:roles": "tsx seed-roles.ts",
     "seed:activity-types": "tsx seed-activity-types.ts",
     "wipe:types": "tsx wipe-and-reseed-types.ts",
@@ -12,6 +13,7 @@
     "migrate:approved": "tsx migrate-approved.ts"
   },
   "dependencies": {
+    "@vet/functions": "workspace:*",
     "@vet/shared": "workspace:*",
     "firebase-admin": "^12.5.0",
     "tsx": "^4.19.0"

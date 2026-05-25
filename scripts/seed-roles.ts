@@ -1,5 +1,5 @@
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { CAPABILITIES, type Capability } from "@vet/shared";
+import { CAPABILITIES, type Capability, type Role } from "@vet/shared";
+import { getRepositories } from "@vet/functions/infrastructure";
 import { runScript } from "./lib/runScript.js";
 
 const amministratoreCaps: Capability[] = [...CAPABILITIES];
@@ -55,29 +55,25 @@ const SEEDS: ReadonlyArray<{
   { id: "veterinario_semplice", name: "Veterinario semplice", caps: veterinarioSempliceCaps, locked: true },
 ];
 
-function nameKey(name: string): string {
-  return name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-");
-}
-
 await runScript({
   scriptName: "seed-roles",
   run: async () => {
-    const db = getFirestore();
-    for (const r of SEEDS) {
-      const batch = db.batch();
-      batch.set(db.collection("roleNames").doc(nameKey(r.name)), { roleId: r.id });
-      batch.set(db.collection("roles").doc(r.id), {
-        name: r.name,
-        capabilities: r.caps,
-        locked: r.locked,
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
+    const repos = getRepositories();
+    const now = new Date();
+    for (const s of SEEDS) {
+      const role: Role = {
+        id: s.id,
+        name: s.name,
+        capabilities: [...s.caps],
+        locked: s.locked,
+        createdAt: now,
+        updatedAt: now,
         createdBy: "seed",
         updatedBy: "seed",
         schemaVersion: 1,
-      });
-      await batch.commit();
-      process.stdout.write(`seeded role ${r.id}\n`);
+      };
+      await repos.roles.seed(role);
+      process.stdout.write(`seeded role ${s.id}\n`);
     }
   },
 });

@@ -1,6 +1,11 @@
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
-import { CAPABILITIES, encodeCaps, normalizeEmail, type Capability } from "@vet/shared";
+import {
+  CAPABILITIES,
+  encodeCaps,
+  type Capability,
+  type Role,
+} from "@vet/shared";
+import { getRepositories } from "@vet/functions/infrastructure";
 import { runScript } from "./lib/runScript.js";
 
 const EMAIL = process.env["RESCUE_EMAIL"];
@@ -48,53 +53,34 @@ const SEEDS: ReadonlyArray<{
   { id: "viewer", name: "Sola lettura", caps: viewerCaps, locked: false },
 ];
 
-function nameKey(name: string): string {
-  return name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-");
-}
-
 await runScript({
   scriptName: "rescue-admin",
   run: async () => {
-    const db = getFirestore();
+    const repos = getRepositories();
     const auth = getAuth();
+    const now = new Date();
 
-    for (const r of SEEDS) {
-      const batch = db.batch();
-      batch.set(
-        db.collection("roleNames").doc(nameKey(r.name)),
-        { roleId: r.id },
-        { merge: true }
-      );
-      batch.set(
-        db.collection("roles").doc(r.id),
-        {
-          name: r.name,
-          capabilities: r.caps,
-          locked: r.locked,
-          createdAt: FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp(),
-          createdBy: "rescue",
-          updatedBy: "rescue",
-          schemaVersion: 1,
-        },
-        { merge: true }
-      );
-      await batch.commit();
-      process.stdout.write(`roles/${r.id} upserted\n`);
+    for (const s of SEEDS) {
+      const role: Role = {
+        id: s.id,
+        name: s.name,
+        capabilities: [...s.caps],
+        locked: s.locked,
+        createdAt: now,
+        updatedAt: now,
+        createdBy: "rescue",
+        updatedBy: "rescue",
+        schemaVersion: 1,
+      };
+      await repos.roles.seed(role);
+      process.stdout.write(`roles/${s.id} upserted\n`);
     }
 
-    const norm = normalizeEmail(EMAIL!);
-    await db.collection("allowlist").doc(norm).set(
-      {
-        email: EMAIL,
-        defaultRoleId: "admin",
-        invitedBy: "rescue",
-        invitedAt: FieldValue.serverTimestamp(),
-        schemaVersion: 1,
-      },
-      { merge: true }
+    await repos.allowlist.add(
+      { email: EMAIL!, defaultRoleId: "admin" },
+      "rescue"
     );
-    process.stdout.write(`allowlist/${norm} upserted as admin\n`);
+    process.stdout.write(`allowlist/${EMAIL} upserted as admin\n`);
 
     try {
       const user = await auth.getUserByEmail(EMAIL!);
