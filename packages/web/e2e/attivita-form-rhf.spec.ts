@@ -29,7 +29,10 @@ test.describe("attivita form (RHF)", () => {
 
     await expect(signedInVet).toHaveURL(/\/attivita(\?|$)/, { timeout: 15_000 });
     await expect(
-      signedInVet.getByText(new RegExp(`${tariffaMarker}[,.]00`)).first()
+      signedInVet
+        .getByText(new RegExp(`${tariffaMarker}[,.]00`))
+        .filter({ visible: true })
+        .first()
     ).toBeVisible({ timeout: 10_000 });
   });
 

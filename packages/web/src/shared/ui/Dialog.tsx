@@ -63,9 +63,10 @@ export function Dialog({
   const layout = sheet
     ? "items-end sm:items-center justify-center p-0 sm:p-8"
     : "items-start sm:items-center justify-center p-4 sm:p-8";
+  const heightCap = "max-h-[100dvh] sm:max-h-[90dvh]";
   const surfaceShape = sheet
-    ? `w-full sm:w-auto sm:min-w-0 ${sizeMap[size]} rounded-t-2xl sm:rounded-2xl`
-    : `w-full min-w-0 ${sizeMap[size]} rounded-2xl`;
+    ? `w-full sm:w-auto sm:min-w-0 ${sizeMap[size]} ${heightCap} rounded-t-2xl sm:rounded-2xl`
+    : `w-full min-w-0 ${sizeMap[size]} ${heightCap} rounded-2xl`;
 
   const node = (
     <div
@@ -81,7 +82,7 @@ export function Dialog({
       <div
         ref={surfaceRef}
         tabIndex={-1}
-        className={`${surfaceShape} bg-(--color-surface) border border-(--color-border) shadow-[var(--shadow-popover)] animate-scale-in overflow-hidden focus:outline-none ${className}`}
+        className={`${surfaceShape} bg-(--color-surface) border border-(--color-border) shadow-[var(--shadow-popover)] animate-scale-in overflow-y-auto overscroll-contain focus:outline-none ${className}`}
       >
         {showHandle && sheet ? (
           <div className="sm:hidden flex justify-center pt-2 pb-1" aria-hidden="true">
