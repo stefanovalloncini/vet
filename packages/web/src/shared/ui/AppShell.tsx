@@ -5,6 +5,7 @@ import { useAuthState, useSessionGuard } from "../../features/auth";
 import { QuickEntryFab } from "../../features/quick-entry";
 import { SearchPalette } from "../../features/search";
 import { InstallBanner, useTitleBadge } from "../../features/pwa-install";
+import { useBackupReminder } from "../../features/cestino";
 import { useTheme } from "../theme/useTheme";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { MobileHeader } from "./MobileHeader";
@@ -37,6 +38,7 @@ export function AppShell({ children, rightRail, wide = false }: AppShellProps) {
   }, [auth, notify]);
 
   useSessionGuard({ auth, uid: user?.uid ?? null, onRevoked });
+  useBackupReminder();
 
   const askLogout = () => setConfirmLogout(true);
   const maxW = wide ? "max-w-[1400px]" : "max-w-6xl";
