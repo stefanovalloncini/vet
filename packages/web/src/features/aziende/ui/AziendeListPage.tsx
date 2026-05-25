@@ -7,19 +7,34 @@ import { usePinned } from "../hooks/usePinned";
 import { aziendeI18n as t } from "../i18n";
 import { normalizeAziendaNome } from "@vet/shared";
 import { AziendeList } from "./AziendeList";
-import { useContiUnsaldati } from "../../conti";
+import {
+  aziendeNeedingNewConto,
+  groupContiByAzienda,
+  useConti,
+  useContiUnsaldati,
+} from "../../conti";
+
+const EMPTY_AZIENDE_ARRAY = [] as const;
 
 export function AziendeListPage() {
   const { user } = useAuthState();
-  const { data: aziende = [], isLoading, isError } = useAziende();
+  const aziendeQuery = useAziende();
+  const aziende = aziendeQuery.data ?? EMPTY_AZIENDE_ARRAY;
+  const isLoading = aziendeQuery.isLoading;
+  const isError = aziendeQuery.isError;
   const { pinned, toggle: togglePin, isPinned } = usePinned();
   const [search, setSearch] = useState("");
   const unsaldatiQuery = useContiUnsaldati();
+  const contiQuery = useConti();
   const hasUnsaldatiContiBy = useMemo(() => {
     const set = new Set<string>();
     for (const c of unsaldatiQuery.data ?? []) set.add(c.aziendaId);
     return set;
   }, [unsaldatiQuery.data]);
+  const needsNewContoBy = useMemo(() => {
+    const grouped = groupContiByAzienda(contiQuery.data ?? []);
+    return aziendeNeedingNewConto(aziende, grouped);
+  }, [aziende, contiQuery.data]);
 
   const canCreate = user?.caps.has("aziende.create") ?? false;
   const canUpdate = user?.caps.has("aziende.update") ?? false;
@@ -72,6 +87,7 @@ export function AziendeListPage() {
         isPinned={isPinned}
         onTogglePin={togglePin}
         hasUnsaldatiContiBy={hasUnsaldatiContiBy}
+        needsNewContoBy={needsNewContoBy}
       />
     </AppShell>
   );
