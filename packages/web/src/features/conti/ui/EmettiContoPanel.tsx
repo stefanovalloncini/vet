@@ -1,14 +1,23 @@
 import { useMemo, useState } from "react";
 import type { Attivita, Azienda } from "@vet/shared";
-import { Button, Card, ConfirmDialog, SectionLabel, TextField, useToast } from "../../../shared/ui";
+import {
+  Button,
+  Card,
+  ConfirmDialog,
+  SectionLabel,
+  TextField,
+  Toolbar,
+  useToast,
+} from "../../../shared/ui";
 import { useAuthState } from "../../auth";
-import { dateInputValue, formatEuro, parseDateInput } from "../../../shared/lib/format";
+import {
+  dateInputValue,
+  formatEuro,
+  parseDateInput,
+} from "../../../shared/lib/format";
 import { useEmettiConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
-import {
-  computeContoPreview,
-  defaultPeriodoFor,
-} from "../lib/contoPreview";
+import { computeContoPreview, defaultPeriodoFor } from "../lib/contoPreview";
 
 interface EmettiContoPanelProps {
   azienda: Azienda;
@@ -71,10 +80,12 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
     }
   }
 
+  const disabled = !periodValid || preview.count === 0 || emit.isPending;
+
   return (
     <Card>
       <SectionLabel>{t.emit}</SectionLabel>
-      <div className="grid grid-cols-2 gap-3 mt-3">
+      <div className="mt-3 grid grid-cols-2 gap-3">
         <TextField
           id="conto-from"
           type="date"
@@ -90,28 +101,33 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
           onChange={(e) => setTo(e.target.value)}
         />
       </div>
-      <div className="flex items-baseline justify-between pt-4 border-t border-(--color-border) mt-4">
-        <span className="text-xs text-(--color-text-muted) uppercase tracking-wider">
+
+      <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2 border-t border-(--color-border) pt-4">
+        <span className="text-xs uppercase tracking-wider text-(--color-text-muted)">
           {t.attivita}: {preview.count} · {t.totale}
         </span>
-        <span className="text-xl font-medium text-(--color-text) tabular-nums">
+        <span className="font-mono text-2xl font-semibold text-(--color-text) tabular-nums">
           {formatEuro(preview.totaleConto)}
         </span>
       </div>
+
       {!periodValid ? (
-        <p className="text-xs text-(--color-danger) mt-3">
+        <p className="mt-3 text-xs text-(--color-danger)" role="alert">
           Il periodo finale deve essere dopo l&apos;iniziale.
         </p>
       ) : null}
       {preview.count === 0 && periodValid ? (
-        <p className="text-xs text-(--color-text-muted) mt-3">{t.noActivities}</p>
+        <p className="mt-3 text-xs text-(--color-text-muted)">
+          {t.noActivities}
+        </p>
       ) : null}
-      <div className="flex flex-wrap gap-2 mt-4">
+
+      <Toolbar gap="sm" align="end" className="mt-4">
         {canProforma ? (
           <Button
             type="button"
             variant="secondary"
-            disabled={!periodValid || preview.count === 0 || emit.isPending}
+            disabled={disabled}
             onClick={() => void doEmit("proforma")}
           >
             {t.emitProforma}
@@ -121,19 +137,21 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
           <Button
             type="button"
             variant="primary"
-            disabled={!periodValid || preview.count === 0 || emit.isPending}
+            disabled={disabled}
             onClick={() => setConfirmingEmit(true)}
           >
             {t.emit}
           </Button>
         ) : null}
-      </div>
+      </Toolbar>
+
       <ConfirmDialog
         open={confirmingEmit}
         title={t.emit}
         message={t.confermaEmessi}
         confirmLabel={t.emetti}
         cancelLabel={t.annulla}
+        variant="primary"
         busy={emit.isPending}
         onConfirm={async () => {
           await doEmit("emesso");
@@ -147,4 +165,3 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
     </Card>
   );
 }
-
