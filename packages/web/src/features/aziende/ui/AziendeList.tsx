@@ -14,6 +14,7 @@ interface AziendeListProps {
   isPinned: (id: string) => boolean;
   onTogglePin: (id: string) => void;
   hasUnsaldatiContiBy?: ReadonlySet<string>;
+  needsNewContoBy?: ReadonlySet<string>;
 }
 
 const CADENZA_LABEL = {
@@ -32,6 +33,7 @@ export function AziendeList({
   isPinned,
   onTogglePin,
   hasUnsaldatiContiBy,
+  needsNewContoBy,
 }: AziendeListProps) {
   return (
     <DataLoader
@@ -49,6 +51,7 @@ export function AziendeList({
               pinned={isPinned(a.id)}
               onTogglePin={() => onTogglePin(a.id)}
               hasUnsaldatiConti={hasUnsaldatiContiBy?.has(a.id) ?? false}
+              needsNewConto={needsNewContoBy?.has(a.id) ?? false}
             />
           </li>
         ))}
@@ -63,6 +66,21 @@ interface AziendaRowProps {
   pinned: boolean;
   onTogglePin: () => void;
   hasUnsaldatiConti: boolean;
+  needsNewConto: boolean;
+}
+
+function dotColorClass(
+  hasUnsaldatiConti: boolean,
+  needsNewConto: boolean
+): { className: string; title: string } {
+  if (hasUnsaldatiConti)
+    return { className: "bg-(--color-danger)", title: "Conti non saldati" };
+  if (needsNewConto)
+    return {
+      className: "bg-amber-500",
+      title: "È tempo di emettere un nuovo conto",
+    };
+  return { className: "bg-(--color-success)", title: "Tutto in regola" };
 }
 
 function AziendaRow({
@@ -71,7 +89,9 @@ function AziendaRow({
   pinned,
   onTogglePin,
   hasUnsaldatiConti,
+  needsNewConto,
 }: AziendaRowProps) {
+  const dot = dotColorClass(hasUnsaldatiConti, needsNewConto);
   const tipo = a.tipoAllevamento
     ? a.tipoAllevamento.charAt(0).toUpperCase() + a.tipoAllevamento.slice(1)
     : null;
@@ -87,15 +107,15 @@ function AziendaRow({
         <div className="flex items-center gap-2">
           <span
             aria-hidden="true"
-            title={hasUnsaldatiConti ? "Ci sono conti non saldati" : "Tutti i conti saldati"}
-            className={[
-              "w-2 h-2 rounded-full flex-shrink-0",
-              hasUnsaldatiConti
-                ? "bg-(--color-danger)"
-                : "bg-(--color-success)",
-            ].join(" ")}
+            title={dot.title}
+            className={`w-2 h-2 rounded-full flex-shrink-0 ${dot.className}`}
           />
           <h2 className="text-base font-medium text-(--color-text) truncate">{a.nome}</h2>
+          {needsNewConto && !hasUnsaldatiConti ? (
+            <span className="text-[10px] uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded">
+              Da emettere
+            </span>
+          ) : null}
         </div>
         {a.indirizzo ? (
           <p className="text-xs text-(--color-text-subtle) mt-0.5 truncate">{a.indirizzo}</p>
