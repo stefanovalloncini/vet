@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { Search } from "lucide-react";
 import { Dialog } from "../../shared/ui";
 import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../auth";
 import { queryKeys } from "../../shared/data";
-import type { Attivita } from "@vet/shared";
+import type { Attivita, Azienda } from "@vet/shared";
 
 export function SearchPalette() {
   const navigate = useNavigate();
@@ -73,104 +74,178 @@ export function SearchPalette() {
   }, [query, recentAtt]);
 
   const totalResults = filteredAziende.length + filteredAtt.length;
+  const hasQuery = query.trim().length > 0;
+
+  function closeAndReset(): void {
+    setOpen(false);
+    setQuery("");
+  }
+
+  function go(path: string): void {
+    closeAndReset();
+    navigate(path);
+  }
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)} size="lg" className="overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-(--color-border)">
+        <Search
+          size={18}
+          className="text-(--color-text-subtle) flex-shrink-0"
+          aria-hidden="true"
+        />
         <input
           type="text"
           autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Cerca un'azienda…"
-          className="w-full bg-transparent px-5 py-4 text-base text-(--color-text) placeholder:text-(--color-text-subtle) focus:outline-none border-b border-(--color-border)"
+          className="flex-1 bg-transparent text-base text-(--color-text) placeholder:text-(--color-text-subtle) focus:outline-none"
+          aria-label="Cerca"
         />
-          {totalResults === 0 ? (
-            <p className="text-sm text-(--color-text-muted) text-center py-8">
-              Nessun risultato.
-            </p>
-          ) : (
-            <div className="max-h-96 overflow-y-auto">
-              {filteredAziende.length > 0 ? (
-                <>
-                  <p className="px-5 pt-3 pb-1 text-[10px] uppercase tracking-wider text-(--color-text-muted)">
-                    Aziende
-                  </p>
-                  <ul>
-                    {filteredAziende.map((a) => (
-                      <li key={a.id}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpen(false);
-                            setQuery("");
-                            navigate(`/aziende/${a.id}`);
-                          }}
-                          className="w-full text-left px-5 py-3 hover:bg-(--color-surface-muted) flex items-center justify-between gap-3"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-(--color-text) truncate">
-                              {a.nome}
-                            </p>
-                            {a.indirizzo ? (
-                              <p className="text-xs text-(--color-text-muted) truncate">
-                                {a.indirizzo}
-                              </p>
-                            ) : null}
-                          </div>
-                          {a.numeroCapi !== undefined ? (
-                            <span className="text-xs text-(--color-text-subtle) tabular-nums flex-shrink-0">
-                              {a.numeroCapi} capi
-                            </span>
-                          ) : null}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : null}
-              {filteredAtt.length > 0 ? (
-                <>
-                  <p className="px-5 pt-3 pb-1 text-[10px] uppercase tracking-wider text-(--color-text-muted) border-t border-(--color-border)/40">
-                    Attività
-                  </p>
-                  <ul>
-                    {filteredAtt.map((a) => (
-                      <li key={a.id}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpen(false);
-                            setQuery("");
-                            navigate(`/attivita/${a.id}`);
-                          }}
-                          className="w-full text-left px-5 py-3 hover:bg-(--color-surface-muted) flex items-center justify-between gap-3"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-sm text-(--color-text) truncate">
-                              {a.aziendaNome} · {a.tipoNome}
-                            </p>
-                            <p className="text-xs text-(--color-text-muted) truncate tabular-nums">
-                              {a.data.toLocaleDateString("it-IT")}
-                            </p>
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : null}
-            </div>
-          )}
-        <div className="px-5 py-2 bg-(--color-surface-muted) text-xs text-(--color-text-subtle) text-right">
-          <kbd className="px-1.5 py-0.5 rounded bg-(--color-surface) border border-(--color-border) font-mono">
-            ⌘K
-          </kbd>{" "}
-          apre ·{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-(--color-surface) border border-(--color-border) font-mono">
-            Esc
-          </kbd>{" "}
-          chiude
+      </div>
+
+      {totalResults === 0 ? (
+        <EmptyResults hasQuery={hasQuery} />
+      ) : (
+        <div className="max-h-96 overflow-y-auto">
+          {filteredAziende.length > 0 ? (
+            <ResultGroup title="Aziende">
+              {filteredAziende.map((a) => (
+                <AziendaResult
+                  key={a.id}
+                  azienda={a}
+                  onSelect={() => go(`/aziende/${a.id}`)}
+                />
+              ))}
+            </ResultGroup>
+          ) : null}
+          {filteredAtt.length > 0 ? (
+            <ResultGroup title="Attività" divided>
+              {filteredAtt.map((a) => (
+                <AttivitaResult
+                  key={a.id}
+                  attivita={a}
+                  onSelect={() => go(`/attivita/${a.id}`)}
+                />
+              ))}
+            </ResultGroup>
+          ) : null}
         </div>
+      )}
+
+      <div className="flex items-center justify-end gap-3 px-4 py-2 bg-(--color-surface-muted) text-xs text-(--color-text-subtle)">
+        <span className="inline-flex items-center gap-1">
+          <Kbd>⌘K</Kbd>
+          apre
+        </span>
+        <span aria-hidden="true">·</span>
+        <span className="inline-flex items-center gap-1">
+          <Kbd>Esc</Kbd>
+          chiude
+        </span>
+      </div>
     </Dialog>
+  );
+}
+
+interface EmptyResultsProps {
+  hasQuery: boolean;
+}
+
+function EmptyResults({ hasQuery }: EmptyResultsProps) {
+  return (
+    <div className="py-10 px-5 text-center">
+      <p className="text-sm text-(--color-text-muted)">Nessun risultato.</p>
+      {!hasQuery ? (
+        <p className="text-xs text-(--color-text-subtle) mt-1">
+          Cerca aziende per nome, telefono o indirizzo.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+interface ResultGroupProps {
+  title: string;
+  divided?: boolean;
+  children: React.ReactNode;
+}
+
+function ResultGroup({ title, divided = false, children }: ResultGroupProps) {
+  return (
+    <section className={divided ? "border-t border-(--color-border)/60" : ""}>
+      <h3 className="px-5 pt-3 pb-1 text-[10px] uppercase tracking-wider font-medium text-(--color-text-muted)">
+        {title}
+      </h3>
+      <ul>{children}</ul>
+    </section>
+  );
+}
+
+interface AziendaResultProps {
+  azienda: Azienda;
+  onSelect: () => void;
+}
+
+function AziendaResult({ azienda: a, onSelect }: AziendaResultProps) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onSelect}
+        className="w-full text-left px-5 py-3 hover:bg-(--color-surface-muted) flex items-center justify-between gap-3 focus:outline-none focus-visible:bg-(--color-surface-muted)"
+      >
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-(--color-text) truncate">
+            {a.nome}
+          </p>
+          {a.indirizzo ? (
+            <p className="text-xs text-(--color-text-muted) truncate">
+              {a.indirizzo}
+            </p>
+          ) : null}
+        </div>
+        {a.numeroCapi !== undefined ? (
+          <span className="text-xs text-(--color-text-subtle) tabular-nums flex-shrink-0">
+            {a.numeroCapi} capi
+          </span>
+        ) : null}
+      </button>
+    </li>
+  );
+}
+
+interface AttivitaResultProps {
+  attivita: Attivita;
+  onSelect: () => void;
+}
+
+function AttivitaResult({ attivita: a, onSelect }: AttivitaResultProps) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onSelect}
+        className="w-full text-left px-5 py-3 hover:bg-(--color-surface-muted) flex items-center justify-between gap-3 focus:outline-none focus-visible:bg-(--color-surface-muted)"
+      >
+        <div className="min-w-0">
+          <p className="text-sm text-(--color-text) truncate">
+            {a.aziendaNome} · {a.tipoNome}
+          </p>
+          <p className="text-xs text-(--color-text-muted) truncate font-mono tabular-nums">
+            {a.data.toLocaleDateString("it-IT")}
+          </p>
+        </div>
+      </button>
+    </li>
+  );
+}
+
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="px-1.5 py-0.5 rounded bg-(--color-surface) border border-(--color-border) font-mono">
+      {children}
+    </kbd>
   );
 }

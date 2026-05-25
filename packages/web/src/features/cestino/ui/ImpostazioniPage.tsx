@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   AppShell,
   Button,
+  Card,
   ConfirmDialog,
   PageHeader,
+  SectionLabel,
   SettingsRow,
-  SettingsSection,
 } from "../../../shared/ui";
+import { useTheme } from "../../../shared/theme/useTheme";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { impostazioniI18n as t } from "../i18n";
@@ -17,6 +19,7 @@ import { useRetention } from "../lib/useRetention";
 export function ImpostazioniPage() {
   const { user } = useAuthState();
   const { trash, auth, aziende, attivita, reminders } = useRepositories();
+  const { theme, set: setTheme } = useTheme();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -25,7 +28,7 @@ export function ImpostazioniPage() {
   const [gdprError, setGdprError] = useState<string | null>(null);
   const [retention, setRetention] = useRetention();
 
-  async function handleExport() {
+  async function handleExport(): Promise<void> {
     setExporting(true);
     setExportError(null);
     try {
@@ -43,14 +46,14 @@ export function ImpostazioniPage() {
       triggerJsonDownload(payload, backupFilename());
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      setExportError(`Export non riuscito: ${msg}`);
+      setExportError(`${t.datiBackupError}: ${msg}`);
       console.error("export failed", err);
     } finally {
       setExporting(false);
     }
   }
 
-  async function handleDelete() {
+  async function handleDelete(): Promise<void> {
     setBusy(true);
     setGdprError(null);
     try {
@@ -69,64 +72,57 @@ export function ImpostazioniPage() {
     <AppShell>
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
-      <div className="max-w-3xl">
-        <SettingsSection title="Profilo">
-          <SettingsRow label="Nome">
-            <span className="text-(--color-text)">{user?.displayName ?? "—"}</span>
-          </SettingsRow>
-          <SettingsRow label="Email">
-            <span className="text-(--color-text)">{user?.email ?? "—"}</span>
-          </SettingsRow>
-          <SettingsRow label="Ruolo">
-            <span className="text-(--color-text)">{user?.roleId || "—"}</span>
-          </SettingsRow>
-        </SettingsSection>
+      <div className="max-w-3xl space-y-3">
+        <Panel title={t.accountSection}>
+          <dl className="divide-y divide-(--color-border)">
+            <KeyRow label={t.accountNome} value={user?.displayName ?? "—"} />
+            <KeyRow label={t.accountEmail} value={user?.email ?? "—"} />
+            <KeyRow label={t.accountRuolo} value={user?.roleId || "—"} />
+          </dl>
+        </Panel>
 
-        <SettingsSection title="Cestino">
+        <Panel title={t.temaSection} description={t.temaDescr}>
+          <ThemeToggle value={theme} onChange={(next) => setTheme(next)} />
+        </Panel>
+
+        <Panel title={t.cestinoSection}>
           <SettingsRow
-            label="Permanenza"
-            description="Giorni in cui le attività eliminate restano recuperabili prima della cancellazione definitiva."
+            label={t.cestinoPermanenza}
+            description={t.cestinoPermanenzaDescr}
           >
             <RetentionSettings value={retention} onChange={setRetention} />
           </SettingsRow>
-        </SettingsSection>
+        </Panel>
 
-        <SettingsSection title="Dati">
+        <Panel title={t.datiSection}>
           <SettingsRow
-            label="Backup completo"
-            description="Scarica un file JSON con aziende, attività e promemoria."
+            label={t.datiBackup}
+            description={
+              <DescrWithError text={t.datiBackupDescr} error={exportError} />
+            }
           >
-            <div className="flex flex-col items-stretch gap-2 sm:items-end">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                {exporting ? "Esportazione…" : "Scarica JSON"}
-              </Button>
-              {exportError ? (
-                <p role="alert" className="text-xs text-(--color-danger)">
-                  {exportError}
-                </p>
-              ) : null}
-            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? t.datiBackupBusy : t.datiBackupCta}
+            </Button>
           </SettingsRow>
-        </SettingsSection>
+        </Panel>
 
-        <SettingsSection title={t.gdprSection}>
-          <SettingsRow label={t.gdprTitle} description={t.gdprDescr}>
-            <div className="flex flex-col items-stretch gap-2 sm:items-end">
-              <GdprAction done={done} busy={busy} onAsk={() => setConfirming(true)} />
-              {gdprError ? (
-                <p role="alert" className="text-xs text-(--color-danger)">
-                  {gdprError}
-                </p>
-              ) : null}
-            </div>
+        <Panel title={t.gdprSection}>
+          <SettingsRow
+            label={t.gdprTitle}
+            description={
+              <DescrWithError text={t.gdprDescr} error={gdprError} />
+            }
+          >
+            <GdprAction done={done} busy={busy} onAsk={() => setConfirming(true)} />
           </SettingsRow>
-        </SettingsSection>
+        </Panel>
       </div>
 
       <ConfirmDialog
@@ -147,6 +143,114 @@ export function ImpostazioniPage() {
   );
 }
 
+interface PanelProps {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}
+
+function Panel({ title, description, children }: PanelProps) {
+  return (
+    <Card>
+      <header className="mb-2">
+        <SectionLabel as="h2">{title}</SectionLabel>
+        {description ? (
+          <p className="text-xs text-(--color-text-subtle) mt-1 max-w-prose">
+            {description}
+          </p>
+        ) : null}
+      </header>
+      {children}
+    </Card>
+  );
+}
+
+interface KeyRowProps {
+  label: string;
+  value: ReactNode;
+}
+
+function KeyRow({ label, value }: KeyRowProps) {
+  return (
+    <div className="py-3 flex items-center justify-between gap-4">
+      <dt className="text-sm text-(--color-text-muted)">{label}</dt>
+      <dd className="text-sm text-(--color-text) text-right truncate min-w-0">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+interface DescrWithErrorProps {
+  text: string;
+  error: string | null;
+}
+
+function DescrWithError({ text, error }: DescrWithErrorProps) {
+  return (
+    <>
+      <span>{text}</span>
+      {error ? (
+        <span role="alert" className="block text-(--color-danger) mt-1">
+          {error}
+        </span>
+      ) : null}
+    </>
+  );
+}
+
+interface ThemeToggleProps {
+  value: "light" | "dark";
+  onChange: (next: "light" | "dark") => void;
+}
+
+function ThemeToggle({ value, onChange }: ThemeToggleProps) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={t.temaSection}
+      className="inline-flex rounded-lg border border-(--color-border) bg-(--color-surface) p-0.5"
+    >
+      <ThemeOption
+        label={t.temaChiaro}
+        active={value === "light"}
+        onClick={() => onChange("light")}
+      />
+      <ThemeOption
+        label={t.temaScuro}
+        active={value === "dark"}
+        onClick={() => onChange("dark")}
+      />
+    </div>
+  );
+}
+
+interface ThemeOptionProps {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}
+
+function ThemeOption({ label, active, onClick }: ThemeOptionProps) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={active}
+      onClick={onClick}
+      className={[
+        "px-3 py-1.5 text-sm rounded-md transition-colors",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)",
+        active
+          ? "bg-(--color-accent-soft) text-(--color-accent) font-medium"
+          : "text-(--color-text-muted) hover:text-(--color-text)",
+      ].join(" ")}
+    >
+      {label}
+    </button>
+  );
+}
+
 interface GdprActionProps {
   done: boolean;
   busy: boolean;
@@ -158,7 +262,7 @@ function GdprAction({ done, busy, onAsk }: GdprActionProps) {
   if (busy) return <p className="text-xs text-(--color-text-muted)">{t.gdprBusy}</p>;
   return (
     <Button type="button" variant="danger" size="sm" onClick={onAsk}>
-      Elimina i miei dati
+      {t.gdprCta}
     </Button>
   );
 }

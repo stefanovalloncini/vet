@@ -46,31 +46,16 @@ export function SicurezzaPage() {
       subtitle={t.subtitle}
       footer={<span>{t.eyebrow}</span>}
     >
-      <ul className="space-y-3">
+      <ul className="rounded-xl border border-(--color-border) bg-(--color-surface) divide-y divide-(--color-border) overflow-hidden">
         {ORDER.map((name) => {
           const r = results.find((x) => x.name === name);
           return (
-            <li key={name} className="flex items-start gap-3 text-sm">
-              <span aria-hidden className="mt-0.5">
-                {r ? (r.ok ? "✓" : "✗") : "…"}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div
-                  className={
-                    r && !r.ok
-                      ? "text-(--color-danger)"
-                      : "text-(--color-text)"
-                  }
-                >
-                  {t.probes[name]}
-                </div>
-                {r && !r.ok && r.reason ? (
-                  <div className="text-xs text-(--color-text-subtle) mt-0.5 break-words">
-                    {r.reason}
-                  </div>
-                ) : null}
-              </div>
-            </li>
+            <ProbeRow
+              key={name}
+              label={t.probes[name]}
+              result={r}
+              running={running}
+            />
           );
         })}
       </ul>
@@ -112,4 +97,70 @@ export function SicurezzaPage() {
       </div>
     </CenteredAuthLayout>
   );
+}
+
+interface ProbeRowProps {
+  label: string;
+  result: ProbeResult | undefined;
+  running: boolean;
+}
+
+function ProbeRow({ label, result, running }: ProbeRowProps) {
+  const status: "pending" | "ok" | "fail" = result
+    ? result.ok
+      ? "ok"
+      : "fail"
+    : "pending";
+  return (
+    <li className="px-4 py-3 flex items-start gap-3 text-sm">
+      <StatusDot status={status} running={running && !result} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-3">
+          <span
+            className={
+              status === "fail" ? "text-(--color-danger)" : "text-(--color-text)"
+            }
+          >
+            {label}
+          </span>
+          <span
+            className={[
+              "text-[11px] uppercase tracking-wider font-mono tabular-nums",
+              status === "ok"
+                ? "text-(--color-success)"
+                : status === "fail"
+                  ? "text-(--color-danger)"
+                  : "text-(--color-text-subtle)",
+            ].join(" ")}
+          >
+            {status === "ok" ? "ok" : status === "fail" ? "fail" : "…"}
+          </span>
+        </div>
+        {result && !result.ok && result.reason ? (
+          <p className="text-xs text-(--color-text-subtle) mt-1 font-mono break-words">
+            {result.reason}
+          </p>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+interface StatusDotProps {
+  status: "pending" | "ok" | "fail";
+  running: boolean;
+}
+
+function StatusDot({ status, running }: StatusDotProps) {
+  const cls = [
+    "mt-1.5 h-2 w-2 rounded-full flex-shrink-0",
+    status === "ok"
+      ? "bg-(--color-success)"
+      : status === "fail"
+        ? "bg-(--color-danger)"
+        : running
+          ? "bg-(--color-accent) animate-pulse"
+          : "bg-(--color-text-subtle)",
+  ].join(" ");
+  return <span aria-hidden="true" className={cls} />;
 }

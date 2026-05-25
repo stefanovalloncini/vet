@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   AppShell,
   Card,
+  EmptyState,
   LoadingHint,
   PageHeader,
   SectionLabel,
@@ -34,11 +35,10 @@ export function StatistichePage() {
       {data.loading ? (
         <LoadingHint />
       ) : data.items.length === 0 ? (
-        <Card>
-          <p className="text-sm text-(--color-text-muted) text-center py-4">
-            Nessun dato per il periodo.
-          </p>
-        </Card>
+        <EmptyState
+          title="Nessun dato per il periodo."
+          description="Cambia intervallo o registra qualche attività."
+        />
       ) : (
         <StatistichePanels data={data} now={now} />
       )}
@@ -83,6 +83,12 @@ interface StatistichePanelsProps {
 function StatistichePanels({ data, now }: StatistichePanelsProps) {
   return (
     <div className="space-y-4">
+      <SummaryStrip
+        visite={data.items.length}
+        ricavi={data.totalRange}
+        aziendeAttive={countAziendeAttive(data)}
+      />
+
       <Panel title="Mappa attività · 13 settimane">
         <Heatmap items={data.items} weeks={13} now={now} />
       </Panel>
@@ -179,4 +185,41 @@ function SparklineColumn({ year, values }: { year: number; values: number[] }) {
       <Sparkline values={values} />
     </div>
   );
+}
+
+interface SummaryStripProps {
+  visite: number;
+  ricavi: number;
+  aziendeAttive: number;
+}
+
+function SummaryStrip({ visite, ricavi, aziendeAttive }: SummaryStripProps) {
+  return (
+    <Card>
+      <dl className="grid grid-cols-3 gap-4 sm:gap-8">
+        <SummaryCell label="Visite" value={String(visite)} />
+        <SummaryCell label="Ricavi" value={formatEuro(ricavi)} />
+        <SummaryCell label="Aziende attive" value={String(aziendeAttive)} />
+      </dl>
+    </Card>
+  );
+}
+
+function SummaryCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[10px] uppercase tracking-wider font-medium text-(--color-text-muted)">
+        {label}
+      </dt>
+      <dd className="mt-1 text-xl sm:text-2xl font-medium text-(--color-text) tabular-nums truncate">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function countAziendeAttive(data: StatisticheData): number {
+  const ids = new Set<string>();
+  for (const a of data.items) ids.add(a.aziendaId);
+  return ids.size;
 }
