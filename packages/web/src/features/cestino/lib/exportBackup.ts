@@ -57,3 +57,24 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
   document.body.removeChild(link);
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
+
+const LAST_BACKUP_KEY = "vet.backup.lastAt";
+
+export function markBackupDone(now: number = Date.now()): void {
+  try {
+    window.localStorage.setItem(LAST_BACKUP_KEY, String(now));
+  } catch {
+    void 0;
+  }
+}
+
+export function getLastBackupAt(): number | null {
+  try {
+    const raw = window.localStorage.getItem(LAST_BACKUP_KEY);
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}

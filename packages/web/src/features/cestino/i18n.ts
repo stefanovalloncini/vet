@@ -56,6 +56,8 @@ export const impostazioniI18n = {
   datiCsvCta: "Scarica CSV",
   datiCsvBusy: "Preparazione…",
   datiCsvError: "Export CSV non riuscito",
+  datiBackupUltimo: "Ultimo backup",
+  datiBackupMaiFatto: "Nessun backup ancora scaricato.",
   gdprSection: "Privacy",
   gdprTitle: "Cancella i miei dati",
   gdprDescr:

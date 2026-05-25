@@ -17,6 +17,8 @@ import {
   attivitaCsvFilename,
   backupFilename,
   buildBackupPayload,
+  getLastBackupAt,
+  markBackupDone,
   triggerCsvDownload,
   triggerJsonDownload,
 } from "../lib/exportBackup";
@@ -36,6 +38,9 @@ export function ImpostazioniPage() {
   const [csvError, setCsvError] = useState<string | null>(null);
   const [gdprError, setGdprError] = useState<string | null>(null);
   const [retention, setRetention] = useRetention();
+  const [lastBackupAt, setLastBackupAt] = useState<number | null>(() =>
+    getLastBackupAt()
+  );
 
   async function handleExport(): Promise<void> {
     setExporting(true);
@@ -53,6 +58,9 @@ export function ImpostazioniPage() {
         reminders: re,
       });
       triggerJsonDownload(payload, backupFilename());
+      const now = Date.now();
+      markBackupDone(now);
+      setLastBackupAt(now);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setExportError(`${t.datiBackupError}: ${msg}`);
@@ -69,6 +77,9 @@ export function ImpostazioniPage() {
       const items = await attivita.list();
       const csv = toCsvItalian(items);
       triggerCsvDownload(csv, attivitaCsvFilename());
+      const now = Date.now();
+      markBackupDone(now);
+      setLastBackupAt(now);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setCsvError(`${t.datiCsvError}: ${msg}`);
@@ -76,6 +87,17 @@ export function ImpostazioniPage() {
     } finally {
       setCsvExporting(false);
     }
+  }
+
+  function formatLastBackup(ts: number | null): string {
+    if (!ts) return t.datiBackupMaiFatto;
+    const d = new Date(ts);
+    const dt = d.toLocaleDateString("it-IT", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    return `${t.datiBackupUltimo}: ${dt}`;
   }
 
   async function handleDelete(): Promise<void> {
@@ -119,7 +141,10 @@ export function ImpostazioniPage() {
           </SettingsRow>
         </Panel>
 
-        <Panel title={t.datiSection}>
+        <Panel
+          title={t.datiSection}
+          description={formatLastBackup(lastBackupAt)}
+        >
           <SettingsRow
             label={t.datiBackup}
             description={
