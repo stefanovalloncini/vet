@@ -29,7 +29,7 @@ test.describe("aziende CRUD", () => {
     await signedInVet.getByLabel(/Nome/i, { exact: false }).first().fill(unique);
     await signedInVet.getByRole("button", { name: /Salva/i }).click();
 
-    await expect(signedInVet).toHaveURL(/\/aziende(\/|$)/, { timeout: 15_000 });
+    await expect(signedInVet).toHaveURL(/\/aziende\/?$/, { timeout: 15_000 });
     await expect(
       signedInVet.getByRole("link", { name: new RegExp(unique) })
     ).toBeVisible({ timeout: 10_000 });
