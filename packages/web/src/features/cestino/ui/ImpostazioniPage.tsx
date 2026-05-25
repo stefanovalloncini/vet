@@ -97,7 +97,15 @@ export function ImpostazioniPage() {
       month: "short",
       year: "numeric",
     });
-    return `${t.datiBackupUltimo}: ${dt}`;
+    const days = Math.floor((Date.now() - ts) / (24 * 60 * 60 * 1000));
+    let relative: string;
+    if (days < 1) relative = "oggi";
+    else if (days === 1) relative = "ieri";
+    else if (days < 30) relative = `${days} giorni fa`;
+    else relative = dt;
+    return days < 30
+      ? `${t.datiBackupUltimo}: ${relative} (${dt})`
+      : `${t.datiBackupUltimo}: ${dt}`;
   }
 
   async function handleDelete(): Promise<void> {
