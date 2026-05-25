@@ -54,24 +54,24 @@ describe("useSidebarSections", () => {
 
   it("toggles a section open/closed and persists the set", async () => {
     const { result } = renderHook(() => useSidebarSections("/", FULL_CAPS));
-    act(() => result.current.toggleSection("Gestione"));
-    expect(result.current.collapsedSections.has("Gestione")).toBe(true);
+    act(() => result.current.toggleSection("Amministrazione"));
+    expect(result.current.collapsedSections.has("Amministrazione")).toBe(true);
     await waitFor(() => {
       const raw = storage.getItem(KEY);
       expect(raw).not.toBeNull();
-      expect(JSON.parse(raw as string)).toContain("Gestione");
+      expect(JSON.parse(raw as string)).toContain("Amministrazione");
     });
-    act(() => result.current.toggleSection("Gestione"));
-    expect(result.current.collapsedSections.has("Gestione")).toBe(false);
+    act(() => result.current.toggleSection("Amministrazione"));
+    expect(result.current.collapsedSections.has("Amministrazione")).toBe(false);
   });
 
   it("auto-expands the section containing the current path", async () => {
-    storage.setItem(KEY, JSON.stringify(["Operatività", "Gestione"]));
+    storage.setItem(KEY, JSON.stringify(["Principale", "Amministrazione"]));
     const { result } = renderHook(() => useSidebarSections("/agenda", FULL_CAPS));
     await waitFor(() => {
-      expect(result.current.collapsedSections.has("Operatività")).toBe(false);
+      expect(result.current.collapsedSections.has("Principale")).toBe(false);
     });
-    expect(result.current.collapsedSections.has("Gestione")).toBe(true);
+    expect(result.current.collapsedSections.has("Amministrazione")).toBe(true);
   });
 
   it("leaves persisted state alone when the path does not match any section", () => {
@@ -89,8 +89,8 @@ describe("useSidebarSections", () => {
   });
 
   it("does not auto-expand when the route requires a missing capability", () => {
-    storage.setItem(KEY, JSON.stringify(["Operatività"]));
+    storage.setItem(KEY, JSON.stringify(["Principale"]));
     const { result } = renderHook(() => useSidebarSections("/agenda", new Set()));
-    expect(result.current.collapsedSections.has("Operatività")).toBe(true);
+    expect(result.current.collapsedSections.has("Principale")).toBe(true);
   });
 });

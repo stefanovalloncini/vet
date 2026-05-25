@@ -3,10 +3,7 @@ import {
   Calendar,
   ClipboardList,
   Building2,
-  Bell,
-  Wallet,
-  BarChart3,
-  Wrench,
+  Euro,
   Tags,
   ShieldCheck,
   KeyRound,
@@ -29,25 +26,16 @@ export interface NavSection {
   items: NavItem[];
 }
 
+export const PRIMARY_NAV_ITEMS: NavItem[] = [
+  { to: "/riepilogo", label: "Riepilogo", icon: LayoutDashboard, requiredCap: "activities.read.all" },
+  { to: "/agenda", label: "Agenda", icon: Calendar, requiredCap: "activities.read.all" },
+  { to: "/attivita", label: "Attività", icon: ClipboardList, requiredCap: "activities.read.all" },
+  { to: "/aziende", label: "Aziende", icon: Building2, requiredCap: "aziende.read" },
+  { to: "/conti", label: "Conti", icon: Euro, requiredCap: "conti.proforma" },
+];
+
 export const NAV_SECTIONS: NavSection[] = [
-  {
-    title: "Operatività",
-    items: [
-      { to: "/riepilogo", label: "Riepilogo", icon: LayoutDashboard, requiredCap: "activities.read.all" },
-      { to: "/agenda", label: "Agenda", icon: Calendar, requiredCap: "activities.read.all" },
-      { to: "/attivita", label: "Attività", icon: ClipboardList, requiredCap: "activities.read.all" },
-      { to: "/aziende", label: "Aziende", icon: Building2, requiredCap: "aziende.read" },
-      { to: "/promemoria", label: "Promemoria", icon: Bell, requiredCap: "reminders.read" },
-    ],
-  },
-  {
-    title: "Gestione",
-    items: [
-      { to: "/conti", label: "Conti", icon: Wallet, requiredCap: "conti.proforma" },
-      { to: "/statistiche", label: "Statistiche", icon: BarChart3, requiredCap: "activities.read.all" },
-      { to: "/strumenti", label: "Strumenti", icon: Wrench },
-    ],
-  },
+  { title: "Principale", items: PRIMARY_NAV_ITEMS },
   {
     title: "Amministrazione",
     items: [
