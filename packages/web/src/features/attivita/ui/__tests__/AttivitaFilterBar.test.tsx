@@ -27,10 +27,13 @@ const baseProps = {
     { value: "azienda", label: "Azienda" },
     { value: "vet", label: "Veterinario" },
   ],
+  canExport: false,
+  onExport: vi.fn(),
+  onClearAll: vi.fn(),
 };
 
 describe("AttivitaFilterBar", () => {
-  it("renders all 5 controls including the new vet dropdown", () => {
+  it("renders all 6 controls on desktop", () => {
     const onChange = vi.fn();
     render(<AttivitaFilterBar {...baseProps} onChange={onChange} />);
     expect(screen.getByLabelText("Da")).toBeInTheDocument();
@@ -72,5 +75,41 @@ describe("AttivitaFilterBar", () => {
     expect(
       (screen.getByLabelText("Veterinario") as HTMLSelectElement).value
     ).toBe("");
+  });
+
+  it("shows mobile Filtri button with active-filter badge", () => {
+    render(
+      <AttivitaFilterBar
+        {...baseProps}
+        from="2026-05-01"
+        aziendaId="az1"
+        onChange={vi.fn()}
+      />
+    );
+    const trigger = screen.getByLabelText("Filtri");
+    expect(trigger).toBeInTheDocument();
+    expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+    expect(screen.getByLabelText("2 filtri attivi")).toBeInTheDocument();
+  });
+
+  it("shows export icon-button when canExport is true", () => {
+    const onExport = vi.fn();
+    render(
+      <AttivitaFilterBar
+        {...baseProps}
+        canExport
+        onExport={onExport}
+        onChange={vi.fn()}
+      />
+    );
+    const exportButtons = screen.getAllByLabelText("Esporta CSV");
+    expect(exportButtons.length).toBeGreaterThan(0);
+    fireEvent.click(exportButtons[0]!);
+    expect(onExport).toHaveBeenCalledTimes(1);
+  });
+
+  it("hides export button when canExport is false", () => {
+    render(<AttivitaFilterBar {...baseProps} onChange={vi.fn()} />);
+    expect(screen.queryByLabelText("Esporta CSV")).not.toBeInTheDocument();
   });
 });
