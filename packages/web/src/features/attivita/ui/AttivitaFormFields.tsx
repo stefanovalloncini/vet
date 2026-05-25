@@ -148,6 +148,7 @@ export function AttivitaFormFields({
         <RHFTextArea<AttivitaFormValues>
           name="note"
           label={t.campoNote}
+          rows={2}
           disabled={busy}
           maxLength={2000}
         />
