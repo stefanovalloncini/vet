@@ -9,10 +9,8 @@ import { useVetOptions } from "../hooks/useVetOptions";
 import { attivitaI18n as t } from "../i18n";
 import { computeTotals, groupAttivita } from "../lib/totals";
 import { AttivitaTotalsBar } from "./AttivitaTotalsBar";
-import {
-  AttivitaFilterBar,
-  AttivitaQuickRanges,
-} from "./AttivitaFilterBar";
+import { AttivitaFilterBar } from "./AttivitaFilterBar";
+import { AttivitaViewToolbar } from "./AttivitaViewToolbar";
 import { AttivitaGroups } from "./AttivitaGroups";
 import { ExportDialog } from "./ExportDialog";
 
@@ -65,24 +63,26 @@ export function AttivitaListPage() {
   return (
     <AppShell>
       <PageHeader title={t.title} subtitle={t.subtitle} />
-      <AttivitaQuickRanges from={fs.from} to={fs.to} onChange={fs.setParam} />
       <AttivitaFilterBar
         from={fs.from}
         to={fs.to}
         aziendaId={fs.aziendaId}
         tipoId={fs.tipoId}
         vetUid={fs.vetUid}
-        group={fs.group}
         aziendaOptions={aziendaOptions}
         tipoOptions={tipoOptions}
         vetOptions={vetOptions}
+        onChange={fs.setParam}
+        onClearAll={fs.clearAll}
+      />
+      <AttivitaTotalsBar totals={totals} />
+      <AttivitaViewToolbar
+        group={fs.group}
         groupOptions={groupOptions}
         canExport={canExport}
         onChange={fs.setParam}
-        onClearAll={fs.clearAll}
         onExport={() => setShowExport(true)}
       />
-      <AttivitaTotalsBar totals={totals} />
       <AttivitaGroups
         isLoading={attivitaQuery.isLoading}
         isError={attivitaQuery.isError}

@@ -1,9 +1,8 @@
 import { useState, type ReactNode } from "react";
-import { Download, SlidersHorizontal, X } from "lucide-react";
-import { Badge, Button, Dialog, Select, TextField } from "../../../shared/ui";
+import { SlidersHorizontal, X } from "lucide-react";
+import { Badge, Button, Card, Dialog, Select, TextField } from "../../../shared/ui";
 import { attivitaI18n as t } from "../i18n";
 import { dateInputValue } from "../../../shared/lib/format";
-import type { GroupKey } from "../lib/totals";
 
 const QUICK_RANGES = [
   {
@@ -61,15 +60,11 @@ export interface AttivitaFilterBarProps {
   aziendaId: string;
   tipoId: string;
   vetUid: string;
-  group: GroupKey;
   aziendaOptions: ReadonlyArray<{ value: string; label: string }>;
   tipoOptions: ReadonlyArray<{ value: string; label: string }>;
   vetOptions: ReadonlyArray<{ value: string; label: string }>;
-  groupOptions: ReadonlyArray<{ value: string; label: string }>;
-  canExport: boolean;
   onChange: (key: string, value: string) => void;
   onClearAll: () => void;
-  onExport: () => void;
 }
 
 type ControlsProps = Pick<
@@ -79,15 +74,13 @@ type ControlsProps = Pick<
   | "aziendaId"
   | "tipoId"
   | "vetUid"
-  | "group"
   | "aziendaOptions"
   | "tipoOptions"
   | "vetOptions"
-  | "groupOptions"
   | "onChange"
 > & { idPrefix?: string };
 
-export function AttivitaQuickRanges({
+function QuickRanges({
   from,
   to,
   onChange,
@@ -96,47 +89,39 @@ export function AttivitaQuickRanges({
   to: string;
   onChange: (key: string, value: string) => void;
 }) {
+  const isActive = (id: string): boolean => {
+    if (!from && !to) return false;
+    const r = QUICK_RANGES.find((q) => q.id === id);
+    if (!r) return false;
+    const { from: rf, to: rt } = r.compute(new Date());
+    return from === rf && to === rt;
+  };
   return (
-    <div className="flex flex-wrap gap-2 mb-4 print:hidden">
-      {QUICK_RANGES.map((q) => (
-        <button
-          key={q.id}
-          type="button"
-          onClick={() => {
-            const range = q.compute(new Date());
-            onChange("from", range.from);
-            onChange("to", range.to);
-          }}
-          className="px-3 py-1 text-xs rounded-full border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong) transition-colors"
-        >
-          {q.label}
-        </button>
-      ))}
-      {from || to ? (
-        <button
-          type="button"
-          onClick={() => {
-            onChange("from", "");
-            onChange("to", "");
-          }}
-          className="px-3 py-1 text-xs rounded-full border border-(--color-border) text-(--color-text-muted) hover:text-(--color-danger) hover:border-(--color-danger)/40 transition-colors"
-        >
-          Pulisci
-        </button>
-      ) : null}
+    <div className="flex flex-wrap gap-2">
+      {QUICK_RANGES.map((q) => {
+        const on = isActive(q.id);
+        return (
+          <button
+            key={q.id}
+            type="button"
+            onClick={() => {
+              const range = q.compute(new Date());
+              onChange("from", range.from);
+              onChange("to", range.to);
+            }}
+            className={
+              on
+                ? "px-3 py-1 text-xs rounded-full border border-(--color-accent) bg-(--color-accent-soft) text-(--color-accent) transition-colors"
+                : "px-3 py-1 text-xs rounded-full border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong) transition-colors"
+            }
+            aria-pressed={on}
+          >
+            {q.label}
+          </button>
+        );
+      })}
     </div>
   );
-}
-
-function countActiveFilters(p: ControlsProps): number {
-  let n = 0;
-  if (p.from) n += 1;
-  if (p.to) n += 1;
-  if (p.aziendaId) n += 1;
-  if (p.tipoId) n += 1;
-  if (p.vetUid) n += 1;
-  if (p.group !== "none") n += 1;
-  return n;
 }
 
 function FilterControls({
@@ -145,11 +130,9 @@ function FilterControls({
   aziendaId,
   tipoId,
   vetUid,
-  group,
   aziendaOptions,
   tipoOptions,
   vetOptions,
-  groupOptions,
   onChange,
   idPrefix = "",
 }: ControlsProps) {
@@ -190,31 +173,57 @@ function FilterControls({
         options={vetOptions}
         onChange={(e) => onChange("vet", e.target.value)}
       />
-      <Select
-        id={`${idPrefix}raggruppa`}
-        label={t.raggruppa}
-        value={group}
-        options={groupOptions}
-        onChange={(e) => onChange("group", e.target.value)}
-      />
     </>
+  );
+}
+
+function countActiveFilters(p: AttivitaFilterBarProps): number {
+  let n = 0;
+  if (p.from) n += 1;
+  if (p.to) n += 1;
+  if (p.aziendaId) n += 1;
+  if (p.tipoId) n += 1;
+  if (p.vetUid) n += 1;
+  return n;
+}
+
+function FilterHeader({
+  active,
+  onClearAll,
+}: {
+  active: number;
+  onClearAll: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-sm font-medium text-(--color-text)">{t.filtri}</h2>
+        {active > 0 ? (
+          <Badge tone="accent" size="sm">
+            {active} attiv{active === 1 ? "o" : "i"}
+          </Badge>
+        ) : (
+          <span className="text-xs text-(--color-text-subtle)">
+            {t.filtriNessuno}
+          </span>
+        )}
+      </div>
+      {active > 0 ? (
+        <Button type="button" variant="ghost" size="sm" onClick={onClearAll}>
+          {t.pulisciFiltri}
+        </Button>
+      ) : null}
+    </div>
   );
 }
 
 export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
   const [open, setOpen] = useState(false);
   const active = countActiveFilters(props);
-  const exportButton = props.canExport ? (
-    <IconButton
-      label={t.esporta}
-      onClick={props.onExport}
-      icon={<Download size={18} strokeWidth={1.75} aria-hidden="true" />}
-    />
-  ) : null;
 
   return (
-    <div className="mb-6">
-      <div className="sm:hidden flex items-center gap-2 print:hidden">
+    <div className="mb-6 print:hidden">
+      <div className="sm:hidden flex items-center gap-2">
         <Button
           type="button"
           variant="secondary"
@@ -222,7 +231,9 @@ export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
           onClick={() => setOpen(true)}
           aria-label={t.filtri}
           aria-haspopup="dialog"
-          leadingIcon={<SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden="true" />}
+          leadingIcon={
+            <SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden="true" />
+          }
           className="flex-1 justify-between"
         >
           <span className="flex items-center gap-2">
@@ -234,15 +245,25 @@ export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
             ) : null}
           </span>
         </Button>
-        {exportButton}
+        {active > 0 ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="md"
+            onClick={props.onClearAll}
+          >
+            {t.pulisciFiltri}
+          </Button>
+        ) : null}
       </div>
 
-      <div className="hidden sm:flex sm:items-end sm:gap-3 print:hidden">
-        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 flex-1">
+      <Card className="hidden sm:block" padding="md">
+        <FilterHeader active={active} onClearAll={props.onClearAll} />
+        <QuickRanges from={props.from} to={props.to} onChange={props.onChange} />
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-4">
           <FilterControls {...props} />
         </div>
-        {exportButton}
-      </div>
+      </Card>
 
       <Dialog
         open={open}
@@ -265,7 +286,8 @@ export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
               icon={<X size={18} strokeWidth={1.75} aria-hidden="true" />}
             />
           </header>
-          <div className="grid grid-cols-2 gap-3">
+          <QuickRanges from={props.from} to={props.to} onChange={props.onChange} />
+          <div className="grid grid-cols-2 gap-3 mt-4">
             <FilterControls {...props} idPrefix="m-" />
           </div>
           <footer className="flex items-center justify-end gap-2 mt-6">
