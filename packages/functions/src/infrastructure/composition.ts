@@ -1,12 +1,55 @@
-import type { AuditRepository } from "@vet/shared";
+import {
+  SystemClock,
+  type AuditRepository,
+  type Repositories,
+  type Tx,
+} from "@vet/shared";
 import { adminDb } from "../admin/firebaseAdmin.js";
+import { FirestoreAccessRequestRepository } from "./firestore/AccessRequestRepository.js";
+import { FirestoreActivityTypesRepository } from "./firestore/ActivityTypesRepository.js";
+import { FirestoreAllowlistRepository } from "./firestore/AllowlistRepository.js";
+import { FirestoreAttivitaRepository } from "./firestore/AttivitaRepository.js";
 import { FirestoreAuditRepository } from "./firestore/AuditRepository.js";
+import { NotSupportedAuthService } from "./firestore/AuthService.js";
+import { FirestoreAziendeRepository } from "./firestore/AziendeRepository.js";
+import { FirestoreContiRepository } from "./firestore/ContiRepository.js";
+import { FirestoreRemindersRepository } from "./firestore/RemindersRepository.js";
+import { FirestoreRoleRepository } from "./firestore/RoleRepository.js";
+import { NotSupportedTrashService } from "./firestore/TrashService.js";
+import { FirestoreUserRepository } from "./firestore/UserRepository.js";
 
-let auditRepoCache: AuditRepository | null = null;
+let repositoriesCache: Repositories | null = null;
+
+function buildTx(): Tx {
+  return {
+    clock: new SystemClock(),
+    users: new FirestoreUserRepository(adminDb),
+    roles: new FirestoreRoleRepository(adminDb),
+    allowlist: new FirestoreAllowlistRepository(adminDb),
+    accessRequests: new FirestoreAccessRequestRepository(adminDb),
+    aziende: new FirestoreAziendeRepository(adminDb),
+    activityTypes: new FirestoreActivityTypesRepository(adminDb),
+    attivita: new FirestoreAttivitaRepository(adminDb),
+    trash: new NotSupportedTrashService(),
+    audit: new FirestoreAuditRepository(adminDb),
+    conti: new FirestoreContiRepository(adminDb),
+    reminders: new FirestoreRemindersRepository(adminDb),
+    auth: new NotSupportedAuthService(),
+  };
+}
+
+export function getRepositories(): Repositories {
+  if (!repositoriesCache) {
+    const tx = buildTx();
+    repositoriesCache = {
+      ...tx,
+      run: <T>(work: (tx: Tx) => Promise<T>): Promise<T> =>
+        adminDb.runTransaction(async () => work(tx)),
+    };
+  }
+  return repositoriesCache;
+}
 
 export function getAuditRepository(): AuditRepository {
-  if (!auditRepoCache) {
-    auditRepoCache = new FirestoreAuditRepository(adminDb);
-  }
-  return auditRepoCache;
+  return getRepositories().audit;
 }
