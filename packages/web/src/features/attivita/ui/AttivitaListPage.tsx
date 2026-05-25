@@ -89,6 +89,7 @@ export function AttivitaListPage() {
         items={items}
         groups={groups}
         filtersActive={Object.keys(fs.filters).length > 0}
+        onClearFilters={fs.clearAll}
       />
       {showExport ? <ExportDialog onClose={() => setShowExport(false)} /> : null}
     </AppShell>

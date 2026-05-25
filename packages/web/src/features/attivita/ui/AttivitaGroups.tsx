@@ -14,6 +14,7 @@ interface AttivitaGroupsProps {
   items: Attivita[];
   groups: Group[];
   filtersActive: boolean;
+  onClearFilters?: () => void;
 }
 
 export function AttivitaGroups({
@@ -22,6 +23,7 @@ export function AttivitaGroups({
   items,
   groups,
   filtersActive,
+  onClearFilters,
 }: AttivitaGroupsProps) {
   if (isLoading) {
     return <p className="text-sm text-(--color-text-muted)">{t.loading}</p>;
@@ -30,7 +32,12 @@ export function AttivitaGroups({
     return <p className="text-sm text-(--color-danger)">{t.loadError}</p>;
   }
   if (items.length === 0) {
-    return <EmptyAttivita filtered={filtersActive} />;
+    return (
+      <EmptyAttivita
+        filtered={filtersActive}
+        {...(onClearFilters ? { onClearFilters } : {})}
+      />
+    );
   }
   const grouped = groups.length > 1 || (groups[0]?.label ?? "") !== "";
   return (
@@ -75,12 +82,34 @@ function MobileList({ groups, grouped }: { groups: Group[]; grouped: boolean }) 
   );
 }
 
-function EmptyAttivita({ filtered }: { filtered: boolean }) {
+function EmptyAttivita({
+  filtered,
+  onClearFilters,
+}: {
+  filtered: boolean;
+  onClearFilters?: () => void;
+}) {
   const { user } = useAuthState();
   const canCreate = user?.caps.has("activities.create") ?? false;
   if (filtered) {
     return (
-      <EmptyState title={t.emptyFiltered} description={t.emptyFilteredHint} />
+      <EmptyState
+        title={t.emptyFiltered}
+        description={t.emptyFilteredHint}
+        {...(onClearFilters
+          ? {
+              action: (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={onClearFilters}
+                >
+                  {t.pulisciFiltri}
+                </Button>
+              ),
+            }
+          : {})}
+      />
     );
   }
   if (!canCreate) return <EmptyState title={t.emptyAll} />;
