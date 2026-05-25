@@ -54,10 +54,11 @@ async function seedAzienda(
   aziende: InMemoryAziendeRepository,
   nome: string
 ): Promise<string> {
-  return aziende.create(
+  const azienda = await aziende.create(
     { nome },
     actor(["aziende.create"])
   );
+  return azienda.id;
 }
 
 async function seedConto(

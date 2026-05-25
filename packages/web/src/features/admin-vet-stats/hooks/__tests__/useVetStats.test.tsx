@@ -35,7 +35,7 @@ async function seedActivity(
   data: Date,
   tariffa: number
 ): Promise<void> {
-  const aziendaId = await repos.aziende.create({ nome: "Az A" }, actor);
+  const { id: aziendaId } = await repos.aziende.create({ nome: "Az A" }, actor);
   await repos.activityTypes.upsert("visita", {
     nome: "Visita",
     ordine: 10,

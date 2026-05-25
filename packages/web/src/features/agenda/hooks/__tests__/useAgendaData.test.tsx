@@ -31,7 +31,7 @@ async function seed(repos: Repositories, dates: Date[]): Promise<void> {
     caps: new Set<never>(),
     approved: true,
   };
-  const aziendaId = await repos.aziende.create({ nome: "Azienda A" }, actor);
+  const { id: aziendaId } = await repos.aziende.create({ nome: "Azienda A" }, actor);
   await repos.activityTypes.upsert("visita", {
     nome: "Visita",
     ordine: 10,

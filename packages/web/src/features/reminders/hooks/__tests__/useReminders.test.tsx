@@ -37,7 +37,7 @@ function wrap(repos: Repositories) {
 }
 
 async function seed(repos: Repositories): Promise<string> {
-  const aziendaId = await repos.aziende.create({ nome: "Cascina A" }, actor);
+  const { id: aziendaId } = await repos.aziende.create({ nome: "Cascina A" }, actor);
   await repos.reminders.create(
     {
       aziendaId,
@@ -90,7 +90,7 @@ describe("useReminders", () => {
 describe("useCreateReminder", () => {
   it("creates a reminder and invalidates the list", async () => {
     const repos = createInMemoryRepositories();
-    const aziendaId = await repos.aziende.create({ nome: "Cascina A" }, actor);
+    const { id: aziendaId } = await repos.aziende.create({ nome: "Cascina A" }, actor);
     const wrapper = wrap(repos);
 
     const { result: listResult } = renderHook(() => useReminders(), { wrapper });

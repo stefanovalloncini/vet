@@ -5,7 +5,6 @@ import { RHFTextField } from "../../../shared/ui/rhf";
 import { useAuthState } from "../../auth";
 import { aziendaInputSchema, type Azienda, type AziendaInput } from "@vet/shared";
 import { useCreateAzienda } from "../hooks/useAziende";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 
 interface Props {
   open: boolean;
@@ -23,7 +22,6 @@ export function QuickAddAziendaDialog({
   initialNome = "",
 }: Props) {
   const { user } = useAuthState();
-  const { aziende: repo } = useRepositories();
   const create = useCreateAzienda();
   const form = useForm<FormValues>({
     resolver: zodResolver(aziendaInputSchema),
@@ -37,9 +35,7 @@ export function QuickAddAziendaDialog({
     if (!user) return;
     try {
       const input: AziendaInput = { nome: values.nome };
-      const id = await create.mutateAsync({ input, actor: user });
-      const created = await repo.getById(id);
-      if (!created) throw new Error("Impossibile leggere la nuova azienda");
+      const created = await create.mutateAsync({ input, actor: user });
       onCreated(created);
       form.reset({ nome: "" });
       onClose();

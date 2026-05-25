@@ -98,7 +98,7 @@ describe("AziendaFormPage", () => {
 
   it("hydrates edit form with existing values exactly once", async () => {
     const aziende = new InMemoryAziendeRepository();
-    const id = await aziende.create(
+    const { id } = await aziende.create(
       { nome: "Cascina Rossi", indirizzo: "Via Roma 1" },
       ACTOR
     );
@@ -113,7 +113,7 @@ describe("AziendaFormPage", () => {
 
   it("updates an existing azienda and returns to the list", async () => {
     const aziende = new InMemoryAziendeRepository();
-    const id = await aziende.create({ nome: "Cascina Vecchia" }, ACTOR);
+    const { id } = await aziende.create({ nome: "Cascina Vecchia" }, ACTOR);
     renderForm(`/aziende/${id}/modifica`, { aziende });
     await waitFor(() => {
       const input = screen.getByLabelText(/^Nome$/i) as HTMLInputElement;

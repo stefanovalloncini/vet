@@ -25,6 +25,7 @@ import {
   buildAziendaCreateDoc,
   buildAziendaSoftDeletePatch,
   buildAziendaUpdatePatch,
+  buildOptimisticEntity,
   parseAzienda,
 } from "@vet/shared";
 
@@ -72,10 +73,15 @@ export class FirestoreAziendeRepository implements AziendeRepository {
     return parseAzienda(first.id, first.data());
   }
 
-  async create(input: AziendaInput, actor: ActorContext): Promise<string> {
+  async create(input: AziendaInput, actor: ActorContext): Promise<Azienda> {
     const ref = doc(collection(this.db, "aziende"));
     await setDoc(ref, buildAziendaCreateDoc({ input, actor }, stampDeps));
-    return ref.id;
+    return buildOptimisticEntity({
+      id: ref.id,
+      buildDoc: (deps) => buildAziendaCreateDoc({ input, actor }, deps),
+      parse: parseAzienda,
+      now: new Date(),
+    });
   }
 
   async update(

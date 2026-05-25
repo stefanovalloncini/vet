@@ -131,6 +131,7 @@ export {
 } from "./domain/schemas/money.js";
 export type { Conto } from "./domain/entities/Conto.js";
 export type { ContiRepository } from "./domain/ports/ContiRepository.js";
+export { buildOptimisticEntity } from "./firestore-dto/_shared.js";
 export {
   contoDtoSchema,
   parseConto,

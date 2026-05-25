@@ -70,7 +70,7 @@ describe("useCreateAzienda", () => {
 describe("useUpdateAzienda", () => {
   it("reflects the new name in the list query after invalidation", async () => {
     const repo = new InMemoryAziendeRepository();
-    const id = await repo.create({ nome: "Vecchio Nome" }, actor);
+    const { id } = await repo.create({ nome: "Vecchio Nome" }, actor);
     const wrapper = buildWrapper(repo);
     const list = renderHook(() => useAziende(), { wrapper });
     const update = renderHook(() => useUpdateAzienda(), { wrapper });
@@ -91,7 +91,7 @@ describe("useUpdateAzienda", () => {
 describe("useDeleteAzienda", () => {
   it("removes the soft-deleted entry from the list query", async () => {
     const repo = new InMemoryAziendeRepository();
-    const id = await repo.create({ nome: "Da Cestinare" }, actor);
+    const { id } = await repo.create({ nome: "Da Cestinare" }, actor);
     const wrapper = buildWrapper(repo);
     const list = renderHook(() => useAziende(), { wrapper });
     const del = renderHook(() => useDeleteAzienda(), { wrapper });

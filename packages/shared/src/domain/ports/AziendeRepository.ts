@@ -6,7 +6,7 @@ export interface AziendeRepository {
   list(): Promise<Azienda[]>;
   getById(id: string): Promise<Azienda | null>;
   findByNomeNorm(nomeNorm: string): Promise<Azienda | null>;
-  create(input: AziendaInput, actor: ActorContext): Promise<string>;
+  create(input: AziendaInput, actor: ActorContext): Promise<Azienda>;
   update(id: string, input: AziendaInput, actor: ActorContext): Promise<void>;
   softDelete(id: string, actor: ActorContext): Promise<void>;
 }

@@ -30,11 +30,11 @@ export class InMemoryAziendeRepository implements AziendeRepository {
     return null;
   }
 
-  async create(input: AziendaInput, actor: ActorContext): Promise<string> {
+  async create(input: AziendaInput, actor: ActorContext): Promise<Azienda> {
     const id = `azienda-${++this.seq}`;
     const now = this.clock();
     const nomeNorm = normalizeAziendaNome(input.nome);
-    this.map.set(id, {
+    const created: Azienda = {
       id,
       nome: input.nome,
       nomeNorm,
@@ -60,8 +60,9 @@ export class InMemoryAziendeRepository implements AziendeRepository {
       updatedByName: actor.displayName,
       isDeleted: false,
       schemaVersion: 1,
-    });
-    return id;
+    };
+    this.map.set(id, created);
+    return created;
   }
 
   async update(
