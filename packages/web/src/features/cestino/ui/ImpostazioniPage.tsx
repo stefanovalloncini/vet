@@ -13,7 +13,14 @@ import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { impostazioniI18n as t } from "../i18n";
 import { RetentionSettings } from "./RetentionSettings";
-import { backupFilename, buildBackupPayload, triggerJsonDownload } from "../lib/exportBackup";
+import {
+  attivitaCsvFilename,
+  backupFilename,
+  buildBackupPayload,
+  triggerCsvDownload,
+  triggerJsonDownload,
+} from "../lib/exportBackup";
+import { toCsvItalian } from "../../attivita";
 import { useRetention } from "../lib/useRetention";
 
 export function ImpostazioniPage() {
@@ -25,6 +32,8 @@ export function ImpostazioniPage() {
   const [done, setDone] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [csvExporting, setCsvExporting] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
   const [gdprError, setGdprError] = useState<string | null>(null);
   const [retention, setRetention] = useRetention();
 
@@ -50,6 +59,22 @@ export function ImpostazioniPage() {
       console.error("export failed", err);
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function handleCsvExport(): Promise<void> {
+    setCsvExporting(true);
+    setCsvError(null);
+    try {
+      const items = await attivita.list();
+      const csv = toCsvItalian(items);
+      triggerCsvDownload(csv, attivitaCsvFilename());
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setCsvError(`${t.datiCsvError}: ${msg}`);
+      console.error("csv export failed", err);
+    } finally {
+      setCsvExporting(false);
     }
   }
 
@@ -109,6 +134,22 @@ export function ImpostazioniPage() {
               disabled={exporting}
             >
               {exporting ? t.datiBackupBusy : t.datiBackupCta}
+            </Button>
+          </SettingsRow>
+          <SettingsRow
+            label={t.datiCsv}
+            description={
+              <DescrWithError text={t.datiCsvDescr} error={csvError} />
+            }
+          >
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleCsvExport}
+              disabled={csvExporting}
+            >
+              {csvExporting ? t.datiCsvBusy : t.datiCsvCta}
             </Button>
           </SettingsRow>
         </Panel>

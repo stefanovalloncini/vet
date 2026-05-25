@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { backupFilename, buildBackupPayload } from "../exportBackup";
+import {
+  attivitaCsvFilename,
+  backupFilename,
+  buildBackupPayload,
+} from "../exportBackup";
 
 describe("buildBackupPayload", () => {
   it("packs the tracked collections with version 1", () => {
@@ -37,6 +41,14 @@ describe("backupFilename", () => {
   it("includes the ISO date prefix", () => {
     expect(backupFilename(new Date("2026-05-22T10:00:00Z"))).toBe(
       "vet-app-backup-2026-05-22.json"
+    );
+  });
+});
+
+describe("attivitaCsvFilename", () => {
+  it("uses the .csv extension and the ISO date", () => {
+    expect(attivitaCsvFilename(new Date("2026-05-26T08:30:00Z"))).toBe(
+      "vet-attivita-2026-05-26.csv"
     );
   });
 });

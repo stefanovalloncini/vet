@@ -29,10 +29,25 @@ export function backupFilename(now: Date = new Date()): string {
   return `vet-app-backup-${now.toISOString().slice(0, 10)}.json`;
 }
 
+export function attivitaCsvFilename(now: Date = new Date()): string {
+  return `vet-attivita-${now.toISOString().slice(0, 10)}.csv`;
+}
+
 export function triggerJsonDownload(payload: BackupPayload, filename: string): void {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {
-    type: "application/json",
-  });
+  triggerBlobDownload(
+    new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }),
+    filename
+  );
+}
+
+export function triggerCsvDownload(csv: string, filename: string): void {
+  triggerBlobDownload(
+    new Blob([csv], { type: "text/csv;charset=utf-8" }),
+    filename
+  );
+}
+
+function triggerBlobDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

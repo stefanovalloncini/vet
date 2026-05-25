@@ -51,6 +51,11 @@ export const impostazioniI18n = {
   datiBackupCta: "Scarica JSON",
   datiBackupBusy: "Esportazione…",
   datiBackupError: "Export non riuscito",
+  datiCsv: "Attività in CSV",
+  datiCsvDescr: "Scarica le tue attività in un file CSV pronto per Excel italiano.",
+  datiCsvCta: "Scarica CSV",
+  datiCsvBusy: "Preparazione…",
+  datiCsvError: "Export CSV non riuscito",
   gdprSection: "Privacy",
   gdprTitle: "Cancella i miei dati",
   gdprDescr:
