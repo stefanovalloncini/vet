@@ -102,7 +102,7 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
       </div>
       {!periodValid ? (
         <p className="text-xs text-(--color-danger) mt-3">
-          Il periodo finale deve essere dopo l'iniziale.
+          Il periodo finale deve essere dopo l&apos;iniziale.
         </p>
       ) : null}
       {preview.count === 0 && periodValid ? (
