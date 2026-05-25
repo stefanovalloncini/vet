@@ -187,4 +187,28 @@ input[type="time"]::-webkit-date-and-time-value {
   .print\:hidden {
     display: none !important;
   }
+  .riepilogo-doc {
+    color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .riepilogo-doc thead {
+    display: table-header-group;
+  }
+  .riepilogo-doc tfoot {
+    display: table-footer-group;
+  }
+  .riepilogo-doc tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .riepilogo-doc footer {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
+@page {
+  margin: 18mm 14mm;
+  size: A4;
 }
