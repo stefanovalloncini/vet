@@ -116,7 +116,7 @@ describe("useUndoCreateAttivita", () => {
 
   it("invalidates the attivita queries on settle", async () => {
     const repo = new InMemoryAttivitaRepository();
-    const id = await repo.create(
+    const { id } = await repo.create(
       {
         data: new Date("2026-05-01"),
         aziendaId: "az-1",

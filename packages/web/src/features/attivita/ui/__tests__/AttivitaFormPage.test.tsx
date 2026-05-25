@@ -113,7 +113,7 @@ describe("AttivitaFormPage", () => {
 
   it("hydrates the form with existing values in edit mode", async () => {
     const { repos, aziendaId, tipoId } = await seedRepos();
-    const id = await repos.attivita.create(
+    const { id } = await repos.attivita.create(
       {
         data: new Date("2026-04-01"),
         aziendaId,

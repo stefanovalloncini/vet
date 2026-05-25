@@ -40,7 +40,7 @@ async function seedDeleted(repos: Repositories): Promise<{
     ordine: 10,
     attivo: true,
   });
-  const id = await repos.attivita.create(
+  const { id } = await repos.attivita.create(
     {
       data: new Date(2026, 4, 10),
       aziendaId,

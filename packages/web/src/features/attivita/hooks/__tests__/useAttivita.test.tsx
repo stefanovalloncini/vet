@@ -89,7 +89,7 @@ describe("useCreateAttivita", () => {
 describe("useUpdateAttivita", () => {
   it("reflects the new tariffa in the list after invalidation", async () => {
     const repo = new InMemoryAttivitaRepository();
-    const id = await repo.create(
+    const { id } = await repo.create(
       {
         data: new Date("2026-05-10"),
         aziendaId: "az1",
@@ -127,7 +127,7 @@ describe("useUpdateAttivita", () => {
 describe("useSoftDeleteAttivita", () => {
   it("removes the soft-deleted entry from the list", async () => {
     const repo = new InMemoryAttivitaRepository();
-    const id = await repo.create(
+    const { id } = await repo.create(
       {
         data: new Date("2026-05-10"),
         aziendaId: "az1",

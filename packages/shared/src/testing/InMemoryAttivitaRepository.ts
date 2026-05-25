@@ -50,10 +50,10 @@ export class InMemoryAttivitaRepository implements AttivitaRepository {
     input: AttivitaInput,
     denorm: { aziendaNome: string; tipoNome: string },
     actor: ActorContext
-  ): Promise<string> {
+  ): Promise<Attivita> {
     const id = `attivita-${++this.seq}`;
     const now = this.clock();
-    this.map.set(id, {
+    const created: Attivita = {
       id,
       data: input.data,
       aziendaId: input.aziendaId,
@@ -74,8 +74,9 @@ export class InMemoryAttivitaRepository implements AttivitaRepository {
       updatedAt: now,
       isDeleted: false,
       schemaVersion: 1,
-    });
-    return id;
+    };
+    this.map.set(id, created);
+    return created;
   }
 
   async update(

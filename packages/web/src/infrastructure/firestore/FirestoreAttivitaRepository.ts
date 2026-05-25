@@ -29,6 +29,7 @@ import {
   buildAttivitaCreateDoc,
   buildAttivitaSoftDeletePatch,
   buildAttivitaUpdatePatch,
+  buildOptimisticEntity,
   parseAttivita,
 } from "@vet/shared";
 
@@ -93,10 +94,15 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     input: AttivitaInput,
     denorm: { aziendaNome: string; tipoNome: string },
     actor: ActorContext
-  ): Promise<string> {
+  ): Promise<Attivita> {
     const ref = doc(collection(this.db, "attivita"));
     await setDoc(ref, buildAttivitaCreateDoc({ input, denorm, actor }, stampDeps));
-    return ref.id;
+    return buildOptimisticEntity({
+      id: ref.id,
+      buildDoc: (deps) => buildAttivitaCreateDoc({ input, denorm, actor }, deps),
+      parse: parseAttivita,
+      now: new Date(),
+    });
   }
 
   async update(

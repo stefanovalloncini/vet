@@ -26,7 +26,7 @@ export interface AttivitaRepository {
     input: AttivitaInput,
     denorm: { aziendaNome: string; tipoNome: string },
     actor: ActorContext
-  ): Promise<string>;
+  ): Promise<Attivita>;
   update(
     id: string,
     input: AttivitaInput,
