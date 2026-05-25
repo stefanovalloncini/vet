@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { Timestamp } from "firebase-admin/firestore";
 import { z } from "zod";
 import { adminDb } from "../admin/firebaseAdmin.js";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import { decodeCaps, normalizeEmail } from "@vet/shared";
 
 const inputSchema = z
@@ -45,9 +45,7 @@ export const deleteAllowlistEntry = onCall(
     const emailNorm = normalizeEmail(email);
     const ref = adminDb.collection("allowlist").doc(emailNorm);
 
-    const now = Timestamp.now();
-    await adminDb.collection("audit").add({
-      at: now,
+    await getAuditRepository().record({
       actorUid: caller.uid,
       actorEmail: caller.email,
       action: "allowlist.delete",

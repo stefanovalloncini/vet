@@ -114,7 +114,12 @@ export type {
   TrashFilters,
 } from "./domain/ports/AttivitaRepository.js";
 export type { TrashService } from "./domain/ports/TrashService.js";
-export type { AuditEvent, AuditAction } from "./domain/entities/AuditEvent.js";
+export type {
+  AuditEvent,
+  AuditAction,
+  AuditTargetType,
+  AuditRecordInput,
+} from "./domain/entities/AuditEvent.js";
 export type {
   AuditRepository,
   AuditFilters,

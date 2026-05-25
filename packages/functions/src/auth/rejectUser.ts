@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
 import { z } from "zod";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import { decodeCaps } from "@vet/shared";
 
 const inputSchema = z.object({ uid: z.string().min(1).max(128) }).strict();
@@ -30,7 +31,6 @@ export const rejectUser = onCall(
       throw new HttpsError("not-found", "user");
     }
 
-    const now = new Date();
     const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
     const targetEmail = (userSnap.data()?.["email"] as string | undefined) ?? "";
 
@@ -40,8 +40,7 @@ export const rejectUser = onCall(
     } catch (err) {
       logger.warn("auth.rejectUser.authDeleteFailed", { targetUid, err: String(err) });
     }
-    await adminDb.collection("audit").add({
-      at: now,
+    await getAuditRepository().record({
       actorUid,
       actorEmail,
       action: "user.reject",

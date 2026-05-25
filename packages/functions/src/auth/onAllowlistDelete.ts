@@ -1,6 +1,7 @@
 import { onDocumentDeleted } from "firebase-functions/v2/firestore";
 import { logger } from "firebase-functions/v2";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { getAuditRepository } from "../infrastructure/composition.js";
 
 export interface AllowlistDeleteRevocation {
   uid: string | null;
@@ -37,8 +38,7 @@ export async function revokeForDeletedAllowlistEntry(args: {
           },
           { merge: true }
         ),
-      adminDb.collection("audit").add({
-        at: new Date(),
+      getAuditRepository().record({
         actorUid: "system:onAllowlistDelete",
         actorEmail: "system",
         action: "allowlist.delete.cascade",

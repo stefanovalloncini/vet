@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
-import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "../admin/firebaseAdmin.js";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import {
   decodeCaps,
   normalizeEmail,
@@ -27,7 +27,6 @@ export const rejectAccessRequest = onCall(
     const emailNorm = normalizeEmail(input.email);
     const requestRef = adminDb.collection("accessRequests").doc(emailNorm);
 
-    const now = Timestamp.now();
     const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
 
     await adminDb.runTransaction(async (tx) => {
@@ -38,8 +37,7 @@ export const rejectAccessRequest = onCall(
       tx.delete(requestRef);
     });
 
-    await adminDb.collection("audit").add({
-      at: now,
+    await getAuditRepository().record({
       actorUid,
       actorEmail,
       action: "access_request.reject",

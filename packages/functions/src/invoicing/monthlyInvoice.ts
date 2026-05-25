@@ -1,6 +1,7 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { adminDb } from "../admin/firebaseAdmin.js";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import { isCadenzaDue, periodFor, type Cadenza } from "./period.js";
 
 interface Azienda {
@@ -73,8 +74,7 @@ export const monthlyInvoicePush = onSchedule(
         period: period.label,
       });
 
-      await adminDb.collection("audit").add({
-        at: FieldValue.serverTimestamp(),
+      await getAuditRepository().record({
         actorUid: "system",
         actorEmail: "scheduled@vet",
         action: "invoicing.monthly.push",

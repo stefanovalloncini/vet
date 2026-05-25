@@ -1,7 +1,7 @@
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { logger } from "firebase-functions/v2";
-import { FieldValue } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import type { Capability } from "@vet/shared";
 import { encodeCaps } from "@vet/shared";
 
@@ -71,8 +71,7 @@ export const onRoleChange = onDocumentWritten(
           };
           await adminAuth.setCustomUserClaims(userDoc.id, claims);
           await adminAuth.revokeRefreshTokens(userDoc.id);
-          await adminDb.collection("audit").add({
-            at: FieldValue.serverTimestamp(),
+          await getAuditRepository().record({
             actorUid: "system:onRoleChange",
             actorEmail: "system",
             action: "role.update.propagate",

@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue } from "firebase-admin/firestore";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import { decodeCaps } from "@vet/shared";
 
 const inputSchema = z.object({ id: z.string().min(1).max(64) }).strict();
@@ -49,8 +49,7 @@ export const purgeAttivita = onCall(
     }
 
     await ref.delete();
-    await adminDb.collection("audit").add({
-      at: FieldValue.serverTimestamp(),
+    await getAuditRepository().record({
       actorUid: caller!.uid,
       actorEmail: caller!.email,
       action: "attivita.purge",

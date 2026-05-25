@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue } from "firebase-admin/firestore";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import { normalizeEmail } from "@vet/shared";
 
 const BATCH_SIZE = 400;
@@ -17,8 +17,7 @@ export const gdprDeleteMine = onCall(
 
     const erased = await eraseUserData(uid, email);
 
-    await adminDb.collection("audit").add({
-      at: FieldValue.serverTimestamp(),
+    await getAuditRepository().record({
       actorUid: ANON_UID,
       actorEmail: "",
       action: "gdpr.erasure",

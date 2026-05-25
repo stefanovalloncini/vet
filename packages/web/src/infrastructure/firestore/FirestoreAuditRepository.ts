@@ -8,6 +8,7 @@ import {
   type Firestore,
   type QueryConstraint,
 } from "firebase/firestore";
+import { PermissionDeniedError } from "@vet/shared";
 import type {
   AuditEvent,
   AuditFilters,
@@ -28,6 +29,12 @@ export class FirestoreAuditRepository implements AuditRepository {
     cs.push(fsLimit(filters.limit ?? 100));
     const snap = await getDocs(query(collection(this.db, "audit"), ...cs));
     return snap.docs.map((d) => fromSnap(d.id, d.data()));
+  }
+
+  async record(): Promise<void> {
+    throw new PermissionDeniedError(
+      "audit writes must originate from cloud functions"
+    );
   }
 }
 

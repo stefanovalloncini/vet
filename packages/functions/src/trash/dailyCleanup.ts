@@ -1,6 +1,7 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from "firebase-admin/firestore";
+import { getAuditRepository } from "../infrastructure/composition.js";
 
 const TRASH_TTL_DAYS = 7;
 const BATCH_SIZE = 200;
@@ -21,8 +22,7 @@ export const dailyTrashCleanup = onSchedule(
     const cutoff = computeTrashCutoff(new Date());
     const purged = await purgeExpired(cutoff);
     if (purged > 0) {
-      await adminDb.collection("audit").add({
-        at: FieldValue.serverTimestamp(),
+      await getAuditRepository().record({
         actorUid: "system",
         actorEmail: "scheduled@vet",
         action: "attivita.purge.auto",

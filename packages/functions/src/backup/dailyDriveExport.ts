@@ -4,7 +4,8 @@ import { defineSecret } from "firebase-functions/params";
 import { google } from "googleapis";
 import { Readable } from "node:stream";
 import { adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from "firebase-admin/firestore";
+import { getAuditRepository } from "../infrastructure/composition.js";
 
 const DRIVE_BACKUP_KEY = defineSecret("drive-backup-key");
 const DRIVE_BACKUP_FOLDER_ID = defineSecret("drive-backup-folder-id");
@@ -296,8 +297,7 @@ export const dailyDriveExport = onSchedule(
           bytes: c.jsonlBytes + c.csvBytes,
         })),
       });
-      await adminDb.collection("audit").add({
-        at: FieldValue.serverTimestamp(),
+      await getAuditRepository().record({
         actorUid: "system",
         actorEmail: "scheduled@vet",
         action: "backup.drive.export.success",
@@ -314,8 +314,7 @@ export const dailyDriveExport = onSchedule(
         date,
         message: err instanceof Error ? err.message : String(err),
       });
-      await adminDb.collection("audit").add({
-        at: FieldValue.serverTimestamp(),
+      await getAuditRepository().record({
         actorUid: "system",
         actorEmail: "scheduled@vet",
         action: "backup.drive.export.failure",

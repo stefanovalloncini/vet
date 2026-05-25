@@ -1,4 +1,4 @@
-import type { AuditEvent } from "../entities/AuditEvent.js";
+import type { AuditEvent, AuditRecordInput } from "../entities/AuditEvent.js";
 
 export interface AuditFilters {
   actorUid?: string;
@@ -10,4 +10,5 @@ export interface AuditFilters {
 
 export interface AuditRepository {
   list(filters?: AuditFilters): Promise<AuditEvent[]>;
+  record(event: AuditRecordInput): Promise<void>;
 }

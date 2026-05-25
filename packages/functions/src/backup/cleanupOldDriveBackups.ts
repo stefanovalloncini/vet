@@ -2,8 +2,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions/v2";
 import { defineSecret } from "firebase-functions/params";
 import { google, type drive_v3 } from "googleapis";
-import { adminDb } from "../admin/firebaseAdmin.js";
-import { FieldValue } from "firebase-admin/firestore";
+import { getAuditRepository } from "../infrastructure/composition.js";
 
 const DRIVE_BACKUP_KEY = defineSecret("drive-backup-key");
 const DRIVE_BACKUP_FOLDER_ID = defineSecret("drive-backup-folder-id");
@@ -139,8 +138,7 @@ export const cleanupOldDriveBackups = onSchedule(
         retainedCount: result.retainedCount,
         retainedDates: result.retainedDates,
       });
-      await adminDb.collection("audit").add({
-        at: FieldValue.serverTimestamp(),
+      await getAuditRepository().record({
         actorUid: "system",
         actorEmail: "scheduled@vet",
         action: "backup.drive.cleanup.success",
@@ -157,8 +155,7 @@ export const cleanupOldDriveBackups = onSchedule(
         runAt,
         message: err instanceof Error ? err.message : String(err),
       });
-      await adminDb.collection("audit").add({
-        at: FieldValue.serverTimestamp(),
+      await getAuditRepository().record({
         actorUid: "system",
         actorEmail: "scheduled@vet",
         action: "backup.drive.cleanup.failure",

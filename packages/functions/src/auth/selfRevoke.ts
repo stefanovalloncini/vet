@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { getAuditRepository } from "../infrastructure/composition.js";
 
 interface Caller {
   uid: string;
@@ -27,8 +28,7 @@ export const selfRevoke = onCall(
       { merge: true }
     );
 
-    await adminDb.collection("audit").add({
-      at: Timestamp.now(),
+    await getAuditRepository().record({
       actorUid: caller.uid,
       actorEmail: caller.email,
       action: "user.session.self-revoke",

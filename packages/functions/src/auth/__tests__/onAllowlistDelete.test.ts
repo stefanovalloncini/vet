@@ -8,22 +8,24 @@ const adminAuth = {
 };
 
 const docSet = vi.fn().mockResolvedValue(undefined);
-const collectionAdd = vi.fn().mockResolvedValue(undefined);
 const adminDb = {
   collection: vi.fn((name: string) => {
     if (name === "users") {
       return { doc: vi.fn(() => ({ set: docSet })) };
     }
-    if (name === "audit") {
-      return { add: collectionAdd };
-    }
     throw new Error("unexpected collection " + name);
   }),
 };
 
+const auditRecord = vi.fn().mockResolvedValue(undefined);
+
 vi.mock("../../admin/firebaseAdmin.js", () => ({
   adminAuth,
   adminDb,
+}));
+
+vi.mock("../../infrastructure/composition.js", () => ({
+  getAuditRepository: () => ({ record: auditRecord }),
 }));
 
 const { revokeForDeletedAllowlistEntry } = await import("../onAllowlistDelete.js");
@@ -31,7 +33,7 @@ const { revokeForDeletedAllowlistEntry } = await import("../onAllowlistDelete.js
 beforeEach(() => {
   vi.clearAllMocks();
   docSet.mockResolvedValue(undefined);
-  collectionAdd.mockResolvedValue(undefined);
+  auditRecord.mockResolvedValue(undefined);
 });
 
 describe("revokeForDeletedAllowlistEntry", () => {
@@ -77,8 +79,8 @@ describe("revokeForDeletedAllowlistEntry", () => {
     expect(adminAuth.setCustomUserClaims).toHaveBeenCalledWith("u42", null);
     expect(adminAuth.updateUser).toHaveBeenCalledWith("u42", { disabled: true });
     expect(docSet).toHaveBeenCalledTimes(1);
-    expect(collectionAdd).toHaveBeenCalledTimes(1);
-    const auditPayload = collectionAdd.mock.calls[0]?.[0] as {
+    expect(auditRecord).toHaveBeenCalledTimes(1);
+    const auditPayload = auditRecord.mock.calls[0]?.[0] as {
       action: string;
       targetId: string;
     };

@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
 import { z } from "zod";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import { decodeCaps, encodeCaps, type Capability } from "@vet/shared";
 
 const inputSchema = z
@@ -75,8 +76,7 @@ export const approveUser = onCall(
     await adminAuth.revokeRefreshTokens(targetUid);
 
     const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
-    await adminDb.collection("audit").add({
-      at: now,
+    await getAuditRepository().record({
       actorUid,
       actorEmail,
       action: "user.approve",

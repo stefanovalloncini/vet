@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { adminAuth, adminDb } from "../admin/firebaseAdmin.js";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import { decodeCaps } from "@vet/shared";
 
 const inputSchema = z.object({ uid: z.string().min(1).max(128) }).strict();
@@ -40,8 +41,7 @@ export const revokeUserSession = onCall(
       { disabled: true, minCapsVer: Date.now(), updatedAt: new Date() },
       { merge: true }
     );
-    await adminDb.collection("audit").add({
-      at: new Date(),
+    await getAuditRepository().record({
       actorUid: caller!.uid,
       actorEmail: (auth?.token.email as string) ?? "",
       action: "user.session.revoke",

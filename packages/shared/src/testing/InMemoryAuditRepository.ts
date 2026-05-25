@@ -1,4 +1,7 @@
-import type { AuditEvent } from "../domain/entities/AuditEvent.js";
+import type {
+  AuditEvent,
+  AuditRecordInput,
+} from "../domain/entities/AuditEvent.js";
 import type {
   AuditFilters,
   AuditRepository,
@@ -6,6 +9,12 @@ import type {
 
 export class InMemoryAuditRepository implements AuditRepository {
   private readonly events: AuditEvent[] = [];
+  private seq = 0;
+  private readonly clock: () => Date;
+
+  constructor(clock?: () => Date) {
+    this.clock = clock ?? (() => new Date());
+  }
 
   async list(filters: AuditFilters = {}): Promise<AuditEvent[]> {
     const limit = filters.limit ?? 50;
@@ -16,6 +25,19 @@ export class InMemoryAuditRepository implements AuditRepository {
       .filter((e) => !filters.action || e.action === filters.action)
       .sort((a, b) => b.at.getTime() - a.at.getTime())
       .slice(0, limit);
+  }
+
+  async record(event: AuditRecordInput): Promise<void> {
+    this.events.push({
+      id: `audit-${++this.seq}`,
+      at: this.clock(),
+      actorUid: event.actorUid,
+      actorEmail: event.actorEmail,
+      action: event.action,
+      targetType: event.targetType,
+      targetId: event.targetId,
+      ...(event.details !== undefined ? { details: event.details } : {}),
+    });
   }
 
   seed(event: AuditEvent): void {

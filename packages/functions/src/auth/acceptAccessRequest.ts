@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "../admin/firebaseAdmin.js";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import {
   acceptAccessRequestInputSchema,
   decodeCaps,
@@ -75,8 +76,7 @@ export const acceptAccessRequest = onCall(
       tx.delete(requestRef);
     });
 
-    await adminDb.collection("audit").add({
-      at: now,
+    await getAuditRepository().record({
       actorUid,
       actorEmail,
       action: "access_request.accept",

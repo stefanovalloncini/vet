@@ -4,6 +4,7 @@ import { defineSecret } from "firebase-functions/params";
 import { google, type drive_v3 } from "googleapis";
 import { adminDb } from "../admin/firebaseAdmin.js";
 import { FieldValue } from "firebase-admin/firestore";
+import { getAuditRepository } from "../infrastructure/composition.js";
 import type { BackupManifest } from "./dailyDriveExport.js";
 
 const DRIVE_BACKUP_KEY = defineSecret("drive-backup-key");
@@ -175,8 +176,7 @@ export const weeklyBackupDigest = onSchedule(
       createdAt: FieldValue.serverTimestamp(),
       kind: "drive_backup_digest",
     });
-    await adminDb.collection("audit").add({
-      at: FieldValue.serverTimestamp(),
+    await getAuditRepository().record({
       actorUid: "system",
       actorEmail: "scheduled@vet",
       action: "backup.drive.digest.sent",
