@@ -128,6 +128,7 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
           </div>
           <RHFTextField<QuickTipoFormValues>
             name="nome"
+            idPrefix="quick-tipo"
             label="Nome"
             required
             autoFocus
@@ -136,6 +137,7 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
           />
           <RHFTextField<QuickTipoFormValues>
             name="tariffa"
+            idPrefix="quick-tipo"
             label="Tariffa standard (€)"
             type="number"
             step="10"

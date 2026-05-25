@@ -2,6 +2,7 @@ import {
   doc,
   getDoc,
   collection,
+  deleteDoc,
   getDocs,
   setDoc,
   serverTimestamp,
@@ -45,15 +46,17 @@ export class FirestoreRoleRepository implements RoleRepository {
   }
 
   async create(id: string, input: RoleInput, actor: string): Promise<Role> {
-    const batch = writeBatch(this.db);
-    batch.set(doc(this.db, "roleNames", roleNameKey(input.name)), {
-      roleId: id,
-    });
-    batch.set(
-      doc(this.db, "roles", id),
-      buildRoleCreateDoc({ input, actor }, stampDeps)
-    );
-    await batch.commit();
+    const nameDoc = doc(this.db, "roleNames", roleNameKey(input.name));
+    await setDoc(nameDoc, { roleId: id });
+    try {
+      await setDoc(
+        doc(this.db, "roles", id),
+        buildRoleCreateDoc({ input, actor }, stampDeps)
+      );
+    } catch (err) {
+      await deleteDoc(nameDoc).catch(() => undefined);
+      throw err;
+    }
     return buildOptimisticEntity({
       id,
       buildDoc: (deps) => buildRoleCreateDoc({ input, actor }, deps),

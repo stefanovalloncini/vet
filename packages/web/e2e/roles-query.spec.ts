@@ -19,7 +19,7 @@ test.describe("admin roles (tanstack query)", () => {
   }) => {
     const suffix = Date.now().toString().slice(-6);
     const roleId = `e2e-role-${suffix}`;
-    const roleName = `E2E Role ${suffix}`;
+    const roleName = `e2e-role-${suffix}`;
 
     await signedInAdmin.goto("/admin/ruoli/nuovo");
     await expect(

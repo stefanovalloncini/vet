@@ -37,14 +37,16 @@ test.describe("admin allowlist (rhf forms)", () => {
       .getByRole("button", { name: /Aggiungi/i })
       .first()
       .click();
-    await signedInAdmin.getByLabel(/Email/i).first().fill(unique);
+    const emailField = signedInAdmin.getByLabel(/Email/i).first();
+    await emailField.fill(unique);
     await signedInAdmin
       .getByRole("button", { name: /Aggiungi email/i })
       .click();
 
-    await expect(signedInAdmin.getByText(unique)).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(emailField).toBeHidden({ timeout: 15_000 });
+    await expect(
+      signedInAdmin.locator("main").getByText(unique)
+    ).toBeVisible({ timeout: 10_000 });
   });
 
   test("Annulla closes the form without writing", async ({ signedInAdmin }) => {
