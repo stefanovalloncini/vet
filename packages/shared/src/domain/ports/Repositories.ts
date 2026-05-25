@@ -12,7 +12,7 @@ import type { ContiRepository } from "./ContiRepository.js";
 import type { RemindersRepository } from "./RemindersRepository.js";
 import type { AuthService } from "./AuthService.js";
 
-export interface Repositories {
+export interface Tx {
   readonly clock: Clock;
   readonly users: UserRepository;
   readonly roles: RoleRepository;
@@ -26,4 +26,8 @@ export interface Repositories {
   readonly conti: ContiRepository;
   readonly reminders: RemindersRepository;
   readonly auth: AuthService;
+}
+
+export interface Repositories extends Tx {
+  run<T>(work: (tx: Tx) => Promise<T>): Promise<T>;
 }

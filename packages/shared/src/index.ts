@@ -9,7 +9,7 @@ export {
 } from "./domain/errors.js";
 
 export type { Clock } from "./domain/ports/Clock.js";
-export type { Repositories } from "./domain/ports/Repositories.js";
+export type { Repositories, Tx } from "./domain/ports/Repositories.js";
 
 export { SystemClock } from "./infrastructure/SystemClock.js";
 

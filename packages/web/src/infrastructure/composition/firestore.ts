@@ -1,4 +1,4 @@
-import { SystemClock, type Repositories } from "@vet/shared";
+import { SystemClock, type Repositories, type Tx } from "@vet/shared";
 import { initFirebase } from "../firestore/client";
 import { FirestoreUserRepository } from "../firestore/FirestoreUserRepository";
 import { FirestoreRoleRepository } from "../firestore/FirestoreRoleRepository";
@@ -17,7 +17,7 @@ import { loadVetEnv } from "./env";
 export function createFirestoreRepositories(): Repositories {
   const env = loadVetEnv();
   const { firestore, auth, functions } = initFirebase(env);
-  return {
+  const tx: Tx = {
     clock: new SystemClock(),
     users: new FirestoreUserRepository(firestore),
     roles: new FirestoreRoleRepository(firestore),
@@ -31,5 +31,9 @@ export function createFirestoreRepositories(): Repositories {
     conti: new FirestoreContiRepository(firestore),
     reminders: new FirestoreRemindersRepository(firestore),
     auth: new FirebaseAuthService(auth, firestore),
+  };
+  return {
+    ...tx,
+    run: <T>(work: (tx: Tx) => Promise<T>): Promise<T> => work(tx),
   };
 }
