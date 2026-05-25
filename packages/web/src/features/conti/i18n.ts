@@ -7,6 +7,9 @@ export const contiI18n = {
   contiNonSaldatiSuffix: "non saldati",
   ultimoConto: "Ultimo conto",
   tuttiSaldati: "Tutto saldato",
+  counterPending: (pending: number, total: number) =>
+    `${pending} di ${total} ${total === 1 ? "azienda" : "aziende"} con pagamenti pendenti`,
+  periodo: "Periodo",
   emit: "Emetti conto",
   emitProforma: "Salva come pro forma",
   emetti: "Emetti",
