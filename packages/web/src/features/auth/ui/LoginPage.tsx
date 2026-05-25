@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { Button, GoogleIcon, LoadingHint } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
@@ -8,22 +8,30 @@ import {
   classifyAuthError,
   type ClassifiedAuthError,
 } from "../lib/authErrors";
-import { AuthLayout } from "./AuthLayout";
+import { CenteredAuthLayout } from "./CenteredAuthLayout";
 import { EmailLinkForm, type EmailFormValues } from "./EmailLinkForm";
 import { EmailLinkSent } from "./EmailLinkSent";
+import { AccessRequestForm, type AccessRequestFormValues } from "./AccessRequestForm";
+import { AccessRequestSent } from "./AccessRequestSent";
 
-type View = "choice" | "email" | "sent";
+type View = "signIn" | "linkSent" | "requestAccess" | "requestSent";
 
 const TITLES: Record<View, string> = {
-  choice: "Entra nel tuo account",
-  email: "Entra con email",
-  sent: "Controlla la posta",
+  signIn: "Entra nel tuo account",
+  linkSent: "Controlla la posta",
+  requestAccess: "Richiedi accesso",
+  requestSent: "Richiesta ricevuta",
+};
+
+const SUBTITLES: Partial<Record<View, string>> = {
+  requestAccess:
+    "Compila il modulo. L'amministratore approva l'account a mano.",
 };
 
 export function LoginPage() {
   const { auth } = useRepositories();
   const { loading, user } = useAuthState();
-  const [view, setView] = useState<View>("choice");
+  const [view, setView] = useState<View>("signIn");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<ClassifiedAuthError | null>(null);
   const [busy, setBusy] = useState(false);
@@ -42,13 +50,13 @@ export function LoginPage() {
     }
   }
 
-  async function handleEmailSubmit(values: EmailFormValues) {
+  async function sendLink(target: string, nextView: "linkSent" | "requestSent") {
     setError(null);
     setBusy(true);
     try {
-      await auth.sendEmailSignInLink(values.email);
-      setEmail(values.email);
-      setView("sent");
+      await auth.sendEmailSignInLink(target);
+      setEmail(target);
+      setView(nextView);
     } catch (err) {
       console.error("send email link failed", err);
       setError(classifyAuthError(err));
@@ -57,14 +65,16 @@ export function LoginPage() {
     }
   }
 
-  function goToEmail() {
-    setError(null);
-    setView("email");
+  function handleEmailSubmit(values: EmailFormValues) {
+    return sendLink(values.email, "linkSent");
   }
 
-  function goToChoice() {
-    setError(null);
-    setView("choice");
+  function handleResend() {
+    return sendLink(email, "linkSent");
+  }
+
+  function handleAccessRequestSubmit(values: AccessRequestFormValues) {
+    return sendLink(values.email, "requestSent");
   }
 
   if (loading) {
@@ -80,62 +90,132 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout
-      eyebrow="Accesso"
+    <CenteredAuthLayout
       title={TITLES[view]}
+      subtitle={SUBTITLES[view]}
       footer={
-        <p>
-          L&apos;ingresso è riservato alle persone nell&apos;elenco abilitato dallo studio.
-        </p>
+        <span>
+          Ingresso riservato all&apos;elenco abilitato dallo studio.
+        </span>
       }
     >
-      {error ? <AuthErrorBanner error={error} busy={busy} onRetryGoogle={() => googleSignIn(true)} /> : null}
-
-      {view === "choice" ? (
-        <div className="space-y-3">
-          <Button
-            type="button"
-            variant="primary"
-            size="lg"
-            fullWidth
-            disabled={busy}
-            onClick={() => googleSignIn(false)}
-            leadingIcon={
-              busy ? (
-                <Loader2 size={20} strokeWidth={2} className="animate-spin" aria-hidden="true" />
-              ) : (
-                <GoogleIcon />
-              )
-            }
-          >
-            {busy ? "Accesso in corso…" : "Entra con Google"}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            fullWidth
-            disabled={busy}
-            onClick={goToEmail}
-            leadingIcon={<Mail size={18} strokeWidth={2} aria-hidden="true" />}
-          >
-            Entra con email
-          </Button>
-        </div>
-      ) : null}
-
-      {view === "email" ? (
-        <EmailLinkForm
-          defaultEmail={email}
+      {error ? (
+        <AuthErrorBanner
+          error={error}
           busy={busy}
-          onSubmit={handleEmailSubmit}
-          onBack={goToChoice}
-          onEmailChange={setEmail}
+          onRetryGoogle={() => googleSignIn(true)}
         />
       ) : null}
 
-      {view === "sent" ? <EmailLinkSent email={email} /> : null}
-    </AuthLayout>
+      {view === "signIn" ? (
+        <SignInView
+          email={email}
+          busy={busy}
+          onEmailChange={setEmail}
+          onEmailSubmit={handleEmailSubmit}
+          onGoogle={() => googleSignIn(false)}
+          onRequestAccess={() => {
+            setError(null);
+            setView("requestAccess");
+          }}
+        />
+      ) : null}
+
+      {view === "linkSent" ? (
+        <EmailLinkSent
+          email={email}
+          busy={busy}
+          onResend={handleResend}
+        />
+      ) : null}
+
+      {view === "requestAccess" ? (
+        <AccessRequestForm
+          busy={busy}
+          onSubmit={handleAccessRequestSubmit}
+          onBack={() => {
+            setError(null);
+            setView("signIn");
+          }}
+        />
+      ) : null}
+
+      {view === "requestSent" ? <AccessRequestSent email={email} /> : null}
+    </CenteredAuthLayout>
+  );
+}
+
+interface SignInViewProps {
+  email: string;
+  busy: boolean;
+  onEmailChange: (next: string) => void;
+  onEmailSubmit: (values: EmailFormValues) => Promise<void>;
+  onGoogle: () => void;
+  onRequestAccess: () => void;
+}
+
+function SignInView({
+  email,
+  busy,
+  onEmailChange,
+  onEmailSubmit,
+  onGoogle,
+  onRequestAccess,
+}: SignInViewProps) {
+  return (
+    <div className="space-y-6">
+      <EmailLinkForm
+        defaultEmail={email}
+        busy={busy}
+        onSubmit={onEmailSubmit}
+        onEmailChange={onEmailChange}
+      />
+
+      <div className="relative">
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 top-1/2 h-px bg-(--color-border)"
+        />
+        <span className="relative mx-auto block w-fit bg-(--color-background) px-3 text-[11px] uppercase tracking-[0.18em] text-(--color-text-subtle)">
+          oppure
+        </span>
+      </div>
+
+      <Button
+        type="button"
+        variant="secondary"
+        size="lg"
+        fullWidth
+        disabled={busy}
+        onClick={onGoogle}
+        leadingIcon={
+          busy ? (
+            <Loader2
+              size={18}
+              strokeWidth={2}
+              className="animate-spin"
+              aria-hidden="true"
+            />
+          ) : (
+            <GoogleIcon />
+          )
+        }
+      >
+        Entra con Google
+      </Button>
+
+      <p className="text-center text-sm text-(--color-text-muted)">
+        Non hai un account?{" "}
+        <button
+          type="button"
+          onClick={onRequestAccess}
+          disabled={busy}
+          className="text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline disabled:opacity-50"
+        >
+          Richiedi accesso
+        </button>
+      </p>
+    </div>
   );
 }
 

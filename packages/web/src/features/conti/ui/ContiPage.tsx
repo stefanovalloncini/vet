@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { Azienda } from "@vet/shared";
 import {
   AppShell,
+  Badge,
   Card,
   EmptyState,
   InlineError,
@@ -38,6 +39,11 @@ export function ContiPage() {
     [conti]
   );
 
+  const counters = useMemo(
+    () => computeCounters(aziende ?? [], grouped),
+    [aziende, grouped]
+  );
+
   const rows = useMemo(
     () => buildRows(aziende ?? [], grouped, onlyUnsaldati),
     [aziende, grouped, onlyUnsaldati]
@@ -50,15 +56,19 @@ export function ContiPage() {
   return (
     <AppShell>
       <PageHeader title={t.title} subtitle={t.subtitle} />
-      <label className="flex items-center gap-2 text-sm text-(--color-text-muted) mb-4 cursor-pointer">
-        <input
-          type="checkbox"
+
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Toggle
           checked={onlyUnsaldati}
-          onChange={(e) => setOnlyUnsaldati(e.target.checked)}
-          className="w-4 h-4 accent-(--color-accent)"
+          onChange={setOnlyUnsaldati}
+          label={t.mostraSoloNonSaldati}
         />
-        {t.mostraSoloNonSaldati}
-      </label>
+        {counters.total > 0 ? (
+          <p className="text-xs text-(--color-text-muted) tabular-nums">
+            {t.counterPending(counters.pending, counters.total)}
+          </p>
+        ) : null}
+      </div>
 
       {isPending ? (
         <LoadingHint label="Caricamento…" />
@@ -79,6 +89,72 @@ export function ContiPage() {
       )}
     </AppShell>
   );
+}
+
+interface ToggleProps {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  label: string;
+}
+
+function Toggle({ checked, onChange, label }: ToggleProps) {
+  const id = useId();
+  return (
+    <label
+      htmlFor={id}
+      className="inline-flex items-center gap-3 text-sm text-(--color-text) cursor-pointer select-none"
+    >
+      <span className="relative inline-flex h-6 w-10 items-center">
+        <input
+          id={id}
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          aria-label={label}
+          className="peer sr-only"
+        />
+        <span
+          aria-hidden="true"
+          className={[
+            "absolute inset-0 rounded-full transition-colors duration-(--motion-fast) ease-(--ease-out-quart)",
+            "bg-(--color-surface-muted) border border-(--color-border)",
+            "peer-checked:bg-(--color-accent) peer-checked:border-(--color-accent)",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-(--color-accent) peer-focus-visible:ring-offset-2",
+          ].join(" ")}
+        />
+        <span
+          aria-hidden="true"
+          className={[
+            "relative ml-0.5 h-5 w-5 rounded-full bg-(--color-surface)",
+            "shadow-[0_1px_2px_oklch(20%_0.012_240/0.18)]",
+            "transition-transform duration-(--motion-fast) ease-(--ease-out-quart)",
+            checked ? "translate-x-4" : "translate-x-0",
+          ].join(" ")}
+        />
+      </span>
+      <span>{label}</span>
+    </label>
+  );
+}
+
+interface Counters {
+  pending: number;
+  total: number;
+}
+
+function computeCounters(
+  aziende: ReadonlyArray<Azienda>,
+  grouped: ContiByAziendaMap
+): Counters {
+  let pending = 0;
+  let total = 0;
+  for (const azienda of aziende) {
+    const bucket = grouped.get(azienda.id);
+    if (!bucket) continue;
+    total += 1;
+    if (bucket.hasUnsaldati) pending += 1;
+  }
+  return { pending, total };
 }
 
 interface Row {
@@ -109,61 +185,58 @@ interface AziendaRowProps {
 }
 
 function AziendaRow({ azienda, bucket }: AziendaRowProps) {
+  const dotLabel = bucket.hasUnsaldati
+    ? "Ci sono conti non saldati"
+    : "Tutti i conti saldati";
   return (
-    <Link to={`/aziende/${azienda.id}`} className="block">
-      <Card className="hover:bg-(--color-surface-muted) transition-colors">
-        <div className="flex items-start justify-between gap-4">
+    <Link to={`/aziende/${azienda.id}`} className="block group">
+      <Card className="transition-colors duration-(--motion-fast) ease-(--ease-out-quart) group-hover:border-(--color-border-strong)">
+        <div className="flex items-center gap-4">
+          <span
+            title={dotLabel}
+            aria-label={dotLabel}
+            role="img"
+            className="flex-shrink-0"
+          >
+            <Badge tone={bucket.hasUnsaldati ? "danger" : "success"} dot />
+          </span>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                title={
-                  bucket.hasUnsaldati
-                    ? "Ci sono conti non saldati"
-                    : "Tutti i conti saldati"
-                }
-                className={[
-                  "w-2 h-2 rounded-full flex-shrink-0",
-                  bucket.hasUnsaldati
-                    ? "bg-(--color-danger)"
-                    : "bg-(--color-success)",
-                ].join(" ")}
-              />
-              <h2 className="text-base font-medium text-(--color-text) truncate">
-                {azienda.nome}
-              </h2>
-            </div>
-            <p className="text-xs text-(--color-text-subtle) mt-1">
+            <h2 className="text-base font-medium text-(--color-text) truncate">
+              {azienda.nome}
+            </h2>
+            <p className="text-xs text-(--color-text-subtle) mt-0.5">
               {t.ultimoConto}: {formatDate(bucket.lastEmittedAt)}
             </p>
           </div>
-          <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            <StatusPill bucket={bucket} />
-            <ChevronRight
-              size={16}
-              strokeWidth={1.75}
-              className="text-(--color-text-subtle)"
-              aria-hidden="true"
-            />
-          </div>
+          <RowAmount bucket={bucket} />
+          <ChevronRight
+            size={16}
+            strokeWidth={1.75}
+            className="text-(--color-text-subtle) flex-shrink-0"
+            aria-hidden="true"
+          />
         </div>
       </Card>
     </Link>
   );
 }
 
-function StatusPill({ bucket }: { bucket: ContiByAzienda }) {
+function RowAmount({ bucket }: { bucket: ContiByAzienda }) {
   if (!bucket.hasUnsaldati) {
     return (
-      <span className="px-2 py-0.5 rounded-md text-xs bg-(--color-accent-soft) text-(--color-text)">
+      <Badge tone="success" size="sm">
         {t.tuttiSaldati}
-      </span>
+      </Badge>
     );
   }
-  const label = `${bucket.unsaldatiCount} ${t.contiNonSaldatiSuffix} · ${formatEuro(bucket.totaleUnsaldati)}`;
   return (
-    <span className="px-2 py-0.5 rounded-md text-xs bg-(--color-danger)/10 text-(--color-danger) tabular-nums">
-      {label}
-    </span>
+    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+      <span className="font-mono text-base font-medium text-(--color-danger) tabular-nums">
+        {formatEuro(bucket.totaleUnsaldati)}
+      </span>
+      <span className="text-[11px] text-(--color-text-muted) tabular-nums">
+        {bucket.unsaldatiCount} {t.contiNonSaldatiSuffix}
+      </span>
+    </div>
   );
 }

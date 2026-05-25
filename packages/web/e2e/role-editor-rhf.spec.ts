@@ -26,7 +26,7 @@ test.describe("role editor (rhf)", () => {
   }) => {
     const suffix = Date.now().toString().slice(-6);
     const roleId = `rhf-role-${suffix}`;
-    const roleName = `RHF Role ${suffix}`;
+    const roleName = `rhf-role-${suffix}`;
 
     await signedInAdmin.goto("/admin/ruoli/nuovo");
     await expect(
@@ -56,7 +56,7 @@ test.describe("role editor (rhf)", () => {
     signedInAdmin,
   }) => {
     const suffix = Date.now().toString().slice(-6);
-    const renamed = `Veterinario ${suffix}`;
+    const descrizione = `Modificato e2e ${suffix}`;
 
     await signedInAdmin.goto("/admin/ruoli/vet");
     await expect(
@@ -67,14 +67,16 @@ test.describe("role editor (rhf)", () => {
       { timeout: 10_000 }
     );
 
-    await signedInAdmin.getByLabel(/Nome visibile/i).fill(renamed);
+    await signedInAdmin.getByLabel(/Descrizione/i).fill(descrizione);
     await signedInAdmin.getByRole("button", { name: /Salva/i }).click();
 
     await expect(signedInAdmin).toHaveURL(/\/admin\/ruoli$/, {
       timeout: 15_000,
     });
-    await expect(
-      signedInAdmin.getByRole("heading", { level: 2, name: new RegExp(renamed) })
-    ).toBeVisible({ timeout: 10_000 });
+    await signedInAdmin.goto("/admin/ruoli/vet");
+    await expect(signedInAdmin.getByLabel(/Descrizione/i)).toHaveValue(
+      descrizione,
+      { timeout: 10_000 }
+    );
   });
 });

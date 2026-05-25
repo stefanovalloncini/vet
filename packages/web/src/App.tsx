@@ -15,6 +15,18 @@ const SicurezzaPage = lazy(() =>
   import("./features/diagnostics").then((m) => ({ default: m.SicurezzaPage }))
 );
 
+const DevPrimitivesPage = import.meta.env.DEV
+  ? lazy(() =>
+      import("./features/dev-primitives").then((m) => ({ default: m.DevPrimitivesPage }))
+    )
+  : null;
+
+const AdminPreviewPage = import.meta.env.DEV
+  ? lazy(() =>
+      import("./features/dev-primitives").then((m) => ({ default: m.AdminPreviewPage }))
+    )
+  : null;
+
 export function App() {
   return (
     <BrowserRouter
@@ -54,6 +66,26 @@ function AppRoutes() {
             </RouteShell>
           }
         />
+        {DevPrimitivesPage ? (
+          <Route
+            path="/dev/primitives"
+            element={
+              <RouteShell pathname={pathname}>
+                <DevPrimitivesPage />
+              </RouteShell>
+            }
+          />
+        ) : null}
+        {AdminPreviewPage ? (
+          <Route
+            path="/dev/admin"
+            element={
+              <RouteShell pathname={pathname}>
+                <AdminPreviewPage />
+              </RouteShell>
+            }
+          />
+        ) : null}
         {PROTECTED_ROUTES.map(({ path, Component }) => (
           <Route
             key={path}

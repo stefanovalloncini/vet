@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("quick entry dialog (react hook form)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("vet saves a new attivita via the FAB and form clears on close", async ({
     signedInVet,
   }) => {
@@ -11,21 +15,15 @@ test.describe("quick entry dialog (react hook form)", () => {
     });
 
     await signedInVet.getByRole("button", { name: /Voce rapida/i }).click();
-    await expect(
-      signedInVet.getByRole("heading", { name: /Voce rapida/i })
-    ).toBeVisible({ timeout: 10_000 });
+    const dialog = signedInVet.getByRole("dialog", { name: /Voce rapida/i });
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
 
-    await signedInVet.getByLabel(/Data/i).fill("2026-05-29");
-    await signedInVet
-      .getByLabel(/Azienda/i, { exact: false })
-      .selectOption(FIXTURE.azienda.id);
-    await signedInVet
-      .getByLabel(/Tipo/i, { exact: false })
-      .first()
-      .selectOption(FIXTURE.tipo.id);
-    await signedInVet.getByLabel(/Tariffa/i).fill("90");
+    await dialog.getByLabel(/Data/i).fill("2026-05-29");
+    await dialog.getByLabel("Azienda", { exact: true }).selectOption(FIXTURE.azienda.id);
+    await dialog.getByLabel("Tipo", { exact: true }).selectOption(FIXTURE.tipo.id);
+    await dialog.getByRole("spinbutton", { name: /Tariffa/i }).fill("90");
 
-    await signedInVet.getByRole("button", { name: /^Salva$/i }).click();
+    await dialog.getByRole("button", { name: /^Salva$/i }).click();
 
     await expect(
       signedInVet.getByText(/Attività salvata/i)
@@ -39,11 +37,10 @@ test.describe("quick entry dialog (react hook form)", () => {
     });
 
     await signedInVet.getByRole("button", { name: /Voce rapida/i }).click();
-    await expect(
-      signedInVet.getByRole("heading", { name: /Voce rapida/i })
-    ).toBeVisible({ timeout: 10_000 });
+    const dialog = signedInVet.getByRole("dialog", { name: /Voce rapida/i });
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
 
-    await signedInVet.getByRole("button", { name: /^Salva$/i }).click();
+    await dialog.getByRole("button", { name: /^Salva$/i }).click();
 
     await expect(
       signedInVet.getByText(/Scegli un'azienda/i)

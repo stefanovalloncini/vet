@@ -7,20 +7,23 @@ interface RHFTextFieldProps<TFieldValues extends FieldValues>
   name: Path<TFieldValues>;
   label: string;
   hint?: string;
+  idPrefix?: string;
 }
 
 export function RHFTextField<TFieldValues extends FieldValues>({
   name,
   label,
   hint,
+  idPrefix,
   ...rest
 }: RHFTextFieldProps<TFieldValues>) {
   const { control } = useFormContext<TFieldValues>();
   const { field, fieldState } = useController({ name, control });
+  const id = idPrefix ? `${idPrefix}-${name}` : name;
   return (
     <TextField
       {...rest}
-      id={name}
+      id={id}
       label={label}
       hint={hint}
       name={field.name}

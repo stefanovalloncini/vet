@@ -1,6 +1,12 @@
 import { useState } from "react";
 import type { Conto } from "@vet/shared";
-import { Card, EmptyState, LoadingHint } from "../../../shared/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  LoadingHint,
+} from "../../../shared/ui";
 import { formatDate, formatEuro } from "../../../shared/lib/format";
 import { useContiForAzienda, useSaldaConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
@@ -14,8 +20,7 @@ export function ContiPerAziendaTab({ aziendaId }: ContiPerAziendaTabProps) {
   const query = useContiForAzienda(aziendaId);
   const conti = query.data ?? [];
   if (query.isPending) return <LoadingHint label="Caricamento…" />;
-  if (conti.length === 0)
-    return <EmptyState title={t.emptyAll} />;
+  if (conti.length === 0) return <EmptyState title={t.emptyAll} />;
   return (
     <ul className="space-y-2">
       {conti.map((c) => (
@@ -27,6 +32,20 @@ export function ContiPerAziendaTab({ aziendaId }: ContiPerAziendaTabProps) {
   );
 }
 
+interface StatusMeta {
+  tone: "success" | "danger" | "warning";
+  label: string;
+}
+
+function statusFor(conto: Conto): StatusMeta {
+  if (conto.modalita !== "emesso") {
+    return { tone: "warning", label: t.proforma };
+  }
+  return conto.saldato
+    ? { tone: "success", label: t.saldato }
+    : { tone: "danger", label: t.nonSaldato };
+}
+
 function ContoSummaryRow({ conto }: { conto: Conto }) {
   const { user } = useAuthState();
   const saldo = useSaldaConto();
@@ -34,11 +53,8 @@ function ContoSummaryRow({ conto }: { conto: Conto }) {
   const canSaldare = user?.caps.has("conti.saldo") ?? false;
   const isEmesso = conto.modalita === "emesso";
   const period = `${formatDate(conto.periodoFrom)} – ${formatDate(conto.periodoTo)}`;
-  const statusLabel = !isEmesso
-    ? t.proforma
-    : conto.saldato
-      ? t.saldato
-      : t.nonSaldato;
+  const status = statusFor(conto);
+  const showSaldoAction = isEmesso && !conto.saldato && canSaldare;
 
   async function quickSaldo(): Promise<void> {
     if (!user) return;
@@ -55,34 +71,35 @@ function ContoSummaryRow({ conto }: { conto: Conto }) {
 
   return (
     <Card>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs text-(--color-text-muted) uppercase tracking-wider">
-            {statusLabel}
-          </p>
-          <p className="text-base text-(--color-text) mt-1">{period}</p>
-          <p className="text-[11px] text-(--color-text-subtle) mt-1">
-            {t.emessoIl} {formatDate(conto.emittedAt)} ·{" "}
-            {t.attivita}: {conto.attivitaIds.length}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <Badge tone={status.tone} dot />
+            <Badge tone={status.tone}>{status.label}</Badge>
+          </div>
+          <p className="mt-2 text-base text-(--color-text)">{period}</p>
+          <p className="mt-1 text-xs text-(--color-text-subtle)">
+            {t.emessoIl} {formatDate(conto.emittedAt)} · {t.attivita}:{" "}
+            {conto.attivitaIds.length}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <span className="text-base font-medium text-(--color-text) tabular-nums">
+        <div className="flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-end">
+          <span className="font-mono text-lg font-medium text-(--color-text) tabular-nums">
             {formatEuro(conto.totaleConto)}
           </span>
-          {isEmesso && !conto.saldato && canSaldare ? (
-            <button
+          {showSaldoAction ? (
+            <Button
               type="button"
+              variant="primary"
+              size="sm"
               disabled={busy || saldo.isPending}
               onClick={() => void quickSaldo()}
-              className="text-xs text-(--color-accent) hover:underline disabled:opacity-50"
             >
               {t.segnaSaldato}
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
     </Card>
   );
 }
-

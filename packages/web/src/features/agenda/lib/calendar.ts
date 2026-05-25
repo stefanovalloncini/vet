@@ -1,25 +1,25 @@
-export interface MonthDay {
+export interface WeekDay {
   date: Date;
-  inMonth: boolean;
   isToday: boolean;
 }
 
-export function buildMonthGrid(viewDate: Date, today: Date = new Date()): MonthDay[] {
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
-  const firstOfMonth = new Date(year, month, 1);
-  const dayOfWeek = (firstOfMonth.getDay() + 6) % 7; // Mon=0..Sun=6
-  const start = new Date(year, month, 1 - dayOfWeek);
-  const days: MonthDay[] = [];
-  for (let i = 0; i < 42; i++) {
+export function buildWeekStrip(anchor: Date, today: Date = new Date()): WeekDay[] {
+  const start = startOfWeek(anchor);
+  const out: WeekDay[] = [];
+  for (let i = 0; i < 7; i++) {
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-    days.push({
-      date: d,
-      inMonth: d.getMonth() === month,
-      isToday: sameDay(d, today),
-    });
+    out.push({ date: d, isToday: sameDay(d, today) });
   }
-  return days;
+  return out;
+}
+
+export function startOfWeek(d: Date): Date {
+  const dayOfWeek = (d.getDay() + 6) % 7;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - dayOfWeek, 0, 0, 0, 0);
+}
+
+export function addDays(d: Date, n: number): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, 0, 0, 0, 0);
 }
 
 export function sameDay(a: Date, b: Date): boolean {
@@ -36,8 +36,4 @@ export function startOfMonth(d: Date): Date {
 
 export function endOfMonth(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
-}
-
-export function addMonths(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth() + n, 1);
 }

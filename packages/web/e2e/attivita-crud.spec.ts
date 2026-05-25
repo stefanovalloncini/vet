@@ -1,17 +1,20 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("attivita CRUD", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("vet sees seeded attivita in list", async ({ signedInVet }) => {
     await signedInVet.goto("/attivita");
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({
       timeout: 15_000,
     });
     await expect(
-      signedInVet.getByRole("heading", {
-        level: 2,
-        name: new RegExp(FIXTURE.azienda.nome),
-      })
+      signedInVet
+        .getByRole("link", { name: new RegExp(FIXTURE.azienda.nome) })
+        .first()
     ).toBeVisible({ timeout: 10_000 });
   });
 

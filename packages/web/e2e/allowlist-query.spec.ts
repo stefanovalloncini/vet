@@ -1,6 +1,11 @@
 import { expect, test } from "./setup/auth";
+import { restoreSeededFixture } from "./setup/seed";
 
 test.describe("admin allowlist (tanstack-query)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("admin sees the seeded entries on the allowlist tab", async ({
     signedInAdmin,
   }) => {
@@ -8,11 +13,12 @@ test.describe("admin allowlist (tanstack-query)", () => {
     await expect(signedInAdmin.getByRole("heading", { level: 1 })).toBeVisible({
       timeout: 15_000,
     });
+    const main = signedInAdmin.locator("main");
     await expect(
-      signedInAdmin.getByText(/admin\.e2e@example\.com/)
+      main.getByText(/admin\.e2e@example\.com/)
     ).toBeVisible({ timeout: 10_000 });
     await expect(
-      signedInAdmin.getByText(/vet\.e2e@example\.com/)
+      main.getByText(/vet\.e2e@example\.com/)
     ).toBeVisible();
   });
 
@@ -29,13 +35,14 @@ test.describe("admin allowlist (tanstack-query)", () => {
       .getByRole("button", { name: /Aggiungi/i })
       .first()
       .click();
-    await signedInAdmin.getByLabel(/Email/i).first().fill(unique);
+    const emailField = signedInAdmin.getByLabel(/Email/i).first();
+    await emailField.fill(unique);
     await signedInAdmin
       .getByRole("button", { name: /Aggiungi email/i })
       .click();
 
-    await expect(signedInAdmin.getByText(unique)).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(
+      signedInAdmin.locator("main").getByText(unique)
+    ).toBeVisible({ timeout: 15_000 });
   });
 });

@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("aziende form (react-hook-form)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("validates required nome via the schema before hitting the network", async ({
     signedInVet,
   }) => {
@@ -36,9 +40,9 @@ test.describe("aziende form (react-hook-form)", () => {
       .fill("Via dei Campi 12, 26100 Cremona");
     await signedInVet.getByLabel(/Telefono/i).fill("0372123456");
     await signedInVet.getByRole("button", { name: /Salva/i }).click();
-    await expect(signedInVet).toHaveURL(/\/aziende(\/|$)/, { timeout: 15_000 });
+    await expect(signedInVet).toHaveURL(/\/aziende\/?$/, { timeout: 15_000 });
     await expect(
-      signedInVet.getByRole("link", { name: new RegExp(unique) })
+      signedInVet.getByRole("link").filter({ hasText: unique }).first()
     ).toBeVisible({ timeout: 10_000 });
   });
 
@@ -48,12 +52,13 @@ test.describe("aziende form (react-hook-form)", () => {
     await signedInVet.goto(`/aziende/${FIXTURE.azienda.id}/modifica`);
     const nomeField = signedInVet.getByLabel(/Nome/i, { exact: false }).first();
     await expect(nomeField).toHaveValue(FIXTURE.azienda.nome, { timeout: 10_000 });
-    const updated = `${FIXTURE.azienda.nome} (rhf)`;
+    const marker = `rhf${Date.now().toString().slice(-6)}`;
+    const updated = `${FIXTURE.azienda.nome} ${marker}`;
     await nomeField.fill(updated);
     await signedInVet.getByRole("button", { name: /Salva/i }).click();
-    await expect(signedInVet).toHaveURL(/\/aziende(\/|$)/, { timeout: 15_000 });
+    await expect(signedInVet).toHaveURL(/\/aziende\/?$/, { timeout: 15_000 });
     await expect(
-      signedInVet.getByRole("link", { name: new RegExp(updated) })
+      signedInVet.getByRole("link").filter({ hasText: marker }).first()
     ).toBeVisible({ timeout: 10_000 });
   });
 });

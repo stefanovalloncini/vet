@@ -19,11 +19,18 @@
   --color-accent: oklch(50% 0.10 195);
   --color-accent-hover: oklch(42% 0.11 195);
   --color-accent-soft: oklch(95% 0.022 195);
+  --color-accent-soft-hover: oklch(92% 0.030 195);
 
   --color-danger: oklch(50% 0.18 25);
   --color-success: oklch(50% 0.12 150);
+  --color-warning: oklch(72% 0.16 75);
 
   --color-overlay: oklch(20% 0.012 240 / 0.45);
+
+  --shadow-soft: 0 1px 2px oklch(20% 0.012 240 / 0.06), 0 4px 12px oklch(20% 0.012 240 / 0.04);
+  --shadow-popover: 0 4px 6px oklch(20% 0.012 240 / 0.05), 0 12px 24px oklch(20% 0.012 240 / 0.10);
+
+  --focus-ring: 0 0 0 2px var(--color-accent);
 
   --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -63,11 +70,16 @@ html[data-theme="dark"] {
   --color-accent: oklch(72% 0.10 195);
   --color-accent-hover: oklch(80% 0.10 195);
   --color-accent-soft: oklch(28% 0.05 195);
+  --color-accent-soft-hover: oklch(34% 0.06 195);
 
   --color-danger: oklch(70% 0.18 25);
   --color-success: oklch(70% 0.12 150);
+  --color-warning: oklch(80% 0.16 75);
 
   --color-overlay: oklch(8% 0.005 240 / 0.7);
+
+  --shadow-soft: 0 1px 2px oklch(0% 0 0 / 0.30), 0 4px 12px oklch(0% 0 0 / 0.25);
+  --shadow-popover: 0 4px 6px oklch(0% 0 0 / 0.30), 0 12px 24px oklch(0% 0 0 / 0.40);
 }
 
 html,
@@ -120,6 +132,17 @@ input[type="datetime-local"]::-webkit-date-and-time-value,
 input[type="time"]::-webkit-date-and-time-value {
   text-align: left;
   min-height: 1.25rem;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
 }
 
 .tabular-nums,
@@ -180,10 +203,10 @@ input[type="time"]::-webkit-date-and-time-value {
 @media print {
   body {
     background: white;
+    color: black;
   }
-  header,
   nav,
-  button[aria-label],
+  aside[role="navigation"],
   .print\:hidden {
     display: none !important;
   }
@@ -191,6 +214,7 @@ input[type="time"]::-webkit-date-and-time-value {
     color-adjust: exact;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    font-family: var(--font-sans);
   }
   .riepilogo-doc thead {
     display: table-header-group;

@@ -1,14 +1,14 @@
 import { useMemo } from "react";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
 import { useAziende } from "../../aziende/hooks/useAziende";
+import { useAuthState } from "../../auth";
 import {
   endOfMonthLocal,
-  percentDiff,
   startOfMonthLocal,
   statsForRange,
   trailingMonths,
 } from "../lib/stats";
-import type { Attivita, Azienda } from "@vet/shared";
+import type { Attivita, Azienda, AttivitaFilters } from "@vet/shared";
 
 interface MonthStats {
   total: number;
@@ -23,7 +23,6 @@ export interface DashboardStats {
   items: Attivita[];
   aziende: Azienda[];
   thisMonth: MonthStats;
-  countDiff: number | null;
   aziendeAttiveCount: number;
   trailing: { totals: number[]; counts: number[]; labels: string[] };
 }
@@ -32,23 +31,20 @@ const TRAILING_MONTHS = 12;
 const EMPTY_AZIENDE: Azienda[] = [];
 
 export function useDashboardStats(now: Date): DashboardStats {
+  const { user } = useAuthState();
+  const ownerUid = user?.uid ?? null;
   const monthStart = useMemo(() => startOfMonthLocal(now), [now]);
   const monthEnd = useMemo(() => endOfMonthLocal(now), [now]);
-  const lastMonthStart = useMemo(
-    () => new Date(now.getFullYear(), now.getMonth() - 1, 1),
-    [now]
-  );
-  const lastMonthEnd = useMemo(
-    () => new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999),
-    [now]
-  );
   const trailingStart = useMemo(
     () => new Date(now.getFullYear() - 1, now.getMonth() + 1, 1),
     [now]
   );
-  const allRangeFilters = useMemo(
-    () => ({ from: trailingStart, to: monthEnd }),
-    [trailingStart, monthEnd]
+  const allRangeFilters = useMemo<AttivitaFilters>(
+    () =>
+      ownerUid
+        ? { from: trailingStart, to: monthEnd, ownerUid }
+        : { from: trailingStart, to: monthEnd },
+    [trailingStart, monthEnd, ownerUid]
   );
 
   const attivitaResult = useAttivita(allRangeFilters);
@@ -62,10 +58,6 @@ export function useDashboardStats(now: Date): DashboardStats {
     () => statsForRange(items, monthStart, monthEnd),
     [items, monthStart, monthEnd]
   );
-  const lastMonth = useMemo(
-    () => statsForRange(items, lastMonthStart, lastMonthEnd),
-    [items, lastMonthStart, lastMonthEnd]
-  );
 
   const trailing = useMemo(
     () => trailingMonths(items, now, TRAILING_MONTHS),
@@ -78,7 +70,6 @@ export function useDashboardStats(now: Date): DashboardStats {
     items,
     aziende,
     thisMonth,
-    countDiff: percentDiff(thisMonth.count, lastMonth.count),
     aziendeAttiveCount: thisMonth.byAzienda.size,
     trailing,
   };

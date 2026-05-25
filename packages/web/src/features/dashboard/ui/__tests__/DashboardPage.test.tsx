@@ -18,6 +18,10 @@ vi.mock("../../../onboarding/OnboardingBanner", () => ({
   OnboardingBanner: () => null,
 }));
 
+vi.mock("../../../onboarding", () => ({
+  Onboarding: () => null,
+}));
+
 vi.mock("../../../auth", async () => {
   const actual = await vi.importActual<typeof import("../../../auth")>("../../../auth");
   return {
@@ -75,7 +79,6 @@ function baseStats(overrides: Partial<DashboardStats> = {}): DashboardStats {
       byAzienda: new Map(),
       byTipo: new Map(),
     },
-    countDiff: 40,
     aziendeAttiveCount: 3,
     trailing: {
       totals: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100],
@@ -87,23 +90,24 @@ function baseStats(overrides: Partial<DashboardStats> = {}): DashboardStats {
 }
 
 describe("DashboardPage", () => {
-  it("shows the 2 KPI cards (attività mese + aziende attive)", () => {
+  it("shows the 3 KPI cards (attività + aziende + incassi)", () => {
     useDashboardStatsMock.mockReturnValue(
       baseStats({ items: [{ id: "a1" } as Attivita] })
     );
     renderDashboard();
-    expect(screen.getByText("Attività mese")).toBeInTheDocument();
+    expect(screen.getByText("Attività del mese")).toBeInTheDocument();
     expect(screen.getByText("7")).toBeInTheDocument();
     expect(screen.getByText("Aziende attive")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("Totale incassi mese")).toBeInTheDocument();
+    expect(screen.getByText(/1\.?000,00/)).toBeInTheDocument();
   });
 
-  it("does not render Incassi mese, Da incassare, Cliente top, or Tipo top KPIs", () => {
+  it("does not render legacy Da incassare, Cliente top, or Tipo top KPIs", () => {
     useDashboardStatsMock.mockReturnValue(
       baseStats({ items: [{ id: "a1" } as Attivita] })
     );
     renderDashboard();
-    expect(screen.queryByText("Incassi mese")).not.toBeInTheDocument();
     expect(screen.queryByText("Da incassare")).not.toBeInTheDocument();
     expect(screen.queryByText("Cliente top del mese")).not.toBeInTheDocument();
     expect(screen.queryByText("Tipo più frequente")).not.toBeInTheDocument();
@@ -134,6 +138,11 @@ describe("DashboardPage", () => {
     renderDashboard();
     expect(
       screen.getByText("Ancora nessuna attività registrata.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Usa il pulsante in basso a destra per registrare la prima."
+      )
     ).toBeInTheDocument();
   });
 

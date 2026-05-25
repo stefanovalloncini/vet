@@ -12,9 +12,8 @@ test("login page exposes Google and email-link affordances", async ({ page }) =>
   await expect(
     page.getByRole("button", { name: /Entra con Google/i })
   ).toBeVisible();
-  await page.getByRole("button", { name: /Entra con email/i }).click();
   await expect(page.getByLabel(/Email/i)).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /Inviami il link/i })
+    page.getByRole("button", { name: /Invia magic link/i })
   ).toBeVisible();
 });

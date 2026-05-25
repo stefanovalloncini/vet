@@ -34,15 +34,61 @@ export function authedAs(
     .firestore();
 }
 
+export const VETERINARIO_SEMPLICE_CAPS: ReadonlyArray<Capability> = [
+  "activities.read.all",
+  "activities.create",
+  "activities.update.own",
+  "activities.delete.own",
+  "activities.export",
+  "aziende.read",
+  "aziende.create",
+  "aziende.update",
+  "activity_types.read",
+  "trash.read.own",
+  "trash.restore.own",
+  "conti.proforma",
+  "reminders.read",
+  "reminders.create",
+  "reminders.update.own",
+  "reminders.delete.own",
+];
+
+export const VETERINARIO_CAPO_CAPS: ReadonlyArray<Capability> = [
+  ...VETERINARIO_SEMPLICE_CAPS,
+  "conti.emit",
+  "conti.saldo",
+];
+
+export const AMMINISTRATORE_CAPS: ReadonlyArray<Capability> = [
+  ...VETERINARIO_CAPO_CAPS,
+  "roles.read",
+  "roles.manage",
+  "roles.assign",
+  "allowlist.read",
+  "allowlist.manage",
+  "users.approve",
+  "users.read.all",
+  "audit.read",
+];
+
+export function asVeterinarioSemplice(env: RulesTestEnvironment, uid: string) {
+  return authedAs(env, uid, [...VETERINARIO_SEMPLICE_CAPS], {
+    roleId: "veterinario_semplice",
+  });
+}
+
+export function asVeterinarioCapo(env: RulesTestEnvironment, uid: string) {
+  return authedAs(env, uid, [...VETERINARIO_CAPO_CAPS], {
+    roleId: "veterinario_capo",
+  });
+}
+
+export function asAmministratore(env: RulesTestEnvironment, uid: string) {
+  return authedAs(env, uid, [...AMMINISTRATORE_CAPS], {
+    roleId: "amministratore",
+  });
+}
+
 export function adminAs(env: RulesTestEnvironment, uid: string) {
-  return authedAs(env, uid, [
-    "users.read.all",
-    "users.approve",
-    "roles.read",
-    "roles.manage",
-    "roles.assign",
-    "allowlist.read",
-    "allowlist.manage",
-    "audit.read",
-  ]);
+  return asAmministratore(env, uid);
 }

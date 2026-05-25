@@ -68,3 +68,6 @@ Thumbs.db
 
 # Ad-hoc screenshots at repo root (Playwright captures, debugging snapshots)
 /*.png
+
+# Override global ignore: .agents/ holds in-repo design context
+!.agents/

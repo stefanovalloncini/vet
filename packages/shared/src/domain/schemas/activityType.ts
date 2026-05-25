@@ -55,5 +55,13 @@ export const ACTIVITY_TYPE_SEEDS: ReadonlyArray<{
   modalitaDefault?: Modalita;
 }> = [
   { id: GINECOLOGIA_TIPO_ID, nome: "Ginecologia", ordine: 1 },
+  { id: "campioni-sangue", nome: "Campioni sangue", ordine: 2, tariffaStandard: 2, modalitaDefault: "adElemento" },
+  { id: "dislocazione-abomasale-dx", nome: "Dislocazione abomasale dx", ordine: 3, tariffaStandard: 200, modalitaDefault: "fissa" },
+  { id: "dislocazione-abomasale-sx", nome: "Dislocazione abomasale sx", ordine: 4, tariffaStandard: 200, modalitaDefault: "fissa" },
+  { id: "ecografie-polmonari", nome: "Ecografie polmonari", ordine: 5, tariffaStandard: 150, modalitaDefault: "oraria" },
+  { id: "eutanasia-vacca", nome: "Eutanasia vacca", ordine: 6, tariffaStandard: 100, modalitaDefault: "fissa" },
+  { id: "eutanasia-vitello", nome: "Eutanasia vitello", ordine: 7, tariffaStandard: 50, modalitaDefault: "fissa" },
+  { id: "flebo", nome: "Flebo", ordine: 8, tariffaStandard: 70, modalitaDefault: "fissa" },
+  { id: "visita-clinica", nome: "Visita clinica", ordine: 9, tariffaStandard: 70, modalitaDefault: "fissa" },
   { id: ALTRO_TIPO_ID, nome: "Altro", ordine: 999 },
 ];

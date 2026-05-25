@@ -1,11 +1,15 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("attivita form (RHF)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("creates a new attivita via the migrated form", async ({
     signedInVet,
   }) => {
-    const tariffaMarker = 2000 + (Date.now() % 7000);
+    const tariffaMarker = 200 + (Date.now() % 700);
     await signedInVet.goto("/attivita/nuova");
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({
       timeout: 15_000,
@@ -25,7 +29,10 @@ test.describe("attivita form (RHF)", () => {
 
     await expect(signedInVet).toHaveURL(/\/attivita(\?|$)/, { timeout: 15_000 });
     await expect(
-      signedInVet.getByText(new RegExp(`${tariffaMarker}[,.]00`))
+      signedInVet
+        .getByText(new RegExp(`${tariffaMarker}[,.]00`))
+        .filter({ visible: true })
+        .first()
     ).toBeVisible({ timeout: 10_000 });
   });
 

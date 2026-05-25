@@ -1,24 +1,27 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("attivita query layer", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("list renders seeded attivita after sign-in", async ({ signedInVet }) => {
     await signedInVet.goto("/attivita");
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({
       timeout: 15_000,
     });
     await expect(
-      signedInVet.getByRole("heading", {
-        level: 2,
-        name: new RegExp(FIXTURE.azienda.nome),
-      })
+      signedInVet
+        .getByRole("link", { name: new RegExp(FIXTURE.azienda.nome) })
+        .first()
     ).toBeVisible({ timeout: 10_000 });
   });
 
   test("create invalidates the list so the new attivita shows without reload", async ({
     signedInVet,
   }) => {
-    const tariffaMarker = 1000 + (Date.now() % 8000);
+    const tariffaMarker = 100 + (Date.now() % 800);
     await signedInVet.goto("/attivita/nuova");
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({
       timeout: 15_000,
@@ -38,7 +41,10 @@ test.describe("attivita query layer", () => {
 
     await expect(signedInVet).toHaveURL(/\/attivita(\?|$)/, { timeout: 15_000 });
     await expect(
-      signedInVet.getByText(new RegExp(`${tariffaMarker}[,.]00`))
+      signedInVet
+        .getByText(new RegExp(`${tariffaMarker}[,.]00`))
+        .filter({ visible: true })
+        .first()
     ).toBeVisible({ timeout: 10_000 });
   });
 });

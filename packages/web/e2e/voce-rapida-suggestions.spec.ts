@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("voce rapida — suggestions panel", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("shows the recent combo and fills the form on tap", async ({
     signedInVet,
   }) => {
@@ -17,15 +21,19 @@ test.describe("voce rapida — suggestions panel", () => {
     const suggestion = dialog.getByRole("button", {
       name: new RegExp(FIXTURE.azienda.nome, "i"),
     });
-    await expect(suggestion).toBeVisible();
+    await expect(suggestion).toBeVisible({ timeout: 10_000 });
     await expect(suggestion).toHaveAttribute("aria-pressed", "false");
 
     await suggestion.click();
 
     await expect(suggestion).toHaveAttribute("aria-pressed", "true");
-    await expect(dialog.getByLabel(/Azienda/i)).toHaveValue(FIXTURE.azienda.id);
-    await expect(dialog.getByLabel(/Tipo/i)).toHaveValue(FIXTURE.tipo.id);
-    await expect(dialog.getByLabel(/Tariffa/i)).toHaveValue("80");
+    await expect(dialog.getByLabel("Azienda", { exact: true })).toHaveValue(
+      FIXTURE.azienda.id
+    );
+    await expect(dialog.getByLabel("Tipo", { exact: true })).toHaveValue(
+      FIXTURE.tipo.id
+    );
+    await expect(dialog.getByRole("spinbutton", { name: /Tariffa/i })).toHaveValue("80");
   });
 
   test("does not show the Frequenti tab with a single combo", async ({
@@ -36,15 +44,14 @@ test.describe("voce rapida — suggestions panel", () => {
       timeout: 15_000,
     });
     await signedInVet.getByRole("button", { name: /Voce rapida/i }).click();
-    await expect(
-      signedInVet.getByRole("heading", { name: /Voce rapida/i })
-    ).toBeVisible({ timeout: 10_000 });
+    const dialog = signedInVet.getByRole("dialog", { name: /Voce rapida/i });
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
 
     await expect(
-      signedInVet.getByRole("tab", { name: /Recenti/i })
-    ).toBeVisible();
+      dialog.getByRole("tab", { name: /Recenti/i })
+    ).toBeVisible({ timeout: 10_000 });
     await expect(
-      signedInVet.getByRole("tab", { name: /Frequenti/i })
+      dialog.getByRole("tab", { name: /Frequenti/i })
     ).toHaveCount(0);
   });
 });

@@ -9,24 +9,31 @@ export interface VetStat {
   readonly email: string;
   readonly total: number;
   readonly count: number;
+  readonly lastActivity: Date | null;
 }
 
 function aggregate(items: ReadonlyArray<Attivita>): VetStat[] {
   const map = new Map<string, VetStat>();
   for (const a of items) {
-    const cur = map.get(a.ownerUid) ?? {
-      uid: a.ownerUid,
-      nome: a.ownerName,
-      email: a.ownerEmail,
-      total: 0,
-      count: 0,
-    };
+    const cur =
+      map.get(a.ownerUid) ??
+      ({
+        uid: a.ownerUid,
+        nome: a.ownerName,
+        email: a.ownerEmail,
+        total: 0,
+        count: 0,
+        lastActivity: null,
+      } as VetStat);
+    const last =
+      cur.lastActivity === null || a.data > cur.lastActivity ? a.data : cur.lastActivity;
     map.set(a.ownerUid, {
       uid: cur.uid,
       nome: cur.nome,
       email: cur.email,
       total: cur.total + a.totale,
       count: cur.count + 1,
+      lastActivity: last,
     });
   }
   return [...map.values()].sort((a, b) => b.total - a.total);

@@ -112,7 +112,7 @@ describe("defaultPeriodoFor", () => {
     return cadenza ? { cadenzaFatturazione: cadenza } : undefined;
   }
 
-  it("monthly returns the prior month", () => {
+  it("monthly returns the prior calendar month", () => {
     const now = new Date(2026, 4, 15); // may 15
     const { from, to } = defaultPeriodoFor(azienda("monthly"), now);
     expect(from.getFullYear()).toBe(2026);
@@ -123,39 +123,7 @@ describe("defaultPeriodoFor", () => {
     expect(to.getDate()).toBe(30);
   });
 
-  it("quarterly returns the last 3 months", () => {
-    const now = new Date(2026, 4, 15); // may 15
-    const { from, to } = defaultPeriodoFor(azienda("quarterly"), now);
-    expect(from.getMonth()).toBe(1); // february
-    expect(from.getDate()).toBe(1);
-    expect(to.getMonth()).toBe(3); // april
-    expect(to.getDate()).toBe(30);
-  });
-
-  it("semiannual returns the last 6 months", () => {
-    const now = new Date(2026, 4, 15); // may 15
-    const { from, to } = defaultPeriodoFor(azienda("semiannual"), now);
-    expect(from.getMonth()).toBe(10); // november
-    expect(from.getFullYear()).toBe(2025);
-    expect(to.getMonth()).toBe(3); // april
-    expect(to.getDate()).toBe(30);
-  });
-
-  it("defaults to quarterly when azienda is undefined", () => {
-    const now = new Date(2026, 4, 15);
-    const { from, to } = defaultPeriodoFor(undefined, now);
-    expect(from.getMonth()).toBe(1); // feb
-    expect(to.getMonth()).toBe(3); // apr
-  });
-
-  it("defaults to quarterly when cadenzaFatturazione is missing", () => {
-    const now = new Date(2026, 4, 15);
-    const { from, to } = defaultPeriodoFor({}, now);
-    expect(from.getMonth()).toBe(1);
-    expect(to.getMonth()).toBe(3);
-  });
-
-  it("handles year boundary for monthly in january", () => {
+  it("monthly in january returns december of previous year", () => {
     const now = new Date(2026, 0, 10); // january
     const { from, to } = defaultPeriodoFor(azienda("monthly"), now);
     expect(from.getFullYear()).toBe(2025);
@@ -163,6 +131,84 @@ describe("defaultPeriodoFor", () => {
     expect(to.getFullYear()).toBe(2025);
     expect(to.getMonth()).toBe(11);
     expect(to.getDate()).toBe(31);
+  });
+
+  it("quarterly in Q2 returns Q1 (gen-mar)", () => {
+    const now = new Date(2026, 4, 15); // may, inside Q2
+    const { from, to } = defaultPeriodoFor(azienda("quarterly"), now);
+    expect(from.getFullYear()).toBe(2026);
+    expect(from.getMonth()).toBe(0); // january
+    expect(from.getDate()).toBe(1);
+    expect(to.getFullYear()).toBe(2026);
+    expect(to.getMonth()).toBe(2); // march
+    expect(to.getDate()).toBe(31);
+  });
+
+  it("quarterly in Q3 returns Q2 (apr-giu)", () => {
+    const now = new Date(2026, 7, 10); // august, inside Q3
+    const { from, to } = defaultPeriodoFor(azienda("quarterly"), now);
+    expect(from.getMonth()).toBe(3); // april
+    expect(from.getDate()).toBe(1);
+    expect(to.getMonth()).toBe(5); // june
+    expect(to.getDate()).toBe(30);
+  });
+
+  it("quarterly in Q4 returns Q3 (lug-set)", () => {
+    const now = new Date(2026, 10, 20); // november, inside Q4
+    const { from, to } = defaultPeriodoFor(azienda("quarterly"), now);
+    expect(from.getMonth()).toBe(6); // july
+    expect(from.getDate()).toBe(1);
+    expect(to.getMonth()).toBe(8); // september
+    expect(to.getDate()).toBe(30);
+  });
+
+  it("quarterly in Q1 returns previous Q4 of prior year", () => {
+    const now = new Date(2026, 1, 10); // february, inside Q1
+    const { from, to } = defaultPeriodoFor(azienda("quarterly"), now);
+    expect(from.getFullYear()).toBe(2025);
+    expect(from.getMonth()).toBe(9); // october
+    expect(from.getDate()).toBe(1);
+    expect(to.getFullYear()).toBe(2025);
+    expect(to.getMonth()).toBe(11); // december
+    expect(to.getDate()).toBe(31);
+  });
+
+  it("semiannual in H1 returns previous H2 (lug-dic of prior year)", () => {
+    const now = new Date(2026, 4, 15); // may, inside H1
+    const { from, to } = defaultPeriodoFor(azienda("semiannual"), now);
+    expect(from.getFullYear()).toBe(2025);
+    expect(from.getMonth()).toBe(6); // july
+    expect(from.getDate()).toBe(1);
+    expect(to.getFullYear()).toBe(2025);
+    expect(to.getMonth()).toBe(11); // december
+    expect(to.getDate()).toBe(31);
+  });
+
+  it("semiannual in H2 returns H1 (gen-giu)", () => {
+    const now = new Date(2026, 8, 10); // september, inside H2
+    const { from, to } = defaultPeriodoFor(azienda("semiannual"), now);
+    expect(from.getFullYear()).toBe(2026);
+    expect(from.getMonth()).toBe(0); // january
+    expect(from.getDate()).toBe(1);
+    expect(to.getFullYear()).toBe(2026);
+    expect(to.getMonth()).toBe(5); // june
+    expect(to.getDate()).toBe(30);
+  });
+
+  it("defaults to rolling 3 months when azienda is undefined", () => {
+    const now = new Date(2026, 4, 15); // may 15
+    const { from, to } = defaultPeriodoFor(undefined, now);
+    expect(from.getMonth()).toBe(1); // february
+    expect(from.getDate()).toBe(1);
+    expect(to.getMonth()).toBe(3); // april
+    expect(to.getDate()).toBe(30);
+  });
+
+  it("defaults to rolling 3 months when cadenzaFatturazione is missing", () => {
+    const now = new Date(2026, 4, 15);
+    const { from, to } = defaultPeriodoFor({}, now);
+    expect(from.getMonth()).toBe(1);
+    expect(to.getMonth()).toBe(3);
   });
 });
 

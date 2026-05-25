@@ -31,6 +31,10 @@ export const rolesI18n = {
   groupAllowlist: "Allowlist",
   groupAudit: "Audit",
   groupUsers: "Utenti",
+  utentiAssegnati: (n: number) => `${n} utenti assegnati`,
+  unUtenteAssegnato: "1 utente assegnato",
+  nessunUtente: "Nessun utente",
+  bloccato: "Bloccato",
 } as const;
 
 export const CAP_GROUPS: ReadonlyArray<{

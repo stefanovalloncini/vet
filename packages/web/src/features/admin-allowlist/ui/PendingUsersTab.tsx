@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Check, X } from "lucide-react";
 import {
+  Badge,
+  BoxedList,
   Button,
-  Card,
   ConfirmDialog,
   EmptyState,
   InlineError,
@@ -64,60 +66,79 @@ export function PendingUsersTab({ roles }: PendingUsersTabProps) {
       {error ? <InlineError className="mb-4">{error}</InlineError> : null}
 
       {items.length === 0 ? (
-        <Card>
-          <EmptyState title={t.pendingEmpty} />
-        </Card>
+        <EmptyState title={t.pendingEmpty} />
       ) : (
-        <ul className="space-y-2">
-          {items.map((u) => (
-            <li key={u.uid}>
-              <Card>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-base font-medium text-(--color-text) truncate">
+        <BoxedList>
+          {items.map((u) => {
+            const busy = busyId === u.uid;
+            return (
+              <li
+                key={u.uid}
+                className="px-4 py-3 grid grid-cols-1 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] gap-3 sm:gap-4 sm:items-center"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <p className="text-sm font-mono text-(--color-text) truncate">
                       {u.email}
                     </p>
-                    <p className="text-xs text-(--color-text-subtle) mt-1">
-                      {u.displayName} · {t.pendingSignedUpAt}{" "}
+                    <Badge tone="warning" aria-label={t.statoInAttesa}>
+                      {t.statoInAttesa}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-(--color-text-muted) mt-0.5 truncate">
+                    {u.displayName}
+                    <span className="text-(--color-text-subtle)">
+                      {" · "}
+                      {t.pendingSignedUpAt}{" "}
+                    </span>
+                    <span className="tabular-nums">
                       {u.createdAt.toLocaleDateString("it-IT")}
-                    </p>
-                    <div className="mt-3 max-w-xs">
-                      <Select
-                        id={`role-${u.uid}`}
-                        label={t.pendingRuolo}
-                        value={roleByUid[u.uid] ?? u.roleId}
-                        onChange={(e) =>
-                          setRoleByUid((r) => ({ ...r, [u.uid]: e.target.value }))
-                        }
-                        options={roleOptions}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2 flex-shrink-0">
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleApprove(u)}
-                      disabled={busyId === u.uid}
-                    >
-                      {t.pendingApprova}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setRejecting(u)}
-                      disabled={busyId === u.uid}
-                    >
-                      {t.pendingRifiuta}
-                    </Button>
-                  </div>
+                    </span>
+                  </p>
                 </div>
-              </Card>
-            </li>
-          ))}
-        </ul>
+                <div className="max-w-xs sm:max-w-none">
+                  <Select
+                    id={`role-${u.uid}`}
+                    label={t.pendingRuolo}
+                    value={roleByUid[u.uid] ?? u.roleId}
+                    onChange={(e) =>
+                      setRoleByUid((r) => ({ ...r, [u.uid]: e.target.value }))
+                    }
+                    options={roleOptions}
+                  />
+                </div>
+                <div className="flex items-center gap-1 justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleApprove(u)}
+                    disabled={busy}
+                    aria-label={t.pendingApprova}
+                    leadingIcon={
+                      <Check size={14} strokeWidth={1.75} aria-hidden="true" />
+                    }
+                  >
+                    <span className="hidden md:inline">{t.pendingApprova}</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRejecting(u)}
+                    disabled={busy}
+                    aria-label={t.pendingRifiuta}
+                    leadingIcon={
+                      <X size={14} strokeWidth={1.75} aria-hidden="true" />
+                    }
+                  >
+                    <span className="hidden md:inline">{t.pendingRifiuta}</span>
+                  </Button>
+                </div>
+              </li>
+            );
+          })}
+        </BoxedList>
       )}
 
       <ConfirmDialog
