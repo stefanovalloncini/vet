@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -43,6 +44,17 @@ export function ExportDialog({
   });
   const busy = form.formState.isSubmitting;
   const rootError = form.formState.errors.root?.message;
+
+  // Reapply initialAziendaId once the azienda option becomes available
+  // (ref data loads async; the default value is otherwise dropped silently).
+  useEffect(() => {
+    if (!initialAziendaId) return;
+    if (form.getValues("aziendaId") === initialAziendaId) return;
+    const exists = ref.aziende.some((a) => a.id === initialAziendaId);
+    if (exists) {
+      form.setValue("aziendaId", initialAziendaId, { shouldDirty: false });
+    }
+  }, [initialAziendaId, ref.aziende, form]);
 
   async function onSubmit(values: FormValues) {
     form.clearErrors("root");
