@@ -158,6 +158,50 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("while sending magic link, Google button does NOT show loading spinner", async () => {
+    const repos = createInMemoryRepositories();
+    let resolveLink: () => void = () => {};
+    vi.spyOn(repos.auth, "sendEmailSignInLink").mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveLink = resolve;
+      })
+    );
+    mountLogin(repos);
+    fireEvent.change(await screen.findByLabelText(/Email/i), {
+      target: { value: "tester@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Invia magic link/i }));
+    const googleBtn = screen.getByRole("button", { name: /Entra con Google/i });
+    await waitFor(() => {
+      expect(googleBtn.querySelector(".animate-spin")).toBeNull();
+    });
+    resolveLink();
+  });
+
+  it("while signing in with Google, the Google button shows its own spinner", async () => {
+    const repos = createInMemoryRepositories();
+    let resolveGoogle: () => void = () => {};
+    vi.spyOn(repos.auth, "signInWithGoogle").mockReturnValue(
+      new Promise<never>((_, reject) => {
+        resolveGoogle = () => reject({ code: "auth/popup-closed-by-user" });
+      })
+    );
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mountLogin(repos);
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Entra con Google/i })
+    );
+    const googleBtn = screen.getByRole("button", { name: /Entra con Google/i });
+    await waitFor(() => {
+      expect(googleBtn.querySelector(".animate-spin")).not.toBeNull();
+    });
+    resolveGoogle();
+    await waitFor(() => {
+      expect(googleBtn.querySelector(".animate-spin")).toBeNull();
+    });
+    errSpy.mockRestore();
+  });
+
   it("submits the access-request form and shows the confirmation message", async () => {
     const repos = createInMemoryRepositories();
     const spy = vi
