@@ -10,6 +10,7 @@ import { useTheme } from "../theme/useTheme";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { MobileHeader } from "./MobileHeader";
 import { MobileNav } from "./MobileNav";
+import { ShortcutsDialog } from "./ShortcutsDialog";
 import { Sidebar } from "./Sidebar";
 import { useToast } from "./Toast";
 
@@ -76,6 +77,7 @@ export function AppShell({ children, rightRail, wide = false }: AppShellProps) {
       <MobileNav />
       <SearchPalette />
       <QuickEntryFab />
+      <ShortcutsDialog />
       <InstallBanner />
 
       <ConfirmDialog
