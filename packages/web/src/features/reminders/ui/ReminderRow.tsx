@@ -21,7 +21,7 @@ export function ReminderRow({
   const days = daysUntil(r.dueAt);
   const overdue = !r.done && days < 0;
   return (
-    <li className="px-4 py-3 flex items-start gap-3">
+    <li className="px-4 py-3 sm:px-5 sm:py-4 flex items-start gap-3 hover:bg-(--color-surface-muted)/40 transition-colors">
       {canUpdate ? (
         <input
           type="checkbox"
@@ -42,23 +42,27 @@ export function ReminderRow({
         >
           {r.titolo}
         </p>
-        <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
+        <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs">
           <span className="text-(--color-text-muted)">{r.aziendaNome}</span>
           <span
             className={[
-              "px-2 py-0.5 rounded-md",
+              "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-mono tabular-nums",
               overdue
                 ? "bg-(--color-danger)/10 text-(--color-danger)"
+                : r.done
+                ? "bg-(--color-surface-muted) text-(--color-text-subtle)"
                 : "bg-(--color-surface-muted) text-(--color-text-muted)",
             ].join(" ")}
           >
-            {humanDays(days, r.done)}
-            {" · "}
-            {r.dueAt.toLocaleDateString("it-IT")}
+            <span className="font-sans">{humanDays(days, r.done)}</span>
+            <span aria-hidden="true" className="text-(--color-text-subtle)">·</span>
+            <span>{r.dueAt.toLocaleDateString("it-IT")}</span>
           </span>
         </div>
         {r.note ? (
-          <p className="text-xs text-(--color-text-subtle) mt-2">{r.note}</p>
+          <p className="text-xs text-(--color-text-subtle) mt-2 whitespace-pre-line">
+            {r.note}
+          </p>
         ) : null}
       </div>
       {canDelete ? (

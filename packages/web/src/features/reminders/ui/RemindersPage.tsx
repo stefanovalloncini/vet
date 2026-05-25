@@ -103,7 +103,7 @@ export function RemindersPage() {
       ) : loadError ? (
         <InlineError>{t.loadError}</InlineError>
       ) : reminders.length === 0 ? (
-        <EmptyState title={t.emptyAll} />
+        <EmptyState title={t.emptyAll} description={t.emptyAllHint} />
       ) : (
         <BoxedList>
           {reminders.map((r) => (
