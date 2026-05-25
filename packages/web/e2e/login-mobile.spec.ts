@@ -1,19 +1,19 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("login — mobile layout", () => {
-  test("renders the brand, heading, and both sign-in buttons fully on screen", async ({
+  test("renders the brand, heading, and both sign-in affordances fully on screen", async ({
     page,
   }, testInfo) => {
     await page.goto("/login");
 
     const heading = page.getByRole("heading", { level: 1, name: "Entra nel tuo account" });
+    const emailSubmit = page.getByRole("button", { name: /Invia magic link/i });
     const googleBtn = page.getByRole("button", { name: /Entra con Google/i });
-    const emailBtn = page.getByRole("button", { name: /Entra con email/i });
     const themeToggle = page.getByRole("button", { name: /Tema/i });
 
     await expect(heading).toBeVisible();
+    await expect(emailSubmit).toBeVisible();
     await expect(googleBtn).toBeVisible();
-    await expect(emailBtn).toBeVisible();
     await expect(themeToggle).toBeVisible();
 
     const viewport = page.viewportSize();
@@ -23,8 +23,8 @@ test.describe("login — mobile layout", () => {
     }
 
     for (const [name, locator] of [
+      ["emailSubmit", emailSubmit],
       ["googleBtn", googleBtn],
-      ["emailBtn", emailBtn],
       ["themeToggle", themeToggle],
     ] as const) {
       const box = await locator.boundingBox();
@@ -44,7 +44,6 @@ test.describe("login — mobile layout", () => {
     page,
   }) => {
     await page.goto("/login");
-    await page.getByRole("button", { name: /Entra con email/i }).click();
     const emailInput = page.getByLabel(/Email/i);
     await expect(emailInput).toBeVisible();
     await emailInput.click();
