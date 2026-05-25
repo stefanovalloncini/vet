@@ -1,11 +1,15 @@
 export const dashboardI18n = {
   title: "Riepilogo",
   subtitle: "Indicatori del periodo corrente.",
-  visiteMese: "Attività mese",
+  visiteMese: "Attività del mese",
   aziendeAttive: "Aziende attive",
+  incassiMese: "Totale incassi mese",
   loadError: "Caricamento fallito.",
   noActivity: "Ancora nessuna attività registrata.",
+  noActivityHint: "Usa il pulsante in basso a destra per registrare la prima.",
   toggleAttivita: "Attività",
   toggleIncassi: "Incassi",
+  chartTitleAttivita: "Attività ultimi 12 mesi",
+  chartTitleIncassi: "Incassi ultimi 12 mesi",
   totaleAnno: "Totale 12 mesi",
 } as const;
