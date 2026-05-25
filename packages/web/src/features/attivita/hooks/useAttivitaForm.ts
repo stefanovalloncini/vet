@@ -95,6 +95,21 @@ export function useAttivitaDerived(args: DerivedArgs): AttivitaDerived {
   const oraria = useWatch({ control: form.control, name: "oraria" });
   const adElemento = useWatch({ control: form.control, name: "adElemento" });
 
+  const lastTipoIdRef = useRef<string>("");
+  useEffect(() => {
+    if (isEdit) return;
+    if (!tipoId || tipoId === lastTipoIdRef.current) return;
+    lastTipoIdRef.current = tipoId;
+    const tipo = tipi.find((t) => t.id === tipoId);
+    const md = tipo?.modalitaDefault;
+    if (md === undefined) return;
+    form.setValue("oraria", md === "oraria", { shouldValidate: false });
+    form.setValue("adElemento", md === "adElemento", { shouldValidate: false });
+    if (md !== "oraria") form.setValue("ore", "", { shouldValidate: false });
+    if (md !== "adElemento")
+      form.setValue("elementi", "", { shouldValidate: false });
+  }, [tipoId, isEdit, tipi, form]);
+
   const tipiMutable = useMemo(() => [...tipi], [tipi]);
 
   const { suggested } = useTariffaSuggestion({

@@ -20,6 +20,7 @@ export { gdprDeleteMine } from "./gdpr/deleteMine.js";
 export { dailyTrashCleanup } from "./trash/dailyCleanup.js";
 export { monthlyInvoicePush } from "./invoicing/monthlyInvoice.js";
 export { dailyDriveExport } from "./backup/dailyDriveExport.js";
+export { cleanupOldDriveBackups } from "./backup/cleanupOldDriveBackups.js";
 export { weeklyBackupDigest } from "./backup/weeklyBackupDigest.js";
 
 export const ping = onCall({ region: "europe-west8" }, () => {

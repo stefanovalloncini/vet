@@ -244,7 +244,7 @@ describe("EmettiContoPanel", () => {
     // Dialog visible, emit not yet called.
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(
-      screen.getByText(/Verrà aggiunto ai pagamenti/i)
+      screen.getByText(/Verrà registrato come conto/i)
     ).toBeInTheDocument();
     expect(emitSpy).not.toHaveBeenCalled();
     // Confirm.

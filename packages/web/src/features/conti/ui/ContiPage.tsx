@@ -1,36 +1,51 @@
 import { useMemo, useState } from "react";
-import type { Conto, MetodoPagamento } from "@vet/shared";
+import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
+import type { Azienda } from "@vet/shared";
 import {
   AppShell,
-  Button,
   Card,
-  ConfirmDialog,
   EmptyState,
   InlineError,
   LoadingHint,
   PageHeader,
-  Select,
-  TextField,
-  useToast,
 } from "../../../shared/ui";
-import { useAuthState } from "../../auth";
 import { formatDate, formatEuro } from "../../../shared/lib/format";
-import { useConti, useSaldaConto } from "../hooks/useConti";
+import { useAziende } from "../../aziende/hooks/useAziende";
+import { useConti } from "../hooks/useConti";
+import {
+  groupContiByAzienda,
+  type ContiByAzienda,
+  type ContiByAziendaMap,
+} from "../lib/groupContiByAzienda";
 import { contiI18n as t } from "../i18n";
 
 export function ContiPage() {
-  const { user } = useAuthState();
-  const query = useConti();
-  const conti = query.data ?? [];
+  const {
+    data: aziende,
+    isPending: aziendePending,
+    isError: aziendeError,
+  } = useAziende();
+  const {
+    data: conti,
+    isPending: contiPending,
+    isError: contiError,
+  } = useConti();
   const [onlyUnsaldati, setOnlyUnsaldati] = useState(true);
-  const [saldando, setSaldando] = useState<Conto | null>(null);
 
-  const canSaldare = user?.caps.has("conti.saldo") ?? false;
+  const grouped = useMemo(
+    () => groupContiByAzienda(conti ?? []),
+    [conti]
+  );
 
-  const filtered = useMemo(() => {
-    if (!onlyUnsaldati) return conti;
-    return conti.filter((c) => c.modalita === "emesso" && !c.saldato);
-  }, [conti, onlyUnsaldati]);
+  const rows = useMemo(
+    () => buildRows(aziende ?? [], grouped, onlyUnsaldati),
+    [aziende, grouped, onlyUnsaldati]
+  );
+
+  const isPending = aziendePending || contiPending;
+  const isError = aziendeError || contiError;
+  const noContiAtAll = grouped.size === 0;
 
   return (
     <AppShell>
@@ -45,174 +60,110 @@ export function ContiPage() {
         {t.mostraSoloNonSaldati}
       </label>
 
-      {query.isPending ? (
+      {isPending ? (
         <LoadingHint label="Caricamento…" />
-      ) : query.isError ? (
+      ) : isError ? (
         <InlineError>{t.loadError}</InlineError>
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          title={
-            conti.length === 0 ? t.emptyAll : t.emptyFiltered
-          }
-        />
+      ) : noContiAtAll ? (
+        <EmptyState title={t.emptyAll} />
+      ) : rows.length === 0 ? (
+        <EmptyState title={t.emptyFiltered} />
       ) : (
         <ul className="space-y-2">
-          {filtered.map((c) => (
-            <li key={c.id}>
-              <ContoRow
-                conto={c}
-                canSaldare={canSaldare}
-                onSaldare={() => setSaldando(c)}
-              />
+          {rows.map((row) => (
+            <li key={row.azienda.id}>
+              <AziendaRow azienda={row.azienda} bucket={row.bucket} />
             </li>
           ))}
         </ul>
       )}
-
-      {saldando ? (
-        <SaldaContoDialog
-          conto={saldando}
-          onClose={() => setSaldando(null)}
-        />
-      ) : null}
     </AppShell>
   );
 }
 
-interface ContoRowProps {
-  conto: Conto;
-  canSaldare: boolean;
-  onSaldare: () => void;
+interface Row {
+  readonly azienda: Azienda;
+  readonly bucket: ContiByAzienda;
 }
 
-function ContoRow({ conto, canSaldare, onSaldare }: ContoRowProps) {
-  const period = `${formatDate(conto.periodoFrom)} – ${formatDate(conto.periodoTo)}`;
-  const isEmesso = conto.modalita === "emesso";
-  const statusLabel = !isEmesso
-    ? t.proforma
-    : conto.saldato
-      ? t.saldato
-      : t.nonSaldato;
-  const statusClass = !isEmesso
-    ? "bg-(--color-surface-muted) text-(--color-text-muted)"
-    : conto.saldato
-      ? "bg-(--color-accent-soft) text-(--color-text)"
-      : "bg-(--color-danger)/10 text-(--color-danger)";
-  return (
-    <Card>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-base font-medium text-(--color-text) truncate">
-            {conto.aziendaNome}
-          </h2>
-          <p className="text-xs text-(--color-text-muted) mt-1">
-            {t.periodoLabel}: {period}
-          </p>
-          <p className="text-[11px] text-(--color-text-subtle) mt-1">
-            {t.emessoIl} {formatDate(conto.emittedAt)} · {conto.emittedByName}
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          <span
-            className={`px-2 py-0.5 rounded-md text-xs ${statusClass}`}
-          >
-            {statusLabel}
-          </span>
-          <span className="text-lg font-medium text-(--color-text) tabular-nums">
-            {formatEuro(conto.totaleConto)}
-          </span>
-          {isEmesso && !conto.saldato && canSaldare ? (
-            <Button type="button" variant="secondary" size="sm" onClick={onSaldare}>
-              {t.segnaSaldato}
-            </Button>
-          ) : null}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-interface SaldaContoDialogProps {
-  conto: Conto;
-  onClose: () => void;
-}
-
-const METODO_OPTIONS = [
-  { value: "", label: t.metodoVuoto },
-  { value: "bonifico", label: t.metodoBonifico },
-  { value: "contanti", label: t.metodoContanti },
-  { value: "altro", label: t.metodoAltro },
-];
-
-function SaldaContoDialog({ conto, onClose }: SaldaContoDialogProps) {
-  const { user } = useAuthState();
-  const { notify } = useToast();
-  const saldo = useSaldaConto();
-  const [importo, setImporto] = useState(String(conto.totaleConto));
-  const [metodo, setMetodo] = useState<MetodoPagamento | "">("");
-  const [note, setNote] = useState("");
-
-  async function onConfirm(): Promise<void> {
-    if (!user) return;
-    const importoNum = Number(importo);
-    try {
-      await saldo.mutateAsync({
-        input: {
-          contoId: conto.id,
-          ...(Number.isFinite(importoNum) && importoNum > 0
-            ? { importoSaldato: importoNum }
-            : {}),
-          ...(metodo ? { metodoPagamento: metodo } : {}),
-          ...(note.trim() ? { note: note.trim() } : {}),
-        },
-        actor: user,
-      });
-      notify("Conto segnato come saldato", "success");
-      onClose();
-    } catch {
-      notify("Salvataggio non riuscito", "error");
-    }
+function buildRows(
+  aziende: ReadonlyArray<Azienda>,
+  grouped: ContiByAziendaMap,
+  onlyUnsaldati: boolean
+): ReadonlyArray<Row> {
+  const rows: Row[] = [];
+  for (const azienda of aziende) {
+    const bucket = grouped.get(azienda.id);
+    if (!bucket) continue;
+    if (onlyUnsaldati && !bucket.hasUnsaldati) continue;
+    rows.push({ azienda, bucket });
   }
-
-  return (
-    <ConfirmDialog
-      open
-      title={`${t.segnaSaldato}: ${conto.aziendaNome}`}
-      message={
-        <div className="space-y-3">
-          <TextField
-            id="saldo-importo"
-            type="number"
-            step="10"
-            min="0"
-            label={t.importoSaldato}
-            value={importo}
-            onChange={(e) => setImporto(e.target.value)}
-          />
-          <Select
-            id="saldo-metodo"
-            label={t.metodoPagamento}
-            value={metodo}
-            options={METODO_OPTIONS}
-            onChange={(e) => setMetodo(e.target.value as MetodoPagamento | "")}
-          />
-          <TextField
-            id="saldo-note"
-            label={t.note}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </div>
-      }
-      confirmLabel={t.conferma}
-      cancelLabel={t.annulla}
-      busy={saldo.isPending}
-      onConfirm={onConfirm}
-      onClose={() => {
-        if (saldo.isPending) return;
-        onClose();
-      }}
-    />
+  return rows.sort((a, b) =>
+    a.azienda.nomeNorm.localeCompare(b.azienda.nomeNorm, "it")
   );
 }
 
+interface AziendaRowProps {
+  azienda: Azienda;
+  bucket: ContiByAzienda;
+}
+
+function AziendaRow({ azienda, bucket }: AziendaRowProps) {
+  return (
+    <Link to={`/aziende/${azienda.id}`} className="block">
+      <Card className="hover:bg-(--color-surface-muted) transition-colors">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                title={
+                  bucket.hasUnsaldati
+                    ? "Ci sono conti non saldati"
+                    : "Tutti i conti saldati"
+                }
+                className={[
+                  "w-2 h-2 rounded-full flex-shrink-0",
+                  bucket.hasUnsaldati
+                    ? "bg-(--color-danger)"
+                    : "bg-(--color-success)",
+                ].join(" ")}
+              />
+              <h2 className="text-base font-medium text-(--color-text) truncate">
+                {azienda.nome}
+              </h2>
+            </div>
+            <p className="text-xs text-(--color-text-subtle) mt-1">
+              {t.ultimoConto}: {formatDate(bucket.lastEmittedAt)}
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            <StatusPill bucket={bucket} />
+            <ChevronRight
+              size={16}
+              strokeWidth={1.75}
+              className="text-(--color-text-subtle)"
+              aria-hidden="true"
+            />
+          </div>
+        </div>
+      </Card>
+    </Link>
+  );
+}
+
+function StatusPill({ bucket }: { bucket: ContiByAzienda }) {
+  if (!bucket.hasUnsaldati) {
+    return (
+      <span className="px-2 py-0.5 rounded-md text-xs bg-(--color-accent-soft) text-(--color-text)">
+        {t.tuttiSaldati}
+      </span>
+    );
+  }
+  const label = `${bucket.unsaldatiCount} ${t.contiNonSaldatiSuffix} · ${formatEuro(bucket.totaleUnsaldati)}`;
+  return (
+    <span className="px-2 py-0.5 rounded-md text-xs bg-(--color-danger)/10 text-(--color-danger) tabular-nums">
+      {label}
+    </span>
+  );
+}

@@ -9,6 +9,7 @@ import type {
 } from "@vet/shared";
 import {
   InMemoryAuthService,
+  InMemoryAziendeRepository,
   InMemoryContiRepository,
 } from "@vet/shared/testing";
 import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
@@ -29,36 +30,53 @@ function actor(caps: Capability[]): ActorContext {
   };
 }
 
-function buildRepos(caps: Capability[]): {
+interface Harness {
   repos: Repositories;
   conti: InMemoryContiRepository;
+  aziende: InMemoryAziendeRepository;
   auth: InMemoryAuthService;
-} {
+}
+
+function buildHarness(caps: Capability[]): Harness {
   const auth = new InMemoryAuthService();
   auth.setSimulatedUser(actor(caps));
   const conti = new InMemoryContiRepository();
+  const aziende = new InMemoryAziendeRepository();
   return {
-    repos: { auth, conti } as unknown as Repositories,
+    repos: { auth, conti, aziende } as unknown as Repositories,
     conti,
+    aziende,
     auth,
   };
 }
 
+async function seedAzienda(
+  aziende: InMemoryAziendeRepository,
+  nome: string
+): Promise<string> {
+  return aziende.create(
+    { nome },
+    actor(["aziende.create"])
+  );
+}
+
 async function seedConto(
   conti: InMemoryContiRepository,
-  over: Partial<Conto>,
+  aziendaId: string,
+  aziendaNome: string,
+  over: Partial<Conto> = {},
   modalita: Conto["modalita"] = "emesso"
 ): Promise<string> {
   const a = actor(["conti.emit", "conti.proforma", "conti.saldo"]);
   const id = await conti.emit(
     {
-      aziendaId: over.aziendaId ?? "az1",
+      aziendaId,
       periodoFrom: over.periodoFrom ?? new Date("2026-01-01T00:00:00Z"),
       periodoTo: over.periodoTo ?? new Date("2026-03-31T23:59:59Z"),
       modalita,
     },
     {
-      aziendaNome: over.aziendaNome ?? "Cascina Verdi",
+      aziendaNome,
       attivitaIds: over.attivitaIds ?? ["a1", "a2"],
       totaleConto: over.totaleConto ?? 250,
     },
@@ -71,20 +89,49 @@ async function seedConto(
 }
 
 describe("ContiPage", () => {
-  it("renders the empty state when there are no conti", async () => {
-    const { repos } = buildRepos(["conti.saldo"]);
+  it("shows the empty state when no conti exist", async () => {
+    const { repos, aziende } = buildHarness(["conti.proforma"]);
+    await seedAzienda(aziende, "Cascina Verdi");
     render(<ContiPage />, {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
     await waitFor(() =>
       expect(screen.getByText(/Nessun conto emesso/i)).toBeInTheDocument()
     );
+    // Even though Cascina Verdi exists, no conto means it doesn't show.
+    expect(screen.queryByText("Cascina Verdi")).toBeNull();
   });
 
-  it("filters to only non-saldati by default", async () => {
-    const { repos, conti } = buildRepos(["conti.saldo"]);
-    await seedConto(conti, { aziendaNome: "Cascina A", saldato: false });
-    await seedConto(conti, { aziendaNome: "Cascina B", saldato: true });
+  it("lists aziende with conti in alphabetical order", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const idB = await seedAzienda(aziende, "Cascina Bianchi");
+    const idA = await seedAzienda(aziende, "Allevamento Rossi");
+    const idC = await seedAzienda(aziende, "Stalla Verdi");
+    await seedConto(conti, idB, "Cascina Bianchi");
+    await seedConto(conti, idA, "Allevamento Rossi");
+    await seedConto(conti, idC, "Stalla Verdi");
+    render(<ContiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
+    await waitFor(() =>
+      expect(screen.getByText("Cascina Bianchi")).toBeInTheDocument()
+    );
+    const names = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((h) => h.textContent);
+    expect(names).toEqual([
+      "Allevamento Rossi",
+      "Cascina Bianchi",
+      "Stalla Verdi",
+    ]);
+  });
+
+  it("hides aziende whose conti are all saldati when the 'solo non saldati' toggle is on", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const id1 = await seedAzienda(aziende, "Cascina A");
+    const id2 = await seedAzienda(aziende, "Cascina B");
+    await seedConto(conti, id1, "Cascina A", { saldato: false });
+    await seedConto(conti, id2, "Cascina B", { saldato: true });
     render(<ContiPage />, {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
@@ -94,119 +141,123 @@ describe("ContiPage", () => {
     expect(screen.queryByText("Cascina B")).toBeNull();
   });
 
-  it("toggles to show all conti, including saldati and pro forma", async () => {
-    const { repos, conti } = buildRepos(["conti.saldo"]);
-    await seedConto(conti, { aziendaNome: "Cascina A", saldato: false });
-    await seedConto(conti, { aziendaNome: "Cascina B", saldato: true });
-    await seedConto(conti, { aziendaNome: "Cascina C" }, "proforma");
+  it("shows all aziende with conti when the toggle is off", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const id1 = await seedAzienda(aziende, "Cascina A");
+    const id2 = await seedAzienda(aziende, "Cascina B");
+    await seedConto(conti, id1, "Cascina A", { saldato: false });
+    await seedConto(conti, id2, "Cascina B", { saldato: true });
     render(<ContiPage />, {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
     await waitFor(() =>
       expect(screen.getByText("Cascina A")).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByLabelText(/Mostra solo non saldati/i));
+    fireEvent.click(screen.getByLabelText(/Mostra solo aziende/i));
     await waitFor(() =>
       expect(screen.getByText("Cascina B")).toBeInTheDocument()
     );
-    expect(screen.getByText("Cascina A")).toBeInTheDocument();
-    expect(screen.getByText("Cascina C")).toBeInTheDocument();
   });
 
-  it("shows the correct status badge per row", async () => {
-    const { repos, conti } = buildRepos(["conti.saldo"]);
-    await seedConto(conti, { aziendaNome: "Cascina A" }, "proforma");
-    await seedConto(conti, { aziendaNome: "Cascina B", saldato: true });
-    await seedConto(conti, { aziendaNome: "Cascina C", saldato: false });
+  it("shows the empty-filtered state when no azienda has unsaldati", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const id1 = await seedAzienda(aziende, "Cascina A");
+    await seedConto(conti, id1, "Cascina A", { saldato: true });
     render(<ContiPage />, {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
-    // Show all.
     await waitFor(() =>
-      expect(screen.getByText("Cascina C")).toBeInTheDocument()
+      expect(
+        screen.getByText(/Nessuna azienda con conti non saldati/i)
+      ).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByLabelText(/Mostra solo non saldati/i));
+  });
+
+  it("renders a red status pill with the unsaldati pill when an azienda has non-saldati", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const id1 = await seedAzienda(aziende, "Cascina A");
+    await seedConto(conti, id1, "Cascina A", {
+      saldato: false,
+      totaleConto: 300,
+    });
+    await seedConto(conti, id1, "Cascina A", {
+      saldato: false,
+      totaleConto: 150,
+    });
+    render(<ContiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
     await waitFor(() =>
       expect(screen.getByText("Cascina A")).toBeInTheDocument()
     );
-    expect(screen.getByText("Pro forma")).toBeInTheDocument();
-    expect(screen.getByText("Saldato")).toBeInTheDocument();
-    expect(screen.getByText("Non saldato")).toBeInTheDocument();
+    expect(screen.getByText(/2 non saldati/i)).toBeInTheDocument();
+    expect(
+      screen.getByTitle(/Ci sono conti non saldati/i)
+    ).toBeInTheDocument();
   });
 
-  it("shows 'Segna saldato' only on emesso+non-saldato rows for users with conti.saldo", async () => {
-    const { repos, conti } = buildRepos(["conti.saldo"]);
-    await seedConto(conti, { aziendaNome: "Cascina A" }, "proforma");
-    await seedConto(conti, { aziendaNome: "Cascina B", saldato: true });
-    await seedConto(conti, { aziendaNome: "Cascina C", saldato: false });
+  it("renders the 'tutto saldato' badge with a green dot when all conti are saldati", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const id1 = await seedAzienda(aziende, "Cascina A");
+    await seedConto(conti, id1, "Cascina A", { saldato: true });
     render(<ContiPage />, {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
-    fireEvent.click(screen.getByLabelText(/Mostra solo non saldati/i));
+    // Default filter hides this one.
+    fireEvent.click(screen.getByLabelText(/Mostra solo aziende/i));
     await waitFor(() =>
       expect(screen.getByText("Cascina A")).toBeInTheDocument()
     );
-    // Only 1 Segna saldato button — for the non-saldato emesso row.
-    const buttons = screen.getAllByRole("button", { name: /Segna saldato/i });
-    expect(buttons).toHaveLength(1);
+    expect(screen.getByText(/Tutto saldato/i)).toBeInTheDocument();
+    expect(
+      screen.getByTitle(/Tutti i conti saldati/i)
+    ).toBeInTheDocument();
   });
 
-  it("hides 'Segna saldato' for users without conti.saldo cap", async () => {
-    const { repos, conti } = buildRepos([]);
-    await seedConto(conti, { aziendaNome: "Cascina C", saldato: false });
+  it("links each row to /aziende/{id}", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const idA = await seedAzienda(aziende, "Cascina A");
+    await seedConto(conti, idA, "Cascina A", { saldato: false });
+    render(<ContiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
+    const link = await screen.findByRole("link", { name: /Cascina A/i });
+    expect(link.getAttribute("href")).toBe(`/aziende/${idA}`);
+  });
+
+  it("does not surface a 'Segna saldato' action on the list", async () => {
+    const { repos, conti, aziende } = buildHarness([
+      "conti.proforma",
+      "conti.saldo",
+    ]);
+    const id1 = await seedAzienda(aziende, "Cascina A");
+    await seedConto(conti, id1, "Cascina A", { saldato: false });
     render(<ContiPage />, {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
     await waitFor(() =>
-      expect(screen.getByText("Cascina C")).toBeInTheDocument()
+      expect(screen.getByText("Cascina A")).toBeInTheDocument()
     );
     expect(
       screen.queryByRole("button", { name: /Segna saldato/i })
     ).toBeNull();
   });
 
-  it("opens the dialog when 'Segna saldato' is clicked", async () => {
-    const { repos, conti } = buildRepos(["conti.saldo"]);
-    await seedConto(conti, { aziendaNome: "Cascina C", saldato: false });
+  it("excludes aziende that have only pro forma conti from the unsaldati view", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const id1 = await seedAzienda(aziende, "Cascina A");
+    await seedConto(conti, id1, "Cascina A", {}, "proforma");
     render(<ContiPage />, {
-      wrapper: buildProvidersWrapper({
-        repos,
-        withRouter: true,
-        withToast: true,
-      }),
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
     await waitFor(() =>
-      expect(screen.getByText("Cascina C")).toBeInTheDocument()
+      expect(
+        screen.getByText(/Nessuna azienda con conti non saldati/i)
+      ).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole("button", { name: /Segna saldato/i }));
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Segna saldato: Cascina C/i)
-    ).toBeInTheDocument();
-  });
-
-  it("calls saldo on the repo when the dialog is confirmed", async () => {
-    const { repos, conti } = buildRepos(["conti.saldo"]);
-    await seedConto(conti, {
-      aziendaNome: "Cascina C",
-      saldato: false,
-      totaleConto: 425,
-    });
-    const saldoSpy = vi.spyOn(conti, "saldo");
-    render(<ContiPage />, {
-      wrapper: buildProvidersWrapper({
-        repos,
-        withRouter: true,
-        withToast: true,
-      }),
-    });
+    fireEvent.click(screen.getByLabelText(/Mostra solo aziende/i));
     await waitFor(() =>
-      expect(screen.getByText("Cascina C")).toBeInTheDocument()
+      expect(screen.getByText("Cascina A")).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole("button", { name: /Segna saldato/i }));
-    fireEvent.click(screen.getByRole("button", { name: /^Conferma$/i }));
-    await waitFor(() => expect(saldoSpy).toHaveBeenCalledTimes(1));
-    const [input] = saldoSpy.mock.calls[0] ?? [];
-    expect(input?.importoSaldato).toBe(425);
   });
 });

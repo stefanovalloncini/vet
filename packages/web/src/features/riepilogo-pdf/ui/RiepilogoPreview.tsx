@@ -8,82 +8,101 @@ interface RiepilogoPreviewProps {
 
 export function RiepilogoPreview({ summary }: RiepilogoPreviewProps) {
   const { azienda, items, total, from, to, vetName } = summary;
+  const issuedAt = new Date();
   return (
-    <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl p-10 print:border-0 print:rounded-none print:p-0 print:bg-white">
-      <header className="border-b border-(--color-border) pb-5 mb-5">
-        <div className="flex items-baseline justify-between">
-          <div>
-            <h1 className="text-3xl text-(--color-text)">Veterinario</h1>
-            <p className="text-xs text-(--color-text-muted) mt-1">
-              Veterinaria per allevamenti
-            </p>
-          </div>
-          <span className="text-xs text-(--color-text-subtle) uppercase tracking-wider">
+    <article className="riepilogo-doc bg-(--color-surface) border border-(--color-border) rounded-2xl p-10 print:border-0 print:rounded-none print:p-12 print:bg-white print:text-black">
+      <header className="flex items-start justify-between gap-6 pb-6 mb-6 border-b border-(--color-border) print:border-black/30">
+        <div>
+          <h1 className="text-3xl font-medium tracking-tight">Veterinario</h1>
+          <p className="text-xs mt-1 text-(--color-text-muted) print:text-black/60">
+            Servizi veterinari per allevamenti
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs uppercase tracking-wider text-(--color-text-muted) print:text-black/60">
             {t.documento}
-          </span>
+          </p>
+          <p className="text-xs tabular-nums mt-1 text-(--color-text-muted) print:text-black/60">
+            Emesso il {formatDate(issuedAt)}
+          </p>
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-6 mb-6 text-sm">
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 text-sm">
         <div>
-          <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+          <p className="text-[10px] uppercase tracking-wider text-(--color-text-muted) print:text-black/60">
             {t.cliente}
           </p>
-          <p className="text-(--color-text) font-medium mt-1">{azienda.nome}</p>
+          <p className="text-base font-medium mt-1.5">{azienda.nome}</p>
           {azienda.indirizzo ? (
-            <p className="text-(--color-text-muted) text-xs mt-1">{azienda.indirizzo}</p>
+            <p className="text-xs mt-1 text-(--color-text-muted) print:text-black/60">
+              {azienda.indirizzo}
+            </p>
           ) : null}
           {azienda.piva ? (
-            <p className="text-(--color-text-muted) text-xs mt-1">
+            <p className="text-xs mt-1 text-(--color-text-muted) print:text-black/60 tabular-nums">
               {t.partitaIva}: {azienda.piva}
             </p>
           ) : null}
         </div>
-        <div className="text-right">
-          <p className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+        <div className="sm:text-right">
+          <p className="text-[10px] uppercase tracking-wider text-(--color-text-muted) print:text-black/60">
             {t.periodo}
           </p>
-          <p className="text-(--color-text) mt-1">
-            {from ? formatDate(from) : "—"}
-            {" → "}
-            {to ? formatDate(to) : "—"}
+          <p className="text-base mt-1.5 tabular-nums">
+            {from ? formatDate(from) : "—"} → {to ? formatDate(to) : "—"}
+          </p>
+          <p className="text-xs mt-1 text-(--color-text-muted) print:text-black/60">
+            {items.length} {items.length === 1 ? "prestazione" : "prestazioni"}
           </p>
         </div>
-      </div>
+      </section>
 
       {items.length === 0 ? (
-        <p className="text-sm text-(--color-text-muted) py-8 text-center">{t.noData}</p>
+        <p className="text-sm py-12 text-center text-(--color-text-muted)">
+          {t.noData}
+        </p>
       ) : (
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-(--color-border) text-(--color-text-muted) text-xs uppercase tracking-wider">
-              <th className="text-left py-2">{t.data}</th>
+            <tr className="border-b-2 border-(--color-border) print:border-black/40 text-[10px] uppercase tracking-wider text-(--color-text-muted) print:text-black/60">
+              <th className="text-left py-2 w-[110px]">{t.data}</th>
               <th className="text-left py-2">{t.tipo}</th>
-              <th className="text-right py-2">{t.importo}</th>
+              <th className="text-right py-2 w-[110px]">{t.importo}</th>
             </tr>
           </thead>
           <tbody>
             {items.map((a) => (
-              <tr key={a.id} className="border-b border-(--color-border)/50">
-                <td className="py-2 tabular-nums">{formatDate(a.data)}</td>
-                <td className="py-2 text-(--color-text-muted)">
-                  {a.tipoNome}
+              <tr
+                key={a.id}
+                className="border-b border-(--color-border)/60 print:border-black/15 break-inside-avoid"
+              >
+                <td className="py-2.5 align-top tabular-nums">
+                  {formatDate(a.data)}
+                </td>
+                <td className="py-2.5 align-top">
+                  <span className="text-(--color-text) print:text-black">{a.tipoNome}</span>
                   {a.note ? (
-                    <span className="block text-xs text-(--color-text-subtle) mt-0.5">
+                    <span className="block text-xs mt-0.5 text-(--color-text-subtle) print:text-black/55">
                       {a.note}
                     </span>
                   ) : null}
                 </td>
-                <td className="py-2 text-right tabular-nums">{formatEuro(a.totale)}</td>
+                <td className="py-2.5 align-top text-right tabular-nums">
+                  {formatEuro(a.totale)}
+                </td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={2} className="pt-4 font-medium text-(--color-text)">
+              <td
+                colSpan={2}
+                className="pt-5 text-[11px] uppercase tracking-wider text-(--color-text-muted) print:text-black/60"
+              >
                 {t.totale}
               </td>
-              <td className="pt-4 text-right tabular-nums font-medium text-lg text-(--color-text)">
+              <td className="pt-5 text-right tabular-nums text-2xl font-semibold">
                 {formatEuro(total)}
               </td>
             </tr>
@@ -91,9 +110,26 @@ export function RiepilogoPreview({ summary }: RiepilogoPreviewProps) {
         </table>
       )}
 
-      <footer className="mt-10 pt-5 border-t border-(--color-border) text-xs text-(--color-text-subtle)">
-        {t.veterinario}: {vetName || "—"}
+      <footer className="mt-12 pt-5 border-t border-(--color-border) print:border-black/30 grid grid-cols-2 gap-6 text-xs text-(--color-text-subtle) print:text-black/55">
+        <div>
+          <p className="uppercase tracking-wider text-(--color-text-muted) print:text-black/60">
+            {t.veterinario}
+          </p>
+          <p className="mt-1 text-(--color-text) print:text-black">{vetName || "—"}</p>
+        </div>
+        <div className="text-right">
+          <p>
+            Documento generato il {formatDate(issuedAt)} ·{" "}
+            <span className="tabular-nums">
+              {issuedAt.toLocaleTimeString("it-IT", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </p>
+          <p className="mt-1">gestionale.stefanovalloncini.com</p>
+        </div>
       </footer>
-    </div>
+    </article>
   );
 }
