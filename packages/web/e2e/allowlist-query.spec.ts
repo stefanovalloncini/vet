@@ -45,4 +45,30 @@ test.describe("admin allowlist (tanstack-query)", () => {
       signedInAdmin.locator("main").getByText(unique)
     ).toBeVisible({ timeout: 15_000 });
   });
+
+  test("each allowlist tab shows a contextual description", async ({
+    signedInAdmin,
+  }) => {
+    await signedInAdmin.goto("/admin/allowlist");
+    await expect(signedInAdmin.getByRole("heading", { level: 1 })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Default tab: Email autorizzate
+    await expect(
+      signedInAdmin.getByText(/Solo chi è in questo elenco/i)
+    ).toBeVisible();
+
+    // Switch to "In attesa"
+    await signedInAdmin.getByRole("tab", { name: /In attesa/i }).click();
+    await expect(
+      signedInAdmin.getByText(/non hanno ancora un profilo confermato/i)
+    ).toBeVisible();
+
+    // Switch to "Richieste accesso"
+    await signedInAdmin.getByRole("tab", { name: /Richieste accesso/i }).click();
+    await expect(
+      signedInAdmin.getByText(/Persone non in allowlist/i)
+    ).toBeVisible();
+  });
 });
