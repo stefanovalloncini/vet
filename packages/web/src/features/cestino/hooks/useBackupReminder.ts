@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuthState } from "../../auth";
 import { useToast } from "../../../shared/ui";
 import { getLastBackupAt } from "../lib/exportBackup";
+import { decideBackupReminder } from "../lib/backupReminderLogic";
 
 const SHOWN_KEY = "vet.backupReminder.lastShownAt";
-const REMINDER_INTERVAL_MS = 14 * 24 * 60 * 60 * 1000; // 14 giorni
-const SHOWN_THROTTLE_MS = 24 * 60 * 60 * 1000; // non mostrare più di una volta al giorno
 
 function readShown(): number {
   try {
@@ -38,14 +37,12 @@ export function useBackupReminder(): void {
     const now = Date.now();
     const lastBackup = getLastBackupAt();
     const lastShown = readShown();
-    const dueByBackup =
-      lastBackup === null || now - lastBackup >= REMINDER_INTERVAL_MS;
-    const notRecentlyShown = now - lastShown >= SHOWN_THROTTLE_MS;
-    if (!dueByBackup || !notRecentlyShown) return;
+    const decision = decideBackupReminder({ now, lastBackup, lastShown });
+    if (!decision.show) return;
     const t = window.setTimeout(() => {
       writeShown(now);
       const msg =
-        lastBackup === null
+        decision.reason === "never-shown"
           ? "Non hai mai scaricato un backup. Te lo consiglio adesso."
           : "Sono passate due settimane: vuoi scaricare un backup?";
       notify(msg, {
