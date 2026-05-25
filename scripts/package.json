@@ -7,6 +7,7 @@
     "seed:roles": "tsx seed-roles.ts",
     "seed:activity-types": "tsx seed-activity-types.ts",
     "wipe:types": "tsx wipe-and-reseed-types.ts",
+    "create:test-users": "tsx create-test-users.ts",
     "rescue:admin": "tsx rescue-admin.ts",
     "migrate:approved": "tsx migrate-approved.ts"
   },
