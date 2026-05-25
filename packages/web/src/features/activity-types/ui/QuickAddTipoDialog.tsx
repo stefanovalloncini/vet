@@ -1,10 +1,20 @@
 import { useEffect, useRef } from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button, Dialog, InlineError } from "../../../shared/ui";
 import { RHFTextField } from "../../../shared/ui/rhf";
-import { activityTypeInputSchema, slugify, type ActivityType } from "@vet/shared";
+import {
+  activityTypeInputSchema,
+  modalitaSchema,
+  slugify,
+  type ActivityType,
+} from "@vet/shared";
 import { useCreateTipoAttivita } from "../hooks/useActivityTypes";
 
 const quickTipoFormSchema = z.object({
@@ -23,11 +33,16 @@ const quickTipoFormSchema = z.object({
       });
     }
   }),
+  modalitaDefault: z.union([modalitaSchema, z.literal("")]),
 });
 
 type QuickTipoFormValues = z.infer<typeof quickTipoFormSchema>;
 
-const EMPTY: QuickTipoFormValues = { nome: "", tariffa: "" };
+const EMPTY: QuickTipoFormValues = {
+  nome: "",
+  tariffa: "",
+  modalitaDefault: "",
+};
 
 interface Props {
   open: boolean;
@@ -64,6 +79,9 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
       ordine: nextOrdine,
       attivo: true,
       ...(tariffaNum !== undefined ? { tariffaStandard: tariffaNum } : {}),
+      ...(values.modalitaDefault !== ""
+        ? { modalitaDefault: values.modalitaDefault }
+        : {}),
     });
     if (!parsed.success) {
       form.setError("root", {
@@ -120,12 +138,13 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
             name="tariffa"
             label="Tariffa standard (€)"
             type="number"
-            step="0.01"
+            step="10"
             min="0"
             disabled={busy}
             placeholder="opzionale"
             hint="Lascia vuoto se la tariffa cambia di volta in volta."
           />
+          <ModalitaDefaultField disabled={busy} />
           {rootError ? <InlineError>{rootError}</InlineError> : null}
           <div className="flex items-center justify-end gap-3 pt-1">
             <Button type="button" variant="ghost" onClick={handleClose} disabled={busy}>
@@ -136,6 +155,56 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
         </form>
       </FormProvider>
     </Dialog>
+  );
+}
+
+const MODALITA_OPTIONS: ReadonlyArray<{
+  value: "" | "fissa" | "oraria" | "adElemento";
+  label: string;
+  hint: string;
+}> = [
+  { value: "", label: "Nessuna", hint: "Il vet sceglie ogni volta" },
+  { value: "fissa", label: "Fissa", hint: "Tariffa una tantum" },
+  { value: "oraria", label: "Oraria", hint: "Tariffa × ore" },
+  { value: "adElemento", label: "Per elemento", hint: "Tariffa × quantità" },
+];
+
+function ModalitaDefaultField({ disabled }: { disabled: boolean }) {
+  const { setValue } = useFormContext<QuickTipoFormValues>();
+  const current = useWatch<QuickTipoFormValues>({ name: "modalitaDefault" }) ?? "";
+  return (
+    <div>
+      <span className="block text-xs uppercase tracking-wider text-(--color-text-muted) mb-1.5">
+        Modalità predefinita
+      </span>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {MODALITA_OPTIONS.map((opt) => {
+          const active = current === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              disabled={disabled}
+              title={opt.hint}
+              onClick={() =>
+                setValue("modalitaDefault", opt.value, {
+                  shouldValidate: false,
+                })
+              }
+              className={[
+                "rounded-md border px-2.5 py-1.5 text-xs text-left transition-colors",
+                active
+                  ? "border-(--color-accent) bg-(--color-accent-soft) text-(--color-text)"
+                  : "border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong)",
+                disabled ? "opacity-50 cursor-not-allowed" : "",
+              ].join(" ")}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
