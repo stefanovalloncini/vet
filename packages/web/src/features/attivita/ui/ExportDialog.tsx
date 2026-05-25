@@ -19,14 +19,26 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
   onClose: () => void;
+  initialFrom?: string;
+  initialTo?: string;
+  initialAziendaId?: string;
 }
 
-export function ExportDialog({ onClose }: Props) {
+export function ExportDialog({
+  onClose,
+  initialFrom = "",
+  initialTo = "",
+  initialAziendaId = "",
+}: Props) {
   const { attivita: repo } = useRepositories();
   const ref = useReferenceData();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { from: "", to: "", aziendaId: "" },
+    defaultValues: {
+      from: initialFrom,
+      to: initialTo,
+      aziendaId: initialAziendaId,
+    },
     mode: "onSubmit",
   });
   const busy = form.formState.isSubmitting;
