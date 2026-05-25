@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("quick entry (tanstack query)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("vet creates an attivita via the fab and undoes it via the toast", async ({
     signedInVet,
   }) => {
@@ -15,8 +19,8 @@ test.describe("quick entry (tanstack query)", () => {
     await expect(dialog).toBeVisible({ timeout: 10_000 });
 
     await dialog.getByLabel(/Data/i).fill("2026-05-28");
-    await dialog.getByLabel(/Azienda/i).selectOption(FIXTURE.azienda.id);
-    await dialog.getByLabel(/Tipo/i).selectOption(FIXTURE.tipo.id);
+    await dialog.getByLabel("Azienda", { exact: true }).selectOption(FIXTURE.azienda.id);
+    await dialog.getByLabel("Tipo", { exact: true }).selectOption(FIXTURE.tipo.id);
     await dialog.getByLabel(/Tariffa/i).fill("120");
 
     await dialog.getByRole("button", { name: /^Salva$/i }).click();

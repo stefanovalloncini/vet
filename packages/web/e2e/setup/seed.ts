@@ -211,6 +211,7 @@ async function seedAttivita(db: FirebaseFirestore.Firestore): Promise<void> {
     tipoId: FIXTURE.tipo.id,
     tipoNome: FIXTURE.tipo.nome,
     oraria: false,
+    adElemento: false,
     tariffa: 80,
     totale: 80,
     ownerUid: FIXTURE.vet.uid,
@@ -234,4 +235,24 @@ export async function seedAll(): Promise<SeedFixture> {
   await seedAzienda(db);
   await seedAttivita(db);
   return FIXTURE;
+}
+
+async function wipeCollection(
+  db: FirebaseFirestore.Firestore,
+  name: string
+): Promise<void> {
+  const snap = await db.collection(name).get();
+  if (snap.empty) return;
+  const batch = db.batch();
+  for (const d of snap.docs) batch.delete(d.ref);
+  await batch.commit();
+}
+
+export async function restoreSeededFixture(): Promise<void> {
+  const app = adminApp();
+  const db = getFirestore(app);
+  await wipeCollection(db, "attivita");
+  await seedActivityType(db);
+  await seedAzienda(db);
+  await seedAttivita(db);
 }
