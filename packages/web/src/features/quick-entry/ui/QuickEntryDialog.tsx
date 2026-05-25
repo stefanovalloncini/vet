@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FormProvider, useWatch } from "react-hook-form";
 import type { ActorContext, Modalita } from "@vet/shared";
 import {
+  AddLink,
   Button,
   Dialog,
   InlineError,
@@ -134,13 +135,10 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
                 options={s.aziendaOptions}
                 action={
                   canCreateAzienda ? (
-                    <button
-                      type="button"
+                    <AddLink
+                      label="+ Nuova"
                       onClick={() => setAddAziendaOpen(true)}
-                      className="text-(--color-accent) hover:underline font-medium"
-                    >
-                      + Nuova
-                    </button>
+                    />
                   ) : null
                 }
               />
@@ -150,13 +148,10 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
                 options={s.tipoOptions}
                 action={
                   canCreateTipo ? (
-                    <button
-                      type="button"
+                    <AddLink
+                      label="+ Nuovo"
                       onClick={() => setAddTipoOpen(true)}
-                      className="text-(--color-accent) hover:underline font-medium"
-                    >
-                      + Nuovo
-                    </button>
+                    />
                   ) : null
                 }
               />

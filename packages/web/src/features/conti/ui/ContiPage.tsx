@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { Azienda } from "@vet/shared";
@@ -10,6 +10,7 @@ import {
   InlineError,
   LoadingHint,
   PageHeader,
+  Switch,
 } from "../../../shared/ui";
 import { formatDate, formatEuro } from "../../../shared/lib/format";
 import { useAziende } from "../../aziende/hooks/useAziende";
@@ -58,7 +59,7 @@ export function ContiPage() {
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Toggle
+        <Switch
           checked={onlyUnsaldati}
           onChange={setOnlyUnsaldati}
           label={t.mostraSoloNonSaldati}
@@ -88,52 +89,6 @@ export function ContiPage() {
         </ul>
       )}
     </AppShell>
-  );
-}
-
-interface ToggleProps {
-  checked: boolean;
-  onChange: (next: boolean) => void;
-  label: string;
-}
-
-function Toggle({ checked, onChange, label }: ToggleProps) {
-  const id = useId();
-  return (
-    <label
-      htmlFor={id}
-      className="inline-flex items-center gap-3 text-sm text-(--color-text) cursor-pointer select-none"
-    >
-      <span className="relative inline-flex h-6 w-10 items-center">
-        <input
-          id={id}
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          aria-label={label}
-          className="peer sr-only"
-        />
-        <span
-          aria-hidden="true"
-          className={[
-            "absolute inset-0 rounded-full transition-colors duration-(--motion-fast) ease-(--ease-out-quart)",
-            "bg-(--color-surface-muted) border border-(--color-border)",
-            "peer-checked:bg-(--color-accent) peer-checked:border-(--color-accent)",
-            "peer-focus-visible:ring-2 peer-focus-visible:ring-(--color-accent) peer-focus-visible:ring-offset-2",
-          ].join(" ")}
-        />
-        <span
-          aria-hidden="true"
-          className={[
-            "relative ml-0.5 h-5 w-5 rounded-full bg-(--color-surface)",
-            "shadow-[0_1px_2px_oklch(20%_0.012_240/0.18)]",
-            "transition-transform duration-(--motion-fast) ease-(--ease-out-quart)",
-            checked ? "translate-x-4" : "translate-x-0",
-          ].join(" ")}
-        />
-      </span>
-      <span>{label}</span>
-    </label>
   );
 }
 

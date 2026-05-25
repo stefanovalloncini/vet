@@ -54,7 +54,8 @@ describe("Dialog", () => {
       </Dialog>
     );
     const backdrop = screen.getByRole("dialog");
-    fireEvent.mouseDown(backdrop);
+    fireEvent.pointerDown(backdrop);
+    fireEvent.click(backdrop);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -65,7 +66,23 @@ describe("Dialog", () => {
         <button type="button">inside</button>
       </Dialog>
     );
-    fireEvent.mouseDown(screen.getByRole("button", { name: "inside" }));
+    const inside = screen.getByRole("button", { name: "inside" });
+    fireEvent.pointerDown(inside);
+    fireEvent.click(inside);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("does not call onClose when drag starts inside surface and ends on backdrop", () => {
+    const onClose = vi.fn();
+    render(
+      <Dialog open onClose={onClose}>
+        <button type="button">inside</button>
+      </Dialog>
+    );
+    const inside = screen.getByRole("button", { name: "inside" });
+    const backdrop = screen.getByRole("dialog");
+    fireEvent.pointerDown(inside);
+    fireEvent.click(backdrop);
     expect(onClose).not.toHaveBeenCalled();
   });
 

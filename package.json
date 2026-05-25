@@ -12,8 +12,9 @@
   "scripts": {
     "build": "pnpm -r --filter './packages/*' build",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
+    "test": "pnpm -r --filter '!@vet/rules-tests' test",
     "test:rules": "pnpm -F @vet/rules-tests test",
+    "test:all": "pnpm -r test",
     "test:e2e": "pnpm -F @vet/web test:e2e",
     "lint": "eslint --no-error-on-unmatched-pattern \"packages/**/*.{ts,tsx,js,jsx}\"",
     "seed:roles": "pnpm -F vet-scripts seed:roles",
