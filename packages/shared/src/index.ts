@@ -161,6 +161,15 @@ export {
   type AccessRequestDTO,
 } from "./firestore-dto/accessRequest.js";
 export {
+  reminderDtoSchema,
+  parseReminder,
+  buildReminderCreateDoc,
+  buildReminderMarkDonePatch,
+  type ReminderDTO,
+  type ReminderCreateWritePayload,
+  type ReminderMarkDonePayload,
+} from "./firestore-dto/reminder.js";
+export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
   contoDocSchema,
