@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { FormProvider, useWatch } from "react-hook-form";
+import type { ActorContext, Modalita } from "@vet/shared";
 import {
   Button,
   Dialog,
   InlineError,
   useToast,
 } from "../../../shared/ui";
-import { RHFSelect, RHFTextField } from "../../../shared/ui/rhf";
+import {
+  RHFNumberField,
+  RHFSegmentedControl,
+  RHFSelect,
+  RHFTextArea,
+  RHFTextField,
+} from "../../../shared/ui/rhf";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../../attivita/hooks/useReferenceData";
@@ -18,9 +25,14 @@ import {
   useQuickEntryFormState,
   type QuickEntryFormValues,
 } from "../hooks/useQuickEntryFormState";
-import type { ActorContext } from "@vet/shared";
 import { SuggestionsPanel } from "./SuggestionsPanel";
 import type { Combo } from "../lib/recentCombos";
+
+const MODALITA_SEGMENTS: ReadonlyArray<{ value: Modalita; label: string }> = [
+  { value: "oraria", label: "Oraria" },
+  { value: "adElemento", label: "Ad elemento" },
+  { value: "fissa", label: "Fissa" },
+];
 
 interface QuickEntryDialogProps {
   open: boolean;
@@ -90,9 +102,15 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} labelledBy="quick-entry-title" size="md">
+      <Dialog
+        open={open}
+        onClose={onClose}
+        labelledBy="quick-entry-title"
+        size="md"
+        showHandle
+      >
         <FormProvider {...s.form}>
-          <div className="p-5">
+          <div className="p-5 sm:p-6">
             <h2
               id="quick-entry-title"
               className="text-base font-medium text-(--color-text)"
@@ -103,7 +121,7 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
             <form
               noValidate
               onSubmit={s.form.handleSubmit(onSubmit)}
-              className="space-y-3 mt-4"
+              className="mt-5 space-y-4"
             >
               <RHFTextField<QuickEntryFormValues>
                 name="data"
@@ -143,14 +161,24 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
                   ) : null
                 }
               />
-              <RHFTextField<QuickEntryFormValues>
+              <RHFSegmentedControl<QuickEntryFormValues, Modalita>
+                name="modalita"
+                label="Modalità tariffa"
+                segments={MODALITA_SEGMENTS}
+              />
+              <RHFNumberField<QuickEntryFormValues>
                 name="tariffa"
-                type="number"
-                step="0.01"
-                min="0.01"
-                label="Tariffa (€)"
-                required
+                label="Tariffa (EUR)"
+                step={10}
+                min={0}
                 {...(s.rangeWarning ? { hint: s.rangeWarning } : {})}
+              />
+              <QuantitaField />
+              <RHFTextArea<QuickEntryFormValues>
+                name="note"
+                label="Note"
+                rows={3}
+                placeholder="Dettagli aggiuntivi"
               />
               {s.tariffaNum !== null && s.tariffaNum > 0 ? (
                 <div className="flex items-baseline justify-between text-sm">
@@ -166,11 +194,24 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
                 </p>
               ) : null}
               {s.rootError ? <InlineError>{s.rootError}</InlineError> : null}
-              <div className="flex items-center justify-between gap-3 pt-1">
-                <Button type="button" variant="ghost" onClick={onClose} disabled={s.busy}>
-                  Chiudi
+              <div className="flex flex-col gap-2 pt-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  fullWidth
+                  disabled={s.busy}
+                >
+                  Salva
                 </Button>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-3">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onClose}
+                    disabled={s.busy}
+                  >
+                    Annulla
+                  </Button>
                   <Button
                     type="button"
                     variant="secondary"
@@ -178,9 +219,6 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
                     disabled={s.busy}
                   >
                     Salva e nuova
-                  </Button>
-                  <Button type="submit" variant="primary" disabled={s.busy}>
-                    Salva
                   </Button>
                 </div>
               </div>
@@ -209,14 +247,41 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
   );
 }
 
+function QuantitaField() {
+  const modalita = useWatch<QuickEntryFormValues>({ name: "modalita" }) as
+    | QuickEntryFormValues["modalita"]
+    | undefined;
+  if (modalita === "oraria") {
+    return (
+      <RHFNumberField<QuickEntryFormValues>
+        name="ore"
+        label="Ore"
+        step={0.5}
+        min={0}
+      />
+    );
+  }
+  if (modalita === "adElemento") {
+    return (
+      <RHFNumberField<QuickEntryFormValues>
+        name="elementi"
+        label="Quantità"
+        step={1}
+        min={0}
+      />
+    );
+  }
+  return null;
+}
+
 interface SuggestionsBridgeProps {
   combos: ReturnType<typeof useQuickEntryFormState>["combos"];
   onPick: (c: Combo) => void;
 }
 
 function SuggestionsBridge({ combos, onPick }: SuggestionsBridgeProps) {
-  const aziendaId = useWatch<QuickEntryFormValues>({ name: "aziendaId" }) as string | undefined;
-  const tipoId = useWatch<QuickEntryFormValues>({ name: "tipoId" }) as string | undefined;
+  const aziendaId = (useWatch<QuickEntryFormValues>({ name: "aziendaId" }) ?? "") as string;
+  const tipoId = (useWatch<QuickEntryFormValues>({ name: "tipoId" }) ?? "") as string;
   const active = aziendaId && tipoId ? { aziendaId, tipoId } : null;
   return (
     <div className="mt-4">

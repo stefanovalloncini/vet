@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { ActivityType, Attivita } from "@vet/shared";
-import { GINECOLOGIA_TIPO_ID } from "@vet/shared";
+import { ALTRO_TIPO_ID, GINECOLOGIA_TIPO_ID } from "@vet/shared";
 import {
   defaultTariffaForTipo,
   hasDuplicateAttivita,
   parseTariffa,
+  sortTipiForQuickEntry,
 } from "../quickEntryHelpers";
 
 function tipo(
@@ -146,6 +147,62 @@ describe("hasDuplicateAttivita", () => {
         date,
       })
     ).toBe(false);
+  });
+});
+
+describe("sortTipiForQuickEntry", () => {
+  it("puts Ginecologia first and Altro last", () => {
+    const tipi: ActivityType[] = [
+      tipo({ id: "vaccino", nome: "Vaccino" }),
+      tipo({ id: ALTRO_TIPO_ID, nome: "Altro" }),
+      tipo({ id: GINECOLOGIA_TIPO_ID, nome: "Ginecologia" }),
+      tipo({ id: "visita", nome: "Visita" }),
+    ];
+    const sorted = sortTipiForQuickEntry(tipi);
+    expect(sorted.map((t) => t.id)).toEqual([
+      GINECOLOGIA_TIPO_ID,
+      "vaccino",
+      "visita",
+      ALTRO_TIPO_ID,
+    ]);
+  });
+
+  it("sorts the middle tipi alphabetically with Italian collation", () => {
+    const tipi: ActivityType[] = [
+      tipo({ id: "z", nome: "Zonale" }),
+      tipo({ id: "a", nome: "Ablazione" }),
+      tipo({ id: "u", nome: "Università" }),
+      tipo({ id: "e", nome: "Eutanasia" }),
+    ];
+    const sorted = sortTipiForQuickEntry(tipi);
+    expect(sorted.map((t) => t.nome)).toEqual([
+      "Ablazione",
+      "Eutanasia",
+      "Università",
+      "Zonale",
+    ]);
+  });
+
+  it("returns an empty array when input is empty", () => {
+    expect(sortTipiForQuickEntry([])).toEqual([]);
+  });
+
+  it("keeps Ginecologia first even if alphabetically would be later", () => {
+    const tipi: ActivityType[] = [
+      tipo({ id: "a", nome: "Ablazione" }),
+      tipo({ id: GINECOLOGIA_TIPO_ID, nome: "Ginecologia" }),
+    ];
+    const sorted = sortTipiForQuickEntry(tipi);
+    expect(sorted[0]?.id).toBe(GINECOLOGIA_TIPO_ID);
+  });
+
+  it("keeps Altro last even if alphabetically would be earlier", () => {
+    const tipi: ActivityType[] = [
+      tipo({ id: "z", nome: "Zonale" }),
+      tipo({ id: ALTRO_TIPO_ID, nome: "Altro" }),
+    ];
+    const sorted = sortTipiForQuickEntry(tipi);
+    expect(sorted[sorted.length - 1]?.id).toBe(ALTRO_TIPO_ID);
   });
 });
 

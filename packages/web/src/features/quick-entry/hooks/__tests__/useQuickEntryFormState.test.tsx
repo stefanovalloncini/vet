@@ -177,6 +177,76 @@ describe("useQuickEntryFormState", () => {
     expect(outcome.ok).toBe(true);
   });
 
+  it("pre-fills modalita from tipo.modalitaDefault when picking a tipo", async () => {
+    const localTipi = [
+      tipo({
+        id: "visita-oraria",
+        nome: "Visita oraria",
+        modalitaDefault: "oraria",
+      }),
+      tipo({
+        id: "intervento",
+        nome: "Intervento",
+        modalitaDefault: "adElemento",
+      }),
+      tipo({ id: "fissa-x", nome: "Fissa X", modalitaDefault: "fissa" }),
+    ];
+    const view = renderHook(
+      () =>
+        useQuickEntryFormState({
+          open: true,
+          user: actor(),
+          attivita,
+          ref: refData(aziende, localTipi),
+        }),
+      { wrapper: makeWrapper(attivita) }
+    );
+    await waitFor(() =>
+      expect(view.result.current.aziendaOptions.length).toBeGreaterThan(1)
+    );
+    act(() => view.result.current.form.setValue("tipoId", "visita-oraria"));
+    await waitFor(() =>
+      expect(view.result.current.form.getValues("modalita")).toBe("oraria")
+    );
+    act(() => view.result.current.form.setValue("tipoId", "intervento"));
+    await waitFor(() =>
+      expect(view.result.current.form.getValues("modalita")).toBe("adElemento")
+    );
+    act(() => view.result.current.form.setValue("tipoId", "fissa-x"));
+    await waitFor(() =>
+      expect(view.result.current.form.getValues("modalita")).toBe("fissa")
+    );
+  });
+
+  it("blocks submit when tipo=Altro and note is empty", async () => {
+    const localTipi = [
+      tipo({ id: "altro", nome: "Altro" }),
+    ];
+    const view = renderHook(
+      () =>
+        useQuickEntryFormState({
+          open: true,
+          user: actor(),
+          attivita,
+          ref: refData(aziende, localTipi),
+        }),
+      { wrapper: makeWrapper(attivita) }
+    );
+    await waitFor(() =>
+      expect(view.result.current.aziendaOptions.length).toBeGreaterThan(1)
+    );
+    act(() => view.result.current.form.setValue("aziendaId", "az-1"));
+    act(() => view.result.current.form.setValue("tipoId", "altro"));
+    act(() => view.result.current.form.setValue("tariffa", "50"));
+
+    await act(async () => {
+      await view.result.current.form.trigger();
+    });
+    expect(view.result.current.form.formState.errors.note?.message).toMatch(
+      /obbligatoria/i
+    );
+  });
+
   it("resetAll clears fields; resetAll({ data }) preserves the date", async () => {
     const { result } = await mount();
     act(() => result.current.form.setValue("data", "2026-02-15"));
