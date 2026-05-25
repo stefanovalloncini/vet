@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   deleteField,
   orderBy,
+  type FieldValue,
   type Firestore,
 } from "firebase/firestore";
 import type {
@@ -18,11 +19,26 @@ import type {
   Azienda,
   AziendaInput,
   AziendeRepository,
-  CadenzaFatturazione,
-  TipoAllevamento,
+  AziendaUpdateDeps,
 } from "@vet/shared";
-import { normalizeAziendaNome } from "@vet/shared";
-import { toDate } from "./timestamps";
+import {
+  buildAziendaCreateDoc,
+  buildAziendaSoftDeletePatch,
+  buildAziendaUpdatePatch,
+  parseAzienda,
+} from "@vet/shared";
+
+const stampDeps: Pick<
+  AziendaUpdateDeps<FieldValue, FieldValue>,
+  "serverTimestamp"
+> = {
+  serverTimestamp: (): FieldValue => serverTimestamp(),
+};
+
+const updateDeps: AziendaUpdateDeps<FieldValue, FieldValue> = {
+  serverTimestamp: (): FieldValue => serverTimestamp(),
+  deleteField: (): FieldValue => deleteField(),
+};
 
 export class FirestoreAziendeRepository implements AziendeRepository {
   constructor(private readonly db: Firestore) {}
@@ -34,13 +50,13 @@ export class FirestoreAziendeRepository implements AziendeRepository {
       orderBy("nomeNorm", "asc")
     );
     const snap = await getDocs(q);
-    return snap.docs.map((d) => fromSnap(d.id, d.data()));
+    return snap.docs.map((d) => parseAzienda(d.id, d.data()));
   }
 
   async getById(id: string): Promise<Azienda | null> {
     const snap = await getDoc(doc(this.db, "aziende", id));
     if (!snap.exists()) return null;
-    return fromSnap(id, snap.data());
+    return parseAzienda(id, snap.data());
   }
 
   async findByNomeNorm(nomeNorm: string): Promise<Azienda | null> {
@@ -53,39 +69,12 @@ export class FirestoreAziendeRepository implements AziendeRepository {
     const snap = await getDocs(q);
     const first = snap.docs[0];
     if (!first) return null;
-    return fromSnap(first.id, first.data());
+    return parseAzienda(first.id, first.data());
   }
 
   async create(input: AziendaInput, actor: ActorContext): Promise<string> {
     const ref = doc(collection(this.db, "aziende"));
-    await setDoc(ref, {
-      nome: input.nome,
-      nomeNorm: normalizeAziendaNome(input.nome),
-      ...(input.indirizzo !== undefined ? { indirizzo: input.indirizzo } : {}),
-      ...(input.piva !== undefined ? { piva: input.piva } : {}),
-      ...(input.emailFatturazione !== undefined
-        ? { emailFatturazione: input.emailFatturazione }
-        : {}),
-      ...(input.cadenzaFatturazione !== undefined
-        ? { cadenzaFatturazione: input.cadenzaFatturazione }
-        : {}),
-      ...(input.tipoAllevamento !== undefined
-        ? { tipoAllevamento: input.tipoAllevamento }
-        : {}),
-      ...(input.numeroCapi !== undefined
-        ? { numeroCapi: input.numeroCapi }
-        : {}),
-      ...(input.telefono !== undefined ? { telefono: input.telefono } : {}),
-      ...(input.note !== undefined ? { note: input.note } : {}),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      createdBy: actor.uid,
-      updatedBy: actor.uid,
-      createdByName: actor.displayName,
-      updatedByName: actor.displayName,
-      isDeleted: false,
-      schemaVersion: 1,
-    });
+    await setDoc(ref, buildAziendaCreateDoc({ input, actor }, stampDeps));
     return ref.id;
   }
 
@@ -94,63 +83,12 @@ export class FirestoreAziendeRepository implements AziendeRepository {
     input: AziendaInput,
     actor: ActorContext
   ): Promise<void> {
-    await updateDoc(doc(this.db, "aziende", id), {
-      nome: input.nome,
-      nomeNorm: normalizeAziendaNome(input.nome),
-      indirizzo: input.indirizzo !== undefined ? input.indirizzo : deleteField(),
-      piva: input.piva !== undefined ? input.piva : deleteField(),
-      emailFatturazione: input.emailFatturazione !== undefined ? input.emailFatturazione : deleteField(),
-      cadenzaFatturazione: input.cadenzaFatturazione !== undefined ? input.cadenzaFatturazione : deleteField(),
-      tipoAllevamento: input.tipoAllevamento !== undefined ? input.tipoAllevamento : deleteField(),
-      numeroCapi: input.numeroCapi !== undefined ? input.numeroCapi : deleteField(),
-      telefono: input.telefono !== undefined ? input.telefono : deleteField(),
-      note: input.note !== undefined ? input.note : deleteField(),
-      updatedAt: serverTimestamp(),
-      updatedBy: actor.uid,
-      updatedByName: actor.displayName,
-    });
+    const patch = buildAziendaUpdatePatch({ input, actor }, updateDeps);
+    await updateDoc(doc(this.db, "aziende", id), { ...patch });
   }
 
   async softDelete(id: string, actor: ActorContext): Promise<void> {
-    await updateDoc(doc(this.db, "aziende", id), {
-      isDeleted: true,
-      deletedAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      updatedBy: actor.uid,
-      updatedByName: actor.displayName,
-    });
+    const patch = buildAziendaSoftDeletePatch({ actor }, stampDeps);
+    await updateDoc(doc(this.db, "aziende", id), { ...patch });
   }
-}
-
-function fromSnap(id: string, data: Record<string, unknown>): Azienda {
-  return {
-    id,
-    nome: data.nome as string,
-    nomeNorm: data.nomeNorm as string,
-    ...(data.indirizzo ? { indirizzo: data.indirizzo as string } : {}),
-    ...(data.piva ? { piva: data.piva as string } : {}),
-    ...(data.emailFatturazione
-      ? { emailFatturazione: data.emailFatturazione as string }
-      : {}),
-    ...(data.cadenzaFatturazione
-      ? { cadenzaFatturazione: data.cadenzaFatturazione as CadenzaFatturazione }
-      : {}),
-    ...(data.tipoAllevamento
-      ? { tipoAllevamento: data.tipoAllevamento as TipoAllevamento }
-      : {}),
-    ...(typeof data.numeroCapi === "number"
-      ? { numeroCapi: data.numeroCapi }
-      : {}),
-    ...(data.telefono ? { telefono: data.telefono as string } : {}),
-    ...(data.note ? { note: data.note as string } : {}),
-    createdAt: toDate(data.createdAt),
-    updatedAt: toDate(data.updatedAt),
-    createdBy: data.createdBy as string,
-    updatedBy: data.updatedBy as string,
-    createdByName: data.createdByName as string,
-    updatedByName: data.updatedByName as string,
-    isDeleted: (data.isDeleted as boolean) ?? false,
-    ...(data.deletedAt ? { deletedAt: toDate(data.deletedAt) } : {}),
-    schemaVersion: 1,
-  };
 }

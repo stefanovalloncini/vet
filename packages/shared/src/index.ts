@@ -193,6 +193,18 @@ export {
   type RoleSeedWritePayload,
 } from "./firestore-dto/role.js";
 export {
+  aziendaDtoSchema,
+  parseAzienda,
+  buildAziendaCreateDoc,
+  buildAziendaUpdatePatch,
+  buildAziendaSoftDeletePatch,
+  type AziendaDTO,
+  type AziendaCreateWritePayload,
+  type AziendaUpdatePatch,
+  type AziendaUpdateDeps,
+  type AziendaSoftDeletePatch,
+} from "./firestore-dto/azienda.js";
+export {
   contoEmitInputSchema,
   contoSaldoInputSchema,
   contoDocSchema,
