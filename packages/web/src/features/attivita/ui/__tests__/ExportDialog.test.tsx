@@ -60,4 +60,17 @@ describe("ExportDialog", () => {
     expect(fromInput.value).toBe("");
     expect(toInput.value).toBe("");
   });
+
+  it("falls back to no selection when initial aziendaId does not exist", async () => {
+    const { repos } = await seedRepos();
+    render(
+      <ExportDialog onClose={() => {}} initialAziendaId="ghost-id-123" />,
+      { wrapper: buildProvidersWrapper({ repos }) }
+    );
+    const aziendaSelect = (await screen.findByLabelText(
+      /Azienda/i
+    )) as HTMLSelectElement;
+    // The select renders "Tutte" as the only valid option, so its DOM value is "".
+    expect(aziendaSelect.value).toBe("");
+  });
 });
