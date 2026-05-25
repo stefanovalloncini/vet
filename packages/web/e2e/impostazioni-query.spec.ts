@@ -53,4 +53,24 @@ test.describe("impostazioni", () => {
     await expect(signedInVet.getByText("7 giorni")).toBeVisible();
     await expect(signedInVet.getByLabel(/Giorni/)).toBeHidden();
   });
+
+  test("backup section shows JSON and CSV buttons and 'mai backup' hint", async ({
+    signedInVet,
+  }) => {
+    await signedInVet.goto("/impostazioni");
+    await expect(
+      signedInVet.getByRole("heading", { level: 1, name: /Impostazioni/i })
+    ).toBeVisible({ timeout: 15_000 });
+
+    await expect(
+      signedInVet.getByRole("button", { name: /Scarica JSON/i })
+    ).toBeVisible();
+    await expect(
+      signedInVet.getByRole("button", { name: /Scarica CSV/i })
+    ).toBeVisible();
+    // First-load: never-backed-up message
+    await expect(
+      signedInVet.getByText(/Nessun backup ancora scaricato/i)
+    ).toBeVisible();
+  });
 });
