@@ -40,19 +40,29 @@ test.describe("activity types via tanstack query", () => {
         has: signedInAdmin.getByRole("heading", { name: /Archiviati/i }),
       });
 
+    await expect(
+      signedInAdmin.getByText(new RegExp(FIXTURE.tipo.nome)).first()
+    ).toBeVisible({ timeout: 10_000 });
+
     const tipoRowInAttivi = attiviSection.getByText(new RegExp(FIXTURE.tipo.nome));
-    if (!(await tipoRowInAttivi.isVisible())) {
+    if ((await tipoRowInAttivi.count()) === 0) {
       await archiviatiSection.getByRole("button", { name: /Attiva/i }).first().click();
       await expect(tipoRowInAttivi).toBeVisible({ timeout: 10_000 });
     }
 
-    await attiviSection.getByRole("button", { name: /Disattiva/i }).click();
+    const attiviRow = attiviSection
+      .locator("li")
+      .filter({ has: signedInAdmin.getByText(new RegExp(FIXTURE.tipo.nome)) });
+    await attiviRow.getByRole("button", { name: /Disattiva/i }).click();
 
     await expect(
       archiviatiSection.getByText(new RegExp(FIXTURE.tipo.nome))
     ).toBeVisible({ timeout: 10_000 });
 
-    await archiviatiSection.getByRole("button", { name: /Attiva/i }).first().click();
+    const archiviatiRow = archiviatiSection
+      .locator("li")
+      .filter({ has: signedInAdmin.getByText(new RegExp(FIXTURE.tipo.nome)) });
+    await archiviatiRow.getByRole("button", { name: /Attiva/i }).click();
     await expect(tipoRowInAttivi).toBeVisible({ timeout: 10_000 });
   });
 });

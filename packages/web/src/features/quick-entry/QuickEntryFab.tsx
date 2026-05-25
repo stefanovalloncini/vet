@@ -13,6 +13,7 @@ const HIDE_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/aziende\/importa$/,
   /^\/admin\//,
   /^\/impostazioni$/,
+  /^\/promemoria$/,
   /^\/strumenti/,
 ];
 

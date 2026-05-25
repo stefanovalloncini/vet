@@ -21,7 +21,7 @@ test.describe("quick entry dialog (react hook form)", () => {
     await dialog.getByLabel(/Data/i).fill("2026-05-29");
     await dialog.getByLabel("Azienda", { exact: true }).selectOption(FIXTURE.azienda.id);
     await dialog.getByLabel("Tipo", { exact: true }).selectOption(FIXTURE.tipo.id);
-    await dialog.getByLabel(/Tariffa/i).fill("90");
+    await dialog.getByRole("spinbutton", { name: /Tariffa/i }).fill("90");
 
     await dialog.getByRole("button", { name: /^Salva$/i }).click();
 
