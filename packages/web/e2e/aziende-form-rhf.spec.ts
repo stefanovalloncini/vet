@@ -1,7 +1,11 @@
 import { expect, test } from "./setup/auth";
-import { FIXTURE } from "./setup/seed";
+import { FIXTURE, restoreSeededFixture } from "./setup/seed";
 
 test.describe("aziende form (react-hook-form)", () => {
+  test.beforeEach(async () => {
+    await restoreSeededFixture();
+  });
+
   test("validates required nome via the schema before hitting the network", async ({
     signedInVet,
   }) => {
@@ -38,7 +42,7 @@ test.describe("aziende form (react-hook-form)", () => {
     await signedInVet.getByRole("button", { name: /Salva/i }).click();
     await expect(signedInVet).toHaveURL(/\/aziende\/?$/, { timeout: 15_000 });
     await expect(
-      signedInVet.getByRole("link", { name: new RegExp(unique) })
+      signedInVet.getByRole("link").filter({ hasText: unique }).first()
     ).toBeVisible({ timeout: 10_000 });
   });
 
@@ -54,7 +58,7 @@ test.describe("aziende form (react-hook-form)", () => {
     await signedInVet.getByRole("button", { name: /Salva/i }).click();
     await expect(signedInVet).toHaveURL(/\/aziende\/?$/, { timeout: 15_000 });
     await expect(
-      signedInVet.getByRole("link", { name: new RegExp(marker) })
+      signedInVet.getByRole("link").filter({ hasText: marker }).first()
     ).toBeVisible({ timeout: 10_000 });
   });
 });
