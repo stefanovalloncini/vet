@@ -2,7 +2,6 @@ import { initializeApp, type FirebaseApp } from "firebase/app";
 import {
   initializeFirestore,
   persistentLocalCache,
-  persistentMultipleTabManager,
   type Firestore,
   connectFirestoreEmulator,
 } from "firebase/firestore";
@@ -82,9 +81,7 @@ export function initFirebase(config: VetFirebaseConfig): {
     }
 
     firestore = initializeFirestore(app, {
-      localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager(),
-      }),
+      localCache: persistentLocalCache(),
     });
     auth = getAuth(app);
     functions = getFunctions(app, "europe-west8");
