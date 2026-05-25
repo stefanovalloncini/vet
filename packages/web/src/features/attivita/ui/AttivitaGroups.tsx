@@ -1,5 +1,7 @@
 import type { Attivita } from "@vet/shared";
-import { EmptyState } from "../../../shared/ui";
+import { Button, EmptyState } from "../../../shared/ui";
+import { useAuthState } from "../../auth";
+import { openQuickEntry } from "../../quick-entry";
 import { attivitaI18n as t } from "../i18n";
 import { formatEuro } from "../../../shared/lib/format";
 import type { Group } from "../lib/totals";
@@ -74,10 +76,22 @@ function MobileList({ groups, grouped }: { groups: Group[]; grouped: boolean }) 
 }
 
 function EmptyAttivita({ filtered }: { filtered: boolean }) {
+  const { user } = useAuthState();
+  const canCreate = user?.caps.has("activities.create") ?? false;
   if (filtered) {
     return (
       <EmptyState title={t.emptyFiltered} description={t.emptyFilteredHint} />
     );
   }
-  return <EmptyState title={t.emptyAll} />;
+  if (!canCreate) return <EmptyState title={t.emptyAll} />;
+  return (
+    <EmptyState
+      title={t.emptyAll}
+      action={
+        <Button type="button" variant="primary" onClick={openQuickEntry}>
+          {t.emptyAllCta}
+        </Button>
+      }
+    />
+  );
 }

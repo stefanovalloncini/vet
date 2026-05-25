@@ -3,6 +3,7 @@ export const attivitaI18n = {
   subtitle: "Elenco attività registrate.",
   nuovaAttivita: "Nuova attività",
   emptyAll: "Nessuna attività registrata.",
+  emptyAllCta: "Aggiungi la prima attività",
   emptyFiltered: "Nessun risultato per i filtri scelti.",
   emptyFilteredHint: "Allarga il periodo o rimuovi un filtro.",
   pulisciFiltri: "Pulisci filtri",
