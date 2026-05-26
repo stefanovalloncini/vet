@@ -26,6 +26,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm -F @vet/shared build
+      - run: pnpm -F @vet/functions build
       - run: pnpm lint
       - run: pnpm typecheck
 
