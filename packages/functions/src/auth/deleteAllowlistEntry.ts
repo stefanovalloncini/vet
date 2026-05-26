@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { getRepositories } from "../infrastructure/composition.js";
 import { decodeCaps, normalizeEmail } from "@vet/shared";
+import { ensureRecentAuth } from "./recentAuth.js";
 
 const inputSchema = z
   .object({ email: z.string().min(3).max(120) })
@@ -33,6 +34,7 @@ export const deleteAllowlistEntry = onCall(
       : null;
 
     ensureCanManageAllowlist(caller);
+    ensureRecentAuth(request);
 
     let email: string;
     try {

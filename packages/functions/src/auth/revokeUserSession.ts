@@ -3,6 +3,7 @@ import { z } from "zod";
 import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
 import { decodeCaps } from "@vet/shared";
+import { ensureRecentAuth } from "./recentAuth.js";
 
 const inputSchema = z.object({ uid: z.string().min(1).max(128) }).strict();
 
@@ -27,6 +28,7 @@ export const revokeUserSession = onCall(
       : null;
 
     ensureCanRevoke(caller);
+    ensureRecentAuth(request);
 
     let uid: string;
     try {

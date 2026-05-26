@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { getRepositories } from "../infrastructure/composition.js";
 import { decodeCaps } from "@vet/shared";
+import { ensureRecentAuth } from "../auth/recentAuth.js";
 
 const inputSchema = z.object({ id: z.string().min(1).max(64) }).strict();
 
@@ -31,6 +32,7 @@ export const purgeAttivita = onCall(
       : null;
 
     ensureCanPurge(caller);
+    ensureRecentAuth(request);
 
     let id: string;
     try {
