@@ -223,7 +223,7 @@ describe("ContiPage", () => {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
     const link = await screen.findByRole("link", { name: /Cascina A/i });
-    expect(link.getAttribute("href")).toBe(`/aziende/${idA}`);
+    expect(link.getAttribute("href")).toBe(`/aziende/${idA}?tab=conti`);
   });
 
   it("does not surface a 'Segna saldato' action on the list", async () => {

@@ -137,7 +137,7 @@ function AziendaRow({ azienda, bucket }: AziendaRowProps) {
     ? "Ci sono conti non saldati"
     : "Tutti i conti saldati";
   return (
-    <Link to={`/aziende/${azienda.id}`} className="block group">
+    <Link to={`/aziende/${azienda.id}?tab=conti`} className="block group">
       <Card className="transition-colors duration-(--motion-fast) ease-(--ease-out-quart) group-hover:border-(--color-border-strong)">
         <div className="flex items-center gap-4">
           <span

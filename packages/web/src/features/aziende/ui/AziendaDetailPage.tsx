@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import type { Attivita } from "@vet/shared";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import type { Attivita, Conto } from "@vet/shared";
 import { AppShell, ConfirmDialog, Tabs, useToast } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useReminders } from "../../reminders/hooks/useReminders";
@@ -19,12 +19,18 @@ import {
 
 type Tab = "storico" | "conti" | "promemoria";
 
+function parseInitialTab(raw: string | null): Tab {
+  return raw === "conti" || raw === "promemoria" ? raw : "storico";
+}
+
 export function AziendaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuthState();
   const { notify } = useToast();
-  const [tab, setTab] = useState<Tab>("storico");
+  const initialTab: Tab = parseInitialTab(searchParams.get("tab"));
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const { reminders } = useReminders();
   const { tagsFor, setForAzienda } = useTags();
@@ -44,7 +50,13 @@ export function AziendaDetailPage() {
     () => detail.items.reduce((s: number, x: Attivita) => s + x.totale, 0),
     [detail.items]
   );
-  const paidTotal = 0;
+  const paidTotal = useMemo(
+    () =>
+      (contiQuery.data ?? [])
+        .filter((c: Conto) => c.modalita === "emesso" && c.saldato)
+        .reduce((s: number, c: Conto) => s + (c.importoSaldato ?? c.totaleConto), 0),
+    [contiQuery.data]
+  );
 
   const canUpdate = user?.caps.has("aziende.update") ?? false;
   const canExport = user?.caps.has("activities.export") ?? false;
