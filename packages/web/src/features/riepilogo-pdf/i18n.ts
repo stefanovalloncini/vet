@@ -11,7 +11,7 @@ export const riepilogoI18n = {
   totale: "Totale",
   partitaIva: "P.IVA",
   veterinario: "Veterinario",
-  documento: "Documento di riepilogo non fiscale",
+  documento: "Documento non fiscalmente valido — riepilogo prestazioni",
   stampa: "Stampa o salva PDF",
   back: "Torna indietro",
   noData: "Nessuna attività nel periodo.",
