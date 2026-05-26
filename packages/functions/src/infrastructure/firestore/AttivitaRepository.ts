@@ -3,6 +3,7 @@ import {
   Timestamp,
   type Firestore,
   type Query,
+  type Transaction,
 } from "firebase-admin/firestore";
 import type {
   ActorContext,
@@ -32,7 +33,10 @@ const updateDeps: AttivitaUpdateDeps<Timestamp, FieldValue, FieldValue> = {
 };
 
 export class FirestoreAttivitaRepository implements AttivitaRepository {
-  constructor(private readonly db: Firestore) {}
+  constructor(
+    private readonly db: Firestore,
+    private readonly tx?: Transaction
+  ) {}
 
   async list(filters: AttivitaFilters = {}): Promise<Attivita[]> {
     let q: Query = this.db
@@ -60,7 +64,8 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
   }
 
   async getById(id: string): Promise<Attivita | null> {
-    const snap = await this.db.collection("attivita").doc(id).get();
+    const ref = this.db.collection("attivita").doc(id);
+    const snap = this.tx ? await this.tx.get(ref) : await ref.get();
     if (!snap.exists) return null;
     return parseAttivita(id, snap.data());
   }
@@ -116,16 +121,27 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
   }
 
   async restore(id: string): Promise<void> {
-    await this.db.collection("attivita").doc(id).update({
+    const ref = this.db.collection("attivita").doc(id);
+    const patch = {
       isDeleted: false,
       deletedAt: FieldValue.delete(),
       deletedBy: FieldValue.delete(),
       updatedAt: FieldValue.serverTimestamp(),
-    });
+    };
+    if (this.tx) {
+      this.tx.update(ref, patch);
+      return;
+    }
+    await ref.update(patch);
   }
 
   async hardDelete(id: string): Promise<void> {
-    await this.db.collection("attivita").doc(id).delete();
+    const ref = this.db.collection("attivita").doc(id);
+    if (this.tx) {
+      this.tx.delete(ref);
+      return;
+    }
+    await ref.delete();
   }
 
   async purgeOlderThanDeletedAt(cutoff: Date): Promise<number> {

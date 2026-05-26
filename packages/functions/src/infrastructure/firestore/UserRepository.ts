@@ -2,6 +2,7 @@ import {
   FieldValue,
   Timestamp,
   type Firestore,
+  type Transaction,
 } from "firebase-admin/firestore";
 import type {
   User,
@@ -36,10 +37,14 @@ const stampDeps: SerializerStampDeps<Timestamp, FieldValue> = {
 };
 
 export class FirestoreUserRepository implements UserRepository {
-  constructor(private readonly db: Firestore) {}
+  constructor(
+    private readonly db: Firestore,
+    private readonly tx?: Transaction
+  ) {}
 
   async getById(uid: string): Promise<User | null> {
-    const snap = await this.db.collection("users").doc(uid).get();
+    const ref = this.db.collection("users").doc(uid);
+    const snap = this.tx ? await this.tx.get(ref) : await ref.get();
     if (!snap.exists) return null;
     return parseUser(uid, snap.data());
   }
@@ -76,31 +81,40 @@ export class FirestoreUserRepository implements UserRepository {
     uid: string,
     args: UserApprovePatchArgs
   ): Promise<void> {
-    await this.db
-      .collection("users")
-      .doc(uid)
-      .set(buildUserApprovePatch(args, stampDeps), { merge: true });
+    const ref = this.db.collection("users").doc(uid);
+    const patch = buildUserApprovePatch(args, stampDeps);
+    if (this.tx) {
+      this.tx.set(ref, patch, { merge: true });
+      return;
+    }
+    await ref.set(patch, { merge: true });
   }
 
   async applySignInPatch(
     uid: string,
     args: UserSignInPatchArgs
   ): Promise<void> {
-    await this.db
-      .collection("users")
-      .doc(uid)
-      .set(buildUserSignInPatch(args, stampDeps), { merge: true });
+    const ref = this.db.collection("users").doc(uid);
+    const patch = buildUserSignInPatch(args, stampDeps);
+    if (this.tx) {
+      this.tx.set(ref, patch, { merge: true });
+      return;
+    }
+    await ref.set(patch, { merge: true });
   }
 
   async applyRevokeSessionPatch(
     uid: string,
     args: UserRevokeSessionPatchArgs
   ): Promise<void> {
+    const ref = this.db.collection("users").doc(uid);
+    const patch = { ...buildUserRevokeSessionPatch(args, stampDeps) };
+    if (this.tx) {
+      this.tx.update(ref, patch);
+      return;
+    }
     try {
-      await this.db
-        .collection("users")
-        .doc(uid)
-        .update({ ...buildUserRevokeSessionPatch(args, stampDeps) });
+      await ref.update(patch);
     } catch (err) {
       if (isFirestoreNotFound(err)) return;
       throw err;
@@ -108,6 +122,11 @@ export class FirestoreUserRepository implements UserRepository {
   }
 
   async hardDelete(uid: string): Promise<void> {
-    await this.db.collection("users").doc(uid).delete();
+    const ref = this.db.collection("users").doc(uid);
+    if (this.tx) {
+      this.tx.delete(ref);
+      return;
+    }
+    await ref.delete();
   }
 }

@@ -25,13 +25,13 @@ let repositoriesCache: Repositories | null = null;
 function buildTx(tx?: Transaction): Tx {
   return {
     clock: new SystemClock(),
-    users: new FirestoreUserRepository(adminDb),
+    users: new FirestoreUserRepository(adminDb, tx),
     roles: new FirestoreRoleRepository(adminDb, tx),
     allowlist: new FirestoreAllowlistRepository(adminDb, tx),
     accessRequests: new FirestoreAccessRequestRepository(adminDb, tx),
     aziende: new FirestoreAziendeRepository(adminDb),
     activityTypes: new FirestoreActivityTypesRepository(adminDb),
-    attivita: new FirestoreAttivitaRepository(adminDb),
+    attivita: new FirestoreAttivitaRepository(adminDb, tx),
     trash: new NotSupportedTrashService(),
     audit: new FirestoreAuditRepository(adminDb, tx),
     conti: new FirestoreContiRepository(adminDb),

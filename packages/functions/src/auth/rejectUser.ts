@@ -36,20 +36,23 @@ export const rejectUser = onCall(
 
     const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
 
-    await repos.users.hardDelete(targetUid);
+    await repos.run(async (tx) => {
+      await tx.users.hardDelete(targetUid);
+      await tx.audit.record({
+        actorUid,
+        actorEmail,
+        action: "user.reject",
+        targetType: "user",
+        targetId: targetUid,
+        details: { email: user.email },
+      });
+    });
+
     try {
       await adminAuth.deleteUser(targetUid);
     } catch (err) {
       logger.warn("auth.rejectUser.authDeleteFailed", { targetUid, err: String(err) });
     }
-    await repos.audit.record({
-      actorUid,
-      actorEmail,
-      action: "user.reject",
-      targetType: "user",
-      targetId: targetUid,
-      details: { email: user.email },
-    });
 
     logger.info("auth.rejectUser", { actorUid, targetUid });
 

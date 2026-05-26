@@ -41,16 +41,19 @@ export const revokeUserSession = onCall(
 
     await adminAuth.revokeRefreshTokens(uid);
     await adminAuth.updateUser(uid, { disabled: true });
-    await repos.users.applyRevokeSessionPatch(uid, {
-      disabled: true,
-      minCapsVer: Date.now(),
-    });
-    await repos.audit.record({
-      actorUid: caller!.uid,
-      actorEmail: (auth?.token.email as string) ?? "",
-      action: "user.session.revoke",
-      targetType: "user",
-      targetId: uid,
+
+    await repos.run(async (tx) => {
+      await tx.users.applyRevokeSessionPatch(uid, {
+        disabled: true,
+        minCapsVer: Date.now(),
+      });
+      await tx.audit.record({
+        actorUid: caller!.uid,
+        actorEmail: (auth?.token.email as string) ?? "",
+        action: "user.session.revoke",
+        targetType: "user",
+        targetId: uid,
+      });
     });
 
     return { ok: true };

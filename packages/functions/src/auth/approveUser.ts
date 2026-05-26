@@ -40,7 +40,19 @@ export const approveUser = onCall(
     if (!user) throw new HttpsError("not-found", "user");
     if (!role) throw new HttpsError("not-found", "role");
 
-    await repos.users.applyApprovePatch(targetUid, { actorUid, roleId });
+    const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
+
+    await repos.run(async (tx) => {
+      await tx.users.applyApprovePatch(targetUid, { actorUid, roleId });
+      await tx.audit.record({
+        actorUid,
+        actorEmail,
+        action: "user.approve",
+        targetType: "user",
+        targetId: targetUid,
+        details: { roleId },
+      });
+    });
 
     await adminAuth.setCustomUserClaims(targetUid, {
       vet: true,
@@ -50,16 +62,6 @@ export const approveUser = onCall(
       ...(user.displayName ? { name: user.displayName } : {}),
     });
     await adminAuth.revokeRefreshTokens(targetUid);
-
-    const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
-    await repos.audit.record({
-      actorUid,
-      actorEmail,
-      action: "user.approve",
-      targetType: "user",
-      targetId: targetUid,
-      details: { roleId },
-    });
 
     logger.info("auth.approveUser", { actorUid, targetUid, roleId });
 

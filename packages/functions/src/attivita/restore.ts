@@ -48,14 +48,15 @@ export const restoreAttivita = onCall(
     }
     ensureCanRestore(caller, attivita.ownerUid);
 
-    await repos.attivita.restore(id);
-
-    await repos.audit.record({
-      actorUid: caller.uid,
-      actorEmail: caller.email,
-      action: "attivita.restore",
-      targetType: "attivita",
-      targetId: id,
+    await repos.run(async (tx) => {
+      await tx.attivita.restore(id);
+      await tx.audit.record({
+        actorUid: caller.uid,
+        actorEmail: caller.email,
+        action: "attivita.restore",
+        targetType: "attivita",
+        targetId: id,
+      });
     });
 
     return { ok: true };

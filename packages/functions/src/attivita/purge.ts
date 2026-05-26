@@ -48,14 +48,16 @@ export const purgeAttivita = onCall(
       throw new HttpsError("failed-precondition", "");
     }
 
-    await repos.attivita.hardDelete(id);
-    await repos.audit.record({
-      actorUid: caller!.uid,
-      actorEmail: caller!.email,
-      action: "attivita.purge",
-      targetType: "attivita",
-      targetId: id,
-      details: { ownerUid: attivita.ownerUid },
+    await repos.run(async (tx) => {
+      await tx.attivita.hardDelete(id);
+      await tx.audit.record({
+        actorUid: caller!.uid,
+        actorEmail: caller!.email,
+        action: "attivita.purge",
+        targetType: "attivita",
+        targetId: id,
+        details: { ownerUid: attivita.ownerUid },
+      });
     });
 
     return { ok: true };

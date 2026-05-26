@@ -24,16 +24,18 @@ export const selfRevoke = onCall(
     const repos = getRepositories();
 
     await adminAuth.revokeRefreshTokens(caller.uid);
-    await repos.users.applyRevokeSessionPatch(caller.uid, {
-      minCapsVer: Date.now(),
-    });
 
-    await repos.audit.record({
-      actorUid: caller.uid,
-      actorEmail: caller.email,
-      action: "user.session.self-revoke",
-      targetType: "user",
-      targetId: caller.uid,
+    await repos.run(async (tx) => {
+      await tx.users.applyRevokeSessionPatch(caller.uid, {
+        minCapsVer: Date.now(),
+      });
+      await tx.audit.record({
+        actorUid: caller.uid,
+        actorEmail: caller.email,
+        action: "user.session.self-revoke",
+        targetType: "user",
+        targetId: caller.uid,
+      });
     });
 
     return { ok: true as const };
