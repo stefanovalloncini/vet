@@ -9,6 +9,7 @@
     "seed:activity-types": "tsx seed-activity-types.ts",
     "wipe:types": "tsx wipe-and-reseed-types.ts",
     "create:test-users": "tsx create-test-users.ts",
+    "audit:prime": "tsx audit-prime.ts",
     "rescue:admin": "tsx rescue-admin.ts",
     "migrate:approved": "tsx migrate-approved.ts"
   },
