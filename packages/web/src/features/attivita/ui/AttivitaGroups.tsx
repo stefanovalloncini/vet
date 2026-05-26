@@ -1,7 +1,6 @@
 import type { Attivita } from "@vet/shared";
 import { Button, EmptyState } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
-import { openQuickEntry } from "../../quick-entry";
 import { attivitaI18n as t } from "../i18n";
 import { formatEuro } from "../../../shared/lib/format";
 import type { Group } from "../lib/totals";
@@ -112,15 +111,5 @@ function EmptyAttivita({
       />
     );
   }
-  if (!canCreate) return <EmptyState title={t.emptyAll} />;
-  return (
-    <EmptyState
-      title={t.emptyAll}
-      action={
-        <Button type="button" variant="primary" onClick={openQuickEntry}>
-          {t.emptyAllCta}
-        </Button>
-      }
-    />
-  );
+  return <EmptyState title={t.emptyAll} {...(canCreate ? { description: t.emptyAllHint } : {})} />;
 }

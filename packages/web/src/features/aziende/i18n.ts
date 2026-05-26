@@ -4,6 +4,7 @@ export const aziendeI18n = {
   nuovaAzienda: "Nuova azienda",
   cercaPlaceholder: "Cerca per nome…",
   empty: "Nessuna azienda.",
+  emptyHint: "Usa Nuova azienda in alto per la prima.",
   emptySearch: "Nessun risultato.",
   loading: "Caricamento…",
   modifica: "Modifica",

@@ -197,18 +197,10 @@ function AziendaCard({
 
 function renderEmpty(searching: boolean, canCreate: boolean) {
   if (searching) return <EmptyState title={t.emptySearch} />;
-  if (!canCreate) return <EmptyState title={t.empty} />;
   return (
     <EmptyState
       title={t.empty}
-      action={
-        <Link
-          to="/aziende/nuova"
-          className="text-sm text-(--color-accent) hover:underline"
-        >
-          {t.nuovaAzienda}
-        </Link>
-      }
+      {...(canCreate ? { description: t.emptyHint } : {})}
     />
   );
 }

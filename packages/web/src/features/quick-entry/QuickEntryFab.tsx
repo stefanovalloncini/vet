@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { useAuthState } from "../auth";
+import { useAttivita } from "../attivita/hooks/useAttivita";
 import { QuickEntryDialog } from "./ui/QuickEntryDialog";
 
 const HIDE_PATTERNS: ReadonlyArray<RegExp> = [
@@ -27,10 +28,13 @@ export function QuickEntryFab() {
   const { user } = useAuthState();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const { items, isLoading } = useAttivita();
 
   const enabled =
     !!user?.caps.has("activities.create") &&
     !HIDE_PATTERNS.some((rx) => rx.test(pathname));
+
+  const attentive = enabled && !isLoading && items.length === 0;
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -65,9 +69,9 @@ export function QuickEntryFab() {
         aria-keyshortcuts="N"
         title="Voce rapida (N)"
         onClick={() => setOpen(true)}
-        className="fixed right-5 bottom-[var(--fab-bottom)] sm:bottom-5 z-30 w-12 h-12 rounded-full bg-(--color-accent) text-white shadow-lg hover:bg-(--color-accent-hover) print:hidden flex items-center justify-center"
+        className={`fixed right-5 bottom-[var(--fab-bottom)] sm:bottom-5 z-30 w-12 h-12 rounded-full bg-(--color-accent) text-white shadow-lg hover:bg-(--color-accent-hover) print:hidden flex items-center justify-center isolate ${attentive ? "fab-attention" : ""}`}
       >
-        <Plus size={22} strokeWidth={2} aria-hidden="true" />
+        <Plus size={22} strokeWidth={2} aria-hidden="true" className="relative z-10" />
       </button>
       <QuickEntryDialog open={open} onClose={() => setOpen(false)} />
     </>

@@ -16,7 +16,7 @@ export function OnboardingBanner({ hasAziende, hasAttivita }: OnboardingBannerPr
   if (dismissed || (hasAziende && hasAttivita)) return null;
 
   return (
-    <div className="mb-6 flex items-baseline justify-between gap-4">
+    <div className="mb-6 relative pr-16">
       <p className="text-sm text-(--color-text-muted)">
         {renderCopy(hasAziende, hasAttivita)}
       </p>
@@ -26,7 +26,7 @@ export function OnboardingBanner({ hasAziende, hasAttivita }: OnboardingBannerPr
           window.localStorage.setItem(STORAGE_KEY, "1");
           setDismissed(true);
         }}
-        className="text-xs text-(--color-text-subtle) hover:text-(--color-text) flex-shrink-0"
+        className="absolute right-0 top-0 text-xs text-(--color-text-subtle) hover:text-(--color-text) focus:outline-none focus-visible:underline underline-offset-4"
       >
         Nascondi
       </button>

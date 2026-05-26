@@ -6,6 +6,15 @@ import { getLastBackupAt } from "../lib/exportBackup";
 import { decideBackupReminder } from "../lib/backupReminderLogic";
 
 const SHOWN_KEY = "vet.backupReminder.lastShownAt";
+const ONBOARDING_KEY = "vet.onboarding.seenAt";
+
+function onboardingSeen(): boolean {
+  try {
+    return window.localStorage.getItem(ONBOARDING_KEY) !== null;
+  } catch {
+    return true;
+  }
+}
 
 function readShown(): number {
   try {
@@ -34,6 +43,7 @@ export function useBackupReminder(): void {
 
   useEffect(() => {
     if (!canSeeReminder) return;
+    if (!onboardingSeen()) return;
     const now = Date.now();
     const lastBackup = getLastBackupAt();
     const lastShown = readShown();

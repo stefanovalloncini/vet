@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Sparkles, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { Button, Dialog } from "../../shared/ui";
 
 type Step = 1 | 2;
@@ -36,12 +36,9 @@ export function OnboardingDialog({
         <StepIndicator current={step} />
 
         {step === 1 ? (
-          <StepBody
-            icon={<Sparkles size={18} strokeWidth={1.75} />}
-            title="Pronto a iniziare"
-          >
+          <StepBody title="Pronto a iniziare">
             Da qui registri le visite, vedi i riepiloghi e esporti i conti.
-            Sempre offline, sempre in italiano.
+            Funziona anche offline.
           </StepBody>
         ) : (
           <StepBody
@@ -102,7 +99,7 @@ function StepIndicator({ current }: { current: Step }) {
 }
 
 interface StepBodyProps {
-  icon: ReactNode;
+  icon?: ReactNode;
   title: string;
   children: ReactNode;
 }
@@ -110,12 +107,14 @@ interface StepBodyProps {
 function StepBody({ icon, title, children }: StepBodyProps) {
   return (
     <div className="space-y-3">
-      <span
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-(--color-accent-soft) text-(--color-accent)"
-        aria-hidden="true"
-      >
-        {icon}
-      </span>
+      {icon ? (
+        <span
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-(--color-accent-soft) text-(--color-accent)"
+          aria-hidden="true"
+        >
+          {icon}
+        </span>
+      ) : null}
       <h2 id={TITLE_ID} className="text-xl font-medium text-(--color-text)">
         {title}
       </h2>
