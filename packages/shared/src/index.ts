@@ -166,6 +166,8 @@ export {
   accessRequestDtoSchema,
   parseAccessRequest,
   decideAccessRequestUpdate,
+  computeExpiresAtMillis,
+  TTL_DAYS as ACCESS_REQUEST_TTL_DAYS,
   type AccessRequestDTO,
   type AccessRequestRecordInput,
   type AccessRequestDecision,

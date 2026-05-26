@@ -12,6 +12,7 @@ export const accessRequestDtoSchema = z
     providerId: z.string().max(60).optional(),
     firstAttemptAt: timestampLike,
     lastAttemptAt: timestampLike,
+    expiresAt: timestampLike.optional(),
     attempts: z.number().int().min(1).max(10000),
     schemaVersion: z.literal(1),
   })
@@ -55,19 +56,27 @@ export interface AccessRequestExisting {
 export type AccessRequestDecision<TStamp> =
   | { kind: "create"; doc: Record<string, unknown> }
   | { kind: "update"; patch: Record<string, unknown> }
-  | { kind: "storm"; attempts: number; patch: { lastAttemptAt: TStamp } }
+  | {
+      kind: "storm";
+      attempts: number;
+      patch: { lastAttemptAt: TStamp; expiresAt?: TStamp };
+    }
   | { kind: "capped"; attempts: number };
 
 export function decideAccessRequestUpdate<TStamp>(input: {
   existing: AccessRequestExisting | null;
   input: AccessRequestRecordInput;
   now: TStamp;
+  expiresAt?: TStamp;
 }): AccessRequestDecision<TStamp> {
   const optionals = {
     ...(input.input.displayName ? { displayName: input.input.displayName } : {}),
     ...(input.input.photoURL ? { photoURL: input.input.photoURL } : {}),
     ...(input.input.providerId ? { providerId: input.input.providerId } : {}),
   };
+  const ttlField = input.expiresAt !== undefined
+    ? { expiresAt: input.expiresAt }
+    : {};
   if (!input.existing) {
     return {
       kind: "create",
@@ -77,6 +86,7 @@ export function decideAccessRequestUpdate<TStamp>(input: {
         ...optionals,
         firstAttemptAt: input.now,
         lastAttemptAt: input.now,
+        ...ttlField,
         attempts: 1,
         schemaVersion: 1,
       },
@@ -91,7 +101,7 @@ export function decideAccessRequestUpdate<TStamp>(input: {
     return {
       kind: "storm",
       attempts: prevAttempts,
-      patch: { lastAttemptAt: input.now },
+      patch: { lastAttemptAt: input.now, ...ttlField },
     };
   }
   return {
@@ -100,7 +110,15 @@ export function decideAccessRequestUpdate<TStamp>(input: {
       email: input.input.email,
       ...optionals,
       lastAttemptAt: input.now,
+      ...ttlField,
       attempts: prevAttempts + 1,
     },
   };
+}
+
+export const TTL_DAYS = 90;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+export function computeExpiresAtMillis(nowMillis: number): number {
+  return nowMillis + TTL_DAYS * MS_PER_DAY;
 }

@@ -9,7 +9,11 @@ import type {
   AccessRequestRecordResult,
   AccessRequestRepository,
 } from "@vet/shared";
-import { decideAccessRequestUpdate, parseAccessRequest } from "@vet/shared";
+import {
+  computeExpiresAtMillis,
+  decideAccessRequestUpdate,
+  parseAccessRequest,
+} from "@vet/shared";
 
 const PAGE_SIZE = 200;
 
@@ -67,10 +71,12 @@ export class FirestoreAccessRequestRepository
     const ref = this.db.collection("accessRequests").doc(input.emailNorm);
     const snap = await tx.get(ref);
     const existing = snap.exists ? snap.data() ?? null : null;
+    const now = Timestamp.now();
     const decision = decideAccessRequestUpdate({
       existing,
       input,
-      now: Timestamp.now(),
+      now,
+      expiresAt: Timestamp.fromMillis(computeExpiresAtMillis(now.toMillis())),
     });
     if (decision.kind === "capped") {
       return { kind: "storm", attempts: decision.attempts };
