@@ -225,6 +225,7 @@ service cloud.firestore {
                 && ((hasCap("hro") && resource.data.ownerUid == request.auth.uid)
                     || hasCap("hra"))));
       allow create: if hasCap("ac")
+        && tokenIsFresh()
         && validCreate()
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.ownerEmail == request.auth.token.email
@@ -232,7 +233,7 @@ service cloud.firestore {
         && request.resource.data.ownerName == request.auth.token.name
         && isServerStamped("createdAt")
         && isServerStamped("updatedAt");
-      allow update: if (
+      allow update: if tokenIsFresh() && (
           (
             (hasCap("auo") && resource.data.ownerUid == request.auth.uid
                 && resource.data.isDeleted == false)
@@ -270,7 +271,7 @@ service cloud.firestore {
               || (resource.data.isDeleted == false && request.resource.data.isDeleted == true && isServerStamped("deletedAt"))
               || (resource.data.isDeleted == true && request.resource.data.isDeleted == false))
         );
-      allow delete: if hasCap("hp") && resource.data.isDeleted == true;
+      allow delete: if hasCap("hp") && tokenIsFresh() && resource.data.isDeleted == true;
     }
 
     match /aziende/{aziendaId} {
@@ -300,6 +301,7 @@ service cloud.firestore {
       }
       allow read: if hasCap("zr");
       allow create: if hasCap("zc")
+        && tokenIsFresh()
         && valid()
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.updatedBy == request.auth.uid
@@ -311,6 +313,7 @@ service cloud.firestore {
         && isServerStamped("createdAt")
         && isServerStamped("updatedAt");
       allow update: if hasCap("zu")
+        && tokenIsFresh()
         && valid()
         && request.resource.data.updatedBy == request.auth.uid
         && hasTokenName()
@@ -339,14 +342,16 @@ service cloud.firestore {
       }
       allow read: if hasCap("tr");
       allow create: if hasCap("tm")
+        && tokenIsFresh()
         && valid()
         && isServerStamped("createdAt")
         && isServerStamped("updatedAt");
       allow update: if hasCap("tm")
+        && tokenIsFresh()
         && valid()
         && isImmutable("createdAt")
         && isServerStamped("updatedAt");
-      allow delete: if hasCap("tm");
+      allow delete: if hasCap("tm") && tokenIsFresh();
     }
 
     match /audit/{auditId} {
@@ -394,6 +399,7 @@ service cloud.firestore {
       }
       allow read: if hasCap("cp");
       allow create: if hasCap("cp")
+        && tokenIsFresh()
         && validCreate()
         && request.resource.data.emittedBy == request.auth.uid
         && hasTokenName()
@@ -401,7 +407,7 @@ service cloud.firestore {
         && isServerStamped("emittedAt")
         && (request.resource.data.modalita == "proforma"
             || (request.resource.data.modalita == "emesso" && hasCap("ce")));
-      allow update: if (
+      allow update: if tokenIsFresh() && (
         (hasCap("cs") && resource.data.modalita == "emesso" && resource.data.saldato == false && validSaldoUpdate() && isServerStamped("saldatoAt")
           && hasTokenName() && request.resource.data.saldatoByName == request.auth.token.name)
         || (hasCap("ce") && resource.data.isDeleted == false && validAnnullaUpdate() && isServerStamped("deletedAt"))
@@ -428,6 +434,7 @@ service cloud.firestore {
       }
       allow read: if hasCap("mr");
       allow create: if hasCap("mc")
+        && tokenIsFresh()
         && valid()
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.done == false
@@ -438,13 +445,15 @@ service cloud.firestore {
           (hasCap("muo") && resource.data.createdBy == request.auth.uid)
           || hasCap("mua")
         )
+        && tokenIsFresh()
         && valid()
         && isImmutable("createdAt")
         && isImmutable("createdBy")
         && isImmutable("aziendaId")
         && isServerStamped("updatedAt");
-      allow delete: if (hasCap("mdo") && resource.data.createdBy == request.auth.uid)
-        || hasCap("mda");
+      allow delete: if tokenIsFresh()
+        && ((hasCap("mdo") && resource.data.createdBy == request.auth.uid)
+          || hasCap("mda"));
     }
 
     match /{document=**} {
