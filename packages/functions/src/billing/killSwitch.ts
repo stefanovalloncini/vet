@@ -2,7 +2,7 @@ import { onMessagePublished } from "firebase-functions/v2/pubsub";
 import { logger } from "firebase-functions/v2";
 import { CloudBillingClient } from "@google-cloud/billing";
 
-const KILL_THRESHOLD_USD = 5;
+const KILL_THRESHOLD = 5;
 
 interface BudgetNotification {
   budgetDisplayName: string;
@@ -49,17 +49,10 @@ export const killSwitchOnBudget = onMessagePublished(
       budget: notification.budgetDisplayName,
       cost: notification.costAmount,
       currency: notification.currencyCode,
-      threshold: KILL_THRESHOLD_USD,
+      threshold: KILL_THRESHOLD,
     });
 
-    if (notification.currencyCode !== "USD") {
-      logger.warn("kill switch: non-USD currency, ignoring", {
-        currency: notification.currencyCode,
-      });
-      return;
-    }
-
-    if (!shouldKill(notification.costAmount, KILL_THRESHOLD_USD)) return;
+    if (!shouldKill(notification.costAmount, KILL_THRESHOLD)) return;
 
     const projectId = process.env.GCLOUD_PROJECT ?? process.env.GCP_PROJECT;
     if (!projectId) {
@@ -84,7 +77,8 @@ export const killSwitchOnBudget = onMessagePublished(
     logger.error("KILL_SWITCH_TRIGGERED: billing disabled", {
       projectId,
       cost: notification.costAmount,
-      threshold: KILL_THRESHOLD_USD,
+      currency: notification.currencyCode,
+      threshold: KILL_THRESHOLD,
     });
   }
 );
