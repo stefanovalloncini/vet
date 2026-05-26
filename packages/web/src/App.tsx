@@ -15,6 +15,10 @@ const SicurezzaPage = lazy(() =>
   import("./features/diagnostics").then((m) => ({ default: m.SicurezzaPage }))
 );
 
+const PrivacyPage = lazy(() =>
+  import("./features/privacy").then((m) => ({ default: m.PrivacyPage }))
+);
+
 const DevPrimitivesPage = import.meta.env.DEV
   ? lazy(() =>
       import("./features/dev-primitives").then((m) => ({ default: m.DevPrimitivesPage }))
@@ -63,6 +67,14 @@ function AppRoutes() {
           element={
             <RouteShell pathname={pathname}>
               <SicurezzaPage />
+            </RouteShell>
+          }
+        />
+        <Route
+          path="/privacy"
+          element={
+            <RouteShell pathname={pathname}>
+              <PrivacyPage />
             </RouteShell>
           }
         />

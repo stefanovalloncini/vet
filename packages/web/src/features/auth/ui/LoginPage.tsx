@@ -97,7 +97,14 @@ export function LoginPage() {
       subtitle={SUBTITLES[view]}
       footer={
         <span>
-          Ingresso riservato all&apos;elenco abilitato dallo studio.
+          Ingresso riservato all&apos;elenco abilitato dallo studio.{" "}
+          <Link
+            to="/privacy"
+            className="underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
+          >
+            Informativa privacy
+          </Link>
+          .
         </span>
       }
     >
