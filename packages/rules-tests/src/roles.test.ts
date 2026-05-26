@@ -186,4 +186,20 @@ describe("roles rules", () => {
       })
     );
   });
+
+  it("roleNames mirror delete is denied while the underlying role still exists (V-024 regression)", async () => {
+    const env = await getEnv();
+    const db = adminAs(env, "admin-uid");
+    await assertFails(deleteDoc(doc(db, "roleNames/admin")));
+    await assertFails(deleteDoc(doc(db, "roleNames/test")));
+  });
+
+  it("roleNames mirror delete is allowed once the underlying role is gone", async () => {
+    const env = await getEnv();
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await deleteDoc(doc(ctx.firestore(), "roles/vet"));
+    });
+    const db = adminAs(env, "admin-uid");
+    await assertSucceeds(deleteDoc(doc(db, "roleNames/test")));
+  });
 });
