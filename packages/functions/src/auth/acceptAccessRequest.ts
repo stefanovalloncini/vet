@@ -48,19 +48,18 @@ export const acceptAccessRequest = onCall(
           );
         }
         await tx.accessRequests.delete(emailNorm);
+        await tx.audit.record({
+          actorUid,
+          actorEmail,
+          action: "access_request.accept",
+          targetType: "access_request",
+          targetId: emailNorm,
+          details: { roleId: input.roleId, email: input.email },
+        });
       });
     } catch (err) {
       throw toHttpsError(err);
     }
-
-    await repos.audit.record({
-      actorUid,
-      actorEmail,
-      action: "access_request.accept",
-      targetType: "access_request",
-      targetId: emailNorm,
-      details: { roleId: input.roleId, email: input.email },
-    });
 
     logger.info("auth.acceptAccessRequest", {
       actorUid,

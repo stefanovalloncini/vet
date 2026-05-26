@@ -35,19 +35,18 @@ export const rejectAccessRequest = onCall(
           throw new HttpsError("not-found", "");
         }
         await tx.accessRequests.delete(emailNorm);
+        await tx.audit.record({
+          actorUid,
+          actorEmail,
+          action: "access_request.reject",
+          targetType: "access_request",
+          targetId: emailNorm,
+          details: { email: input.email },
+        });
       });
     } catch (err) {
       throw toHttpsError(err);
     }
-
-    await repos.audit.record({
-      actorUid,
-      actorEmail,
-      action: "access_request.reject",
-      targetType: "access_request",
-      targetId: emailNorm,
-      details: { email: input.email },
-    });
 
     logger.info("auth.rejectAccessRequest", { actorUid, email: emailNorm });
 

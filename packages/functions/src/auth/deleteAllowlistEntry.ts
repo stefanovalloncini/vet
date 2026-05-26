@@ -44,16 +44,17 @@ export const deleteAllowlistEntry = onCall(
     const emailNorm = normalizeEmail(email);
     const repos = getRepositories();
 
-    await repos.audit.record({
-      actorUid: caller.uid,
-      actorEmail: caller.email,
-      action: "allowlist.delete",
-      targetType: "allowlist",
-      targetId: emailNorm,
-      details: { email },
+    await repos.run(async (tx) => {
+      await tx.allowlist.remove(email);
+      await tx.audit.record({
+        actorUid: caller.uid,
+        actorEmail: caller.email,
+        action: "allowlist.delete",
+        targetType: "allowlist",
+        targetId: emailNorm,
+        details: { email },
+      });
     });
-
-    await repos.allowlist.remove(email);
 
     return { ok: true as const };
   }
