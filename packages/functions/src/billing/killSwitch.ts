@@ -1,8 +1,10 @@
 import { onMessagePublished } from "firebase-functions/v2/pubsub";
 import { logger } from "firebase-functions/v2";
 import { CloudBillingClient } from "@google-cloud/billing";
+import { getRepositories } from "../infrastructure/composition.js";
 
 const KILL_THRESHOLD = 5;
+const ALERT_RECIPIENT = "stefano.valloncini@gmail.com";
 
 interface BudgetNotification {
   budgetDisplayName: string;
@@ -15,6 +17,22 @@ interface BudgetNotification {
 
 export function shouldKill(costUsd: number, thresholdUsd: number): boolean {
   return Number.isFinite(costUsd) && costUsd >= thresholdUsd;
+}
+
+export function buildKillSwitchEmail(input: {
+  projectId: string;
+  cost: number;
+  currency: string;
+  budget: string;
+  threshold: number;
+}): string {
+  const safe = (s: string) =>
+    s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  return `<!doctype html><html lang="it"><body style="font-family:Georgia,serif;padding:24px;color:#333"><h2>Kill switch attivato</h2><p>Il progetto <strong>${safe(input.projectId)}</strong> ha superato la soglia di spesa configurata. Il billing è stato disabilitato automaticamente.</p><table style="border-collapse:collapse"><tr><td style="padding:4px 12px 4px 0">Budget</td><td><strong>${safe(input.budget)}</strong></td></tr><tr><td style="padding:4px 12px 4px 0">Costo attuale</td><td>${input.cost} ${safe(input.currency)}</td></tr><tr><td style="padding:4px 12px 4px 0">Soglia kill-switch</td><td>${input.threshold} ${safe(input.currency)}</td></tr></table><p>Per ripristinare il servizio, ri-collega il billing manualmente: <code>gcloud beta billing projects link ${safe(input.projectId)} --billing-account=...</code></p><p>Vedi il runbook <code>~/.claude/plans/Vet/RUNBOOKS/2026-incident-response.md</code> per la procedura completa.</p></body></html>`;
 }
 
 export function parseNotification(raw: unknown): BudgetNotification | null {
@@ -81,5 +99,27 @@ export const killSwitchOnBudget = onMessagePublished(
       currency: notification.currencyCode,
       threshold: KILL_THRESHOLD,
     });
+
+    try {
+      const repos = getRepositories();
+      await repos.mail.send({
+        to: ALERT_RECIPIENT,
+        message: {
+          subject: `[Vet] KILL SWITCH triggered — billing disabled (${projectId})`,
+          html: buildKillSwitchEmail({
+            projectId,
+            cost: notification.costAmount,
+            currency: notification.currencyCode,
+            budget: notification.budgetDisplayName,
+            threshold: KILL_THRESHOLD,
+          }),
+        },
+        kind: "kill-switch-alert",
+      });
+    } catch (err) {
+      logger.error("kill switch: alert email failed", {
+        errorName: err instanceof Error ? err.name : "Unknown",
+      });
+    }
   }
 );

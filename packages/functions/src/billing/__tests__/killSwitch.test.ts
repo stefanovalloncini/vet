@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseNotification, shouldKill } from "../killSwitch.js";
+import {
+  buildKillSwitchEmail,
+  parseNotification,
+  shouldKill,
+} from "../killSwitch.js";
 
 describe("shouldKill", () => {
   it("returns false below threshold", () => {
@@ -55,5 +59,34 @@ describe("parseNotification", () => {
         currencyCode: "USD",
       })
     ).toBeNull();
+  });
+});
+
+describe("buildKillSwitchEmail", () => {
+  it("includes the project, cost, currency, and budget name", () => {
+    const html = buildKillSwitchEmail({
+      projectId: "vet-marinoni",
+      cost: 6.42,
+      currency: "EUR",
+      budget: "Firebase Project vet-marinoni",
+      threshold: 5,
+    });
+    expect(html).toContain("vet-marinoni");
+    expect(html).toContain("6.42");
+    expect(html).toContain("EUR");
+    expect(html).toContain("Firebase Project vet-marinoni");
+  });
+
+  it("escapes user-controlled fields", () => {
+    const html = buildKillSwitchEmail({
+      projectId: "<script>",
+      cost: 1,
+      currency: "&\"<>",
+      budget: "<b>",
+      threshold: 5,
+    });
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&lt;script&gt;");
+    expect(html).toContain("&amp;");
   });
 });
