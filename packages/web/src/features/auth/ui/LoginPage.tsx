@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { Button, GoogleIcon, LoadingHint } from "../../../shared/ui";
+import { Button, GoogleIcon } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
 import {
   classifyAuthError,
@@ -13,6 +13,8 @@ import { EmailLinkForm, type EmailFormValues } from "./EmailLinkForm";
 import { EmailLinkSent } from "./EmailLinkSent";
 import { AccessRequestForm, type AccessRequestFormValues } from "./AccessRequestForm";
 import { AccessRequestSent } from "./AccessRequestSent";
+import { SlowAuthLoading } from "./SlowAuthLoading";
+import { GoogleSignInHint } from "./GoogleSignInHint";
 
 type View = "signIn" | "linkSent" | "requestAccess" | "requestSent";
 
@@ -79,8 +81,8 @@ export function LoginPage() {
 
   if (loading) {
     return (
-      <main className="min-h-[100dvh] flex items-center justify-center bg-(--color-background)">
-        <LoadingHint />
+      <main className="min-h-[100dvh] flex items-center justify-center bg-(--color-background) p-6">
+        <SlowAuthLoading label="Verifica della sessione…" />
       </main>
     );
   }
@@ -114,6 +116,7 @@ export function LoginPage() {
           onEmailChange={setEmail}
           onEmailSubmit={handleEmailSubmit}
           onGoogle={() => googleSignIn(false)}
+          onRetryGoogle={() => googleSignIn(true)}
           onRequestAccess={() => {
             setError(null);
             setView("requestAccess");
@@ -151,6 +154,7 @@ interface SignInViewProps {
   onEmailChange: (next: string) => void;
   onEmailSubmit: (values: EmailFormValues) => Promise<void>;
   onGoogle: () => void;
+  onRetryGoogle: () => void;
   onRequestAccess: () => void;
 }
 
@@ -160,6 +164,7 @@ function SignInView({
   onEmailChange,
   onEmailSubmit,
   onGoogle,
+  onRetryGoogle,
   onRequestAccess,
 }: SignInViewProps) {
   return (
@@ -181,28 +186,31 @@ function SignInView({
         </span>
       </div>
 
-      <Button
-        type="button"
-        variant="secondary"
-        size="lg"
-        fullWidth
-        disabled={busy}
-        onClick={onGoogle}
-        leadingIcon={
-          busy ? (
-            <Loader2
-              size={18}
-              strokeWidth={2}
-              className="animate-spin"
-              aria-hidden="true"
-            />
-          ) : (
-            <GoogleIcon />
-          )
-        }
-      >
-        Entra con Google
-      </Button>
+      <div className="space-y-3">
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          fullWidth
+          disabled={busy}
+          onClick={onGoogle}
+          leadingIcon={
+            busy ? (
+              <Loader2
+                size={18}
+                strokeWidth={2}
+                className="animate-spin"
+                aria-hidden="true"
+              />
+            ) : (
+              <GoogleIcon />
+            )
+          }
+        >
+          Entra con Google
+        </Button>
+        <GoogleSignInHint busy={busy} onRetry={onRetryGoogle} />
+      </div>
 
       <p className="text-center text-sm text-(--color-text-muted)">
         Non hai un account?{" "}

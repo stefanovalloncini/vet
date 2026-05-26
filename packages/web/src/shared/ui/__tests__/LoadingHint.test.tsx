@@ -13,10 +13,17 @@ describe("LoadingHint", () => {
     expect(screen.getByText(/Sto caricando i dati/i)).toBeInTheDocument();
   });
 
-  it("merges className with the default text classes", () => {
+  it("exposes a polite status role", () => {
+    render(<LoadingHint />);
+    const statuses = screen.getAllByRole("status");
+    expect(statuses.length).toBeGreaterThan(0);
+    expect(statuses[0]).toHaveAttribute("aria-live", "polite");
+  });
+
+  it("merges className with the default classes", () => {
     const { container } = render(<LoadingHint className="mt-2" />);
-    const p = container.querySelector("p");
-    expect(p?.className).toContain("mt-2");
-    expect(p?.className).toMatch(/text-/);
+    const root = container.firstElementChild as HTMLElement | null;
+    expect(root?.className).toContain("mt-2");
+    expect(root?.className).toMatch(/text-/);
   });
 });

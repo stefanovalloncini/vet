@@ -1,13 +1,20 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-import { Button, InlineError, Spinner, TextField } from "../../../shared/ui";
+import { Button, InlineError, TextField } from "../../../shared/ui";
 import { useAuthState } from "../hooks/useAuthState";
 import {
   useEmailLinkSignIn,
   type EmailLinkSignInState,
 } from "../hooks/useEmailLinkSignIn";
 import { CenteredAuthLayout } from "./CenteredAuthLayout";
+import { SlowAuthLoading, type SlowAuthStage } from "./SlowAuthLoading";
+
+const VERIFICATION_STAGES: readonly SlowAuthStage[] = [
+  { atMs: 0, label: "Verifica del link…" },
+  { atMs: 3000, label: "Controllo dell'autorizzazione…" },
+  { atMs: 7000, label: "Apertura della sessione…" },
+];
 
 export function EmailLinkCompletePage() {
   const { auth } = useRepositories();
@@ -68,10 +75,10 @@ export function EmailLinkCompletePage() {
 
 function VerifyingState() {
   return (
-    <CenteredAuthLayout title="Verifica del link in corso">
+    <CenteredAuthLayout title="Accesso in corso">
       <div className="space-y-6">
-        <Spinner size={18} label="Verifica del link" />
-        <p className="text-xs text-(--color-text-subtle)">
+        <SlowAuthLoading stages={VERIFICATION_STAGES} />
+        <p className="text-xs text-center text-(--color-text-subtle)">
           Non chiudere questa scheda. L&apos;app apre la sessione appena la
           verifica si completa.
         </p>
