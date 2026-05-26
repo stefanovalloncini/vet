@@ -82,14 +82,25 @@ describe("decideAccessRequestUpdate", () => {
     expect(result.patch).toMatchObject({ attempts: 1 });
   });
 
-  it("returns storm when attempts have hit the cap", () => {
+  it("returns storm when attempts have crossed the storm threshold", () => {
     const result = decideAccessRequestUpdate({
-      existing: { attempts: 10000 },
+      existing: { attempts: 200 },
       input: { email: "a@b.com", emailNorm: "a@b.com" },
       now: fixedNow,
     });
     expect(result.kind).toBe("storm");
     if (result.kind !== "storm") return;
+    expect(result.attempts).toBe(200);
+  });
+
+  it("returns capped when attempts have hit the hard cap", () => {
+    const result = decideAccessRequestUpdate({
+      existing: { attempts: 10000 },
+      input: { email: "a@b.com", emailNorm: "a@b.com" },
+      now: fixedNow,
+    });
+    expect(result.kind).toBe("capped");
+    if (result.kind !== "capped") return;
     expect(result.attempts).toBe(10000);
   });
 });

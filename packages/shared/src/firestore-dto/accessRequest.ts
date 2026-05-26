@@ -37,7 +37,8 @@ export function parseAccessRequest(
   };
 }
 
-const MAX_ATTEMPTS = 10000;
+export const STORM_THRESHOLD = 100;
+const HARD_CAP = 10000;
 
 export interface AccessRequestRecordInput {
   email: string;
@@ -54,7 +55,8 @@ export interface AccessRequestExisting {
 export type AccessRequestDecision<TStamp> =
   | { kind: "create"; doc: Record<string, unknown> }
   | { kind: "update"; patch: Record<string, unknown> }
-  | { kind: "storm"; attempts: number; patch: { lastAttemptAt: TStamp } };
+  | { kind: "storm"; attempts: number; patch: { lastAttemptAt: TStamp } }
+  | { kind: "capped"; attempts: number };
 
 export function decideAccessRequestUpdate<TStamp>(input: {
   existing: AccessRequestExisting | null;
@@ -82,7 +84,10 @@ export function decideAccessRequestUpdate<TStamp>(input: {
   }
   const prevAttempts =
     typeof input.existing.attempts === "number" ? input.existing.attempts : 0;
-  if (prevAttempts >= MAX_ATTEMPTS) {
+  if (prevAttempts >= HARD_CAP) {
+    return { kind: "capped", attempts: prevAttempts };
+  }
+  if (prevAttempts >= STORM_THRESHOLD) {
     return {
       kind: "storm",
       attempts: prevAttempts,

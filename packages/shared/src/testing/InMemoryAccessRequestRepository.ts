@@ -39,6 +39,9 @@ export class InMemoryAccessRequestRepository implements AccessRequestRepository 
       input,
       now,
     });
+    if (decision.kind === "capped") {
+      return { kind: "storm", attempts: decision.attempts };
+    }
     if (decision.kind === "storm") {
       if (existing) {
         this.map.set(input.emailNorm, {

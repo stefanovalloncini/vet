@@ -72,6 +72,9 @@ export class FirestoreAccessRequestRepository
       input,
       now: Timestamp.now(),
     });
+    if (decision.kind === "capped") {
+      return { kind: "storm", attempts: decision.attempts };
+    }
     if (decision.kind === "storm") {
       tx.update(ref, decision.patch);
       return { kind: "storm", attempts: decision.attempts };
