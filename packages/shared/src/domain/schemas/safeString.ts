@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const SAFE_EMAIL_REGEX = /^[^=+\-@][^@]*@[^@]+\.[^@]+$/;
-export const SAFE_NAME_PREFIX_REGEX = /^[^=+\-@]/;
+export const SAFE_EMAIL_REGEX = /^[^=+\-@\s][^@\s]*@[^@\s]+\.[^@\s]+$/;
+export const SAFE_NAME_PREFIX_REGEX = /^[^=+\-@\s]/;
 
 export function safeEmail(max = 120) {
   return z.string().min(3).max(max).regex(SAFE_EMAIL_REGEX, "Email non valida");

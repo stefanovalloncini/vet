@@ -233,7 +233,7 @@ describe("role spec — three-role authorization model", () => {
           saldato: true,
           saldatoAt: serverTimestamp(),
           saldatoBy: "admin",
-          saldatoByName: "admin",
+          saldatoByName: "Admin",
         })
       );
     });

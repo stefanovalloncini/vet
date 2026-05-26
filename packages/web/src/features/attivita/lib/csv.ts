@@ -39,7 +39,7 @@ export function toCsvItalian(items: Attivita[]): string {
 }
 
 function quoteCell(s: string): string {
-  const dangerous = /^[=+\-@\t\r]/.test(s);
+  const dangerous = /^[\s=+\-@]/.test(s);
   const cell = dangerous ? "'" + s : s;
   if (/[";\r\n]/.test(cell)) {
     return `"${cell.replace(/"/g, '""')}"`;

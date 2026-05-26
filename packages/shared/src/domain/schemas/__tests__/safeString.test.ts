@@ -11,6 +11,23 @@ describe("SAFE_EMAIL_REGEX", () => {
       expect(SAFE_EMAIL_REGEX.test(bad)).toBe(false);
     }
   });
+
+  it("rejects whitespace-prefixed formula bypass", () => {
+    for (const bad of [
+      " =foo@bar.it",
+      "\t=foo@bar.it",
+      "  +foo@bar.it",
+      "\n-foo@bar.it",
+    ]) {
+      expect(SAFE_EMAIL_REGEX.test(bad)).toBe(false);
+    }
+  });
+
+  it("rejects whitespace anywhere in the email", () => {
+    for (const bad of ["foo @bar.it", "foo@bar .it", "foo@ bar.it", "foo@bar. it"]) {
+      expect(SAFE_EMAIL_REGEX.test(bad)).toBe(false);
+    }
+  });
 });
 
 describe("safeEmail()", () => {
@@ -48,6 +65,18 @@ describe("safeName()", () => {
 
   it("rejects names starting with =+-@", () => {
     for (const bad of ["=cmd", "+cmd", "-cmd", "@cmd"]) {
+      expect(safeName(80).safeParse(bad).success).toBe(false);
+    }
+  });
+
+  it("rejects names starting with whitespace then formula char", () => {
+    for (const bad of [" =cmd", "\t=cmd", "  +cmd", "\n-cmd", "\r@cmd"]) {
+      expect(safeName(80).safeParse(bad).success).toBe(false);
+    }
+  });
+
+  it("rejects names that start with whitespace at all", () => {
+    for (const bad of [" Mario", "\tStefano", "\nLuca"]) {
       expect(safeName(80).safeParse(bad).success).toBe(false);
     }
   });

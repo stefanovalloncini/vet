@@ -78,6 +78,21 @@ describe("toCsvItalian", () => {
     expect(out).toContain("'\t=cmd");
   });
 
+  it("neutralizes whitespace-then-formula bypass (space + =)", () => {
+    const out = toCsvItalian([makeAttivita({ note: " =cmd|'/c calc'!A1" })]);
+    expect(out).toContain("' =cmd");
+  });
+
+  it("neutralizes multiple-space-then-formula bypass", () => {
+    const out = toCsvItalian([makeAttivita({ note: "   +HYPERLINK('x')" })]);
+    expect(out).toContain("'   +HYPERLINK");
+  });
+
+  it("neutralizes newline-then-formula bypass", () => {
+    const out = toCsvItalian([makeAttivita({ note: "\n=BAD()" })]);
+    expect(out).toMatch(/'[\s\S]*=BAD/);
+  });
+
   it("leaves benign cells untouched", () => {
     const out = toCsvItalian([makeAttivita({ note: "tutto ok" })]);
     expect(out).toContain(";tutto ok");

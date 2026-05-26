@@ -96,12 +96,14 @@ export function collectCsvColumns(
 
 export function escapeCsvCell(value: unknown): string {
   if (value === null || value === undefined) return "";
-  const str =
+  const raw =
     typeof value === "string"
       ? value
       : typeof value === "number" || typeof value === "boolean"
         ? String(value)
         : JSON.stringify(value);
+  const dangerous = /^[\s=+\-@]/.test(raw);
+  const str = dangerous ? "'" + raw : raw;
   const needsQuoting = /[",\n\r;]/.test(str);
   if (!needsQuoting) return str;
   return `"${str.replace(/"/g, '""')}"`;

@@ -46,7 +46,8 @@ service cloud.firestore {
           (isSelf(uid) && request.resource.data.diff(resource.data).changedKeys().hasOnly(["displayName", "updatedAt"])
             && request.resource.data.displayName is string
             && request.resource.data.displayName.size() >= 1
-            && request.resource.data.displayName.size() <= 80)
+            && request.resource.data.displayName.size() <= 80
+            && !request.resource.data.displayName.matches("^[\\s=+\\-@].*"))
           || (hasCap("rsg") && uid != request.auth.uid
             && tokenIsFresh()
             && request.resource.data.diff(resource.data).changedKeys().hasOnly(["roleId", "updatedAt"])
@@ -135,7 +136,7 @@ service cloud.firestore {
         let d = request.resource.data;
         return d.keys().hasAll(["email", "defaultRoleId", "invitedBy", "invitedAt", "schemaVersion"])
           && d.keys().hasOnly(["email", "defaultRoleId", "invitedBy", "invitedAt", "notes", "schemaVersion"])
-          && d.email is string && d.email.size() >= 3 && d.email.size() <= 120 && d.email.matches("^[^=+\\-@][^@]*@[^@]+\\.[^@]+$")
+          && d.email is string && d.email.size() >= 3 && d.email.size() <= 120 && d.email.matches("^[^=+\\-@\\s][^@\\s]*@[^@\\s]+\\.[^@\\s]+$")
           && d.email.lower() == emailNorm
           && d.defaultRoleId is string && d.defaultRoleId.size() >= 1 && d.defaultRoleId.size() <= 60
           && d.defaultRoleId != "admin"
@@ -170,8 +171,10 @@ service cloud.firestore {
           && d.data is timestamp
           && d.aziendaId is string && d.aziendaId.size() >= 1 && d.aziendaId.size() <= 64
           && d.aziendaNome is string && d.aziendaNome.size() >= 1 && d.aziendaNome.size() <= 200
+          && !d.aziendaNome.matches("^[\\s=+\\-@].*")
           && d.tipoId is string && d.tipoId.size() >= 1 && d.tipoId.size() <= 64
           && d.tipoNome is string && d.tipoNome.size() >= 1 && d.tipoNome.size() <= 80
+          && !d.tipoNome.matches("^[\\s=+\\-@].*")
           && d.oraria is bool
           && (!("adElemento" in d.keys()) || d.adElemento is bool)
           && d.tariffa is number && d.tariffa > 0 && d.tariffa <= 100000
@@ -181,9 +184,9 @@ service cloud.firestore {
           && (!("adElemento" in d.keys()) || d.adElemento == ("elementi" in d.keys()))
           && !(d.oraria == true && "elementi" in d.keys())
           && d.totale is number && d.totale >= 0 && d.totale <= 2400000
-          && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 2000))
+          && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 2000 && !d.note.matches("^[\\s=+\\-@].*")))
           && d.ownerName is string && d.ownerName.size() >= 1 && d.ownerName.size() <= 80
-          && !d.ownerName.matches("^[=+\\-@].*")
+          && !d.ownerName.matches("^[\\s=+\\-@].*")
           && d.isDeleted == false
           && d.schemaVersion == 1;
       }
@@ -194,19 +197,21 @@ service cloud.firestore {
           && d.data is timestamp
           && d.aziendaId is string && d.aziendaId.size() >= 1 && d.aziendaId.size() <= 64
           && d.aziendaNome is string && d.aziendaNome.size() >= 1 && d.aziendaNome.size() <= 200
+          && !d.aziendaNome.matches("^[\\s=+\\-@].*")
           && d.tipoId is string && d.tipoId.size() >= 1 && d.tipoId.size() <= 64
           && d.tipoNome is string && d.tipoNome.size() >= 1 && d.tipoNome.size() <= 80
+          && !d.tipoNome.matches("^[\\s=+\\-@].*")
           && d.oraria is bool
           && (!("adElemento" in d.keys()) || d.adElemento is bool)
           && d.tariffa is number && d.tariffa > 0 && d.tariffa <= 100000
           && (!("ore" in d.keys()) || (d.ore is number && d.ore > 0 && d.ore <= 24))
           && (!("elementi" in d.keys()) || (d.elementi is int && d.elementi > 0 && d.elementi <= 10000))
           && d.totale is number && d.totale >= 0 && d.totale <= 2400000
-          && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 2000))
+          && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 2000 && !d.note.matches("^[\\s=+\\-@].*")))
           && (!("updatedBy" in d.keys()) || (d.updatedBy is string && d.updatedBy.size() <= 128))
           && (!("updatedByName" in d.keys())
               || (d.updatedByName is string && d.updatedByName.size() >= 1 && d.updatedByName.size() <= 80
-                  && !d.updatedByName.matches("^[=+\\-@].*")))
+                  && !d.updatedByName.matches("^[\\s=+\\-@].*")))
           && d.isDeleted is bool
           && d.schemaVersion == 1
           && (d.isDeleted == false
@@ -273,19 +278,22 @@ service cloud.firestore {
         return d.keys().hasAll(["nome", "nomeNorm", "createdAt", "updatedAt", "createdBy", "updatedBy", "createdByName", "updatedByName", "isDeleted", "schemaVersion"])
           && d.keys().hasOnly(["nome", "nomeNorm", "indirizzo", "piva", "emailFatturazione", "cadenzaFatturazione", "tipoAllevamento", "numeroCapi", "telefono", "note", "createdAt", "updatedAt", "createdBy", "updatedBy", "createdByName", "updatedByName", "isDeleted", "deletedAt", "schemaVersion"])
           && d.nome is string && d.nome.size() >= 1 && d.nome.size() <= 200
+          && !d.nome.matches("^[\\s=+\\-@].*")
           && d.nomeNorm is string && d.nomeNorm.size() >= 1 && d.nomeNorm.size() <= 200
-          && (!("indirizzo" in d.keys()) || (d.indirizzo is string && d.indirizzo.size() <= 300))
+          && (!("indirizzo" in d.keys()) || (d.indirizzo is string && d.indirizzo.size() <= 300 && !d.indirizzo.matches("^[\\s=+\\-@].*")))
           && (!("piva" in d.keys()) || (d.piva is string && d.piva.matches("^[0-9]{11}$")))
-          && (!("emailFatturazione" in d.keys()) || (d.emailFatturazione is string && d.emailFatturazione.size() <= 120 && d.emailFatturazione.matches("^[^=+\\-@][^@]*@[^@]+\\.[^@]+$")))
+          && (!("emailFatturazione" in d.keys()) || (d.emailFatturazione is string && d.emailFatturazione.size() <= 120 && d.emailFatturazione.matches("^[^=+\\-@\\s][^@\\s]*@[^@\\s]+\\.[^@\\s]+$")))
           && (!("cadenzaFatturazione" in d.keys()) || d.cadenzaFatturazione in ["monthly", "quarterly", "semiannual"])
           && (!("tipoAllevamento" in d.keys()) || d.tipoAllevamento in ["bovini", "ovini", "caprini", "suini", "avicoli", "equini", "misto", "altro"])
           && (!("numeroCapi" in d.keys()) || (d.numeroCapi is int && d.numeroCapi >= 0 && d.numeroCapi <= 100000))
           && (!("telefono" in d.keys()) || (d.telefono is string && d.telefono.size() <= 40))
-          && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 1000))
+          && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 1000 && !d.note.matches("^[\\s=+\\-@].*")))
           && d.createdBy is string && d.createdBy.size() <= 128
           && d.updatedBy is string && d.updatedBy.size() <= 128
           && d.createdByName is string && d.createdByName.size() >= 1 && d.createdByName.size() <= 80
+          && !d.createdByName.matches("^[\\s=+\\-@].*")
           && d.updatedByName is string && d.updatedByName.size() >= 1 && d.updatedByName.size() <= 80
+          && !d.updatedByName.matches("^[\\s=+\\-@].*")
           && d.isDeleted is bool
           && d.schemaVersion == 1;
       }
@@ -294,6 +302,9 @@ service cloud.firestore {
         && valid()
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.updatedBy == request.auth.uid
+        && hasTokenName()
+        && request.resource.data.createdByName == request.auth.token.name
+        && request.resource.data.updatedByName == request.auth.token.name
         && request.resource.data.isDeleted == false
         && !("deletedAt" in request.resource.data.keys())
         && isServerStamped("createdAt")
@@ -301,6 +312,8 @@ service cloud.firestore {
       allow update: if hasCap("zu")
         && valid()
         && request.resource.data.updatedBy == request.auth.uid
+        && hasTokenName()
+        && request.resource.data.updatedByName == request.auth.token.name
         && isImmutable("createdAt")
         && isImmutable("createdBy")
         && isImmutable("createdByName")
@@ -314,11 +327,13 @@ service cloud.firestore {
       function valid() {
         let d = request.resource.data;
         return d.keys().hasAll(["nome", "ordine", "attivo", "createdAt", "updatedAt", "schemaVersion"])
-          && d.keys().hasOnly(["nome", "ordine", "attivo", "tariffaStandard", "createdAt", "updatedAt", "schemaVersion"])
+          && d.keys().hasOnly(["nome", "ordine", "attivo", "tariffaStandard", "modalitaDefault", "createdAt", "updatedAt", "schemaVersion"])
           && d.nome is string && d.nome.size() >= 1 && d.nome.size() <= 80
+          && !d.nome.matches("^[\\s=+\\-@].*")
           && d.ordine is int && d.ordine >= 0 && d.ordine <= 1000
           && d.attivo is bool
           && (!("tariffaStandard" in d.keys()) || (d.tariffaStandard is number && d.tariffaStandard >= 0 && d.tariffaStandard <= 100000))
+          && (!("modalitaDefault" in d.keys()) || d.modalitaDefault in ["fissa", "oraria", "adElemento"])
           && d.schemaVersion == 1;
       }
       allow read: if hasCap("tr");
@@ -353,7 +368,7 @@ service cloud.firestore {
           && d.saldato == false
           && d.emittedBy is string && d.emittedBy.size() <= 128
           && d.emittedByName is string && d.emittedByName.size() >= 1 && d.emittedByName.size() <= 80
-          && !d.emittedByName.matches("^[=+\\-@].*")
+          && !d.emittedByName.matches("^[\\s=+\\-@].*")
           && d.isDeleted == false
           && d.schemaVersion == 1;
       }
@@ -364,7 +379,7 @@ service cloud.firestore {
           && d.saldatoAt is timestamp
           && d.saldatoBy == request.auth.uid
           && d.saldatoByName is string && d.saldatoByName.size() >= 1 && d.saldatoByName.size() <= 80
-          && !d.saldatoByName.matches("^[=+\\-@].*")
+          && !d.saldatoByName.matches("^[\\s=+\\-@].*")
           && (!("importoSaldato" in d.keys()) || (d.importoSaldato is number && d.importoSaldato >= 0 && d.importoSaldato <= 1000000))
           && (!("metodoPagamento" in d.keys()) || d.metodoPagamento in ["bonifico", "contanti", "altro"])
           && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 500));
@@ -386,7 +401,8 @@ service cloud.firestore {
         && (request.resource.data.modalita == "proforma"
             || (request.resource.data.modalita == "emesso" && hasCap("ce")));
       allow update: if (
-        (hasCap("cs") && resource.data.modalita == "emesso" && resource.data.saldato == false && validSaldoUpdate() && isServerStamped("saldatoAt"))
+        (hasCap("cs") && resource.data.modalita == "emesso" && resource.data.saldato == false && validSaldoUpdate() && isServerStamped("saldatoAt")
+          && hasTokenName() && request.resource.data.saldatoByName == request.auth.token.name)
         || (hasCap("ce") && resource.data.isDeleted == false && validAnnullaUpdate() && isServerStamped("deletedAt"))
       );
       allow delete: if false;

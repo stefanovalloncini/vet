@@ -104,6 +104,24 @@ describe("escapeCsvCell", () => {
   it("JSON-stringifies objects", () => {
     expect(escapeCsvCell({ a: 1 })).toBe('"{""a"":1}"');
   });
+
+  it("neutralizes leading formula characters", () => {
+    expect(escapeCsvCell("=cmd|'/c calc'!A1")).toBe("'=cmd|'/c calc'!A1");
+    expect(escapeCsvCell("+1+1")).toBe("'+1+1");
+    expect(escapeCsvCell("-DDE()")).toBe("'-DDE()");
+    expect(escapeCsvCell("@SUM()")).toBe("'@SUM()");
+  });
+
+  it("neutralizes whitespace-then-formula bypass", () => {
+    expect(escapeCsvCell(" =cmd")).toBe("' =cmd");
+    expect(escapeCsvCell("\t=cmd")).toBe("'\t=cmd");
+    expect(escapeCsvCell("   +HYPERLINK")).toBe("'   +HYPERLINK");
+  });
+
+  it("does not double-neutralize benign leading digits", () => {
+    expect(escapeCsvCell("42")).toBe("42");
+    expect(escapeCsvCell("Mario Rossi")).toBe("Mario Rossi");
+  });
 });
 
 describe("collectCsvColumns", () => {
