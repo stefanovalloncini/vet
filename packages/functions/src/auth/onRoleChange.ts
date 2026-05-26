@@ -61,6 +61,9 @@ export const onRoleChange = onDocumentWritten(
           };
           await adminAuth.setCustomUserClaims(user.uid, claims);
           await adminAuth.revokeRefreshTokens(user.uid);
+          await repos.users.applyRevokeSessionPatch(user.uid, {
+            minCapsVer: capsVer,
+          });
           await repos.audit.record({
             actorUid: "system:onRoleChange",
             actorEmail: "system",
