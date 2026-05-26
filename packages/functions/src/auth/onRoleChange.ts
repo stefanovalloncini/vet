@@ -23,7 +23,11 @@ export function computeClaimsForUser(input: ComputeInput) {
 }
 
 export const onRoleChange = onDocumentWritten(
-  { document: "roles/{roleId}", region: "europe-west8" },
+  {
+    document: "roles/{roleId}",
+    region: "europe-west8",
+    ingressSettings: "ALLOW_INTERNAL_ONLY",
+  },
   async (event) => {
     const roleId = event.params.roleId;
     const after = event.data?.after.data() as

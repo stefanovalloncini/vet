@@ -19,6 +19,7 @@ export const monthlyInvoicePush = onSchedule(
     schedule: "0 9 10 * *",
     timeZone: "Europe/Rome",
     region: "europe-west1",
+    ingressSettings: "ALLOW_INTERNAL_ONLY",
   },
   async () => {
     const runAt = new Date();

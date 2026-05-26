@@ -124,6 +124,7 @@ export const cleanupOldDriveBackups = onSchedule(
     timeoutSeconds: 300,
     memory: "512MiB",
     secrets: [DRIVE_BACKUP_KEY, DRIVE_BACKUP_FOLDER_ID],
+    ingressSettings: "ALLOW_INTERNAL_ONLY",
   },
   async () => {
     const rootFolderId = DRIVE_BACKUP_FOLDER_ID.value();

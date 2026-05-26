@@ -37,6 +37,7 @@ export const killSwitchOnBudget = onMessagePublished(
   {
     topic: "billing-budget-alerts",
     region: "europe-west8",
+    ingressSettings: "ALLOW_INTERNAL_ONLY",
   },
   async (event) => {
     const notification = parseNotification(event.data.message.json);

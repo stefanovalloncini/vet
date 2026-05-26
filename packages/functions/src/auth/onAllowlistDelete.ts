@@ -52,7 +52,11 @@ export async function revokeForDeletedAllowlistEntry(args: {
 }
 
 export const onAllowlistDelete = onDocumentDeleted(
-  { document: "allowlist/{emailNorm}", region: "europe-west8" },
+  {
+    document: "allowlist/{emailNorm}",
+    region: "europe-west8",
+    ingressSettings: "ALLOW_INTERNAL_ONLY",
+  },
   async (event) => {
     const emailNorm = event.params.emailNorm;
     const data = event.data?.data() as { email?: string } | undefined;

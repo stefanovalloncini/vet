@@ -141,6 +141,7 @@ export const weeklyBackupDigest = onSchedule(
     timeoutSeconds: 300,
     memory: "512MiB",
     secrets: [DRIVE_BACKUP_KEY, DRIVE_BACKUP_FOLDER_ID, DIGEST_RECIPIENT],
+    ingressSettings: "ALLOW_INTERNAL_ONLY",
   },
   async () => {
     const recipient = DIGEST_RECIPIENT.value();

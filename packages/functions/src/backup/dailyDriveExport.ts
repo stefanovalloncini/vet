@@ -273,6 +273,7 @@ export const dailyDriveExport = onSchedule(
     timeoutSeconds: 540,
     memory: "1GiB",
     secrets: [DRIVE_BACKUP_KEY, DRIVE_BACKUP_FOLDER_ID],
+    ingressSettings: "ALLOW_INTERNAL_ONLY",
   },
   async () => {
     const project = process.env.GCLOUD_PROJECT ?? "vet-marinoni";
