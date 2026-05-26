@@ -50,6 +50,24 @@ describe("InMemoryUserRepository", () => {
     const pending = await repo.listPending();
     expect(pending.map((u) => u.uid)).toEqual(["pending-1"]);
   });
+
+  it("applyRevokeSessionPatch on missing uid does not resurrect a tombstone (V-028 regression)", async () => {
+    await repo.applyRevokeSessionPatch("ghost-uid", { minCapsVer: 999 });
+    expect(await repo.getById("ghost-uid")).toBeNull();
+  });
+
+  it("applyRevokeSessionPatch on existing user updates fields in place", async () => {
+    seedUser("u-1");
+    await repo.applyRevokeSessionPatch("u-1", {
+      disabled: true,
+      approved: false,
+      minCapsVer: 1234,
+    });
+    const u = await repo.getById("u-1");
+    expect(u?.disabled).toBe(true);
+    expect(u?.approved).toBe(false);
+    expect(u?.minCapsVer).toBe(1234);
+  });
 });
 
 describe("InMemoryRoleRepository", () => {

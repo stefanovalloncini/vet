@@ -49,4 +49,36 @@ export class FirestoreAuditRepository implements AuditRepository {
     }
     await this.db.collection("audit").add(payload);
   }
+
+  async anonymizeActorReferences(
+    actorUid: string,
+    args: { anonUid: string; anonEmail: string }
+  ): Promise<number> {
+    if (this.tx) {
+      throw new Error(
+        "AuditRepository.anonymizeActorReferences is not supported in a transaction"
+      );
+    }
+    const BATCH_SIZE = 400;
+    let count = 0;
+    for (;;) {
+      const snap = await this.db
+        .collection("audit")
+        .where("actorUid", "==", actorUid)
+        .limit(BATCH_SIZE)
+        .get();
+      if (snap.empty) break;
+      const batch = this.db.batch();
+      for (const d of snap.docs) {
+        batch.update(d.ref, {
+          actorUid: args.anonUid,
+          actorEmail: args.anonEmail,
+        });
+      }
+      await batch.commit();
+      count += snap.size;
+      if (snap.size < BATCH_SIZE) break;
+    }
+    return count;
+  }
 }

@@ -21,4 +21,8 @@ export interface ContiRepository {
   ): Promise<string>;
   saldo(input: ContoSaldoInput, actor: ActorContext): Promise<void>;
   annulla(id: string, actor: ActorContext): Promise<void>;
+  anonymizeOwnerReferences(
+    ownerUid: string,
+    args: { anonUid: string; anonName: string }
+  ): Promise<number>;
 }

@@ -114,6 +114,10 @@ export class FirestoreContiRepository implements ContiRepository {
       deletedBy: actor.uid,
     });
   }
+
+  async anonymizeOwnerReferences(): Promise<number> {
+    throw new Error("anonymizeOwnerReferences is server-only");
+  }
 }
 
 function fromSnap(id: string, data: Record<string, unknown>): Conto {

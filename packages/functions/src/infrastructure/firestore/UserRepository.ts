@@ -18,6 +18,18 @@ import {
   parseUser,
 } from "@vet/shared";
 
+function isFirestoreNotFound(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: number | string; message?: string };
+  if (e.code === 5 || e.code === "not-found" || e.code === "NOT_FOUND") {
+    return true;
+  }
+  if (typeof e.message === "string" && e.message.includes("No document to update")) {
+    return true;
+  }
+  return false;
+}
+
 const stampDeps: SerializerStampDeps<Timestamp, FieldValue> = {
   fromDate: (d) => Timestamp.fromDate(d),
   serverTimestamp: () => FieldValue.serverTimestamp(),
@@ -84,10 +96,15 @@ export class FirestoreUserRepository implements UserRepository {
     uid: string,
     args: UserRevokeSessionPatchArgs
   ): Promise<void> {
-    await this.db
-      .collection("users")
-      .doc(uid)
-      .set(buildUserRevokeSessionPatch(args, stampDeps), { merge: true });
+    try {
+      await this.db
+        .collection("users")
+        .doc(uid)
+        .update({ ...buildUserRevokeSessionPatch(args, stampDeps) });
+    } catch (err) {
+      if (isFirestoreNotFound(err)) return;
+      throw err;
+    }
   }
 
   async hardDelete(uid: string): Promise<void> {

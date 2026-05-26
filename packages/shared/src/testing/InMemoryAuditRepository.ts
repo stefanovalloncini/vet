@@ -43,4 +43,19 @@ export class InMemoryAuditRepository implements AuditRepository {
   seed(event: AuditEvent): void {
     this.events.push(event);
   }
+
+  async anonymizeActorReferences(
+    actorUid: string,
+    args: { anonUid: string; anonEmail: string }
+  ): Promise<number> {
+    let count = 0;
+    for (let i = 0; i < this.events.length; i++) {
+      const e = this.events[i];
+      if (e && e.actorUid === actorUid) {
+        this.events[i] = { ...e, actorUid: args.anonUid, actorEmail: args.anonEmail };
+        count++;
+      }
+    }
+    return count;
+  }
 }

@@ -35,4 +35,10 @@ export class FirestoreAuditRepository implements AuditRepository {
       "audit writes must originate from cloud functions"
     );
   }
+
+  async anonymizeActorReferences(): Promise<number> {
+    throw new PermissionDeniedError(
+      "audit anonymization must originate from cloud functions"
+    );
+  }
 }

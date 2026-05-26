@@ -19,6 +19,10 @@ export const gdprDeleteMine = onCall(
       anonUid: ANON_UID,
       anonName: ANON_NAME,
     });
+    const contiAnon = await repos.conti.anonymizeOwnerReferences(uid, {
+      anonUid: ANON_UID,
+      anonName: ANON_NAME,
+    });
     const remindersAnon = await repos.reminders.anonymizeCreatedBy(
       uid,
       ANON_UID
@@ -39,10 +43,17 @@ export const gdprDeleteMine = onCall(
       }
     }
 
+    const auditAnon = await repos.audit.anonymizeActorReferences(uid, {
+      anonUid: ANON_UID,
+      anonEmail: "",
+    });
+
     const erased = {
       attivita,
       aziendeAnon,
+      contiAnon,
       remindersAnon,
+      auditAnon,
       userDoc,
       allowlistDoc,
     };

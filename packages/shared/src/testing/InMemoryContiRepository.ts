@@ -101,4 +101,30 @@ export class InMemoryContiRepository implements ContiRepository {
       deletedBy: actor.uid,
     });
   }
+
+  async anonymizeOwnerReferences(
+    ownerUid: string,
+    args: { anonUid: string; anonName: string }
+  ): Promise<number> {
+    let count = 0;
+    for (const [id, c] of this.map.entries()) {
+      let touched = false;
+      const next: Conto = { ...c };
+      if (next.emittedBy === ownerUid) {
+        next.emittedBy = args.anonUid;
+        next.emittedByName = args.anonName;
+        touched = true;
+      }
+      if (next.saldatoBy === ownerUid) {
+        next.saldatoBy = args.anonUid;
+        next.saldatoByName = args.anonName;
+        touched = true;
+      }
+      if (touched) {
+        this.map.set(id, next);
+        count += 1;
+      }
+    }
+    return count;
+  }
 }

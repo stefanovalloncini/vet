@@ -11,4 +11,8 @@ export interface AuditFilters {
 export interface AuditRepository {
   list(filters?: AuditFilters): Promise<AuditEvent[]>;
   record(event: AuditRecordInput): Promise<void>;
+  anonymizeActorReferences(
+    actorUid: string,
+    args: { anonUid: string; anonEmail: string }
+  ): Promise<number>;
 }

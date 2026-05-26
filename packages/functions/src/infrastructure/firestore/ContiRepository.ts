@@ -94,4 +94,39 @@ export class FirestoreContiRepository implements ContiRepository {
       deletedBy: actor.uid,
     });
   }
+
+  async anonymizeOwnerReferences(
+    ownerUid: string,
+    args: { anonUid: string; anonName: string }
+  ): Promise<number> {
+    const BATCH_SIZE = 400;
+    let count = 0;
+    for (const field of ["emittedBy", "saldatoBy"] as const) {
+      for (;;) {
+        const snap = await this.db
+          .collection("conti")
+          .where(field, "==", ownerUid)
+          .limit(BATCH_SIZE)
+          .get();
+        if (snap.empty) break;
+        const batch = this.db.batch();
+        for (const d of snap.docs) {
+          const update: Record<string, string> = {};
+          if (d.get("emittedBy") === ownerUid) {
+            update["emittedBy"] = args.anonUid;
+            update["emittedByName"] = args.anonName;
+          }
+          if (d.get("saldatoBy") === ownerUid) {
+            update["saldatoBy"] = args.anonUid;
+            update["saldatoByName"] = args.anonName;
+          }
+          batch.update(d.ref, update);
+        }
+        await batch.commit();
+        count += snap.size;
+        if (snap.size < BATCH_SIZE) break;
+      }
+    }
+    return count;
+  }
 }
