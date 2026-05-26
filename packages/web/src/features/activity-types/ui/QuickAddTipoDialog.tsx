@@ -140,7 +140,7 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
             idPrefix="quick-tipo"
             label="Tariffa standard (€)"
             type="number"
-            step="10"
+            step="0.01"
             min="0"
             disabled={busy}
             placeholder="opzionale"

@@ -281,13 +281,13 @@ describe("QuickEntryDialog", () => {
     });
   });
 
-  it("uses NumberField with step=10 for tariffa and no native arrows", async () => {
+  it("uses NumberField with step=0.01 for tariffa and stepper buttons", async () => {
     const world = await buildWorld();
     await mount(world);
     const tariffaInput = document.querySelector(
       'input[name="tariffa"]'
     ) as HTMLInputElement;
-    expect(tariffaInput.step).toBe("10");
+    expect(tariffaInput.step).toBe("0.01");
     expect(tariffaInput.type).toBe("number");
     expect(screen.getByRole("button", { name: /Aumenta/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Diminuisci/i })).toBeInTheDocument();

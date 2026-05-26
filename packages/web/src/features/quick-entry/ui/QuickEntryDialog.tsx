@@ -163,7 +163,7 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
               <RHFNumberField<QuickEntryFormValues>
                 name="tariffa"
                 label="Tariffa (EUR)"
-                step={10}
+                step={0.01}
                 min={0}
                 {...(s.rangeWarning ? { hint: s.rangeWarning } : {})}
               />
@@ -188,7 +188,7 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
                 </p>
               ) : null}
               {s.rootError ? <InlineError>{s.rootError}</InlineError> : null}
-              <div className="flex flex-col gap-2 pt-2">
+              <div className="sticky bottom-[-1.25rem] sm:bottom-[-1.5rem] -mx-5 sm:-mx-6 px-5 sm:px-6 pt-3 pb-4 sm:pb-5 mt-2 bg-(--color-surface) border-t border-(--color-border) flex flex-col gap-2">
                 <Button
                   type="submit"
                   variant="primary"
