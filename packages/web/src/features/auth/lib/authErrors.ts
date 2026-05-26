@@ -50,7 +50,7 @@ const MESSAGES: Record<Exclude<AuthErrorKind, "userCancelled">, string> = {
   storageBlocked:
     "Il browser blocca cookie o memoria locale. Disattiva la modalità privata o le protezioni anti-tracciamento per questo sito.",
   requiresRecentLogin:
-    "Sessione scaduta. Effettua di nuovo l'accesso per continuare.",
+    "Operazione sensibile: serve un accesso recente. Esci e rientra prima di riprovare.",
   unauthorizedDomain:
     "Dominio non autorizzato per l'accesso. Contatta l'amministratore.",
   unknown: "Accesso non riuscito. Riprova o contatta l'amministratore.",
@@ -129,6 +129,16 @@ function matchAllowlistDeny({ code, message, innerMessage }: ErrorShape) {
   return null;
 }
 
+function matchRequiresRecentLogin({ code, message }: ErrorShape) {
+  if (code === "functions/failed-precondition" && message.includes("requires-recent-login")) {
+    return "requiresRecentLogin" as const;
+  }
+  if (code === "failed-precondition" && message.includes("requires-recent-login")) {
+    return "requiresRecentLogin" as const;
+  }
+  return null;
+}
+
 function matchDirectCode({ code }: ErrorShape) {
   return DIRECT_CODE_MAP[code] ?? null;
 }
@@ -136,6 +146,7 @@ function matchDirectCode({ code }: ErrorShape) {
 const MATCHERS: ReadonlyArray<Matcher> = [
   matchAppCheck,
   matchAllowlistDeny,
+  matchRequiresRecentLogin,
   matchDirectCode,
 ];
 

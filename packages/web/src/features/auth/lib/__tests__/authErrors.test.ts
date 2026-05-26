@@ -87,8 +87,24 @@ describe("classifyAuthError", () => {
     expect(r.kind).toBe("tooManyRequests");
   });
 
-  it("classifies requires-recent-login", () => {
+  it("classifies requires-recent-login from Firebase Auth code", () => {
     const r = classifyAuthError({ code: "auth/requires-recent-login" });
+    expect(r.kind).toBe("requiresRecentLogin");
+  });
+
+  it("classifies functions/failed-precondition with requires-recent-login message", () => {
+    const r = classifyAuthError({
+      code: "functions/failed-precondition",
+      message: "requires-recent-login",
+    });
+    expect(r.kind).toBe("requiresRecentLogin");
+  });
+
+  it("classifies bare failed-precondition with requires-recent-login message", () => {
+    const r = classifyAuthError({
+      code: "failed-precondition",
+      message: "requires-recent-login",
+    });
     expect(r.kind).toBe("requiresRecentLogin");
   });
 
