@@ -41,9 +41,11 @@ export const approveUser = onCall(
     if (!role) throw new HttpsError("not-found", "role");
 
     const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
+    const capsVer = Date.now();
 
     await repos.run(async (tx) => {
       await tx.users.applyApprovePatch(targetUid, { actorUid, roleId });
+      await tx.users.applyRevokeSessionPatch(targetUid, { minCapsVer: capsVer });
       await tx.audit.record({
         actorUid,
         actorEmail,
@@ -58,7 +60,7 @@ export const approveUser = onCall(
       vet: true,
       roleId,
       caps: encodeCaps(role.capabilities),
-      capsVer: Date.now(),
+      capsVer,
       ...(user.displayName ? { name: user.displayName } : {}),
     });
     await adminAuth.revokeRefreshTokens(targetUid);
