@@ -355,7 +355,8 @@ service cloud.firestore {
     }
 
     match /audit/{auditId} {
-      allow read: if hasCap("ur");
+      allow get: if hasCap("ur");
+      allow list: if hasCap("ur") && request.query.limit is int && request.query.limit <= 500;
       allow write: if false;
     }
 
