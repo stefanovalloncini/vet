@@ -19,6 +19,10 @@ const PrivacyPage = lazy(() =>
   import("./features/privacy").then((m) => ({ default: m.PrivacyPage }))
 );
 
+const NotFoundPage = lazy(() =>
+  import("./features/not-found").then((m) => ({ default: m.NotFoundPage }))
+);
+
 const DevPrimitivesPage = import.meta.env.DEV
   ? lazy(() =>
       import("./features/dev-primitives").then((m) => ({ default: m.DevPrimitivesPage }))
@@ -111,6 +115,14 @@ function AppRoutes() {
             }
           />
         ))}
+        <Route
+          path="*"
+          element={
+            <RouteShell pathname={pathname}>
+              <NotFoundPage />
+            </RouteShell>
+          }
+        />
       </Routes>
     </Suspense>
   );
