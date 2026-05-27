@@ -87,32 +87,36 @@ export interface AppRoute {
   Component: LazyComp;
 }
 
+import { routes } from "./routes";
+
+export { routes };
+
 export const PROTECTED_ROUTES: ReadonlyArray<AppRoute> = [
-  { path: "/", Component: HomePage },
-  { path: "/attivita", Component: AttivitaListPage },
-  { path: "/attivita/nuova", Component: AttivitaFormPage },
-  { path: "/attivita/:id", Component: AttivitaFormPage },
-  { path: "/aziende", Component: AziendeListPage },
-  { path: "/aziende/nuova", Component: AziendaFormPage },
-  { path: "/aziende/:id", Component: AziendaDetailPage },
-  { path: "/aziende/:id/modifica", Component: AziendaFormPage },
-  { path: "/aziende/:id/riepilogo", Component: RiepilogoPdfPage },
-  { path: "/cestino", Component: CestinoPage },
-  { path: "/impostazioni", Component: ImpostazioniPage },
-  { path: "/admin/tipi-attivita", Component: ActivityTypesPage },
-  { path: "/admin/ruoli", Component: RolesListPage },
-  { path: "/admin/ruoli/nuovo", Component: RoleEditorPage },
-  { path: "/admin/ruoli/:id", Component: RoleEditorPage },
-  { path: "/admin/allowlist", Component: AllowlistPage },
-  { path: "/admin/audit", Component: AuditPage },
-  { path: "/admin/stats-vet", Component: VetStatsPage },
-  { path: "/conti", Component: ContiPage },
-  { path: "/agenda", Component: AgendaPage },
-  { path: "/riepilogo", Component: DashboardPage },
-  { path: "/strumenti", Component: StrumentiHome },
-  { path: "/strumenti/dosaggio", Component: DosaggioPage },
-  { path: "/promemoria", Component: RemindersPage },
-  { path: "/statistiche", Component: StatistichePage },
+  { path: routes.home.path, Component: HomePage },
+  { path: routes.attivita.path, Component: AttivitaListPage },
+  { path: routes.attivitaNew.path, Component: AttivitaFormPage },
+  { path: routes.attivitaEdit.path, Component: AttivitaFormPage },
+  { path: routes.aziende.path, Component: AziendeListPage },
+  { path: routes.aziendaNew.path, Component: AziendaFormPage },
+  { path: routes.aziendaDetail.path, Component: AziendaDetailPage },
+  { path: routes.aziendaEdit.path, Component: AziendaFormPage },
+  { path: routes.aziendaRiepilogo.path, Component: RiepilogoPdfPage },
+  { path: routes.cestino.path, Component: CestinoPage },
+  { path: routes.impostazioni.path, Component: ImpostazioniPage },
+  { path: routes.adminTipiAttivita.path, Component: ActivityTypesPage },
+  { path: routes.adminRoles.path, Component: RolesListPage },
+  { path: routes.adminRoleNew.path, Component: RoleEditorPage },
+  { path: routes.adminRoleEdit.path, Component: RoleEditorPage },
+  { path: routes.adminAllowlist.path, Component: AllowlistPage },
+  { path: routes.adminAudit.path, Component: AuditPage },
+  { path: routes.adminStatsVet.path, Component: VetStatsPage },
+  { path: routes.conti.path, Component: ContiPage },
+  { path: routes.agenda.path, Component: AgendaPage },
+  { path: routes.riepilogo.path, Component: DashboardPage },
+  { path: routes.strumenti.path, Component: StrumentiHome },
+  { path: routes.strumentiDosaggio.path, Component: DosaggioPage },
+  { path: routes.promemoria.path, Component: RemindersPage },
+  { path: routes.statistiche.path, Component: StatistichePage },
 ];
 
 interface RouteShellProps {
