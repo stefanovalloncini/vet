@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AppShell,
-  BoxedList,
   Button,
   ConfirmDialog,
   EmptyState,
   InlineError,
-  LoadingHint,
   PageHeader,
   Tabs,
 } from "../../../shared/ui";
+import {
+  DataGrid,
+  dataGridIt,
+  type Column,
+} from "../../../shared/ui/data-grid";
 import { useAuthState } from "../../auth";
 import { usePurgeTrashed, useRestoreTrashed, useTrash } from "../hooks/useTrash";
 import { cestinoI18n as t } from "../i18n";
@@ -150,6 +153,30 @@ export function CestinoPage() {
   const showTabs = canSeeAny;
   const showBulkBar = actionableItems.length > 0;
 
+  const columns = useMemo<ReadonlyArray<Column<Attivita>>>(
+    () => [
+      {
+        id: "data",
+        header: "Data",
+        accessor: (a) => a.data.getTime(),
+        sortable: true,
+      },
+      {
+        id: "azienda",
+        header: "Azienda",
+        accessor: (a) => a.aziendaNome,
+        sortable: true,
+      },
+      {
+        id: "tipo",
+        header: "Tipo",
+        accessor: (a) => a.tipoNome,
+        filterId: "tipo",
+      },
+    ],
+    []
+  );
+
   return (
     <AppShell>
       <PageHeader
@@ -178,46 +205,46 @@ export function CestinoPage() {
         </div>
       ) : null}
 
-      {loading ? (
-        <LoadingHint label={t.loading} />
-      ) : error ? (
-        <InlineError>{t.loadError}</InlineError>
-      ) : items.length === 0 ? (
-        <EmptyState title={t.empty} description={t.emptyHint} />
-      ) : (
-        <div className="space-y-3">
-          {showBulkBar ? (
-            <BulkBar
-              total={actionableItems.length}
-              selectionCount={selectionCount}
-              allSelected={allSelected}
-              busy={bulkBusy}
-              canBulkRestore={canBulkRestore}
-              canBulkPurge={canPurge}
-              onSelectAll={toggleAll}
-              onRestore={handleBulkRestore}
-              onPurgeAsk={() => setConfirmingBulkPurge(true)}
-            />
-          ) : null}
-
-          <BoxedList>
-            {items.map((a) => (
-              <CestinoRow
-                key={a.id}
-                attivita={a}
-                busy={busyId === a.id || bulkBusy}
-                canRestore={canRestoreItem(a)}
-                canPurge={canPurge}
-                selectable={canPurge || canRestoreItem(a)}
-                selected={selected.has(a.id)}
-                onSelectChange={(next) => toggleOne(a.id, next)}
-                onRestore={() => handleRestore(a)}
-                onPurgeAsk={() => setConfirmingPurgeId(a.id)}
-              />
-            ))}
-          </BoxedList>
+      {showBulkBar && !loading && !error && items.length > 0 ? (
+        <div className="mb-3">
+          <BulkBar
+            total={actionableItems.length}
+            selectionCount={selectionCount}
+            allSelected={allSelected}
+            busy={bulkBusy}
+            canBulkRestore={canBulkRestore}
+            canBulkPurge={canPurge}
+            onSelectAll={toggleAll}
+            onRestore={handleBulkRestore}
+            onPurgeAsk={() => setConfirmingBulkPurge(true)}
+          />
         </div>
-      )}
+      ) : null}
+
+      <DataGrid<Attivita>
+        rows={items}
+        columns={columns}
+        getRowId={(a) => a.id}
+        mode="cards"
+        i18n={dataGridIt}
+        loading={loading}
+        error={error ? t.loadError : null}
+        rowActions={[]}
+        emptyState={<EmptyState title={t.empty} description={t.emptyHint} />}
+        card={(a) => (
+          <CestinoRow
+            attivita={a}
+            busy={busyId === a.id || bulkBusy}
+            canRestore={canRestoreItem(a)}
+            canPurge={canPurge}
+            selectable={canPurge || canRestoreItem(a)}
+            selected={selected.has(a.id)}
+            onSelectChange={(next) => toggleOne(a.id, next)}
+            onRestore={() => handleRestore(a)}
+            onPurgeAsk={() => setConfirmingPurgeId(a.id)}
+          />
+        )}
+      />
 
       <ConfirmDialog
         open={confirmingPurgeId !== null}

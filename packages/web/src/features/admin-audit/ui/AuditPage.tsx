@@ -1,15 +1,17 @@
 import { useMemo, useState } from "react";
 import {
   AdminLayout,
-  BoxedList,
   EmptyState,
-  InlineError,
-  LoadingHint,
   PageHeader,
-  SectionLabel,
   Select,
   TextField,
 } from "../../../shared/ui";
+import {
+  DataGrid,
+  dataGridIt,
+  type Column,
+  type GroupingDef,
+} from "../../../shared/ui/data-grid";
 import { useAuditEvents } from "../hooks/useAuditEvents";
 import { ACTION_LABELS, auditI18n as t } from "../i18n";
 import type { AuditAction, AuditEvent, AuditFilters } from "@vet/shared";
@@ -34,10 +36,57 @@ const ACTIONS: Array<{ value: AuditAction | ""; label: string }> = [
   ),
 ];
 
+const DAY_LABEL_FMT = new Intl.DateTimeFormat("it-IT", {
+  weekday: "long",
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+
 function parseDate(value: string): Date | null {
   if (!value) return null;
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function AuditRow({ event }: { event: AuditEvent }) {
+  const actor = event.actorEmail || event.actorUid;
+  return (
+    <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl px-4 py-3">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 sm:gap-4 sm:grid-cols-[5ch_minmax(0,2fr)_minmax(0,1fr)]">
+        <span className="text-xs text-(--color-text-muted) font-mono tabular-nums shrink-0 pt-0.5">
+          {event.at.toLocaleTimeString("it-IT", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm text-(--color-text) leading-snug">
+            {ACTION_LABELS[event.action] ?? event.action}
+          </p>
+          <p className="text-[11px] text-(--color-text-subtle) mt-0.5 font-mono truncate">
+            {event.targetType}/{event.targetId}
+          </p>
+          <p className="sm:hidden text-[11px] text-(--color-text-muted) font-mono truncate mt-0.5">
+            {actor}
+          </p>
+        </div>
+        <p className="hidden sm:block text-xs text-(--color-text-muted) font-mono truncate">
+          {actor}
+        </p>
+        {event.details ? (
+          <details className="col-start-2 sm:col-span-2 mt-1">
+            <summary className="text-[11px] text-(--color-text-subtle) cursor-pointer hover:text-(--color-text-muted)">
+              {t.dettagli}
+            </summary>
+            <pre className="text-[11px] text-(--color-text-subtle) mt-2 overflow-x-auto whitespace-pre-wrap bg-(--color-surface-muted) rounded-md p-2 font-mono">
+              {JSON.stringify(event.details, null, 0)}
+            </pre>
+          </details>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 export function AuditPage() {
@@ -67,21 +116,22 @@ export function AuditPage() {
     });
   }, [data, filterActor, filterFrom, filterTo]);
 
-  const grouped = useMemo(() => {
-    const map = new Map<string, AuditEvent[]>();
-    for (const e of events) {
-      const day = e.at.toLocaleDateString("it-IT", {
-        weekday: "long",
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
-      const existing = map.get(day) ?? [];
-      existing.push(e);
-      map.set(day, existing);
-    }
-    return [...map.entries()];
-  }, [events]);
+  const columns = useMemo<ReadonlyArray<Column<AuditEvent>>>(
+    () => [
+      {
+        id: "at",
+        header: t.quando,
+        accessor: (e) => e.at.getTime(),
+        sortable: true,
+      },
+    ],
+    []
+  );
+
+  const byDay: GroupingDef<AuditEvent> = {
+    keyOf: (e) => e.at.toISOString().slice(0, 10),
+    labelOf: (key) => DAY_LABEL_FMT.format(new Date(`${key}T00:00:00`)),
+  };
 
   return (
     <AdminLayout>
@@ -131,64 +181,20 @@ export function AuditPage() {
         </div>
       </section>
 
-      {isLoading ? (
-        <LoadingHint label={t.loading} />
-      ) : isError ? (
-        <InlineError>{t.loadError}</InlineError>
-      ) : events.length === 0 ? (
-        <EmptyState title={t.empty} />
-      ) : (
-        <div className="space-y-6">
-          {grouped.map(([day, dayEvents]) => (
-            <section key={day}>
-              <SectionLabel as="h2" className="mb-2">
-                {day}
-              </SectionLabel>
-              <BoxedList>
-                {dayEvents.map((e) => {
-                  const actor = e.actorEmail || e.actorUid;
-                  return (
-                    <li key={e.id} className="px-4 py-3">
-                      <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 sm:gap-4 sm:grid-cols-[5ch_minmax(0,2fr)_minmax(0,1fr)]">
-                        <span className="text-xs text-(--color-text-muted) font-mono tabular-nums shrink-0 pt-0.5">
-                          {e.at.toLocaleTimeString("it-IT", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-sm text-(--color-text) leading-snug">
-                            {ACTION_LABELS[e.action] ?? e.action}
-                          </p>
-                          <p className="text-[11px] text-(--color-text-subtle) mt-0.5 font-mono truncate">
-                            {e.targetType}/{e.targetId}
-                          </p>
-                          <p className="sm:hidden text-[11px] text-(--color-text-muted) font-mono truncate mt-0.5">
-                            {actor}
-                          </p>
-                        </div>
-                        <p className="hidden sm:block text-xs text-(--color-text-muted) font-mono truncate">
-                          {actor}
-                        </p>
-                        {e.details ? (
-                          <details className="col-start-2 sm:col-span-2 mt-1">
-                            <summary className="text-[11px] text-(--color-text-subtle) cursor-pointer hover:text-(--color-text-muted)">
-                              {t.dettagli}
-                            </summary>
-                            <pre className="text-[11px] text-(--color-text-subtle) mt-2 overflow-x-auto whitespace-pre-wrap bg-(--color-surface-muted) rounded-md p-2 font-mono">
-                              {JSON.stringify(e.details, null, 0)}
-                            </pre>
-                          </details>
-                        ) : null}
-                      </div>
-                    </li>
-                  );
-                })}
-              </BoxedList>
-            </section>
-          ))}
-        </div>
-      )}
+      <DataGrid<AuditEvent>
+        rows={events}
+        columns={columns}
+        getRowId={(e) => e.id}
+        mode="cards"
+        i18n={dataGridIt}
+        loading={isLoading}
+        error={isError ? t.loadError : null}
+        rowActions={[]}
+        groupBy={byDay}
+        defaultSort={{ columnId: "at", direction: "desc" }}
+        emptyState={<EmptyState title={t.empty} />}
+        card={(event) => <AuditRow event={event} />}
+      />
     </AdminLayout>
   );
 }

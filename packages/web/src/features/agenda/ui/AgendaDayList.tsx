@@ -1,10 +1,17 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { CornerDownRight } from "lucide-react";
-import { Badge, Card, LoadingHint } from "../../../shared/ui";
+import { Badge, Card } from "../../../shared/ui";
+import {
+  DataGrid,
+  dataGridIt,
+  type Column,
+} from "../../../shared/ui/data-grid";
 import { useAuthState } from "../../auth";
 import type { Attivita } from "@vet/shared";
 import { agendaI18n as t } from "../i18n";
 import { dateInputValue } from "../../../shared/lib/format";
+import { routes } from "../../../routes";
 
 interface AgendaDayListProps {
   readonly date: Date;
@@ -29,18 +36,33 @@ function formatTime(date: Date): string {
   });
 }
 
-function compareByTime(a: Attivita, b: Attivita): number {
-  return a.createdAt.getTime() - b.createdAt.getTime();
-}
-
 export function AgendaDayList({ date, items, loading = false }: AgendaDayListProps) {
   const { user } = useAuthState();
   const canCreate = user?.caps.has("activities.create") ?? false;
-  const dayItems = items
-    .filter((a) => dateInputValue(a.data) === dateInputValue(date))
-    .sort(compareByTime);
-  const isEmpty = !loading && dayItems.length === 0;
-  const newHref = `/attivita/nuova?data=${dateInputValue(date)}`;
+  const newHref = `${routes.attivitaNew.path}?data=${dateInputValue(date)}`;
+
+  const dayItems = useMemo(
+    () => items.filter((a) => dateInputValue(a.data) === dateInputValue(date)),
+    [items, date]
+  );
+
+  const columns = useMemo<ReadonlyArray<Column<Attivita>>>(
+    () => [
+      {
+        id: "ora",
+        header: "Ora",
+        accessor: (a) => formatTime(a.data),
+        sortable: true,
+      },
+      {
+        id: "azienda",
+        header: "Azienda",
+        accessor: (a) => a.aziendaNome,
+        sortable: true,
+      },
+    ],
+    []
+  );
 
   return (
     <section aria-label="Attività del giorno" className="min-w-0">
@@ -50,19 +72,18 @@ export function AgendaDayList({ date, items, loading = false }: AgendaDayListPro
         </h2>
       </header>
 
-      {loading ? (
-        <LoadingHint label={t.loading} className="px-1" />
-      ) : isEmpty ? (
-        <EmptyDayState canCreate={canCreate} newHref={newHref} />
-      ) : (
-        <ul className="space-y-2">
-          {dayItems.map((a) => (
-            <li key={a.id}>
-              <AgendaRow attivita={a} />
-            </li>
-          ))}
-        </ul>
-      )}
+      <DataGrid<Attivita>
+        rows={dayItems}
+        columns={columns}
+        getRowId={(a) => a.id}
+        mode="cards"
+        i18n={dataGridIt}
+        loading={loading}
+        rowActions={[]}
+        defaultSort={{ columnId: "ora", direction: "asc" }}
+        emptyState={<EmptyDayState canCreate={canCreate} newHref={newHref} />}
+        card={(a) => <AgendaRow attivita={a} />}
+      />
     </section>
   );
 }
@@ -74,7 +95,7 @@ interface AgendaRowProps {
 function AgendaRow({ attivita }: AgendaRowProps) {
   return (
     <Link
-      to={`/attivita/${attivita.id}`}
+      to={routes.attivitaEdit.to({ id: attivita.id })}
       className="block rounded-xl sm:rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
     >
       <Card

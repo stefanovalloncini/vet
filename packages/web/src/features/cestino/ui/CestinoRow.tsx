@@ -30,7 +30,7 @@ export function CestinoRow({
   const showCheckbox = selectable && canAct;
 
   return (
-    <li className="px-4 py-3 sm:px-5 sm:py-4 flex items-start gap-3 sm:gap-4 hover:bg-(--color-surface-muted)/40 transition-colors">
+    <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl px-4 py-3 sm:px-5 sm:py-4 flex items-start gap-3 sm:gap-4 hover:bg-(--color-surface-muted)/40 transition-colors">
       {showCheckbox ? (
         <input
           type="checkbox"
@@ -86,6 +86,6 @@ export function CestinoRow({
           </Button>
         ) : null}
       </div>
-    </li>
+    </div>
   );
 }
