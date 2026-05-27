@@ -7,11 +7,11 @@ import { useAttivitaFilters } from "../hooks/useAttivitaFilters";
 import { useReferenceData } from "../hooks/useReferenceData";
 import { useVetOptions } from "../hooks/useVetOptions";
 import { attivitaI18n as t } from "../i18n";
-import { computeTotals, groupAttivita } from "../lib/totals";
+import { computeTotals } from "../lib/totals";
 import { AttivitaTotalsBar } from "./AttivitaTotalsBar";
 import { AttivitaFilterBar } from "./AttivitaFilterBar";
 import { AttivitaViewToolbar } from "./AttivitaViewToolbar";
-import { AttivitaGroups } from "./AttivitaGroups";
+import { AttivitaDataGrid } from "./AttivitaDataGrid";
 import { ExportDialog } from "./ExportDialog";
 
 const groupOptions = [
@@ -31,7 +31,6 @@ export function AttivitaListPage() {
   const items = attivitaQuery.items;
 
   const totals = useMemo(() => computeTotals(items), [items]);
-  const groups = useMemo(() => groupAttivita(items, fs.group), [items, fs.group]);
 
   const canExport = user?.caps.has("activities.export") ?? false;
 
@@ -83,12 +82,13 @@ export function AttivitaListPage() {
         onChange={fs.setParam}
         onExport={() => setShowExport(true)}
       />
-      <AttivitaGroups
+      <AttivitaDataGrid
+        items={items}
+        group={fs.group}
         isLoading={attivitaQuery.isLoading}
         isError={attivitaQuery.isError}
-        items={items}
-        groups={groups}
         filtersActive={Object.keys(fs.filters).length > 0}
+        canExport={canExport}
         onClearFilters={fs.clearAll}
       />
       {showExport ? (
