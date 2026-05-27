@@ -2,10 +2,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { registerMutationErrorNotifier } from "../data/queryClient";
 
 type ToastKind = "info" | "success" | "error";
 
@@ -58,6 +60,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }, duration);
   }, []);
   const value = useMemo(() => ({ notify }), [notify]);
+  useEffect(() => {
+    registerMutationErrorNotifier((text, kind) => notify(text, kind));
+    return () => registerMutationErrorNotifier(null);
+  }, [notify]);
   return (
     <ToastContext.Provider value={value}>
       {children}

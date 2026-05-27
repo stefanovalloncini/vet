@@ -67,7 +67,6 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
               onSuccess: () => notify("Attività annullata"),
               onError: (err) => {
                 console.error("undo failed", err);
-                notify("Annullamento non riuscito", "error");
               },
             }
           );

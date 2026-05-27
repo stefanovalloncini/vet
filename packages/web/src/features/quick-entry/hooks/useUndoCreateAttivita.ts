@@ -30,6 +30,7 @@ export function useUndoCreateAttivita() {
   const qc = useQueryClient();
   return useMutation<void, Error, UndoVars, UndoContext>({
     mutationFn: ({ id, user }) => repo.softDelete(id, user),
+    meta: { errorMessage: "Annullamento non riuscito" },
     onMutate: async ({ id }) => {
       await Promise.all(
         OPTIMISTICALLY_PATCHED_KEYS.map((key) =>

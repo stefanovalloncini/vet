@@ -1,7 +1,26 @@
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryClient } from "@tanstack/react-query";
 
 export const DEFAULT_STALE_TIME_MS = 30_000;
 export const DEFAULT_GC_TIME_MS = 300_000;
+
+type ToastFn = (message: string, kind: "error") => void;
+
+declare module "@tanstack/react-query" {
+  interface Register {
+    mutationMeta: { silent?: boolean; errorMessage?: string };
+  }
+}
+
+let registeredNotifier: ToastFn | null = null;
+
+export function registerMutationErrorNotifier(fn: ToastFn | null): void {
+  registeredNotifier = fn;
+}
+
+function defaultErrorMessage(err: unknown): string {
+  if (err instanceof Error && err.message) return err.message;
+  return "Operazione non riuscita. Riprova.";
+}
 
 export function createQueryClient(): QueryClient {
   return new QueryClient({
@@ -13,6 +32,17 @@ export function createQueryClient(): QueryClient {
         retry: 1,
       },
     },
+    mutationCache: new MutationCache({
+      onError: (error, _variables, _context, mutation) => {
+        const meta = (mutation.meta ?? {}) as {
+          silent?: boolean;
+          errorMessage?: string;
+        };
+        if (meta.silent) return;
+        const msg = meta.errorMessage ?? defaultErrorMessage(error);
+        registeredNotifier?.(msg, "error");
+      },
+    }),
   });
 }
 
