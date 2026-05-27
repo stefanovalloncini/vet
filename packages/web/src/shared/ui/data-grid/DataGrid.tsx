@@ -288,6 +288,7 @@ export function DataGrid<T>(props: DataGridProps<T>) {
             getRowId={getRowId}
             card={card}
             rowActions={rowActions ?? []}
+            {...(groupBy ? { groupBy } : {})}
           />
         ) : mode === "virtual" && virtual ? (
           <VirtualMode
