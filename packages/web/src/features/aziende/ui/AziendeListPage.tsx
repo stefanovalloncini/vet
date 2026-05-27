@@ -8,7 +8,7 @@ import { usePinned } from "../hooks/usePinned";
 import { aziendeI18n as t } from "../i18n";
 import { normalizeAziendaNome } from "@vet/shared";
 import { AziendeList } from "./AziendeList";
-import { useContiUnsaldati } from "../../conti";
+import { usePagamentiOverview } from "../../pagamenti";
 
 const STATO_OPTIONS = [
   { value: "", label: "Tutti" },
@@ -23,12 +23,16 @@ export function AziendeListPage() {
   const { pinned, toggle: togglePin, isPinned } = usePinned();
   const [search, setSearch] = useState("");
   const [statoFilter, setStatoFilter] = useState<string>("");
-  const unsaldatiQuery = useContiUnsaldati();
-  const hasUnsaldatiContiBy = useMemo(() => {
-    const set = new Set<string>();
-    for (const c of unsaldatiQuery.data ?? []) set.add(c.aziendaId);
-    return set;
-  }, [unsaldatiQuery.data]);
+  const overview = usePagamentiOverview();
+  const { hasUnsaldatiContiBy, needsNewContoBy } = useMemo(() => {
+    const unpaid = new Set<string>();
+    const needs = new Set<string>();
+    for (const row of overview.rows) {
+      if (row.hasUnpaid) unpaid.add(row.azienda.id);
+      if (row.needsNewConto) needs.add(row.azienda.id);
+    }
+    return { hasUnsaldatiContiBy: unpaid, needsNewContoBy: needs };
+  }, [overview.rows]);
 
   const canCreate = user?.caps.has("aziende.create") ?? false;
   const canUpdate = user?.caps.has("aziende.update") ?? false;
@@ -99,6 +103,7 @@ export function AziendeListPage() {
         isPinned={isPinned}
         onTogglePin={togglePin}
         hasUnsaldatiContiBy={hasUnsaldatiContiBy}
+        needsNewContoBy={needsNewContoBy}
         filters={filters}
         onFiltersChange={handleFiltersChange}
       />
