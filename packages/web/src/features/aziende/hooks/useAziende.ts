@@ -43,6 +43,7 @@ export function useCreateAzienda() {
   return useMutation({
     mutationFn: ({ input, actor }: CreateInput) => repo.create(input, actor),
     onSuccess: () => invalidateMany(qc, AZIENDE_DEPENDENT_KEYS),
+    meta: { errorMessage: "Salvataggio non riuscito. Riprova." },
   });
 }
 
@@ -59,6 +60,7 @@ export function useUpdateAzienda() {
     mutationFn: ({ id, input, actor }: UpdateInput) =>
       repo.update(id, input, actor),
     onSuccess: () => invalidateMany(qc, AZIENDE_DEPENDENT_KEYS),
+    meta: { errorMessage: "Salvataggio non riuscito. Riprova." },
   });
 }
 
@@ -73,5 +75,6 @@ export function useDeleteAzienda() {
   return useMutation({
     mutationFn: ({ id, actor }: DeleteInput) => repo.softDelete(id, actor),
     onSuccess: () => invalidateMany(qc, AZIENDE_DEPENDENT_KEYS),
+    meta: { errorMessage: "Salvataggio non riuscito. Riprova." },
   });
 }

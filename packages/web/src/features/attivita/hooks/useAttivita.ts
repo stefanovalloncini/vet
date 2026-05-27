@@ -67,6 +67,7 @@ export function useCreateAttivita() {
     mutationFn: ({ input, denorm, actor }: CreateVars) =>
       repo.create(input, denorm, actor),
     onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
+    meta: { errorMessage: "Salvataggio non riuscito." },
   });
 }
 
@@ -84,6 +85,7 @@ export function useUpdateAttivita() {
     mutationFn: ({ id, input, denorm, actor }: UpdateVars) =>
       repo.update(id, input, denorm, actor),
     onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
+    meta: { errorMessage: "Salvataggio non riuscito." },
   });
 }
 
@@ -98,5 +100,6 @@ export function useSoftDeleteAttivita() {
   return useMutation({
     mutationFn: ({ id, actor }: DeleteVars) => repo.softDelete(id, actor),
     onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
+    meta: { errorMessage: "Salvataggio non riuscito." },
   });
 }

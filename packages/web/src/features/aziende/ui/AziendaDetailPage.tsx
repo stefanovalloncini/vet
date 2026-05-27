@@ -68,7 +68,7 @@ export function AziendaDetailPage() {
       notify("Azienda archiviata", "success");
       navigate("/aziende");
     } catch {
-      notify(t.erroreSalvataggio, "error");
+      // Error toast handled by global mutation handler (meta.errorMessage)
     } finally {
       setConfirmArchive(false);
     }

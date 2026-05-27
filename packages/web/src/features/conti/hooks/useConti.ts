@@ -60,6 +60,7 @@ export function useEmettiConto() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["conti"] });
     },
+    meta: { errorMessage: "Salvataggio non riuscito" },
   });
 }
 

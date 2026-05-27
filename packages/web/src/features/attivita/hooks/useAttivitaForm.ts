@@ -219,7 +219,6 @@ export function useAttivitaSubmit(args: SubmitArgs): UseAttivitaSubmitResult {
         navigate("/attivita");
       } catch {
         form.setError("root", { message: t.erroreSalvataggio });
-        notify(t.erroreSalvataggio, "error");
       }
     },
     [
@@ -244,9 +243,8 @@ export function useAttivitaSubmit(args: SubmitArgs): UseAttivitaSubmitResult {
       navigate("/attivita");
     } catch {
       form.setError("root", { message: t.erroreSalvataggio });
-      notify(t.erroreSalvataggio, "error");
     }
-  }, [isEdit, id, user, deleteMutation, navigate, form, notify]);
+  }, [isEdit, id, user, deleteMutation, navigate, form]);
 
   return { busy, onSubmit, handleDelete };
 }

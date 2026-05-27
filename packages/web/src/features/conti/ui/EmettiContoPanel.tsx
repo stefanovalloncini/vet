@@ -76,7 +76,7 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
         "success"
       );
     } catch {
-      notify("Salvataggio non riuscito", "error");
+      // Error toast handled by global mutation handler (meta.errorMessage)
     }
   }
 
