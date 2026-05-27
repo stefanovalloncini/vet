@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppShell, Button, PageHeader, TextField } from "../../../shared/ui";
+import type { FilterDef } from "../../../shared/ui/data-grid";
 import { useAuthState } from "../../auth";
 import { useAziende } from "../hooks/useAziende";
 import { usePinned } from "../hooks/usePinned";
@@ -9,11 +10,19 @@ import { normalizeAziendaNome } from "@vet/shared";
 import { AziendeList } from "./AziendeList";
 import { useContiUnsaldati } from "../../conti";
 
+const STATO_OPTIONS = [
+  { value: "", label: "Tutti" },
+  { value: "unpaid", label: "Conti non saldati" },
+  { value: "todo", label: "Da emettere" },
+  { value: "ok", label: "Tutto saldato" },
+] as const;
+
 export function AziendeListPage() {
   const { user } = useAuthState();
   const { data: aziende = [], isLoading, isError } = useAziende();
   const { pinned, toggle: togglePin, isPinned } = usePinned();
   const [search, setSearch] = useState("");
+  const [statoFilter, setStatoFilter] = useState<string>("");
   const unsaldatiQuery = useContiUnsaldati();
   const hasUnsaldatiContiBy = useMemo(() => {
     const set = new Set<string>();
@@ -35,6 +44,24 @@ export function AziendeListPage() {
       return a.nomeNorm.localeCompare(b.nomeNorm, "it");
     });
   }, [aziende, search, pinned]);
+
+  const filters = useMemo<ReadonlyArray<FilterDef>>(
+    () => [
+      {
+        id: "stato",
+        label: "Stato",
+        kind: "select",
+        value: statoFilter,
+        options: STATO_OPTIONS,
+      },
+    ],
+    [statoFilter]
+  );
+
+  const handleFiltersChange = (next: ReadonlyArray<FilterDef>) => {
+    const stato = next.find((f) => f.id === "stato");
+    setStatoFilter(typeof stato?.value === "string" ? stato.value : "");
+  };
 
   return (
     <AppShell>
@@ -72,6 +99,8 @@ export function AziendeListPage() {
         isPinned={isPinned}
         onTogglePin={togglePin}
         hasUnsaldatiContiBy={hasUnsaldatiContiBy}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
       />
     </AppShell>
   );
