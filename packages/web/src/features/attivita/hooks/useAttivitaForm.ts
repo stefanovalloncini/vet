@@ -190,7 +190,7 @@ export function useAttivitaSubmit(args: SubmitArgs): UseAttivitaSubmitResult {
         });
         notify("Promemoria creato", "success");
       } catch {
-        notify("Promemoria non creato", "error");
+        // global MutationCache.onError surfaces the error toast via meta.errorMessage
       }
     },
     [user, createReminder, notify]

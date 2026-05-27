@@ -50,6 +50,7 @@ export function useCreateReminder() {
     mutationFn: ({ input, denorm, actor }: CreateReminderInput) =>
       repo.create(input, denorm, actor),
     onSuccess: () => invalidateMany(qc, REMINDERS_DEPENDENT_KEYS),
+    meta: { errorMessage: "Promemoria non creato" },
   });
 }
 
