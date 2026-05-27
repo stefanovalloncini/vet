@@ -33,7 +33,7 @@ export function AccessRequestRow({
   ].filter(Boolean) as string[];
 
   return (
-    <li className="px-4 py-2.5 grid grid-cols-[1fr_auto] items-center gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] sm:gap-4">
+    <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl px-4 py-2.5 grid grid-cols-[1fr_auto] items-center gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] sm:gap-4">
       <div className="min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <p className="text-sm font-mono text-(--color-text) truncate">
@@ -76,6 +76,6 @@ export function AccessRequestRow({
           <span className="hidden md:inline">{t.requestReject}</span>
         </Button>
       </div>
-    </li>
+    </div>
   );
 }
