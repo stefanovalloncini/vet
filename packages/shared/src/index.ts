@@ -31,6 +31,13 @@ export {
   capCode,
 } from "./domain/caps/registry.js";
 export { CAPABILITY_LABELS } from "./domain/caps/labels.js";
+export {
+  VETERINARIO_CAPS,
+  VETERINARIO_CAPO_CAPS,
+  AMMINISTRATORE_CAPS,
+  ROLE_BUNDLES,
+  type RoleBundle,
+} from "./domain/caps/bundles.js";
 
 export type { User } from "./domain/entities/User.js";
 export type { Role } from "./domain/entities/Role.js";

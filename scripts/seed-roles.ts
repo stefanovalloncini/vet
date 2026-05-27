@@ -1,53 +1,8 @@
-import type { Capability, Role } from "@vet/shared";
+import { ROLE_BUNDLES, type Role } from "@vet/shared";
 import { getRepositories } from "@vet/functions/infrastructure";
 import { runScript } from "./lib/runScript.js";
 
-const veterinarioSempliceCaps: Capability[] = [
-  "activities.read.all",
-  "activities.create",
-  "activities.update.own",
-  "activities.delete.own",
-  "activities.export",
-  "aziende.read",
-  "aziende.create",
-  "aziende.update",
-  "activity_types.read",
-  "trash.read.own",
-  "trash.restore.own",
-  "conti.proforma",
-  "reminders.read",
-  "reminders.create",
-  "reminders.update.own",
-  "reminders.delete.own",
-];
-
-const veterinarioCapoCaps: Capability[] = [
-  ...veterinarioSempliceCaps,
-  "conti.emit",
-  "conti.saldo",
-];
-
-const amministratoreCaps: Capability[] = [
-  ...veterinarioCapoCaps,
-  "roles.read",
-  "roles.manage",
-  "roles.assign",
-  "allowlist.read",
-  "allowlist.manage",
-  "users.approve",
-  "users.read.all",
-  "audit.read",
-];
-
-const SEEDS: ReadonlyArray<{
-  id: string;
-  name: string;
-  caps: Capability[];
-}> = [
-  { id: "veterinario_semplice", name: "Veterinario semplice", caps: veterinarioSempliceCaps },
-  { id: "veterinario_capo", name: "Veterinario capo", caps: veterinarioCapoCaps },
-  { id: "amministratore", name: "Amministratore", caps: amministratoreCaps },
-];
+const SEEDS = ROLE_BUNDLES;
 
 await runScript({
   scriptName: "seed-roles",
