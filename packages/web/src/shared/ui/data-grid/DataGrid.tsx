@@ -70,7 +70,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     apiRef,
   } = props;
 
-  // ---- Sort (controlled vs internal) ----
   const sortControlled = sortProp !== undefined;
   const [internalSort, setInternalSort] = useState<SortState | null>(
     defaultSort ?? null
@@ -102,7 +101,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     [sort, sortControlled, onSortChange]
   );
 
-  // ---- Filters (controlled vs internal) ----
   const filtersControlled = filtersProp !== undefined;
   const [internalFilters, setInternalFilters] = useState<ReadonlyArray<FilterDef>>(
     () => filtersProp ?? []
@@ -119,7 +117,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     [filtersControlled, onFiltersChange]
   );
 
-  // ---- Expanded (controlled vs internal) ----
   const expandedControlled = expandedIdsProp !== undefined;
   const [internalExpanded, setInternalExpanded] = useState<ReadonlySet<string>>(
     new Set()
@@ -137,7 +134,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     [expandedIds, expandedControlled, onExpandedChange]
   );
 
-  // ---- Column visibility ----
   const storageKey = toolbar?.visibilityStorageKey;
   const [hiddenColumns, setHiddenColumns] = useState<ReadonlySet<string>>(() => {
     const stored = loadHiddenFromStorage(storageKey);
@@ -156,7 +152,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     [hiddenColumns, storageKey]
   );
 
-  // ---- Derived rows ----
   const filtered = useMemo(
     () => applyFilters(rows, columns, filters),
     [rows, columns, filters]
@@ -170,7 +165,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     [columns, hiddenColumns]
   );
 
-  // ---- Exports ----
   const buildCsv = useCallback(() => toCsv(colsVisible, sorted), [colsVisible, sorted]);
   const handleDownloadCsv = useCallback(
     (filename?: string) => {
@@ -204,7 +198,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     [buildCsv, handleDownloadCsv, handleExportPdf, sorted]
   );
 
-  // ---- Render ----
   const isEmpty = sorted.length === 0;
   const hasActiveFilters = filters.some((f) => {
     const v = f.value;

@@ -16,6 +16,13 @@ import { EmettiContoPanel } from "../EmettiContoPanel";
 import { defaultPeriodoFor } from "../../lib/contoPreview";
 import { dateInputValue } from "../../../../shared/lib/format";
 
+vi.mock("../../../../shared/pdf", () => ({
+  ContoDocument: () => null,
+  ProformaDocument: () => null,
+  downloadPdf: vi.fn().mockResolvedValue(undefined),
+  openWhatsappShare: vi.fn().mockReturnValue(true),
+}));
+
 function actor(caps: Capability[]): ActorContext {
   return {
     uid: "vet-1",

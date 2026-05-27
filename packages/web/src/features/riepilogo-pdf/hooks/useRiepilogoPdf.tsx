@@ -4,7 +4,6 @@ import type { Attivita, Azienda } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { queryKeys } from "../../../shared/data/queryClient";
 import { formatDate, formatEuro, parseDateInput } from "../../../shared/lib/format";
-import { RiepilogoDocument, downloadPdf, openWhatsappShare } from "../../../shared/pdf";
 
 function riepilogoFilenameStem(summary: RiepilogoSummary): string {
   const parts = ["riepilogo", summary.azienda.nomeNorm || "azienda"];
@@ -101,6 +100,7 @@ export function useRiepilogoPdf(filters: RiepilogoFilters): UseRiepilogoPdfResul
   const generatePdf = useCallback(async () => {
     if (!summary) return;
     const filenameStem = riepilogoFilenameStem(summary);
+    const { RiepilogoDocument, downloadPdf } = await import("../../../shared/pdf");
     await downloadPdf(
       <RiepilogoDocument
         data={{
@@ -123,7 +123,9 @@ export function useRiepilogoPdf(filters: RiepilogoFilters): UseRiepilogoPdfResul
     );
     const text =
       `Riepilogo ${summary.azienda.nome}\n\n${lines.join("\n")}\n\nTotale: ${formatEuro(summary.total)}`;
-    openWhatsappShare({ text });
+    void import("../../../shared/pdf").then(({ openWhatsappShare }) => {
+      openWhatsappShare({ text });
+    });
   }, [summary]);
 
   const loading = aziendaId !== "" && query.isLoading;

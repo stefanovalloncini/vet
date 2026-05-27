@@ -45,7 +45,6 @@ function aggregateConti(conti: ReadonlyArray<Conto>): Map<string, Aggregate> {
     }
     out.set(c.aziendaId, cur);
   }
-  // Round to cents.
   for (const v of out.values()) {
     v.totaleAperto = Math.round(v.totaleAperto * 100) / 100;
   }

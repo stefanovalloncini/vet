@@ -18,11 +18,6 @@ import {
 import { useEmettiConto } from "../hooks/useConti";
 import { contiI18n as t } from "../i18n";
 import { computeContoPreview, defaultPeriodoFor } from "../lib/contoPreview";
-import {
-  ContoDocument,
-  ProformaDocument,
-  downloadPdf,
-} from "../../../shared/pdf";
 
 interface EmettiContoPanelProps {
   azienda: Azienda;
@@ -90,9 +85,10 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
         azienda,
         emessoIl,
       });
+      const pdf = await import("../../../shared/pdf");
       if (modalita === "proforma") {
-        await downloadPdf(
-          <ProformaDocument
+        await pdf.downloadPdf(
+          <pdf.ProformaDocument
             data={{
               azienda,
               righe: includedAttivita,
@@ -105,8 +101,8 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
           filenameStem
         );
       } else {
-        await downloadPdf(
-          <ContoDocument
+        await pdf.downloadPdf(
+          <pdf.ContoDocument
             data={{
               azienda,
               righe: includedAttivita,

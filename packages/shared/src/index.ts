@@ -37,6 +37,7 @@ export {
   AMMINISTRATORE_CAPS,
   ROLE_BUNDLES,
   type RoleBundle,
+  type RoleBundleId,
 } from "./domain/caps/bundles.js";
 
 export type { User } from "./domain/entities/User.js";

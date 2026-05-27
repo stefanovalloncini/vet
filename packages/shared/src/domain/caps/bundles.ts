@@ -45,13 +45,18 @@ export const AMMINISTRATORE_CAPS: ReadonlyArray<Capability> = [
   "audit.read",
 ];
 
+export type RoleBundleId =
+  | "veterinario_semplice"
+  | "veterinario_capo"
+  | "amministratore";
+
 export interface RoleBundle {
-  readonly id: string;
+  readonly id: RoleBundleId;
   readonly name: string;
   readonly caps: ReadonlyArray<Capability>;
 }
 
-export const ROLE_BUNDLES: ReadonlyArray<RoleBundle> = [
+export const ROLE_BUNDLES = [
   {
     id: "veterinario_semplice",
     name: "Veterinario semplice",
@@ -67,4 +72,4 @@ export const ROLE_BUNDLES: ReadonlyArray<RoleBundle> = [
     name: "Amministratore",
     caps: AMMINISTRATORE_CAPS,
   },
-];
+] as const satisfies ReadonlyArray<RoleBundle>;

@@ -176,8 +176,11 @@ describe("useRiepilogoPdf", () => {
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
-    act(() => result.current.shareWhatsApp());
-    expect(openWhatsappShare).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      result.current.shareWhatsApp();
+      await new Promise<void>((r) => setTimeout(r, 0));
+    });
+    await waitFor(() => expect(openWhatsappShare).toHaveBeenCalledTimes(1));
     const call = (openWhatsappShare as ReturnType<typeof vi.fn>).mock.calls[0];
     const text = String(call?.[0]?.text ?? "");
     expect(text).toContain("Allevamento Demo");
@@ -193,7 +196,10 @@ describe("useRiepilogoPdf", () => {
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
-    act(() => result.current.shareWhatsApp());
+    await act(async () => {
+      result.current.shareWhatsApp();
+      await new Promise<void>((r) => setTimeout(r, 0));
+    });
     expect(openWhatsappShare).not.toHaveBeenCalled();
   });
 });

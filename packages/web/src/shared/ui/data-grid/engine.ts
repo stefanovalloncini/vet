@@ -9,8 +9,6 @@ import type {
   SortState,
 } from "./types";
 
-// ---------- Sort ----------
-
 export interface SortableColumnView<T> {
   id: string;
   accessor: (row: T) => unknown;
@@ -46,8 +44,6 @@ export function applySort<T>(
   arr.sort((ra, rb) => dir * compareValues(col.accessor(ra), col.accessor(rb)));
   return arr;
 }
-
-// ---------- Filters ----------
 
 export interface FilterableColumnView<T> {
   id: string;
@@ -126,9 +122,14 @@ export function applyFilters<T>(
   const active = filters.filter((f) => isFilterActive(f.value));
   if (active.length === 0) return rows;
 
+  const columnByFilterId = new Map<string, FilterableColumnView<T>>();
+  for (const c of columns) {
+    columnByFilterId.set(c.filterId ?? c.id, c);
+  }
+
   return rows.filter((row) => {
     for (const f of active) {
-      const col = columns.find((c) => (c.filterId ?? c.id) === f.id);
+      const col = columnByFilterId.get(f.id);
       const value = col ? col.accessor(row) : undefined;
       switch (f.kind) {
         case "text": {
@@ -166,8 +167,6 @@ export function applyFilters<T>(
   });
 }
 
-// ---------- Grouping ----------
-
 export interface GroupedBucket<T> {
   key: string;
   rows: ReadonlyArray<T>;
@@ -192,8 +191,6 @@ export function groupRows<T>(
   }
   return order.map((key) => ({ key, rows: map.get(key) ?? [] }));
 }
-
-// ---------- Visible Columns ----------
 
 export function visibleColumns<T>(
   columns: ReadonlyArray<Column<T>>,
