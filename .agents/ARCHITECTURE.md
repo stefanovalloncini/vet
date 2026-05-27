@@ -317,14 +317,15 @@ Not everything Firestore-flavored is a bug to be hidden. The following are delib
 | In-memory test doubles | ✅ Complete in `@vet/shared/testing/` |
 | Web composition + DI | ✅ [composition/firestore.ts](packages/web/src/infrastructure/composition/firestore.ts), [RepositoriesContext](packages/web/src/infrastructure/RepositoriesContext.tsx) |
 | Web feature hooks pattern | ✅ [useAziende](packages/web/src/features/aziende/hooks/useAziende.ts) and siblings |
-| DTO + parser for `conti` | ✅ [conto.ts](packages/shared/src/firestore-dto/conto.ts) |
-| DTO + parser for 9 other entities | ❌ Web repos still use `as` casts |
-| `toXxxDocument` serializers | ❌ None exist. Writes are inline object literals |
-| Functions repository layer | ❌ Empty. All handlers use `adminDb` directly |
-| Scripts via repositories | ❌ All scripts call Firestore directly |
-| Unit-of-work / tx port | ❌ Required before any auth handler can migrate |
-| Error type hierarchy | ❌ Required for clean handler/repo split |
-| Rules ↔ schema coordination | ❌ Drifts independently today |
+| DTO + parser/serializer for all entities | ✅ Every entity in [packages/shared/src/firestore-dto/](packages/shared/src/firestore-dto/) follows the `conto.ts` pattern: Zod `xxxDtoSchema` + `parseXxx(id, raw)` + `buildXxx*Doc/Patch` |
+| Functions repository layer | ✅ [packages/functions/src/infrastructure/firestore/](packages/functions/src/infrastructure/firestore/) implements every port; [composition.ts](packages/functions/src/infrastructure/composition.ts) provides `getRepositories()` |
+| Unit-of-work / tx port | ✅ `Tx` + `Repositories.run((tx) => …)` in [Repositories.ts](packages/shared/src/domain/ports/Repositories.ts); web and functions both provide tx-aware variants |
+| Scripts via repositories | ✅ All scripts under [scripts/](scripts/) compose via `getRepositories()` (e.g. seed-roles, seed-activity-types, audit-prime) |
+| Error type hierarchy | ✅ [packages/shared/src/domain/errors.ts](packages/shared/src/domain/errors.ts) (`DomainError` + Not-found/Permission/Conflict/StaleState) |
+| Rules ↔ schema coordination | 🟡 Rules tests in [packages/rules-tests/](packages/rules-tests/) exercise typical writes; no automatic `hasOnly` generation yet |
+| Presentation primitives (DataGrid, Form, PDF, route registry) | ✅ See §11 |
+| Capability bundles for product roles | ✅ [packages/shared/src/domain/caps/bundles.ts](packages/shared/src/domain/caps/bundles.ts) |
+| Pagamenti read model | ✅ [usePagamentiOverview](packages/web/src/features/pagamenti/hooks/usePagamentiOverview.ts) joins aziende + conti + attivita |
 
 ---
 
@@ -594,3 +595,64 @@ Push back if a PR introduces any of these:
 - A new port whose signature differs from those already in `@vet/shared/domain/ports/`.
 - A new collection without a corresponding entry in [firestore.rules](firestore.rules) and a rules-test in [packages/rules-tests](packages/rules-tests/).
 - A schema-tightening PR that ships in the same release as a writer change.
+- Importing `@tanstack/react-table` outside [packages/web/src/shared/ui/data-grid/engine.ts](packages/web/src/shared/ui/data-grid/engine.ts). The engine is the swap point — every consumer goes through `DataGrid`'s public types in `types.ts`.
+- A new list/table built with a hand-rolled `<table>` / `<ul>` instead of `DataGrid`. The few exceptions (calendar strip, dosage tool, single-row info cards) must justify why they're not row-shaped data.
+- A new feature-page form built with raw `useForm()` + `<FormProvider>` instead of `<Form>` / `<Field>` from [packages/web/src/shared/ui/forms/](packages/web/src/shared/ui/forms/). Per-feature complex forms can still drop down to the RHF wrappers directly, but the default is the Form abstraction.
+- A new PDF document built with `window.print()` instead of `@react-pdf/renderer`. The three document templates (`ContoDocument`, `ProformaDocument`, `RiepilogoDocument`) live in [packages/web/src/shared/pdf/](packages/web/src/shared/pdf/) and share the same `AziendaHeader` + `RiepilogoTable` building blocks.
+- A new mutation that calls `notify(..., "error")` from its own `onError`. The `MutationCache` registered in [queryClient.ts](packages/web/src/shared/data/queryClient.ts) surfaces error toasts automatically; opt out with `meta: { silent: true }` or customize the message with `meta: { errorMessage: "…" }`.
+- A new `<Link to={\`/aziende/${id}\`}>` template-string navigation. Use `routes.aziendaDetail.to({ id })` from the typed registry in [packages/web/src/routes.tsx](packages/web/src/routes.tsx) instead — the `.path` field is the source for `<Route>` declarations.
+
+---
+
+## 11. Presentation primitives
+
+Four foundation modules under `packages/web/src/shared/` and a typed route registry sit between feature code and React / Tailwind / TanStack libraries. They are deliberately small surfaces:
+
+### 11.1 DataGrid — [packages/web/src/shared/ui/data-grid/](packages/web/src/shared/ui/data-grid/)
+
+Generic `DataGrid<T>` wrapping TanStack Table v8. Public API (`Column<T>`, `DataGridProps<T>`, `FilterDef`, `SortState`, `GroupingDef`, `RowAction<T>`) lives in [types.ts](packages/web/src/shared/ui/data-grid/types.ts). The engine is hidden in [engine.ts](packages/web/src/shared/ui/data-grid/engine.ts) — the only file that imports `@tanstack/react-table`.
+
+Three render modes: `table` (default), `cards` (responsive grid; renders a card per row, with group headers when `groupBy` is set), `virtual` (windowed via `react-window`). Same column definitions, same filter contract.
+
+Exports go through the toolbar: CSV via the Italian formatter in [export/csv.ts](packages/web/src/shared/ui/data-grid/export/csv.ts) (UTF-8 BOM, semicolon-delimited, formula-injection guarded); PDF via `jspdf` + `jspdf-autotable`, lazy-imported in [export/pdf.ts](packages/web/src/shared/ui/data-grid/export/pdf.ts).
+
+The grid is **controlled by default** — sort, filters, selection, expansion are owned by the page when the corresponding prop is provided, internal-state when it isn't. Display (`cell`) is JSX, data (`accessor`) is the primitive for sort/filter/export — exporters never invoke `cell`.
+
+### 11.2 Forms — [packages/web/src/shared/ui/forms/](packages/web/src/shared/ui/forms/)
+
+`<Form schema={zodSchema} defaultValues={…} onSubmit={…}>` wraps `useForm` + `<FormProvider>` + `<form>` + scroll-on-error, with a default Italian zod error map. Inside, `<Field name="…" kind="text|number|select|textarea|segmented|switch" …>` delegates to the existing `RHF*` wrappers — those stay as the low-level controllers. `<SubmitButton>` reads `formState.isSubmitting` automatically.
+
+Number fields default to `step={10}` so arrow keys move euro values by 10, not by cents (per client feedback).
+
+### 11.3 PDF documents — [packages/web/src/shared/pdf/](packages/web/src/shared/pdf/)
+
+Three `@react-pdf/renderer` documents: `ContoDocument`, `ProformaDocument` (with a faint diagonal "BOZZA" watermark), and `RiepilogoDocument` for the printable summary. All three compose the same shared `AziendaHeader` + `RiepilogoTable` so the visual language stays consistent.
+
+`renderToBlob` and `downloadPdf` wrap `pdf(doc).toBlob()`. Font registration is idempotent — `ensureFontsRegistered()` is safe to call repeatedly and runs server-side as well, which matters for the future Cloud-Functions-side invoice email render path.
+
+WhatsApp share lives in [share/whatsapp.ts](packages/web/src/shared/pdf/share/whatsapp.ts): builds a `wa.me` URL with a pre-encoded Italian caption (file attachment is OS-level — users attach the just-downloaded PDF themselves).
+
+### 11.4 Typed route registry — [packages/web/src/routes.tsx](packages/web/src/routes.tsx)
+
+A single `routes` object with one entry per route. Each entry exposes `.path` (the `:id`-templated string used by `<Route>` and react-router matching) and `.to(params)` (a typed URL builder that param-encodes values).
+
+```ts
+<Route path={routes.aziendaDetail.path} … />     // "/aziende/:id"
+navigate(routes.aziendaDetail.to({ id: a.id }))  // "/aziende/abc"
+```
+
+`PROTECTED_ROUTES` is now derived from the registry, so adding a route means adding one entry, in one place.
+
+### 11.5 Global mutation error → toast
+
+[`queryClient.ts`](packages/web/src/shared/data/queryClient.ts) installs a `MutationCache` whose `onError` calls a notifier registered by `<ToastProvider>` on mount. Default message: `"Operazione non riuscita. Riprova."` in Italian. Override per-mutation via `meta: { errorMessage: "…" }`; suppress via `meta: { silent: true }`.
+
+Per-callback `notify(err, "error")` lines across feature mutation hooks were removed during the foundation refactor — the global handler covers them. Bespoke messages were moved onto the corresponding `useMutation` `meta.errorMessage`.
+
+### 11.6 Capability bundles
+
+[`packages/shared/src/domain/caps/bundles.ts`](packages/shared/src/domain/caps/bundles.ts) groups capabilities into the three product roles: `VETERINARIO_CAPS`, `VETERINARIO_CAPO_CAPS` (= veterinario + `conti.emit` + `conti.saldo`), `AMMINISTRATORE_CAPS` (= capo + role/allowlist/audit admin). `ROLE_BUNDLES` exports them as named seeds consumed by `scripts/seed-roles.ts` and reusable by any "Create role from bundle" admin affordance.
+
+### 11.7 Pagamenti read model
+
+[`usePagamentiOverview`](packages/web/src/features/pagamenti/hooks/usePagamentiOverview.ts) is the single source of truth for per-azienda payment state: `totaleAperto`, `ultimoContoAt`, `hasUnpaid`, and `needsNewConto` (derived from `cadenzaFatturazione` + last emit + unbilled attivita window via [contoPeriodPolicy.ts](packages/web/src/features/pagamenti/lib/contoPeriodPolicy.ts)). Both the dedicated `/pagamenti` page and the status badge on the Aziende cards consume this hook so the answer never disagrees with itself.
