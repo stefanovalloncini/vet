@@ -7,6 +7,12 @@ import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesCon
 import { createInMemoryRepositories } from "../../../../infrastructure/composition/in-memory";
 import { useRiepilogoPdf } from "../useRiepilogoPdf";
 
+vi.mock("../../../../shared/pdf", () => ({
+  RiepilogoDocument: () => null,
+  downloadPdf: vi.fn().mockResolvedValue(undefined),
+  openWhatsappShare: vi.fn().mockReturnValue(true),
+}));
+
 const actor: ActorContext = {
   uid: "vet-1",
   email: "vet@example.com",
@@ -139,7 +145,9 @@ describe("useRiepilogoPdf", () => {
     expect(result.current.error).toBe("load-failed");
   });
 
-  it("generatePdf calls window.print", async () => {
+  it("generatePdf calls downloadPdf with the summary", async () => {
+    const { downloadPdf } = await import("../../../../shared/pdf");
+    (downloadPdf as ReturnType<typeof vi.fn>).mockClear();
     const repos = createInMemoryRepositories();
     const { aziendaId } = await seed(repos);
     const { result } = renderHook(
@@ -147,11 +155,20 @@ describe("useRiepilogoPdf", () => {
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
-    act(() => result.current.generatePdf());
-    expect(window.print).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await result.current.generatePdf();
+      // wait microtask for the mocked downloadPdf promise
+      await new Promise<void>((r) => setTimeout(r, 0));
+    });
+    expect(downloadPdf).toHaveBeenCalledTimes(1);
+    const filenameStem = (downloadPdf as ReturnType<typeof vi.fn>).mock.calls[0]?.[1];
+    expect(typeof filenameStem).toBe("string");
+    expect(filenameStem).toContain("riepilogo");
   });
 
   it("shareWhatsApp opens a wa.me link with totals", async () => {
+    const { openWhatsappShare } = await import("../../../../shared/pdf");
+    (openWhatsappShare as ReturnType<typeof vi.fn>).mockClear();
     const repos = createInMemoryRepositories();
     const { aziendaId } = await seed(repos);
     const { result } = renderHook(
@@ -160,15 +177,16 @@ describe("useRiepilogoPdf", () => {
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
     act(() => result.current.shareWhatsApp());
-    expect(window.open).toHaveBeenCalledTimes(1);
-    const call = (window.open as ReturnType<typeof vi.fn>).mock.calls[0];
-    const url = String(call?.[0] ?? "");
-    expect(url.startsWith("https://wa.me/?text=")).toBe(true);
-    expect(decodeURIComponent(url)).toContain("Allevamento Demo");
-    expect(decodeURIComponent(url)).toContain("Totale");
+    expect(openWhatsappShare).toHaveBeenCalledTimes(1);
+    const call = (openWhatsappShare as ReturnType<typeof vi.fn>).mock.calls[0];
+    const text = String(call?.[0]?.text ?? "");
+    expect(text).toContain("Allevamento Demo");
+    expect(text).toContain("Totale");
   });
 
   it("shareWhatsApp is a no-op when summary missing", async () => {
+    const { openWhatsappShare } = await import("../../../../shared/pdf");
+    (openWhatsappShare as ReturnType<typeof vi.fn>).mockClear();
     const repos = createInMemoryRepositories();
     const { result } = renderHook(
       () => useRiepilogoPdf({ aziendaId: "missing", fromStr: "", toStr: "" }),
@@ -176,6 +194,6 @@ describe("useRiepilogoPdf", () => {
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
     act(() => result.current.shareWhatsApp());
-    expect(window.open).not.toHaveBeenCalled();
+    expect(openWhatsappShare).not.toHaveBeenCalled();
   });
 });

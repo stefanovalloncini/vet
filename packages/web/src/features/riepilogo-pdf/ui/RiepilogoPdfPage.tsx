@@ -45,11 +45,11 @@ export function RiepilogoPdfPage() {
   }
 
   return (
-    <main className="min-h-screen bg-(--color-background) print:bg-white print:min-h-0">
-      <div className="max-w-3xl mx-auto py-8 px-4 sm:py-10 sm:px-6 print:max-w-none print:py-0 print:px-0">
+    <main className="min-h-screen bg-(--color-background)">
+      <div className="max-w-3xl mx-auto py-8 px-4 sm:py-10 sm:px-6">
         <RiepilogoFilters
           onBack={() => navigate(-1)}
-          onPrint={generatePdf}
+          onPrint={() => void generatePdf()}
           onShareWhatsApp={shareWhatsApp}
           canShare={summary.items.length > 0}
           from={fromStr}

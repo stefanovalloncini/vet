@@ -4,6 +4,21 @@ import type { Attivita, Azienda } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { queryKeys } from "../../../shared/data/queryClient";
 import { formatDate, formatEuro, parseDateInput } from "../../../shared/lib/format";
+import { RiepilogoDocument, downloadPdf, openWhatsappShare } from "../../../shared/pdf";
+
+function riepilogoFilenameStem(summary: RiepilogoSummary): string {
+  const parts = ["riepilogo", summary.azienda.nomeNorm || "azienda"];
+  if (summary.from) parts.push(yyyymmdd(summary.from));
+  if (summary.to) parts.push(yyyymmdd(summary.to));
+  return parts.join("_");
+}
+
+function yyyymmdd(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}${m}${day}`;
+}
 
 export interface RiepilogoFilters {
   aziendaId: string;
@@ -24,7 +39,7 @@ export interface UseRiepilogoPdfResult {
   loading: boolean;
   error: "not-found" | "load-failed" | null;
   summary: RiepilogoSummary | null;
-  generatePdf: () => void;
+  generatePdf: () => Promise<void>;
   shareWhatsApp: () => void;
 }
 
@@ -83,19 +98,32 @@ export function useRiepilogoPdf(filters: RiepilogoFilters): UseRiepilogoPdfResul
     };
   }, [query.data, fromStr, toStr]);
 
-  const generatePdf = useCallback(() => {
-    window.print();
-  }, []);
+  const generatePdf = useCallback(async () => {
+    if (!summary) return;
+    const filenameStem = riepilogoFilenameStem(summary);
+    await downloadPdf(
+      <RiepilogoDocument
+        data={{
+          azienda: summary.azienda,
+          righe: summary.items,
+          periodo: { from: summary.from, to: summary.to },
+          emessoIl: new Date(),
+          vetName: summary.vetName,
+          totale: summary.total,
+        }}
+      />,
+      filenameStem
+    );
+  }, [summary]);
 
   const shareWhatsApp = useCallback(() => {
     if (!summary) return;
     const lines = summary.items.map(
       (a) => `${formatDate(a.data)} · ${a.tipoNome} · ${formatEuro(a.totale)}`
     );
-    const text = encodeURIComponent(
-      `Riepilogo ${summary.azienda.nome}\n\n${lines.join("\n")}\n\nTotale: ${formatEuro(summary.total)}`
-    );
-    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
+    const text =
+      `Riepilogo ${summary.azienda.nome}\n\n${lines.join("\n")}\n\nTotale: ${formatEuro(summary.total)}`;
+    openWhatsappShare({ text });
   }, [summary]);
 
   const loading = aziendaId !== "" && query.isLoading;
