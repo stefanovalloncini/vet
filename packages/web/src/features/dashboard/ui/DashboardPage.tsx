@@ -58,15 +58,11 @@ function DashboardBody({ stats }: { stats: DashboardStats }) {
     mode === "attivita" ? (v: number) => String(v) : (v: number) => formatEuro(v);
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
         <KpiCard label={t.visiteMese} value={String(stats.thisMonth.count)} />
         <KpiCard
           label={t.aziendeAttive}
           value={String(stats.aziendeAttiveCount)}
-        />
-        <KpiCard
-          label={t.incassiMese}
-          value={formatEuro(stats.thisMonth.total)}
         />
       </div>
       <Card>

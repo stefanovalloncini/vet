@@ -90,7 +90,7 @@ function baseStats(overrides: Partial<DashboardStats> = {}): DashboardStats {
 }
 
 describe("DashboardPage", () => {
-  it("shows the 3 KPI cards (attività + aziende + incassi)", () => {
+  it("shows the 2 KPI cards (attività + aziende)", () => {
     useDashboardStatsMock.mockReturnValue(
       baseStats({ items: [{ id: "a1" } as Attivita] })
     );
@@ -99,11 +99,10 @@ describe("DashboardPage", () => {
     expect(screen.getByText("7")).toBeInTheDocument();
     expect(screen.getByText("Aziende attive")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText("Totale incassi mese")).toBeInTheDocument();
-    expect(screen.getByText(/1\.?000,00/)).toBeInTheDocument();
+    expect(screen.queryByText("Totale incassi mese")).not.toBeInTheDocument();
   });
 
-  it("does not render legacy Da incassare, Cliente top, or Tipo top KPIs", () => {
+  it("does not render legacy Da incassare, Cliente top, Tipo top, or Totale incassi KPIs", () => {
     useDashboardStatsMock.mockReturnValue(
       baseStats({ items: [{ id: "a1" } as Attivita] })
     );
@@ -111,6 +110,7 @@ describe("DashboardPage", () => {
     expect(screen.queryByText("Da incassare")).not.toBeInTheDocument();
     expect(screen.queryByText("Cliente top del mese")).not.toBeInTheDocument();
     expect(screen.queryByText("Tipo più frequente")).not.toBeInTheDocument();
+    expect(screen.queryByText("Totale incassi mese")).not.toBeInTheDocument();
   });
 
   it("defaults the chart to Attività mode", () => {

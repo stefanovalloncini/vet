@@ -20,7 +20,7 @@ interface NumberFieldProps extends NativeProps {
 }
 
 export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(function NumberField(
-  { id, label, value, onChange, step = 1, min, max, error, hint, suffix, disabled, className = "", ...rest },
+  { id, label, value, onChange, step = 10, min, max, error, hint, suffix, disabled, className = "", ...rest },
   ref
 ) {
   const current = typeof value === "number" ? value : Number.NaN;
