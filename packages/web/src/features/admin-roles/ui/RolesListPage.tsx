@@ -1,14 +1,18 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, ShieldCheck } from "lucide-react";
 import type { Role } from "@vet/shared";
 import {
   AdminLayout,
   Badge,
-  BoxedList,
-  InlineError,
-  LoadingHint,
+  EmptyState,
   PageHeader,
 } from "../../../shared/ui";
+import {
+  DataGrid,
+  dataGridIt,
+  type Column,
+} from "../../../shared/ui/data-grid";
 import { useRoles } from "../hooks/useRoles";
 import { useRoleUserCounts } from "../hooks/useRoleUserCounts";
 import { rolesI18n as t } from "../i18n";
@@ -29,69 +33,92 @@ export function RolesListPage() {
   const isError = rolesQuery.isError;
   const counts = useRoleUserCounts(roles);
 
+  const countById = useMemo(() => {
+    const map = new Map<string, number | null>();
+    roles.forEach((role, idx) => {
+      map.set(role.id, counts[idx]?.count ?? null);
+    });
+    return map;
+  }, [roles, counts]);
+
+  const columns = useMemo<ReadonlyArray<Column<Role>>>(
+    () => [
+      {
+        id: "nome",
+        header: t.campoNome,
+        accessor: (r) => r.name,
+        sortable: true,
+      },
+    ],
+    []
+  );
+
   return (
     <AdminLayout>
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
-      {isLoading ? (
-        <LoadingHint label={t.loading} />
-      ) : isError ? (
-        <InlineError>{t.loadError}</InlineError>
-      ) : (
-        <BoxedList>
-          {roles.map((role, idx) => {
-            const count = counts[idx]?.count ?? null;
-            return (
-              <li key={role.id}>
-                <Link
-                  to={`/admin/ruoli/${role.id}`}
-                  className="block px-4 py-3 hover:bg-(--color-surface-muted) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) focus:outline-none focus-visible:bg-(--color-surface-muted)"
-                >
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck
-                      size={16}
-                      strokeWidth={1.75}
-                      className="text-(--color-text-subtle) shrink-0"
-                      aria-hidden="true"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <h2 className="text-sm font-medium text-(--color-text)">
-                          {role.name}
-                        </h2>
-                        <span className="text-[11px] text-(--color-text-subtle) font-mono">
-                          {role.id}
-                        </span>
-                        {role.locked ? (
-                          <Badge tone="neutral">{t.bloccato}</Badge>
-                        ) : null}
-                      </div>
-                      {role.description ? (
-                        <p className="text-xs text-(--color-text-muted) mt-0.5 truncate">
-                          {role.description}
-                        </p>
+      <DataGrid<Role>
+        rows={roles}
+        columns={columns}
+        getRowId={(r) => r.id}
+        mode="cards"
+        i18n={dataGridIt}
+        loading={isLoading}
+        error={isError ? t.loadError : null}
+        rowActions={[]}
+        emptyState={<EmptyState title={t.empty} />}
+        card={(role) => {
+          const count = countById.get(role.id) ?? null;
+          return (
+            <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden">
+              <Link
+                to={`/admin/ruoli/${role.id}`}
+                className="block px-4 py-3 hover:bg-(--color-surface-muted) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) focus:outline-none focus-visible:bg-(--color-surface-muted)"
+              >
+                <div className="flex items-center gap-3">
+                  <ShieldCheck
+                    size={16}
+                    strokeWidth={1.75}
+                    className="text-(--color-text-subtle) shrink-0"
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <h2 className="text-sm font-medium text-(--color-text)">
+                        {role.name}
+                      </h2>
+                      <span className="text-[11px] text-(--color-text-subtle) font-mono">
+                        {role.id}
+                      </span>
+                      {role.locked ? (
+                        <Badge tone="neutral">{t.bloccato}</Badge>
                       ) : null}
-                      <p className="text-[11px] text-(--color-text-subtle) mt-1 tabular-nums">
-                        {userCountLabel(count)}
-                        <span aria-hidden="true"> · </span>
-                        {role.capabilities.length === 0
-                          ? t.nessunaCap
-                          : `${role.capabilities.length} ${t.capability.toLowerCase()}`}
-                      </p>
                     </div>
-                    <ChevronRight
-                      size={14}
-                      strokeWidth={1.75}
-                      className="text-(--color-text-subtle) shrink-0"
-                      aria-hidden="true"
-                    />
+                    {role.description ? (
+                      <p className="text-xs text-(--color-text-muted) mt-0.5 truncate">
+                        {role.description}
+                      </p>
+                    ) : null}
+                    <p className="text-[11px] text-(--color-text-subtle) mt-1 tabular-nums">
+                      {userCountLabel(count)}
+                      <span aria-hidden="true"> · </span>
+                      {role.capabilities.length === 0
+                        ? t.nessunaCap
+                        : `${role.capabilities.length} ${t.capability.toLowerCase()}`}
+                    </p>
                   </div>
-                </Link>
-              </li>
-            );
-          })}
-        </BoxedList>
-      )}
+                  <ChevronRight
+                    size={14}
+                    strokeWidth={1.75}
+                    className="text-(--color-text-subtle) shrink-0"
+                    aria-hidden="true"
+                  />
+                </div>
+              </Link>
+            </div>
+          );
+        }}
+      />
     </AdminLayout>
   );
 }

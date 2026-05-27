@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  BoxedList,
   ConfirmDialog,
   EmptyState,
   InlineError,
-  LoadingHint,
 } from "../../../shared/ui";
+import {
+  DataGrid,
+  dataGridIt,
+  type Column,
+} from "../../../shared/ui/data-grid";
 import type { AccessRequest } from "@vet/shared";
 import {
   useAccessRequests,
@@ -37,8 +40,23 @@ export function AccessRequestsTab({ roles }: AccessRequestsTabProps) {
     }
   }
 
-  if (loading) return <LoadingHint label={t.loading} />;
-  if (error) return <InlineError>{t.loadError}</InlineError>;
+  const columns = useMemo<ReadonlyArray<Column<AccessRequest>>>(
+    () => [
+      {
+        id: "email",
+        header: t.colEmail,
+        accessor: (r) => r.email,
+        sortable: true,
+      },
+      {
+        id: "createdAt",
+        header: t.colData,
+        accessor: (r) => r.firstAttemptAt.getTime(),
+        sortable: true,
+      },
+    ],
+    []
+  );
 
   return (
     <>
@@ -46,21 +64,25 @@ export function AccessRequestsTab({ roles }: AccessRequestsTabProps) {
         <InlineError className="mb-3">{actionError}</InlineError>
       ) : null}
 
-      {items.length === 0 ? (
-        <EmptyState title={t.requestsEmpty} />
-      ) : (
-        <BoxedList>
-          {items.map((req) => (
-            <AccessRequestRow
-              key={req.emailNorm}
-              request={req}
-              busy={reject.isPending}
-              onAccept={(r) => setAccepting(r)}
-              onReject={(r) => setRejecting(r)}
-            />
-          ))}
-        </BoxedList>
-      )}
+      <DataGrid<AccessRequest>
+        rows={items}
+        columns={columns}
+        getRowId={(r) => r.emailNorm}
+        mode="cards"
+        i18n={dataGridIt}
+        loading={loading}
+        error={error ? t.loadError : null}
+        rowActions={[]}
+        emptyState={<EmptyState title={t.requestsEmpty} />}
+        card={(req) => (
+          <AccessRequestRow
+            request={req}
+            busy={reject.isPending}
+            onAccept={(r) => setAccepting(r)}
+            onReject={(r) => setRejecting(r)}
+          />
+        )}
+      />
 
       <AcceptAccessRequestDialog
         open={accepting !== null}

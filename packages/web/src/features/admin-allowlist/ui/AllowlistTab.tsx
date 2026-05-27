@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  BoxedList,
   Button,
   ConfirmDialog,
   EmptyState,
   InlineError,
-  LoadingHint,
   SectionLabel,
 } from "../../../shared/ui";
+import {
+  DataGrid,
+  dataGridIt,
+  type Column,
+} from "../../../shared/ui/data-grid";
 import { useAuthState } from "../../auth";
 import { allowlistI18n as t } from "../i18n";
 import type { AllowlistEntry } from "@vet/shared";
@@ -52,8 +55,29 @@ export function AllowlistTab({ entries, roles, loading, error }: AllowlistTabPro
       ? entries.find((e) => e.emailNorm === confirmingRemove) ?? null
       : null;
 
-  if (loading) return <LoadingHint label={t.loading} />;
-  if (error) return <InlineError>{t.loadError}</InlineError>;
+  const roleNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const r of roles) map.set(r.id, r.name);
+    return map;
+  }, [roles]);
+
+  const columns = useMemo<ReadonlyArray<Column<AllowlistEntry>>>(
+    () => [
+      {
+        id: "email",
+        header: t.colEmail,
+        accessor: (e) => e.email,
+        sortable: true,
+      },
+      {
+        id: "ruolo",
+        header: t.colRuolo,
+        accessor: (e) => roleNameById.get(e.defaultRoleId) ?? e.defaultRoleId,
+        filterId: "ruolo",
+      },
+    ],
+    [roleNameById]
+  );
 
   return (
     <>
@@ -97,33 +121,26 @@ export function AllowlistTab({ entries, roles, loading, error }: AllowlistTabPro
         <InlineError className="mb-3">{removeError}</InlineError>
       ) : null}
 
-      {entries.length === 0 ? (
-        <EmptyState title={t.empty} />
-      ) : (
-        <div className="space-y-1.5">
-          <div
-            aria-hidden="true"
-            className="hidden sm:grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-4 px-4 text-[11px] uppercase tracking-wider text-(--color-text-subtle)"
-          >
-            <span>{t.colEmail}</span>
-            <span>{t.colRuolo}</span>
-            <span>{t.colData}</span>
-            <span className="text-right">{t.colAzioni}</span>
-          </div>
-          <BoxedList>
-            {entries.map((entry) => (
-              <AllowlistEntryRow
-                key={entry.emailNorm}
-                entry={entry}
-                roles={roles}
-                canManage={canManage}
-                busy={remove.isPending}
-                onRemove={(e) => setConfirmingRemove(e.emailNorm)}
-              />
-            ))}
-          </BoxedList>
-        </div>
-      )}
+      <DataGrid<AllowlistEntry>
+        rows={entries}
+        columns={columns}
+        getRowId={(e) => e.emailNorm}
+        mode="cards"
+        i18n={dataGridIt}
+        loading={loading}
+        error={error ? t.loadError : null}
+        rowActions={[]}
+        emptyState={<EmptyState title={t.empty} />}
+        card={(entry) => (
+          <AllowlistEntryRow
+            entry={entry}
+            roles={roles}
+            canManage={canManage}
+            busy={remove.isPending}
+            onRemove={(e) => setConfirmingRemove(e.emailNorm)}
+          />
+        )}
+      />
 
       <ConfirmDialog
         open={target !== null}

@@ -1,5 +1,11 @@
+import { useMemo } from "react";
 import { GINECOLOGIA_TIPO_ID, type ActivityType } from "@vet/shared";
 import { Button, Card } from "../../../shared/ui";
+import {
+  DataGrid,
+  dataGridIt,
+  type Column,
+} from "../../../shared/ui/data-grid";
 import { ActivityTypeForm } from "./ActivityTypeForm";
 
 interface SectionProps {
@@ -13,25 +19,68 @@ interface SectionProps {
 }
 
 export function ActivityTypeList(props: SectionProps) {
-  const { title, items } = props;
+  const {
+    title,
+    items,
+    busyId,
+    canManage,
+    actionLabel,
+    onToggle,
+    onSaveTariffa,
+  } = props;
+
+  const columns = useMemo<ReadonlyArray<Column<ActivityType>>>(
+    () => [
+      {
+        id: "nome",
+        header: "Nome",
+        accessor: (t) => t.nome,
+        sortable: true,
+      },
+      {
+        id: "ordine",
+        header: "Ordine",
+        accessor: (t) => t.ordine,
+        sortable: true,
+      },
+    ],
+    []
+  );
+
   return (
     <section>
       <h2 className="text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-3">
         {title}
       </h2>
-      <ul className="space-y-2">
-        {items.map((tipo) => (
-          <li key={tipo.id}>
-            <Row tipo={tipo} {...props} />
-          </li>
-        ))}
-      </ul>
+      <DataGrid<ActivityType>
+        rows={items}
+        columns={columns}
+        getRowId={(t) => t.id}
+        mode="cards"
+        i18n={dataGridIt}
+        rowActions={[]}
+        card={(tipo) => (
+          <Row
+            tipo={tipo}
+            busyId={busyId}
+            canManage={canManage}
+            actionLabel={actionLabel}
+            onToggle={onToggle}
+            onSaveTariffa={onSaveTariffa}
+          />
+        )}
+      />
     </section>
   );
 }
 
-interface RowProps extends SectionProps {
+interface RowProps {
   tipo: ActivityType;
+  busyId: string | null;
+  canManage: boolean;
+  actionLabel: string;
+  onToggle: (tipo: ActivityType) => void;
+  onSaveTariffa: (tipo: ActivityType, value: string) => void;
 }
 
 function Row({
