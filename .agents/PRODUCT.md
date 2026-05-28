@@ -34,13 +34,122 @@ Il caso d'uso secondario. Gestisce un piccolo team. Vuole:
 
 Stessa preoccupazione del veterinario semplice: rapidità, niente fronzoli. In più: la responsabilità di tenere puliti i dati.
 
-### Amministratore (limitato)
+### Amministratore
 
-Caso d'uso raro, importante. Tiene in piedi l'allowlist degli account autorizzati, i ruoli, l'audit log. NON vede o tocca dati clinici. Vuole:
+Superset del capo. Stessi permessi clinici, piu` la parte tecnica: allowlist, ruoli, audit log. Caso d'uso raro ma critico. Vuole:
 
 - approvare/rifiutare richieste di accesso senza dover chiamare nessuno
 - vedere chi ha fatto cosa, quando, da quale dispositivo
 - chiudere fuori subito un account compromesso
+- intervenire sui conti del capo se il capo non e` disponibile
+
+In pratica e` quasi sempre lo sviluppatore o il capo stesso con il cappello da admin.
+
+## Capability matrix
+
+Fonte di verita`: [`packages/shared/src/domain/caps/bundles.ts`](../packages/shared/src/domain/caps/bundles.ts). Tabella sotto in sintesi (✓ = abilitato, vuoto = negato).
+
+| Azione | veterinario | veterinario_capo | amministratore |
+|---|---|---|---|
+| Vedere tutte le attivita` | ✓ | ✓ | ✓ |
+| Creare attivita` | ✓ | ✓ | ✓ |
+| Modificare/eliminare attivita` proprie | ✓ | ✓ | ✓ |
+| Esportare CSV attivita` | ✓ | ✓ | ✓ |
+| Vedere/creare/modificare aziende | ✓ | ✓ | ✓ |
+| Leggere tipi attivita` | ✓ | ✓ | ✓ |
+| Cestino proprie attivita` | ✓ | ✓ | ✓ |
+| Emettere proforma | ✓ | ✓ | ✓ |
+| Emettere conto ufficiale | | ✓ | ✓ |
+| Segnare conto saldato | | ✓ | ✓ |
+| Vedere/creare/modificare promemoria propri | ✓ | ✓ | ✓ |
+| Approvare nuovi utenti | | | ✓ |
+| Gestire ruoli/capability | | | ✓ |
+| Gestire allowlist email | | | ✓ |
+| Leggere audit log | | | ✓ |
+
+I bundle compongono: `veterinario_capo ⊃ veterinario`, `amministratore ⊃ veterinario_capo`. Aggiungere una capability a un bundle base la propaga automaticamente ai bundle superiori.
+
+## Per-page contracts
+
+Cinque pagine principali + Impostazioni. Per ognuna: cosa mostra, chi puo` fare cosa, dove sono i test.
+
+### Riepilogo (`/`)
+
+Dashboard di apertura. Mostra **solo dati dell'utente corrente**:
+
+- Attivita` registrate nel mese corrente (count).
+- Aziende attive (cioe` con almeno un'attivita` propria nel mese corrente).
+- Grafico ultimi 12 mesi, switch tra "attivita`" e "incassi".
+
+Stessa lettura per tutti e tre i ruoli, scoped per `ownerUid`. Niente bottoni di azione: la dashboard e` di sola lettura.
+
+Test: [`packages/web/src/features/dashboard/hooks/__tests__/useDashboardStats.test.tsx`](../packages/web/src/features/dashboard/hooks/__tests__/useDashboardStats.test.tsx).
+
+### Agenda (`/agenda`)
+
+Strip settimanale L–D con l'attivita` di ogni giorno. Naviga settimane con le freccette; `Oggi` torna alla corrente. Empty-day mostra "Nessuna attivita` in agenda" e link "Nuova attivita`" (apre la voce rapida).
+
+Niente bottone stampa: si usa la voce rapida e basta. Stessa vista per tutti i ruoli.
+
+### Aziende (`/aziende`)
+
+Lista aziende con bollino verde/rosso accanto al nome:
+
+- Verde se tutti i conti emessi sono saldati o non ci sono conti.
+- Rosso se almeno un conto e` ancora non saldato.
+
+Tap su un'azienda apre il dettaglio. Dal dettaglio: `Emetti proforma` (PDF senza scrittura su `conti`) oppure `Emetti conto` (crea il record in `conti`, lo manda in `/pagamenti`). Entrambi richiedono di scegliere il periodo (default: ultimi 3 o 6 mesi a seconda di `cadenzaFatturazione` dell'azienda; modificabile).
+
+Bottone "import CSV aziende" rimosso. La creazione e` solo via `Nuova azienda`.
+
+Permessi:
+
+- `veterinario` puo` aprire, creare, modificare aziende, emettere proforma.
+- `veterinario_capo` + `amministratore` possono anche emettere conto.
+
+Test: [`packages/web/src/features/aziende/...`](../packages/web/src/features/aziende/), [`packages/web/src/features/conti/lib/__tests__/contoPreview.test.ts`](../packages/web/src/features/conti/lib/__tests__/contoPreview.test.ts).
+
+### Pagamenti (`/pagamenti`)
+
+Lista per-azienda dello stato pagamenti. Ogni riga mostra:
+
+- Bollino tri-state: `saldato` (tutti i conti chiusi), `non saldato` (almeno uno aperto), `da emettere` (e` passato il periodo di fatturazione senza che sia stato emesso un conto).
+- Totale aperto in EUR.
+- Data dell'ultimo conto emesso.
+
+Toggle "Solo non saldati" filtra alle aziende con almeno un conto aperto. Tap su una riga espande lo storico conti per quell'azienda (saldato / non saldato per ognuno).
+
+Bottone "Segna come saldato":
+
+- Solo `veterinario_capo` e `amministratore` lo vedono (UI gate via `caps.has("conti.saldo")`).
+- Le regole Firestore impongono la stessa restrizione (`hasCap("cs")` su update di `conti/{id}` con `saldato == true`).
+
+Test: [`packages/web/src/features/pagamenti/__tests__/`](../packages/web/src/features/pagamenti/__tests__/), [`packages/rules-tests/src/role-spec.test.ts`](../packages/rules-tests/src/role-spec.test.ts).
+
+### Attivita` (`/attivita`)
+
+Lista cronologica di tutte le attivita` (di tutti i veterinari, in lettura). Filtri: periodo, azienda, tipo, veterinario, raggruppa-per. Export CSV.
+
+Niente bottone "Nuova attivita`" — la creazione e` solo via FAB voce rapida. Stessa vista per tutti i ruoli; i bottoni di modifica/elimina sono visibili solo sull'attivita` di proprieta`.
+
+### Voce rapida (FAB globale)
+
+L'unico ingresso per creare un'attivita`. Apri da qualsiasi pagina con il `+` in basso a destra.
+
+- Data: default oggi, editabile.
+- Azienda: select con suggerimenti recenti + `+ Nuova` per crearla inline.
+- Tipo: `Ginecologia` pinnato primo, gli altri alfabetici, `Altro` pinnato ultimo. Se selezioni `Altro`, la nota diventa obbligatoria (errore: "La nota e` obbligatoria per il tipo Altro").
+- Modalita` tariffa: `Oraria` / `Ad elemento` / `Fissa`, mutuamente esclusive. Cambiando tipo, la tariffa standard del tipo viene proposta automaticamente nel campo Tariffa.
+- Tariffa standard: range valido `[0, 100000]` EUR (regressione del bug "minimo 1000€" — non si ripresenta).
+- Note: liberi, obbligatori solo per `Altro`.
+
+Tutti i ruoli possono usarla.
+
+Test: [`packages/web/src/features/quick-entry/`](../packages/web/src/features/quick-entry/), [`packages/shared/src/domain/schemas/__tests__/activityType.test.ts`](../packages/shared/src/domain/schemas/__tests__/activityType.test.ts), [`packages/rules-tests/src/activity-types.test.ts`](../packages/rules-tests/src/activity-types.test.ts).
+
+### Impostazioni (`/impostazioni`)
+
+Pannelli: Account, Tema, Cestino, Backup, Privacy, eliminazione dati (GDPR Art. 17). Backup manuale produce un JSON + CSV scaricabile. Amministratore vede in piu` le voci tecniche (`Sicurezza`, `Audit`, `Allowlist`, `Ruoli`).
 
 ## Brand voice
 

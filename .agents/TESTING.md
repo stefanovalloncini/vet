@@ -174,6 +174,17 @@ Each step lists the expected result; deviations are bugs.
 Each loads with AppShell intact, primary content rendered, FAB visible.
 Conti's FAB is the global voce-rapida shortcut — it does not create a Conto; this is intentional.
 
+### 4.16 Pagamenti (`/pagamenti`)
+
+1. Sign in as `audit.admin@example.com` (capo/admin caps) → sidebar shows `Pagamenti`. Tap it.
+2. The list shows one row per azienda with a `StatoBadge`. Empty seed → empty state "Nessuna azienda da fatturare" (or similar).
+3. Run `pnpm seed:conti-dev` once → reload → the demo azienda appears with badge `non saldato` (one open conto of 80,00 €).
+4. Tap the row → in-row history expands and lists the open conto with its emit date and `Segna come saldato` button.
+5. Toggle `Solo non saldati` at the top → list narrows to only rows with open conti.
+6. Tap `Segna come saldato` → row badge flips to `saldato`. The toggle now hides the row.
+7. Sign out, sign in as `simple.vet@example.com` (only `veterinario` bundle). Open `/pagamenti`.
+8. The `Segna come saldato` button is NOT rendered. The page is read-only. Attempting the underlying mutation (devtools) must fail at the rules layer — covered by [`role-spec.test.ts`](../packages/rules-tests/src/role-spec.test.ts).
+
 ### 4.16 Sign-out + re-entry
 
 1. Top bar logout icon → confirm dialog → sign out.
@@ -215,6 +226,8 @@ pnpm -F @vet/functions test
 ```
 
 Rules-tests cover every rule branch with explicit allow and deny cases — anonymous, wrong owner, missing field, oversize field, immutable audit fields. New rule? Add both cases.
+
+Role-specific gates live in [`packages/rules-tests/src/role-spec.test.ts`](../packages/rules-tests/src/role-spec.test.ts) and exercise the capability bundles end-to-end (e.g. `veterinario` denied on `conti.saldo`, `veterinario_capo` allowed, `amministratore` allowed). Boundary tests for `tariffaStandard` (regression for the client-reported `>=1000` bug) live in both [`packages/shared/src/domain/schemas/__tests__/activityType.test.ts`](../packages/shared/src/domain/schemas/__tests__/activityType.test.ts) and [`packages/rules-tests/src/activity-types.test.ts`](../packages/rules-tests/src/activity-types.test.ts).
 
 Manual sanity:
 
