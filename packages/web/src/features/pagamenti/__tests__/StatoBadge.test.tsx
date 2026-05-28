@@ -17,4 +17,9 @@ describe("StatoBadge", () => {
     render(<StatoBadge status="todo" />);
     expect(screen.getByText("Da emettere")).toBeInTheDocument();
   });
+
+  it("labels the badge for assistive tech", () => {
+    render(<StatoBadge status="unpaid" />);
+    expect(screen.getByLabelText("Non saldato")).toBeInTheDocument();
+  });
 });

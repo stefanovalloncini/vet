@@ -219,6 +219,33 @@ describe("EmettiContoPanel", () => {
     expect(screen.getByText(/150,00/)).toBeInTheDocument();
   });
 
+  it("exposes the totals block as a polite live region", () => {
+    const { repos } = buildSetup(["conti.emit"]);
+    render(
+      <EmettiContoPanel azienda={azienda()} items={withItemsInPeriod()} />,
+      { wrapper: buildProvidersWrapper({ repos }) }
+    );
+    const totals = screen.getByRole("status");
+    expect(totals).toHaveAttribute("aria-live", "polite");
+    expect(totals).toHaveTextContent(/Attività: 2/);
+    expect(totals).toHaveTextContent(/150,00/);
+  });
+
+  it("renders a very large total without dropping the count line", () => {
+    const { repos } = buildSetup(["conti.emit"]);
+    const { from, to } = defaultPeriodoFor(azienda());
+    const mid = new Date((from.getTime() + to.getTime()) / 2);
+    render(
+      <EmettiContoPanel
+        azienda={azienda()}
+        items={[att({ id: "big", data: mid, totale: 1234567.89 })]}
+      />,
+      { wrapper: buildProvidersWrapper({ repos }) }
+    );
+    expect(screen.getByText(/Attività: 1/)).toBeInTheDocument();
+    expect(screen.getByText(/1\.234\.567,89/)).toBeInTheDocument();
+  });
+
   it("clicking 'Salva come pro forma' emits with modalita='proforma' without confirm", async () => {
     const { repos, conti } = buildSetup(["conti.proforma", "conti.emit"]);
     const emitSpy = vi.spyOn(conti, "emit");

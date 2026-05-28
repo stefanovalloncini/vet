@@ -8,7 +8,7 @@ import {
   Card,
   EmptyState,
   InlineError,
-  LoadingHint,
+  ListSkeleton,
   PageHeader,
   Switch,
 } from "../../../shared/ui";
@@ -60,11 +60,15 @@ export function ContiPage() {
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
       {counters.totaleUnsaldati > 0 ? (
-        <div className="mb-4 rounded-2xl border border-(--color-danger)/30 bg-(--color-danger)/5 px-4 py-3 flex items-baseline justify-between gap-3">
+        <div
+          role="status"
+          aria-live="polite"
+          className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-2xl border border-(--color-danger)/30 bg-(--color-danger)/5 px-4 py-3"
+        >
           <span className="text-xs uppercase tracking-wider text-(--color-text-muted)">
             {t.totaleDaRiscuotere}
           </span>
-          <span className="font-mono text-xl font-semibold text-(--color-danger) tabular-nums">
+          <span className="font-mono text-xl font-semibold text-(--color-danger) tabular-nums break-all">
             {formatEuro(counters.totaleUnsaldati)}
           </span>
         </div>
@@ -77,14 +81,17 @@ export function ContiPage() {
           label={t.mostraSoloNonSaldati}
         />
         {counters.total > 0 ? (
-          <p className="text-xs text-(--color-text-muted) tabular-nums">
+          <p
+            aria-live="polite"
+            className="text-xs text-(--color-text-muted) tabular-nums"
+          >
             {t.counterPending(counters.pending, counters.total)}
           </p>
         ) : null}
       </div>
 
       {isPending ? (
-        <LoadingHint label="Caricamento…" />
+        <ListSkeleton count={4} />
       ) : isError ? (
         <InlineError>{t.loadError}</InlineError>
       ) : noContiAtAll ? (
@@ -152,7 +159,7 @@ function AziendaRow({ azienda, bucket }: AziendaRowProps) {
             <h2 className="text-base font-medium text-(--color-text) truncate">
               {azienda.nome}
             </h2>
-            <p className="text-xs text-(--color-text-subtle) mt-0.5">
+            <p className="text-xs text-(--color-text-subtle) mt-0.5 truncate">
               {t.ultimoConto}: {formatDate(bucket.lastEmittedAt)}
             </p>
           </div>
@@ -160,7 +167,7 @@ function AziendaRow({ azienda, bucket }: AziendaRowProps) {
           <ChevronRight
             size={16}
             strokeWidth={1.75}
-            className="text-(--color-text-subtle) flex-shrink-0"
+            className="text-(--color-text-subtle) shrink-0"
             aria-hidden="true"
           />
         </div>
@@ -172,13 +179,15 @@ function AziendaRow({ azienda, bucket }: AziendaRowProps) {
 function RowAmount({ bucket }: { bucket: ContiByAzienda }) {
   if (!bucket.hasUnsaldati) {
     return (
-      <Badge tone="success" size="sm">
-        {t.tuttiSaldati}
-      </Badge>
+      <span className="shrink-0">
+        <Badge tone="success" size="sm">
+          {t.tuttiSaldati}
+        </Badge>
+      </span>
     );
   }
   return (
-    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+    <div className="flex flex-col items-end gap-0.5 shrink-0">
       <span className="font-mono text-base font-medium text-(--color-danger) tabular-nums">
         {formatEuro(bucket.totaleUnsaldati)}
       </span>

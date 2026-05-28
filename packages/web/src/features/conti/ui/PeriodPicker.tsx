@@ -147,8 +147,8 @@ function KindTabs({
             aria-selected={active}
             onClick={() => onPick(t.value)}
             className={[
-              "px-3 py-1 text-xs rounded-full transition-colors",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)",
+              "inline-flex min-h-9 items-center rounded-full px-3 text-xs transition-colors",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2",
               active
                 ? "bg-(--color-accent-soft) text-(--color-accent) border border-(--color-accent)"
                 : "border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong)",
@@ -232,7 +232,7 @@ function YearStepper({
         type="button"
         aria-label="Periodo precedente"
         onClick={onStepBack}
-        className="p-1.5 rounded-md border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
       >
         <ChevronLeft size={16} strokeWidth={1.75} aria-hidden="true" />
       </button>
@@ -248,13 +248,13 @@ function YearStepper({
           const v = Number(e.target.value);
           if (Number.isInteger(v) && v >= 1970 && v <= 2100) onYearChange(v);
         }}
-        className="w-20 h-9 px-2 text-sm text-center tabular-nums rounded-md border border-(--color-border) bg-(--color-surface) text-(--color-text) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
+        className="w-20 h-9 px-2 text-sm text-center tabular-nums rounded-md border border-(--color-border) bg-(--color-surface) text-(--color-text) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
       />
       <button
         type="button"
         aria-label="Periodo successivo"
         onClick={onStepForward}
-        className="p-1.5 rounded-md border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
       >
         <ChevronRight size={16} strokeWidth={1.75} aria-hidden="true" />
       </button>
@@ -288,8 +288,8 @@ function IndexButtons({
             aria-pressed={active}
             onClick={() => onPick(it.index)}
             className={[
-              "px-3 py-1.5 text-xs rounded-md transition-colors flex flex-col items-center gap-0.5 min-w-16",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)",
+              "flex min-w-16 flex-col items-center justify-center gap-0.5 rounded-md px-3 py-1.5 text-xs transition-colors",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2",
               active
                 ? "bg-(--color-accent-soft) text-(--color-accent) border border-(--color-accent)"
                 : "border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong)",
@@ -328,8 +328,8 @@ function MonthGrid({
             aria-label={`${label} ${year}`}
             onClick={() => onPick(idx)}
             className={[
-              "px-2 py-1.5 text-xs rounded-md transition-colors",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)",
+              "inline-flex min-h-9 items-center justify-center rounded-md px-2 text-xs transition-colors",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2",
               active
                 ? "bg-(--color-accent-soft) text-(--color-accent) border border-(--color-accent)"
                 : "border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong)",
@@ -428,7 +428,7 @@ function QuickShortcuts({
           key={s.key}
           type="button"
           onClick={() => onPick(s.sel)}
-          className="px-2.5 py-1 text-[11px] rounded-full border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
+          className="inline-flex min-h-8 items-center rounded-full border border-(--color-border) px-2.5 text-[11px] text-(--color-text-muted) transition-colors hover:text-(--color-text) hover:border-(--color-border-strong) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
         >
           {s.label}
         </button>

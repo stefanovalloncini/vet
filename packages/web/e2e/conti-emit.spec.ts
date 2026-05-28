@@ -82,6 +82,29 @@ test.describe("conti emit + saldo", () => {
     ).toBeVisible({ timeout: 10_000 });
   });
 
+  test("the period picker exposes the kind tabs and switching one keeps the totals visible", async ({
+    signedInAdmin,
+  }) => {
+    await signedInAdmin.goto(`/aziende/${FIXTURE.azienda.id}`);
+    await expect(
+      signedInAdmin.getByRole("heading", { level: 1, name: FIXTURE.azienda.nome })
+    ).toBeVisible({ timeout: 15_000 });
+
+    const tablist = signedInAdmin.getByRole("tablist", {
+      name: /Tipo di periodo/i,
+    });
+    await expect(tablist).toBeVisible({ timeout: 10_000 });
+
+    const meseTab = signedInAdmin.getByRole("tab", { name: /^Mese$/i });
+    await meseTab.click();
+    await expect(meseTab).toHaveAttribute("aria-selected", "true");
+
+    // Totals block stays rendered after switching the period kind.
+    await expect(signedInAdmin.getByText(/Attività:/i).first()).toBeVisible({
+      timeout: 5_000,
+    });
+  });
+
   test("admin emitting an empty period is blocked (no activities in range)", async ({
     signedInAdmin,
   }) => {

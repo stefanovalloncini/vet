@@ -102,17 +102,18 @@ function ContoCard({ conto, actions }: ContoCardProps) {
     <Card>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <Badge tone={status.tone} dot />
-            <Badge tone={status.tone}>{status.label}</Badge>
-          </div>
-          <p className="mt-2 text-base text-(--color-text)">{period}</p>
-          <p className="mt-1 text-xs text-(--color-text-subtle)">
+          <Badge tone={status.tone} dot>
+            {status.label}
+          </Badge>
+          <p className="mt-2 text-base text-(--color-text) tabular-nums">
+            {period}
+          </p>
+          <p className="mt-1 text-xs text-(--color-text-subtle) tabular-nums">
             {t.emessoIl} {formatDate(conto.emittedAt)} · {t.attivita}: {conto.attivitaIds.length}
           </p>
         </div>
-        <div className="flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-end">
-          <span className="font-mono text-lg font-medium text-(--color-text) tabular-nums">
+        <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:flex-col sm:items-end">
+          <span className="font-mono text-lg font-medium text-(--color-text) tabular-nums break-all">
             {formatEuro(conto.totaleConto)}
           </span>
           {actions.map((action) => {
@@ -126,11 +127,12 @@ function ContoCard({ conto, actions }: ContoCardProps) {
                 onClick={() => action.onClick(conto)}
                 disabled={isDisabled}
                 className={[
-                  "inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-xl",
+                  "inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-medium whitespace-nowrap",
                   "transition-[background-color,opacity] duration-(--motion-fast) ease-(--ease-out-quart)",
                   "bg-(--color-accent) text-white hover:bg-(--color-accent-hover)",
                   "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
+                  "active:scale-[0.97] motion-reduce:active:scale-100",
+                  "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
                 ].join(" ")}
               >
                 {action.label}

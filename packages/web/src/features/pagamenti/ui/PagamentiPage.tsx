@@ -45,7 +45,8 @@ export function PagamentiPage() {
         cell: (r) => (
           <Link
             to={routes.aziendaDetail.to({ id: r.azienda.id })}
-            className="text-(--color-accent) hover:underline"
+            className="block max-w-[16rem] truncate text-(--color-accent) hover:underline focus-visible:outline-none focus-visible:underline"
+            title={r.azienda.nome}
             onClick={(e) => e.stopPropagation()}
           >
             {r.azienda.nome}
@@ -77,7 +78,11 @@ export function PagamentiPage() {
         accessor: (r) => r.ultimoContoAt?.getTime() ?? 0,
         sortable: true,
         cell: (r) =>
-          r.ultimoContoAt ? formatDate(r.ultimoContoAt) : t.nessunConto,
+          r.ultimoContoAt ? (
+            <span className="tabular-nums">{formatDate(r.ultimoContoAt)}</span>
+          ) : (
+            <span className="text-(--color-text-subtle)">{t.nessunConto}</span>
+          ),
       },
     ],
     []

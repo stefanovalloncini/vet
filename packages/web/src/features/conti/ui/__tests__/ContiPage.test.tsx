@@ -244,6 +244,57 @@ describe("ContiPage", () => {
     ).toBeNull();
   });
 
+  it("shows a list skeleton while data is loading", () => {
+    const auth = new InMemoryAuthService();
+    auth.setSimulatedUser(actor(["conti.proforma"]));
+    const pending = <T,>() => new Promise<T>(() => {});
+    const repos = {
+      auth,
+      conti: { list: () => pending<Conto[]>() },
+      aziende: { list: () => pending<unknown[]>() },
+    } as unknown as Repositories;
+    const { container } = render(<ContiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
+    expect(screen.queryByText(/Nessun conto emesso/i)).toBeNull();
+    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(
+      0
+    );
+  });
+
+  it("announces the outstanding total through a live region", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const id1 = await seedAzienda(aziende, "Cascina A");
+    await seedConto(conti, id1, "Cascina A", {
+      saldato: false,
+      totaleConto: 1234.5,
+    });
+    render(<ContiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
+    const banner = await screen.findByRole("status");
+    expect(banner).toHaveTextContent(/Totale da riscuotere/i);
+    expect(banner).toHaveAttribute("aria-live", "polite");
+  });
+
+  it("keeps a long azienda name and a large total in the same row without dropping either", async () => {
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const longName =
+      "Società Agricola Cooperativa Allevamenti Riuniti della Bassa Pianura Padana";
+    const id1 = await seedAzienda(aziende, longName);
+    await seedConto(conti, id1, longName, {
+      saldato: false,
+      totaleConto: 1234567.89,
+    });
+    render(<ContiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
+    expect(
+      await screen.findByRole("heading", { level: 2, name: longName })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/1 non saldati/i)).toBeInTheDocument();
+  });
+
   it("excludes aziende that have only pro forma conti from the unsaldati view", async () => {
     const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
     const id1 = await seedAzienda(aziende, "Cascina A");

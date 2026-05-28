@@ -90,4 +90,59 @@ describe("PagamentiPage", () => {
     );
     expect(screen.getByText("Alfa Farm")).toBeInTheDocument();
   });
+
+  it("shows a skeleton while the overview is loading", () => {
+    const auth = new InMemoryAuthService();
+    auth.setSimulatedUser(actor());
+    const pending = <T,>() => new Promise<T>(() => {});
+    const repos = {
+      auth,
+      aziende: { list: () => pending<unknown[]>() },
+      conti: { list: () => pending<unknown[]>() },
+      attivita: { list: () => pending<unknown[]>() },
+    } as unknown as Repositories;
+
+    const { container } = render(<PagamentiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
+    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(
+      0
+    );
+  });
+
+  it("shows the empty state when there are no aziende", async () => {
+    const auth = new InMemoryAuthService();
+    auth.setSimulatedUser(actor());
+    const aziende = new InMemoryAziendeRepository();
+    const conti = new InMemoryContiRepository();
+    const attivita = new InMemoryAttivitaRepository();
+    const repos = { auth, aziende, conti, attivita } as unknown as Repositories;
+
+    render(<PagamentiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
+    await waitFor(() =>
+      expect(screen.getByText(/Nessun risultato/i)).toBeInTheDocument()
+    );
+  });
+
+  it("truncates a very long azienda name and keeps it accessible via title", async () => {
+    const auth = new InMemoryAuthService();
+    auth.setSimulatedUser(actor());
+    const aziende = new InMemoryAziendeRepository();
+    const conti = new InMemoryContiRepository();
+    const attivita = new InMemoryAttivitaRepository();
+    const repos = { auth, aziende, conti, attivita } as unknown as Repositories;
+
+    const longName =
+      "Società Agricola Cooperativa Allevamenti Riuniti della Bassa Pianura Padana";
+    await aziende.create({ nome: longName }, actor(["aziende.create"]));
+
+    render(<PagamentiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
+    const link = await screen.findByRole("link", { name: longName });
+    expect(link).toHaveAttribute("title", longName);
+    expect(link.className).toContain("truncate");
+  });
 });
