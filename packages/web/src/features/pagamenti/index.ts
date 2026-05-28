@@ -7,3 +7,5 @@ export {
   type UsePagamentiOverviewResult,
 } from "./hooks/usePagamentiOverview";
 export { defaultPeriodForAzienda } from "./lib/contoPeriodPolicy";
+export { statoFor, statoForKey } from "./lib/status";
+export type { StatoKey, StatoMeta } from "./lib/status";

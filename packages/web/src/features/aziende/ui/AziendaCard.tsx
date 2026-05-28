@@ -5,7 +5,7 @@ import { aziendeI18n as t } from "../i18n";
 import { routes } from "../../../routes";
 import type { Azienda, CadenzaFatturazione } from "@vet/shared";
 import type { RowAction } from "../../../shared/ui/data-grid";
-import { statoFor, type StatoKey, type StatoMeta } from "../../pagamenti/lib/status";
+import { statoFor, type StatoKey, type StatoMeta } from "../../pagamenti";
 
 const CADENZA_LABEL: Record<CadenzaFatturazione, string> = {
   monthly: t.campoCadenzaMensile,

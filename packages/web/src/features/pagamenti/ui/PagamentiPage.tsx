@@ -10,7 +10,7 @@ import {
 } from "../../../shared/ui/data-grid";
 import { formatDate, formatEuro } from "../../../shared/lib/format";
 import { routes } from "../../../routes";
-import { ContiPerAziendaTab } from "../../conti/ui/ContiPerAziendaTab";
+import { ContiPerAziendaTab } from "../../conti";
 import { usePagamentiOverview, type PagamentoOverview } from "../hooks/usePagamentiOverview";
 import { StatoBadge, type StatoBadgeStatus } from "./StatoBadge";
 import { pagamentiI18n as t } from "../i18n";
