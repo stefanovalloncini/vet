@@ -258,6 +258,7 @@ export async function restoreSeededFixture(): Promise<void> {
     wipeCollection(db, "activity_types"),
     wipeCollection(db, "allowlist"),
     wipeCollection(db, "reminders"),
+    wipeCollection(db, "conti"),
   ]);
   await Promise.all([
     seedActivityType(db),

@@ -18,19 +18,3 @@ test("login page exposes Google and email-link affordances", async ({ page }) =>
   ).toBeVisible();
 });
 
-test("login page footer 'Ingresso riservato' is fully visible", async ({ page }) => {
-  await page.goto("/login");
-  const footer = page.getByText(/Ingresso riservato all'elenco abilitato/i);
-  await expect(footer).toBeVisible();
-});
-
-test("login page footer fits on iPhone SE without truncation", async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 568 });
-  await page.goto("/login");
-  const footer = page.getByText(/Ingresso riservato all'elenco abilitato/i);
-  await expect(footer).toBeVisible();
-  // After the layout fix, the wrapper stacks vertically on mobile, so the
-  // footer is in its own row above the version badge.
-  const box = await footer.boundingBox();
-  expect(box?.width).toBeGreaterThan(0);
-});

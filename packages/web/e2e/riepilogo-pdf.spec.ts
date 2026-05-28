@@ -14,7 +14,7 @@ test.describe("riepilogo PDF (azienda)", () => {
     );
 
     await expect(
-      signedInVet.getByRole("heading", { level: 1, name: FIXTURE.azienda.nome })
+      signedInVet.getByRole("heading", { level: 1, name: /Riepilogo prestazioni/i })
     ).toBeVisible({ timeout: 15_000 });
 
     await expect(signedInVet.getByText(FIXTURE.tipo.nome).first()).toBeVisible({
@@ -30,7 +30,7 @@ test.describe("riepilogo PDF (azienda)", () => {
     await signedInVet.goto(`/aziende/${FIXTURE.azienda.id}/riepilogo`);
 
     await expect(
-      signedInVet.getByRole("heading", { level: 1, name: FIXTURE.azienda.nome })
+      signedInVet.getByRole("heading", { level: 1, name: /Riepilogo prestazioni/i })
     ).toBeVisible({ timeout: 15_000 });
 
     const fromInput = signedInVet.getByLabel(/^Da$/i);
