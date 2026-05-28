@@ -6,7 +6,7 @@ test.describe("/pagamenti page", () => {
     await restoreSeededFixture();
   });
 
-  test("renders the heading and the empty state when no conti exist", async ({
+  test("renders the heading and lists each azienda before any conto exists", async ({
     signedInAdmin,
   }) => {
     await signedInAdmin.goto("/pagamenti");
@@ -14,7 +14,10 @@ test.describe("/pagamenti page", () => {
       signedInAdmin.getByRole("heading", { level: 1, name: /Pagamenti/i })
     ).toBeVisible({ timeout: 15_000 });
     await expect(
-      signedInAdmin.getByText(/Nessun risultato/i)
+      signedInAdmin
+        .getByRole("link")
+        .filter({ hasText: FIXTURE.azienda.nome })
+        .first()
     ).toBeVisible({ timeout: 10_000 });
   });
 

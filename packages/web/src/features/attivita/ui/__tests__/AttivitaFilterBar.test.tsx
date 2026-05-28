@@ -21,6 +21,7 @@ const baseProps = {
     { value: "u-1", label: "Vet One" },
     { value: "u-2", label: "Vet Two" },
   ],
+  onChangeRange: vi.fn(),
   onClearAll: vi.fn(),
 };
 
@@ -138,12 +139,19 @@ describe("AttivitaFilterBar", () => {
     expect(oggi).toBeInTheDocument();
   });
 
-  it("emits both from and to when a quick range is chosen", () => {
-    const onChange = vi.fn();
-    render(<AttivitaFilterBar {...baseProps} onChange={onChange} />);
+  it("emits both from and to atomically when a quick range is chosen", () => {
+    const onChangeRange = vi.fn();
+    render(
+      <AttivitaFilterBar
+        {...baseProps}
+        onChange={vi.fn()}
+        onChangeRange={onChangeRange}
+      />
+    );
     fireEvent.click(screen.getByRole("button", { name: "Questo mese" }));
-    const keys = onChange.mock.calls.map((c) => c[0]);
-    expect(keys).toContain("from");
-    expect(keys).toContain("to");
+    expect(onChangeRange).toHaveBeenCalledTimes(1);
+    const [from, to] = onChangeRange.mock.calls[0]!;
+    expect(from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(to).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

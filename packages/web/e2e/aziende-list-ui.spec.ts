@@ -31,7 +31,7 @@ test.describe("aziende list UI", () => {
     ).toBeVisible({ timeout: 15_000 });
 
     await signedInVet
-      .getByLabel("Cerca", { exact: true })
+      .getByRole("textbox", { name: "Cerca" })
       .fill("zzz-nessuna-corrispondenza");
 
     await expect(

@@ -113,6 +113,15 @@ describe("useAttivitaFilters", () => {
     expect(result.current.filters.to).toBeUndefined();
   });
 
+  it("setRange writes from and to in a single update", () => {
+    const { result } = renderHook(() => useAttivitaFilters(), {
+      wrapper: wrapperWithUrl("/attivita"),
+    });
+    act(() => result.current.setRange("2026-03-01", "2026-03-31"));
+    expect(result.current.from).toBe("2026-03-01");
+    expect(result.current.to).toBe("2026-03-31");
+  });
+
   it("clearAll removes every filter key in one URL update", () => {
     const { result } = renderHook(() => useAttivitaFilters(), {
       wrapper: wrapperWithUrl(

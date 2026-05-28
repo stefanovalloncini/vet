@@ -26,8 +26,9 @@ test.describe("dosaggio calculator UI", () => {
     await signedInVet.getByLabel(/Dosaggio/i).fill("1");
     await signedInVet.getByLabel(/Concentrazione/i).fill("50");
 
-    await expect(signedInVet.getByText("12,00")).toBeVisible();
-    await expect(signedInVet.getByText("ml")).toBeVisible();
+    const result = signedInVet.locator("p", { hasText: "12,00" });
+    await expect(result).toBeVisible();
+    await expect(result).toContainText("ml");
   });
 
   test("fills dose and concentration from a preset", async ({

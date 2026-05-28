@@ -17,7 +17,7 @@ test.describe("search palette", () => {
 
     await searchInput.fill(FIXTURE.azienda.nome.slice(0, 6));
 
-    const result = signedInVet.getByRole("button", {
+    const result = signedInVet.getByRole("option", {
       name: new RegExp(FIXTURE.azienda.nome),
     });
     await expect(result.first()).toBeVisible({ timeout: 10_000 });

@@ -74,7 +74,9 @@ test.describe("attivita list UI", () => {
       .selectOption("azienda");
 
     await expect(
-      signedInVet.getByText(new RegExp(FIXTURE.azienda.nome)).first()
+      signedInVet
+        .getByRole("cell", { name: new RegExp(FIXTURE.azienda.nome) })
+        .first()
     ).toBeVisible({ timeout: 10_000 });
   });
 

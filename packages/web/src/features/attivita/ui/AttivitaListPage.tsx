@@ -72,6 +72,7 @@ export function AttivitaListPage() {
         tipoOptions={tipoOptions}
         vetOptions={vetOptions}
         onChange={fs.setParam}
+        onChangeRange={fs.setRange}
         onClearAll={fs.clearAll}
       />
       <AttivitaTotalsBar totals={totals} />

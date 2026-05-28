@@ -64,6 +64,7 @@ export interface AttivitaFilterBarProps {
   tipoOptions: ReadonlyArray<{ value: string; label: string }>;
   vetOptions: ReadonlyArray<{ value: string; label: string }>;
   onChange: (key: string, value: string) => void;
+  onChangeRange: (from: string, to: string) => void;
   onClearAll: () => void;
 }
 
@@ -83,11 +84,11 @@ type ControlsProps = Pick<
 function QuickRanges({
   from,
   to,
-  onChange,
+  onChangeRange,
 }: {
   from: string;
   to: string;
-  onChange: (key: string, value: string) => void;
+  onChangeRange: (from: string, to: string) => void;
 }) {
   const isActive = (id: string): boolean => {
     if (!from && !to) return false;
@@ -106,8 +107,7 @@ function QuickRanges({
             type="button"
             onClick={() => {
               const range = q.compute(new Date());
-              onChange("from", range.from);
-              onChange("to", range.to);
+              onChangeRange(range.from, range.to);
             }}
             className={[
               "inline-flex min-h-9 items-center rounded-full border px-3.5 text-xs transition-colors",
@@ -261,7 +261,11 @@ export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
 
       <Card className="hidden sm:block" padding="md">
         <FilterHeader active={active} onClearAll={props.onClearAll} />
-        <QuickRanges from={props.from} to={props.to} onChange={props.onChange} />
+        <QuickRanges
+          from={props.from}
+          to={props.to}
+          onChangeRange={props.onChangeRange}
+        />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
           <FilterControls {...props} />
         </div>
@@ -288,7 +292,11 @@ export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
               icon={<X size={18} strokeWidth={1.75} aria-hidden="true" />}
             />
           </header>
-          <QuickRanges from={props.from} to={props.to} onChange={props.onChange} />
+          <QuickRanges
+            from={props.from}
+            to={props.to}
+            onChangeRange={props.onChangeRange}
+          />
           <div className="grid grid-cols-2 gap-3 mt-4">
             <FilterControls {...props} idPrefix="m-" />
           </div>

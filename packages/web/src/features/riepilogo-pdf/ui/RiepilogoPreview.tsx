@@ -87,7 +87,8 @@ export function RiepilogoPreview({ summary }: RiepilogoPreviewProps) {
           {t.noData}
         </p>
       ) : (
-        <table className="w-full text-sm border-collapse">
+        <div className="overflow-x-auto print:overflow-visible">
+        <table className="w-full min-w-[34rem] text-sm border-collapse">
           <thead>
             <tr className="text-[10px] uppercase tracking-wider text-(--color-text-muted) print:text-black/60 border-b-2 border-(--color-border) print:border-black/50">
               <th scope="col" className="text-left py-2.5 pr-3 w-[88px]">
@@ -151,18 +152,19 @@ export function RiepilogoPreview({ summary }: RiepilogoPreviewProps) {
             </tr>
           </tfoot>
         </table>
+        </div>
       )}
 
-      <footer className="mt-12 pt-5 border-t border-(--color-border) print:border-black/30 grid grid-cols-2 gap-6 text-[11px] text-(--color-text-subtle) print:text-black/55">
-        <div>
+      <footer className="mt-12 pt-5 border-t border-(--color-border) print:border-black/30 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 print:grid-cols-2 text-[11px] text-(--color-text-subtle) print:text-black/55">
+        <div className="min-w-0">
           <p className="uppercase tracking-wider text-(--color-text-muted) print:text-black/60">
             {t.veterinario}
           </p>
-          <p className="mt-1 text-(--color-text) print:text-black">
+          <p className="mt-1 text-(--color-text) print:text-black break-words">
             {vetName || "—"}
           </p>
         </div>
-        <div className="text-right">
+        <div className="min-w-0 sm:text-right print:text-right">
           <p>
             Documento generato il {formatDate(issuedAt)} ·{" "}
             <span className="tabular-nums">
@@ -172,7 +174,7 @@ export function RiepilogoPreview({ summary }: RiepilogoPreviewProps) {
               })}
             </span>
           </p>
-          <p className="mt-1">gestionale.stefanovalloncini.com</p>
+          <p className="mt-1 break-words">gestionale.stefanovalloncini.com</p>
         </div>
       </footer>
     </article>

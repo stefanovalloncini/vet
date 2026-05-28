@@ -16,8 +16,12 @@ test.describe("aziende form UI", () => {
     await expect(
       signedInVet.getByRole("heading", { level: 1 })
     ).toHaveCount(1);
-    await expect(signedInVet.getByText("Anagrafica")).toBeVisible();
-    await expect(signedInVet.getByText("Fatturazione")).toBeVisible();
+    await expect(
+      signedInVet.getByText("Anagrafica", { exact: true })
+    ).toBeVisible();
+    await expect(
+      signedInVet.getByText("Fatturazione", { exact: true })
+    ).toBeVisible();
   });
 
   test("keeps the armadietto farmaci field and its yearly-fee hint", async ({

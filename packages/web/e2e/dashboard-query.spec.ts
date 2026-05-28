@@ -27,6 +27,12 @@ test.describe("dashboard / riepilogo (tanstack query)", () => {
       signedInVet.getByRole("heading", { level: 1, name: /Riepilogo/i })
     ).toBeVisible({ timeout: 15_000 });
 
+    const onboarding = signedInVet.getByRole("dialog", { name: /Pronto a iniziare/i });
+    if (await onboarding.isVisible().catch(() => false)) {
+      await signedInVet.getByRole("button", { name: "Salta" }).click();
+      await expect(onboarding).toBeHidden();
+    }
+
     const toggle = signedInVet.getByRole("tablist", { name: /Vista grafico/i });
     await expect(toggle).toBeVisible({ timeout: 10_000 });
     await toggle.getByRole("tab", { name: "Incassi" }).click();

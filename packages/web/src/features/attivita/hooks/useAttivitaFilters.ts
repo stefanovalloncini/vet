@@ -13,6 +13,7 @@ export interface AttivitaFiltersState {
   group: GroupKey;
   filters: AttivitaFilters;
   setParam: (key: string, value: string) => void;
+  setRange: (from: string, to: string) => void;
   clearAll: () => void;
 }
 
@@ -64,19 +65,57 @@ export function useAttivitaFilters(): AttivitaFiltersState {
 
   const setParam = useCallback(
     (key: string, value: string) => {
-      const next = new URLSearchParams(params);
-      if (value) next.set(key, value);
-      else next.delete(key);
-      setParams(next, { replace: true });
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value) next.set(key, value);
+          else next.delete(key);
+          return next;
+        },
+        { replace: true }
+      );
     },
-    [params, setParams]
+    [setParams]
+  );
+
+  const setRange = useCallback(
+    (nextFrom: string, nextTo: string) => {
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (nextFrom) next.set("from", nextFrom);
+          else next.delete("from");
+          if (nextTo) next.set("to", nextTo);
+          else next.delete("to");
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setParams]
   );
 
   const clearAll = useCallback(() => {
-    const next = new URLSearchParams(params);
-    for (const k of PARAM_KEYS) next.delete(k);
-    setParams(next, { replace: true });
-  }, [params, setParams]);
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        for (const k of PARAM_KEYS) next.delete(k);
+        return next;
+      },
+      { replace: true }
+    );
+  }, [setParams]);
 
-  return { from, to, aziendaId, tipoId, vetUid, group, filters, setParam, clearAll };
+  return {
+    from,
+    to,
+    aziendaId,
+    tipoId,
+    vetUid,
+    group,
+    filters,
+    setParam,
+    setRange,
+    clearAll,
+  };
 }
