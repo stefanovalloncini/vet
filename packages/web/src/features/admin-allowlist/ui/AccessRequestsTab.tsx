@@ -69,6 +69,7 @@ export function AccessRequestsTab({ roles }: AccessRequestsTabProps) {
         columns={columns}
         getRowId={(r) => r.emailNorm}
         mode="responsive"
+        cardsLayout="list"
         i18n={dataGridIt}
         loading={loading}
         error={error ? t.loadError : null}

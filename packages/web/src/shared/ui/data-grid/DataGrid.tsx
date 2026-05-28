@@ -64,6 +64,7 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     groupBy,
     rowActions,
     card,
+    cardsLayout,
     virtual,
     toolbar,
     emptyState,
@@ -307,6 +308,7 @@ export function DataGrid<T>(props: DataGridProps<T>) {
                 card={card}
                 rowActions={rowActions ?? []}
                 {...(groupBy ? { groupBy } : {})}
+                {...(cardsLayout ? { layout: cardsLayout } : {})}
               />
             </div>
           </>
@@ -317,6 +319,7 @@ export function DataGrid<T>(props: DataGridProps<T>) {
             card={card}
             rowActions={rowActions ?? []}
             {...(groupBy ? { groupBy } : {})}
+            {...(cardsLayout ? { layout: cardsLayout } : {})}
           />
         ) : mode === "virtual" && virtual ? (
           <VirtualMode

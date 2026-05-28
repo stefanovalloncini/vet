@@ -1,6 +1,7 @@
 import type { ReactNode, RefObject } from "react";
 
 export type DataGridRenderMode = "table" | "cards" | "virtual" | "responsive";
+export type CardsLayout = "grid" | "list";
 export type SortDirection = "asc" | "desc";
 export interface SortState {
   columnId: string;
@@ -92,6 +93,7 @@ export interface DataGridProps<T> {
   groupBy?: GroupingDef<T>;
   rowActions?: ReadonlyArray<RowAction<T>>;
   card?: CardRenderer<T>;
+  cardsLayout?: CardsLayout;
   virtual?: { rowHeight: number; height: number };
   toolbar?: {
     showColumnsToggle?: boolean;

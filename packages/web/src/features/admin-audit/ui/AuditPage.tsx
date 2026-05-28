@@ -191,6 +191,7 @@ export function AuditPage() {
         columns={columns}
         getRowId={(e) => e.id}
         mode="responsive"
+        cardsLayout="list"
         i18n={dataGridIt}
         loading={isLoading}
         error={isError ? t.loadError : null}

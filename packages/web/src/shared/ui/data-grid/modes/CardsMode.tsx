@@ -1,4 +1,4 @@
-import type { CardRenderer, GroupingDef, RowAction } from "../types";
+import type { CardRenderer, CardsLayout, GroupingDef, RowAction } from "../types";
 import { groupRows } from "../engine";
 
 interface CardsModeProps<T> {
@@ -7,18 +7,23 @@ interface CardsModeProps<T> {
   card: CardRenderer<T>;
   rowActions: ReadonlyArray<RowAction<T>>;
   groupBy?: GroupingDef<T>;
+  layout?: CardsLayout;
 }
 
-const GRID_CLASSES = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3";
+const LAYOUT_CLASSES: Record<CardsLayout, string> = {
+  grid: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3",
+  list: "flex flex-col gap-2.5",
+};
 
 function CardGrid<T>({
   rows,
   getRowId,
   card,
   rowActions,
-}: Pick<CardsModeProps<T>, "rows" | "getRowId" | "card" | "rowActions">) {
+  layout = "grid",
+}: Pick<CardsModeProps<T>, "rows" | "getRowId" | "card" | "rowActions" | "layout">) {
   return (
-    <div className={GRID_CLASSES}>
+    <div className={LAYOUT_CLASSES[layout]}>
       {rows.map((row) => {
         const visible = rowActions.filter((a) => (a.visible ? a.visible(row) : true));
         return (
@@ -37,9 +42,18 @@ export function CardsMode<T>({
   card,
   rowActions,
   groupBy,
+  layout = "grid",
 }: CardsModeProps<T>) {
   if (!groupBy) {
-    return <CardGrid rows={rows} getRowId={getRowId} card={card} rowActions={rowActions} />;
+    return (
+      <CardGrid
+        rows={rows}
+        getRowId={getRowId}
+        card={card}
+        rowActions={rowActions}
+        layout={layout}
+      />
+    );
   }
 
   const buckets = groupRows(rows, groupBy);
@@ -63,6 +77,7 @@ export function CardsMode<T>({
             getRowId={getRowId}
             card={card}
             rowActions={rowActions}
+            layout={layout}
           />
         </section>
       ))}
