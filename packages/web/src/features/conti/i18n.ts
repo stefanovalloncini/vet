@@ -41,4 +41,5 @@ export const contiI18n = {
   annulla: "Annulla",
   conferma: "Conferma",
   loadError: "Caricamento fallito.",
+  pdfFallito: "Conto salvato, PDF non generato. Riprova dallo storico.",
 } as const;

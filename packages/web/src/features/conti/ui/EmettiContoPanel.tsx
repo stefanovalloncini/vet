@@ -85,17 +85,20 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
         },
         actor: user,
       });
-      notify(
-        modalita === "proforma" ? "Pro forma generato" : "Conto emesso",
-        "success"
-      );
-      const emessoIl = new Date();
-      const periodo = { from: fromDate, to: endOfDay };
-      const filenameStem = contoFilenameStem({
-        modalita,
-        azienda,
-        emessoIl,
-      });
+    } catch {
+      // Error toast handled by global mutation handler (meta.errorMessage)
+      return;
+    }
+
+    notify(
+      modalita === "proforma" ? "Pro forma generato" : "Conto emesso",
+      "success"
+    );
+
+    const emessoIl = new Date();
+    const periodo = { from: fromDate, to: endOfDay };
+    const filenameStem = contoFilenameStem({ modalita, azienda, emessoIl });
+    try {
       const pdf = await import("../../../shared/pdf");
       if (modalita === "proforma") {
         await pdf.downloadPdf(
@@ -134,7 +137,7 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
         );
       }
     } catch {
-      // Error toast handled by global mutation handler (meta.errorMessage)
+      notify(t.pdfFallito, "error");
     }
   }
 

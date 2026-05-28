@@ -15,6 +15,7 @@ import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders
 import { EmettiContoPanel } from "../EmettiContoPanel";
 import { defaultPeriodoFor } from "../../lib/contoPreview";
 import { dateInputValue } from "../../../../shared/lib/format";
+import { downloadPdf } from "../../../../shared/pdf";
 
 vi.mock("../../../../shared/pdf", () => ({
   ContoDocument: () => null,
@@ -377,6 +378,25 @@ describe("EmettiContoPanel", () => {
       expect(input?.armadiettoImporto).toBe(200);
       expect(denorm?.attivitaIds).toEqual([]);
       expect(denorm?.totaleConto).toBe(200);
+    });
+  });
+
+  describe("pdf generation failure", () => {
+    it("warns the user when the conto is saved but the PDF cannot be generated", async () => {
+      const { repos, conti } = buildSetup(["conti.proforma"]);
+      const emitSpy = vi.spyOn(conti, "emit");
+      vi.mocked(downloadPdf).mockRejectedValueOnce(new Error("pdf boom"));
+      render(
+        <EmettiContoPanel azienda={azienda()} items={withItemsInPeriod()} />,
+        { wrapper: buildProvidersWrapper({ repos, withToast: true }) }
+      );
+      fireEvent.click(
+        screen.getByRole("button", { name: /Salva come pro forma/i })
+      );
+      await waitFor(() => expect(emitSpy).toHaveBeenCalledTimes(1));
+      expect(
+        await screen.findByText(/PDF non generato/i)
+      ).toBeInTheDocument();
     });
   });
 });

@@ -20,7 +20,6 @@ export const spacing = {
 export const styles = StyleSheet.create({
   page: {
     padding: spacing.pagePadding,
-    fontFamily: "Inter",
     fontSize: 10,
     color: colors.text,
     backgroundColor: colors.bg,
