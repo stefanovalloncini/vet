@@ -28,29 +28,31 @@ export function EmailLinkSent({ email, busy, onResend }: EmailLinkSentProps) {
   const canResend = cooldown <= 0 && !busy;
 
   return (
-    <div role="status" className="space-y-6">
+    <div role="status" aria-live="polite" className="space-y-6">
       <Card padding="md" className="border-(--color-accent-soft)">
         <div className="flex items-start gap-3">
           <span
-            className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-(--color-accent-soft) text-(--color-accent)"
+            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-(--color-accent-soft) text-(--color-accent)"
             aria-hidden="true"
           >
             <MailCheck size={18} strokeWidth={1.75} />
           </span>
-          <div className="space-y-1.5">
+          <div className="min-w-0 space-y-1.5">
             <p className="text-sm font-medium text-(--color-text)">
               Controlla la tua email
             </p>
             <p className="text-sm text-(--color-text-muted)">
               Link inviato a{" "}
-              <span className="font-mono text-(--color-text)">{email}</span>.
-              Apri dallo stesso dispositivo per completare l&apos;accesso.
+              <span className="font-mono break-all text-(--color-text)">
+                {email}
+              </span>
+              . Apri dallo stesso dispositivo per completare l&apos;accesso.
             </p>
           </div>
         </div>
       </Card>
 
-      <div className="flex items-center gap-3 text-sm">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
         <Button
           type="button"
           variant="secondary"

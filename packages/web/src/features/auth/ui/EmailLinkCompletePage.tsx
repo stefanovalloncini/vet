@@ -53,15 +53,18 @@ export function EmailLinkCompletePage() {
     return (
       <CenteredAuthLayout title="Link non valido">
         <div className="space-y-6">
-          <p role="alert" className="text-sm text-(--color-text)">
-            {state.message}
-          </p>
+          <div
+            role="alert"
+            className="rounded-lg border border-(--color-danger)/40 bg-(--color-danger)/5 p-3"
+          >
+            <p className="text-sm text-(--color-danger)">{state.message}</p>
+          </div>
           <p className="text-sm text-(--color-text-muted)">
             Richiedi un nuovo link dalla pagina di accesso.
           </p>
           <Link
             to="/login"
-            className="inline-flex items-center gap-2 text-sm font-medium text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
+            className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-(--color-accent) px-5 text-base font-medium text-white hover:bg-(--color-accent-hover) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 transition-colors duration-(--motion-fast) ease-(--ease-out-quart) active:scale-[0.97] active:duration-(--motion-press)"
           >
             Torna all&apos;accesso
           </Link>

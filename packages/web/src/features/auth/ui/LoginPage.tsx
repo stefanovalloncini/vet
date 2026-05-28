@@ -82,9 +82,9 @@ export function LoginPage() {
 
   if (loading) {
     return (
-      <main className="min-h-[100dvh] flex items-center justify-center bg-(--color-background) p-6">
+      <CenteredAuthLayout title="Verifica della sessione">
         <SlowAuthLoading label="Verifica della sessione…" />
-      </main>
+      </CenteredAuthLayout>
     );
   }
 

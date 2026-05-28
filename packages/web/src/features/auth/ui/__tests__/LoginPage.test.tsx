@@ -202,6 +202,22 @@ describe("LoginPage", () => {
     errSpy.mockRestore();
   });
 
+  it("renders a titled loading screen while the session is still resolving", async () => {
+    const repos = createInMemoryRepositories();
+    vi.spyOn(repos.auth, "subscribe").mockReturnValue(() => {});
+    mountLogin(repos);
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: /Verifica della sessione/i,
+      })
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("status").length).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole("button", { name: /Invia magic link/i })
+    ).toBeNull();
+  });
+
   it("submits the access-request form and shows the confirmation message", async () => {
     const repos = createInMemoryRepositories();
     const spy = vi

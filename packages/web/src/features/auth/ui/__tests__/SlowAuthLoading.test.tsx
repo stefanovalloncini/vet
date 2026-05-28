@@ -83,4 +83,20 @@ describe("SlowAuthLoading", () => {
     const link = screen.getByRole("link", { name: /verifica di sicurezza/i });
     expect(link).toHaveAttribute("href", "/sicurezza");
   });
+
+  it("reserves space for the auxiliary message to avoid layout shift", () => {
+    const { container } = renderInRouter(<SlowAuthLoading label="Verifica…" />);
+    const reserved = container.querySelector(".min-h-\\[2\\.5rem\\]");
+    expect(reserved).not.toBeNull();
+  });
+
+  it("gives the diagnostic link a comfortable touch target", () => {
+    renderInRouter(<SlowAuthLoading label="Verifica…" />);
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+    expect(
+      screen.getByRole("link", { name: /verifica di sicurezza/i }).className
+    ).toMatch(/min-h-11/);
+  });
 });

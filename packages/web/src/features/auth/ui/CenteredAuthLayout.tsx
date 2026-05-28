@@ -31,10 +31,12 @@ export function CenteredAuthLayout({
         onClick={toggle}
         aria-label={theme === "dark" ? "Tema chiaro" : "Tema scuro"}
         className="
-          absolute z-10 p-2 rounded-full text-(--color-text-muted)
+          absolute z-10 inline-flex h-11 w-11 items-center justify-center rounded-full text-(--color-text-muted)
           hover:text-(--color-text) hover:bg-(--color-surface-muted)
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2
           transition-colors duration-(--motion-fast) ease-(--ease-out-quart)
-          top-[max(1rem,env(safe-area-inset-top))] right-4
+          active:scale-[0.97] active:duration-(--motion-press)
+          top-[max(0.5rem,env(safe-area-inset-top))] right-2
         "
       >
         {theme === "dark" ? (
@@ -44,15 +46,15 @@ export function CenteredAuthLayout({
         )}
       </button>
 
-      <div className="flex flex-1 flex-col items-center justify-center">
-        <div className="w-full max-w-sm space-y-10">
+      <div className="flex flex-1 flex-col items-center justify-center py-8">
+        <div className="w-full max-w-sm space-y-10 animate-fade-in">
           <header className="flex flex-col items-center text-center">
             <Brand size="lg" />
-            <h1 className="mt-8 text-xl font-medium text-(--color-text)">
+            <h1 className="mt-8 text-xl font-medium text-balance text-(--color-text)">
               {title}
             </h1>
             {subtitle ? (
-              <div className="mt-2 text-sm text-(--color-text-muted) max-w-prose">
+              <div className="mt-2 text-sm text-(--color-text-muted) text-balance max-w-prose">
                 {subtitle}
               </div>
             ) : null}

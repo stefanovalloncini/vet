@@ -4,10 +4,11 @@ interface AccessRequestSentProps {
 
 export function AccessRequestSent({ email }: AccessRequestSentProps) {
   return (
-    <div role="status" className="space-y-3">
+    <div role="status" aria-live="polite" className="space-y-3">
       <p className="text-sm text-(--color-text)">
         Richiesta inviata per{" "}
-        <span className="font-mono text-(--color-text)">{email}</span>.
+        <span className="font-mono break-all text-(--color-text)">{email}</span>
+        .
       </p>
       <p className="text-sm text-(--color-text-muted)">
         Lo studio è stato notificato. Riceverai un&apos;email quando

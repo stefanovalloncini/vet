@@ -57,19 +57,21 @@ export function SlowAuthLoading({
       className="flex flex-col items-center justify-center gap-4 text-center"
     >
       <Spinner size={28} label={currentLabel} />
-      {slow ? (
-        <p className="text-sm text-(--color-text-muted) max-w-xs">
-          Sta impiegando più del solito.
-        </p>
-      ) : null}
-      {showDiag ? (
-        <Link
-          to={diagnosticHref}
-          className="text-sm font-medium text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
-        >
-          Esegui la verifica di sicurezza
-        </Link>
-      ) : null}
+      <div className="flex min-h-[2.5rem] flex-col items-center justify-start gap-2">
+        {slow ? (
+          <p className="text-sm text-(--color-text-muted) max-w-xs text-balance">
+            Sta impiegando più del solito.
+          </p>
+        ) : null}
+        {showDiag ? (
+          <Link
+            to={diagnosticHref}
+            className="inline-flex min-h-11 items-center text-sm font-medium text-(--color-accent) underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
+          >
+            Esegui la verifica di sicurezza
+          </Link>
+        ) : null}
+      </div>
     </div>
   );
 }
