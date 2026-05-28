@@ -16,6 +16,12 @@ export default defineConfig({
         "src/domain/entities/**",
         "src/domain/ports/**",
       ],
+      thresholds: {
+        statements: 80,
+        branches: 70,
+        functions: 60,
+        lines: 80,
+      },
     },
   },
 });
