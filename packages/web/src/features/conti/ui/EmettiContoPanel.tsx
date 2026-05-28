@@ -192,14 +192,14 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
       <div
         role="status"
         aria-live="polite"
-        className="mt-4 flex flex-wrap items-baseline justify-between gap-2 border-t border-(--color-border) pt-4"
+        className="mt-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-(--color-border) pt-4"
       >
-        <span className="text-xs uppercase tracking-wider text-(--color-text-muted)">
+        <span className="text-xs uppercase tracking-wider text-(--color-text-muted) tabular-nums">
           {armadiettoImporto !== undefined
             ? `${t.attivitaSubtotale} ${formatEuro(preview.totaleConto)} · ${t.armadietto} ${formatEuro(armadiettoImporto)}`
             : `${t.attivita}: ${preview.count} · ${t.totale}`}
         </span>
-        <span className="font-mono text-2xl font-semibold text-(--color-text) tabular-nums">
+        <span className="font-mono text-2xl font-semibold text-(--color-text) tabular-nums break-all">
           {formatEuro(grandTotal)}
         </span>
       </div>
