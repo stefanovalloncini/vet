@@ -58,6 +58,20 @@ describe("parseDateInput", () => {
     expect(parseDateInput("2026/05/05")).toBeNull();
   });
 
+  it("returns null for impossible calendar dates instead of rolling over", () => {
+    expect(parseDateInput("2026-02-30")).toBeNull();
+    expect(parseDateInput("2026-04-31")).toBeNull();
+    expect(parseDateInput("2026-13-01")).toBeNull();
+    expect(parseDateInput("2026-00-10")).toBeNull();
+    expect(parseDateInput("2026-01-00")).toBeNull();
+    expect(parseDateInput("2026-01-32")).toBeNull();
+  });
+
+  it("accepts feb 29 in a leap year and rejects it in a common year", () => {
+    expect(parseDateInput("2024-02-29")?.getDate()).toBe(29);
+    expect(parseDateInput("2026-02-29")).toBeNull();
+  });
+
   it("dateInputValue and parseDateInput round-trip", () => {
     const original = new Date(2026, 2, 14);
     const formatted = dateInputValue(original);

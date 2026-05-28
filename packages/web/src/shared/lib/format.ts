@@ -29,5 +29,16 @@ export function dateInputValue(d: Date): string {
 export function parseDateInput(value: string): Date | null {
   const m = DATE_INPUT_RE.exec(value);
   if (!m) return null;
-  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const year = Number(m[1]);
+  const month = Number(m[2]) - 1;
+  const day = Number(m[3]);
+  const d = new Date(year, month, day);
+  if (
+    d.getFullYear() !== year ||
+    d.getMonth() !== month ||
+    d.getDate() !== day
+  ) {
+    return null;
+  }
+  return d;
 }
