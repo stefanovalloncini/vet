@@ -18,23 +18,26 @@ export function StoricoTab({ items }: { items: Attivita[] }) {
     <ul className="space-y-2">
       {items.map((a) => (
         <li key={a.id}>
-          <Link to={`/attivita/${a.id}`} className="block">
+          <Link
+            to={`/attivita/${a.id}`}
+            className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 sm:rounded-2xl"
+          >
             <Card className="hover:border-(--color-border-strong) transition-colors">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm text-(--color-text-muted) tabular-nums">
                     {formatDate(a.data)}
                   </p>
-                  <p className="text-base font-medium text-(--color-text) mt-1">
+                  <p className="text-base font-medium text-(--color-text) mt-1 break-words">
                     {a.tipoNome}
                   </p>
                   {a.note ? (
-                    <p className="text-xs text-(--color-text-subtle) mt-1">
+                    <p className="text-xs text-(--color-text-subtle) mt-1 break-words line-clamp-3">
                       {a.note}
                     </p>
                   ) : null}
                 </div>
-                <span className="text-base font-medium text-(--color-text) tabular-nums">
+                <span className="shrink-0 text-base font-medium text-(--color-text) tabular-nums">
                   {formatEuro(a.totale)}
                 </span>
               </div>
@@ -65,7 +68,7 @@ export function PromemoriaTab({ aziendaId }: { aziendaId: string }) {
             <div className="flex items-baseline justify-between gap-3">
               <p
                 className={[
-                  "text-base",
+                  "min-w-0 break-words text-base",
                   r.done
                     ? "text-(--color-text-muted) line-through"
                     : "text-(--color-text)",
@@ -73,8 +76,8 @@ export function PromemoriaTab({ aziendaId }: { aziendaId: string }) {
               >
                 {r.titolo}
               </p>
-              <span className="text-xs text-(--color-text-muted) tabular-nums">
-                {r.dueAt.toLocaleDateString("it-IT")}
+              <span className="shrink-0 text-xs text-(--color-text-muted) tabular-nums">
+                {formatDate(r.dueAt)}
               </span>
             </div>
           </Card>

@@ -1,4 +1,4 @@
-import { Card } from "../../../shared/ui";
+import { Card, SectionLabel } from "../../../shared/ui";
 import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { aziendeI18n as t } from "../i18n";
 import type { AziendaFormValues } from "../lib/formSchema";
@@ -25,81 +25,94 @@ const TIPO_OPTIONS = [
 export function AziendaFormFields({ busy }: { busy: boolean }) {
   return (
     <Card>
-      <div className="space-y-5">
-        <RHFTextField<AziendaFormValues>
-          name="nome"
-          label={t.campoNome}
-          hint={t.campoNomeHint}
-          required
-          disabled={busy}
-          autoFocus
-          maxLength={200}
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <div className="space-y-8">
+        <div className="space-y-5">
+          <SectionLabel>{t.gruppoAnagrafica}</SectionLabel>
+          <RHFTextField<AziendaFormValues>
+            name="nome"
+            label={t.campoNome}
+            hint={t.campoNomeHint}
+            required
+            disabled={busy}
+            autoFocus
+            maxLength={200}
+          />
           <RHFTextField<AziendaFormValues>
             name="indirizzo"
             label={t.campoIndirizzo}
             disabled={busy}
             maxLength={300}
           />
-          <RHFTextField<AziendaFormValues>
-            name="telefono"
-            label={t.campoTelefono}
-            disabled={busy}
-            maxLength={40}
-          />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <RHFTextField<AziendaFormValues>
+              name="telefono"
+              label={t.campoTelefono}
+              inputMode="tel"
+              disabled={busy}
+              maxLength={40}
+            />
+            <RHFSelect<AziendaFormValues>
+              name="tipoAllevamento"
+              label={t.campoTipoAllevamento}
+              options={TIPO_OPTIONS}
+              disabled={busy}
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <RHFTextField<AziendaFormValues>
+              name="numeroCapi"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={100000}
+              step={1}
+              label={t.campoNumeroCapi}
+              disabled={busy}
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <RHFSelect<AziendaFormValues>
-            name="tipoAllevamento"
-            label={t.campoTipoAllevamento}
-            options={TIPO_OPTIONS}
-            disabled={busy}
-          />
-          <RHFTextField<AziendaFormValues>
-            name="numeroCapi"
-            type="number"
-            min={0}
-            max={100000}
-            step={1}
-            label={t.campoNumeroCapi}
-            disabled={busy}
-          />
+
+        <div className="space-y-5">
+          <SectionLabel>{t.gruppoFatturazione}</SectionLabel>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <RHFTextField<AziendaFormValues>
+              name="piva"
+              label={t.campoPiva}
+              inputMode="numeric"
+              disabled={busy}
+              maxLength={13}
+              placeholder="12345678903"
+            />
+            <RHFSelect<AziendaFormValues>
+              name="cadenzaFatturazione"
+              label={t.campoCadenza}
+              options={CADENZA_OPTIONS}
+              disabled={busy}
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <RHFTextField<AziendaFormValues>
+              name="emailFatturazione"
+              type="email"
+              inputMode="email"
+              label={t.campoEmailFatturazione}
+              disabled={busy}
+              maxLength={120}
+            />
+            <RHFTextField<AziendaFormValues>
+              name="armadiettoCanoneAnnuo"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              max={100000}
+              step="0.01"
+              label={t.campoArmadietto}
+              hint={t.campoArmadiettoHint}
+              disabled={busy}
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <RHFTextField<AziendaFormValues>
-            name="piva"
-            label={t.campoPiva}
-            disabled={busy}
-            maxLength={13}
-            placeholder="12345678903"
-          />
-          <RHFSelect<AziendaFormValues>
-            name="cadenzaFatturazione"
-            label={t.campoCadenza}
-            options={CADENZA_OPTIONS}
-            disabled={busy}
-          />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <RHFTextField<AziendaFormValues>
-            name="emailFatturazione"
-            type="email"
-            label={t.campoEmailFatturazione}
-            disabled={busy}
-            maxLength={120}
-          />
-          <RHFTextField<AziendaFormValues>
-            name="armadiettoCanoneAnnuo"
-            type="number"
-            min={0}
-            max={100000}
-            step="0.01"
-            label={t.campoArmadietto}
-            hint={t.campoArmadiettoHint}
-            disabled={busy}
-          />
-        </div>
+
         <RHFTextArea<AziendaFormValues>
           name="note"
           label={t.campoNote}

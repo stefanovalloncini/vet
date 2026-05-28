@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { Pencil, ArchiveX } from "lucide-react";
+import { Pencil, ArchiveX, ExternalLink } from "lucide-react";
 import { Button } from "../../../shared/ui";
 import type { Azienda } from "@vet/shared";
+import { BackToAziende } from "./BackToAziende";
 
 interface AziendaDetailSummaryProps {
   azienda: Azienda;
@@ -16,16 +17,10 @@ export function AziendaDetailSummary({
 }: AziendaDetailSummaryProps) {
   return (
     <header className="mb-8">
-      <Link
-        to="/aziende"
-        className="text-sm text-(--color-text-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) inline-flex items-center gap-1.5"
-      >
-        <span aria-hidden="true">←</span>
-        <span>Aziende</span>
-      </Link>
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <BackToAziende />
+      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-(--color-text) break-words">
+          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-(--color-text) break-words text-balance">
             {azienda.nome}
           </h1>
           {azienda.indirizzo ? (
@@ -33,15 +28,20 @@ export function AziendaDetailSummary({
               href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(azienda.indirizzo)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-(--color-text-muted) hover:text-(--color-accent) mt-1.5 inline-flex items-center gap-1 transition-colors duration-(--motion-fast)"
+              className="mt-1.5 inline-flex max-w-full items-center gap-1 rounded text-sm text-(--color-text-muted) transition-colors duration-(--motion-fast) hover:text-(--color-accent) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
             >
-              <span>{azienda.indirizzo}</span>
-              <span aria-hidden="true">↗</span>
+              <span className="min-w-0 break-words">{azienda.indirizzo}</span>
+              <ExternalLink
+                size={13}
+                strokeWidth={1.75}
+                className="mt-0.5 shrink-0"
+                aria-hidden="true"
+              />
             </a>
           ) : null}
         </div>
         {canEdit ? (
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             <Link to={`/aziende/${azienda.id}/modifica`}>
               <Button
                 type="button"

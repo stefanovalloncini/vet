@@ -6,6 +6,10 @@ import { formatEuro } from "../../../shared/lib/format";
 import type { Azienda } from "@vet/shared";
 import { TagsEditor } from "./TagsEditor";
 
+const integerFormatter = new Intl.NumberFormat("it-IT", {
+  maximumFractionDigits: 0,
+});
+
 interface AziendaInfoCardProps {
   azienda: Azienda;
   total: number;
@@ -31,7 +35,11 @@ export function AziendaInfoCard({
           <Field label="Allevamento" value={azienda.tipoAllevamento} capitalize />
         ) : null}
         {azienda.numeroCapi !== undefined ? (
-          <Field label="Capi" value={String(azienda.numeroCapi)} tabular />
+          <Field
+            label="Capi"
+            value={integerFormatter.format(azienda.numeroCapi)}
+            tabular
+          />
         ) : null}
         {azienda.telefono ? (
           <TelefonoField raw={azienda.telefono} />
@@ -43,7 +51,7 @@ export function AziendaInfoCard({
         <Field label="Incassato" value={formatEuro(paidTotal)} tabular emphasized />
       </dl>
       {azienda.note ? (
-        <p className="text-sm text-(--color-text-muted) mt-4 pt-4 border-t border-(--color-border)">
+        <p className="text-sm text-(--color-text-muted) mt-4 pt-4 border-t border-(--color-border) whitespace-pre-line break-words">
           {azienda.note}
         </p>
       ) : null}
@@ -54,7 +62,7 @@ export function AziendaInfoCard({
         <div className="mt-4 pt-4 border-t border-(--color-border)">
           <Link
             to={`/aziende/${azienda.id}/riepilogo`}
-            className="inline-flex items-center gap-1 text-sm text-(--color-accent) hover:underline"
+            className="inline-flex items-center gap-1 rounded text-sm text-(--color-accent) hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
           >
             Apri riepilogo stampabile
             <ChevronRight size={14} strokeWidth={2} aria-hidden="true" />
@@ -76,7 +84,7 @@ interface FieldProps {
 
 function Field({ label, value, capitalize, tabular, mono, emphasized }: FieldProps) {
   const cls = [
-    "text-(--color-text) mt-1",
+    "text-(--color-text) mt-1 break-words",
     capitalize ? "capitalize" : "",
     tabular ? "tabular-nums" : "",
     mono ? "font-mono text-xs" : "",
@@ -85,7 +93,7 @@ function Field({ label, value, capitalize, tabular, mono, emphasized }: FieldPro
     .filter(Boolean)
     .join(" ");
   return (
-    <div>
+    <div className="min-w-0">
       <SectionLabel as="dt">{label}</SectionLabel>
       <dd className={cls}>{value}</dd>
     </div>
@@ -95,11 +103,14 @@ function Field({ label, value, capitalize, tabular, mono, emphasized }: FieldPro
 function TelefonoField({ raw }: { raw: string }) {
   const tel = sanitizeTel(raw);
   return (
-    <div>
+    <div className="min-w-0">
       <SectionLabel as="dt">Telefono</SectionLabel>
-      <dd className="text-(--color-text) mt-1">
+      <dd className="text-(--color-text) mt-1 break-words">
         {tel ? (
-          <a href={`tel:${tel}`} className="hover:underline">
+          <a
+            href={`tel:${tel}`}
+            className="rounded hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
+          >
             {raw}
           </a>
         ) : (

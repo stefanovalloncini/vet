@@ -15,6 +15,8 @@ export const aziendeI18n = {
   confermaEliminazione: "Eliminare questa azienda?",
   confermaEliminazioneDescr:
     "L'azienda viene archiviata: i record di attività restano consultabili.",
+  gruppoAnagrafica: "Anagrafica",
+  gruppoFatturazione: "Fatturazione",
   campoNome: "Nome",
   campoNomeHint: "Anche informale.",
   campoIndirizzo: "Indirizzo",
@@ -42,6 +44,7 @@ export const aziendeI18n = {
     "Canone annuo concordato. Lascia vuoto se non segui l'armadietto per questa azienda.",
   campoNote: "Note",
   erroreSalvataggio: "Salvataggio non riuscito. Riprova.",
+  erroreCaricamento: "Azienda non caricata. Controlla la connessione.",
   erroreNomeDuplicato: "Esiste già un'azienda con questo nome.",
   errorePivaNonValida: "Partita IVA non valida.",
   erroreEmailNonValida: "Email non valida.",

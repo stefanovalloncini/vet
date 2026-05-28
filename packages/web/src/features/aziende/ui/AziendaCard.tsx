@@ -13,6 +13,10 @@ const CADENZA_LABEL: Record<CadenzaFatturazione, string> = {
   semiannual: t.campoCadenzaSemestrale,
 };
 
+const capiFormatter = new Intl.NumberFormat("it-IT", {
+  maximumFractionDigits: 0,
+});
+
 export type StatusTone = StatoMeta["tone"];
 export type StatusKey = StatoKey;
 
@@ -58,7 +62,10 @@ export function AziendaCard({
   const tipo = a.tipoAllevamento
     ? a.tipoAllevamento.charAt(0).toUpperCase() + a.tipoAllevamento.slice(1)
     : null;
-  const capi = a.numeroCapi !== undefined ? `${a.numeroCapi} capi` : null;
+  const capi =
+    a.numeroCapi !== undefined
+      ? `${capiFormatter.format(a.numeroCapi)} capi`
+      : null;
   const meta = [tipo, capi].filter((x): x is string => Boolean(x));
 
   const inner = (
@@ -72,67 +79,34 @@ export function AziendaCard({
           : "",
       ].join(" ")}
     >
-      <header className="flex items-start justify-between gap-3">
+      <header className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1 flex items-start gap-2.5">
           <span
+            role="img"
             aria-label={status.label}
             title={status.label}
-            className="mt-2"
+            className="flex h-6 shrink-0 items-center"
           >
-            <Badge dot tone={status.tone} aria-label={status.label} />
+            <Badge dot tone={status.tone} />
           </span>
           <h2 className="text-base sm:text-lg font-medium text-(--color-text) leading-snug break-words">
             {a.nome}
           </h2>
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {actions?.map((action) => {
-            const disabled = action.disabled ? action.disabled(a) : false;
-            const isPinAction = action.id === "pin";
-            const label = isPinAction
-              ? pinned
-                ? "Rimuovi dai preferiti"
-                : "Aggiungi ai preferiti"
-              : action.label;
-            const pinTinted = isPinAction && pinned;
-            return (
-              <button
-                key={action.id}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (!disabled) action.onClick(a);
-                }}
-                aria-label={label}
-                title={label}
-                disabled={disabled}
-                className={[
-                  "p-1.5 rounded-md transition-colors duration-(--motion-fast)",
-                  pinTinted
-                    ? "text-(--color-accent)"
-                    : "text-(--color-text-subtle) hover:text-(--color-text-muted)",
-                  disabled ? "opacity-50 cursor-not-allowed" : "",
-                ].join(" ")}
-              >
-                {isPinAction ? (
-                  <Star
-                    size={16}
-                    strokeWidth={1.75}
-                    fill={pinned ? "currentColor" : "none"}
-                    aria-hidden="true"
-                  />
-                ) : (
-                  action.icon
-                )}
-              </button>
-            );
-          })}
+        <div className="-mt-1 -mr-1.5 flex flex-shrink-0 items-center">
+          {actions?.map((action) => (
+            <CardActionButton
+              key={action.id}
+              azienda={a}
+              action={action}
+              pinned={pinned}
+            />
+          ))}
           {canEdit ? (
             <ChevronRight
               size={16}
               strokeWidth={1.75}
-              className="text-(--color-text-subtle) group-hover:text-(--color-text-muted)"
+              className="ml-0.5 mr-1 shrink-0 text-(--color-text-subtle) group-hover:text-(--color-text-muted)"
               aria-hidden="true"
             />
           ) : null}
@@ -152,17 +126,19 @@ export function AziendaCard({
       ) : null}
 
       <footer className="mt-auto flex items-center justify-between gap-2 pt-1">
-        {a.cadenzaFatturazione ? (
-          <Badge tone="neutral" size="sm">
-            {CADENZA_LABEL[a.cadenzaFatturazione]}
-          </Badge>
-        ) : (
-          <span className="text-[11px] text-(--color-text-subtle)">
-            Cadenza non impostata
-          </span>
-        )}
+        <span className="min-w-0 shrink-0">
+          {a.cadenzaFatturazione ? (
+            <Badge tone="neutral" size="sm">
+              {CADENZA_LABEL[a.cadenzaFatturazione]}
+            </Badge>
+          ) : (
+            <span className="text-[11px] text-(--color-text-subtle)">
+              Cadenza non impostata
+            </span>
+          )}
+        </span>
         {a.telefono ? (
-          <span className="text-[11px] text-(--color-text-muted) tabular-nums truncate">
+          <span className="min-w-0 truncate text-[11px] text-(--color-text-muted) tabular-nums">
             {a.telefono}
           </span>
         ) : null}
@@ -176,5 +152,55 @@ export function AziendaCard({
     </Link>
   ) : (
     inner
+  );
+}
+
+interface CardActionButtonProps {
+  azienda: Azienda;
+  action: RowAction<Azienda>;
+  pinned: boolean;
+}
+
+function CardActionButton({ azienda: a, action, pinned }: CardActionButtonProps) {
+  const disabled = action.disabled ? action.disabled(a) : false;
+  const isPinAction = action.id === "pin";
+  const label = isPinAction
+    ? pinned
+      ? "Rimuovi dai preferiti"
+      : "Aggiungi ai preferiti"
+    : action.label;
+  const pinTinted = isPinAction && pinned;
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!disabled) action.onClick(a);
+      }}
+      aria-label={label}
+      aria-pressed={isPinAction ? pinned : undefined}
+      title={label}
+      disabled={disabled}
+      className={[
+        "inline-flex h-11 w-11 items-center justify-center rounded-lg transition-colors duration-(--motion-fast)",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2",
+        pinTinted
+          ? "text-(--color-accent)"
+          : "text-(--color-text-subtle) hover:text-(--color-text-muted)",
+        disabled ? "opacity-50 cursor-not-allowed" : "",
+      ].join(" ")}
+    >
+      {isPinAction ? (
+        <Star
+          size={16}
+          strokeWidth={1.75}
+          fill={pinned ? "currentColor" : "none"}
+          aria-hidden="true"
+        />
+      ) : (
+        action.icon
+      )}
+    </button>
   );
 }

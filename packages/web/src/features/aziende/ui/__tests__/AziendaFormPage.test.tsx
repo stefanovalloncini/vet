@@ -69,6 +69,24 @@ describe("AziendaFormPage", () => {
     expect(screen.queryByText("LIST")).not.toBeInTheDocument();
   });
 
+  it("groups the fields under Anagrafica and Fatturazione", () => {
+    renderForm("/aziende/nuova");
+    expect(screen.getByText("Anagrafica")).toBeInTheDocument();
+    expect(screen.getByText("Fatturazione")).toBeInTheDocument();
+  });
+
+  it("keeps the armadietto farmaci field on the form", () => {
+    renderForm("/aziende/nuova");
+    expect(
+      screen.getByLabelText(/Armadietto farmaci/i)
+    ).toBeInTheDocument();
+  });
+
+  it("exposes exactly one level-1 heading", () => {
+    renderForm("/aziende/nuova");
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+
   it("rejects an invalid partita iva", async () => {
     renderForm("/aziende/nuova");
     fireEvent.change(screen.getByLabelText(/^Nome$/i), {

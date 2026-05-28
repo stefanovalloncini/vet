@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SectionLabel } from "../../../shared/ui";
+import { X } from "lucide-react";
 
 interface TagsEditorProps {
   tags: ReadonlyArray<string>;
@@ -37,33 +37,39 @@ export function TagsEditor({ tags, onChange, disabled = false }: TagsEditorProps
 
   return (
     <div>
-      <SectionLabel className="mb-2">Etichette</SectionLabel>
+      <label
+        htmlFor="tags-input"
+        className="mb-2 block text-xs uppercase tracking-wider text-(--color-text-muted)"
+      >
+        Etichette
+      </label>
       <div className="flex flex-wrap items-center gap-2">
         {tags.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-md bg-(--color-accent-soft) text-(--color-text)"
+            className="inline-flex max-w-full items-center gap-1 rounded-md bg-(--color-accent-soft) py-0.5 pl-2 pr-1 text-xs text-(--color-text)"
           >
-            {tag}
+            <span className="min-w-0 break-words">{tag}</span>
             <button
               type="button"
               onClick={() => removeTag(tag)}
               disabled={disabled}
-              className="text-(--color-text-subtle) hover:text-(--color-danger) disabled:opacity-50"
-              aria-label="Rimuovi etichetta"
+              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-(--color-text-subtle) transition-colors hover:text-(--color-danger) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) disabled:opacity-50"
+              aria-label={`Rimuovi etichetta ${tag}`}
             >
-              ×
+              <X size={12} strokeWidth={2} aria-hidden="true" />
             </button>
           </span>
         ))}
         <input
+          id="tags-input"
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
           placeholder={tags.length === 0 ? "Aggiungi etichetta…" : ""}
-          className="text-xs bg-transparent text-(--color-text) focus:outline-none placeholder:text-(--color-text-subtle) min-w-[8ch] disabled:opacity-50"
+          className="min-w-[8ch] flex-1 bg-transparent py-1 text-xs text-(--color-text) placeholder:text-(--color-text-subtle) focus:outline-none disabled:opacity-50"
         />
       </div>
     </div>

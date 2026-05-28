@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import type { Azienda } from "@vet/shared";
@@ -134,5 +134,120 @@ describe("AziendeList (DataGrid cards mode)", () => {
     expect(screen.queryByRole("heading", { name: "Allevamento Alfa" })).toBeNull();
     expect(screen.getByRole("heading", { name: "Allevamento Beta" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Allevamento Gamma" })).toBeNull();
+  });
+
+  it("announces the loading state and renders no cards while loading", () => {
+    render(
+      <MemoryRouter>
+        <AziendeList
+          items={[]}
+          loading={true}
+          error={null}
+          canEdit={true}
+          canCreate={true}
+          searching={false}
+          isPinned={() => false}
+          onTogglePin={() => {}}
+          filters={defaultFilters()}
+          onFiltersChange={() => {}}
+        />
+      </MemoryRouter>
+    );
+    expect(screen.queryByRole("heading", { level: 2 })).toBeNull();
+  });
+
+  it("surfaces a generic error message via an alert role", () => {
+    render(
+      <MemoryRouter>
+        <AziendeList
+          items={[]}
+          loading={false}
+          error="Salvataggio non riuscito. Riprova."
+          canEdit={true}
+          canCreate={true}
+          searching={false}
+          isPinned={() => false}
+          onTogglePin={() => {}}
+          filters={defaultFilters()}
+          onFiltersChange={() => {}}
+        />
+      </MemoryRouter>
+    );
+    const alert = screen.getByRole("alert");
+    expect(within(alert).getByText(/Salvataggio non riuscito/i)).toBeInTheDocument();
+  });
+
+  it("shows the empty state with a creation hint when nothing exists", () => {
+    render(
+      <MemoryRouter>
+        <AziendeList
+          items={[]}
+          loading={false}
+          error={null}
+          canEdit={true}
+          canCreate={true}
+          searching={false}
+          isPinned={() => false}
+          onTogglePin={() => {}}
+          filters={defaultFilters()}
+          onFiltersChange={() => {}}
+        />
+      </MemoryRouter>
+    );
+    expect(screen.getByText("Nessuna azienda.")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Usa Nuova azienda in alto/i)
+    ).toBeInTheDocument();
+  });
+
+  it("shows the search empty state when filtering yields nothing", () => {
+    render(
+      <MemoryRouter>
+        <AziendeList
+          items={[]}
+          loading={false}
+          error={null}
+          canEdit={true}
+          canCreate={true}
+          searching={true}
+          isPinned={() => false}
+          onTogglePin={() => {}}
+          filters={defaultFilters()}
+          onFiltersChange={() => {}}
+        />
+      </MemoryRouter>
+    );
+    expect(screen.getByText("Nessun risultato.")).toBeInTheDocument();
+  });
+
+  it("renders an overlong azienda name without dropping the heading", () => {
+    const longName =
+      "Societa Agricola Cooperativa Allevamenti Bovini da Latte e Carne Valle del Po Lombardia Orientale";
+    render(
+      <MemoryRouter>
+        <AziendeList
+          items={[
+            makeAzienda({
+              id: "a1",
+              nome: longName,
+              indirizzo:
+                "Strada Provinciale 12 Localita Cascina Grande Frazione San Giovanni in Persiceto 40017 Bologna",
+              piva: "12345678903",
+              telefono: "+39 0512345678",
+            }),
+          ]}
+          loading={false}
+          error={null}
+          canEdit={true}
+          canCreate={true}
+          searching={false}
+          isPinned={() => false}
+          onTogglePin={() => {}}
+          filters={defaultFilters()}
+          onFiltersChange={() => {}}
+        />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole("heading", { name: longName })).toBeInTheDocument();
   });
 });

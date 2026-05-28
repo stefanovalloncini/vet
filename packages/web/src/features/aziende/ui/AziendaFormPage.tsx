@@ -9,6 +9,7 @@ import {
   ConfirmDialog,
   FormFooter,
   InlineError,
+  LoadingHint,
   PageHeader,
   useToast,
 } from "../../../shared/ui";
@@ -106,13 +107,15 @@ export function AziendaFormPage() {
   }
 
   const title = isEdit ? t.titoloModifica : t.titoloNuova;
-  const header = <PageHeader title={title} back={{ to: "/aziende", label: t.back }} />;
+  const header = (
+    <PageHeader title={title} back={{ to: "/aziende", label: t.title }} />
+  );
 
   if (isEdit && azienda.isLoading) {
     return (
       <AppShell>
         {header}
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <LoadingHint label={t.loading} />
       </AppShell>
     );
   }

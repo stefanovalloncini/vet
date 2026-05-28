@@ -1,7 +1,14 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Attivita, Conto } from "@vet/shared";
-import { AppShell, ConfirmDialog, Tabs, useToast } from "../../../shared/ui";
+import { BackToAziende } from "./BackToAziende";
+import {
+  AppShell,
+  ConfirmDialog,
+  DataLoader,
+  Tabs,
+  useToast,
+} from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { useTags } from "../hooks/useTags";
@@ -74,25 +81,27 @@ export function AziendaDetailPage() {
     }
   }
 
-  if (detail.isError) {
-    return (
-      <AppShell>
-        <p role="alert" className="text-sm text-(--color-danger)">
-          Errore caricamento azienda: {detail.error?.message ?? "errore"}
-        </p>
-      </AppShell>
-    );
-  }
-
-  if (detail.isLoading || !detail.azienda) {
-    return (
-      <AppShell>
-        <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
-      </AppShell>
-    );
-  }
-
   const azienda = detail.azienda;
+  if (detail.isError || detail.isLoading || !azienda) {
+    return (
+      <AppShell>
+        <header className="mb-8">
+          <BackToAziende />
+          <h1 className="mt-4 text-2xl sm:text-3xl font-medium tracking-tight text-(--color-text)">
+            {t.title}
+          </h1>
+        </header>
+        <DataLoader
+          loading={detail.isLoading || (!azienda && !detail.isError)}
+          error={detail.isError ? t.erroreCaricamento : null}
+          onRetry={detail.refetch}
+        >
+          <span />
+        </DataLoader>
+      </AppShell>
+    );
+  }
+
   const baseTabs: ReadonlyArray<{ id: Tab; label: string; count?: number }> = [
     { id: "storico", label: "Storico", count: detail.items.length },
     ...(canViewConti
