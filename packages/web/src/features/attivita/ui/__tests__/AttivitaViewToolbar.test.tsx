@@ -45,4 +45,11 @@ describe("AttivitaViewToolbar", () => {
     render(<AttivitaViewToolbar {...baseProps} canExport={false} />);
     expect(screen.queryByLabelText("Esporta CSV")).not.toBeInTheDocument();
   });
+
+  it("exposes the export control as a button with an accessible name", () => {
+    render(<AttivitaViewToolbar {...baseProps} canExport onExport={vi.fn()} />);
+    const button = screen.getByRole("button", { name: "Esporta CSV" });
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveAttribute("title", "Esporta CSV");
+  });
 });

@@ -97,7 +97,7 @@ function QuickRanges({
     return from === rf && to === rt;
   };
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t.filtroPeriodo}>
       {QUICK_RANGES.map((q) => {
         const on = isActive(q.id);
         return (
@@ -109,11 +109,13 @@ function QuickRanges({
               onChange("from", range.from);
               onChange("to", range.to);
             }}
-            className={
+            className={[
+              "inline-flex min-h-9 items-center rounded-full border px-3.5 text-xs transition-colors",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 active:scale-[0.97] active:duration-(--motion-press)",
               on
-                ? "px-3 py-1 text-xs rounded-full border border-(--color-accent) bg-(--color-accent-soft) text-(--color-accent) transition-colors"
-                : "px-3 py-1 text-xs rounded-full border border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong) transition-colors"
-            }
+                ? "border-(--color-accent) bg-(--color-accent-soft) text-(--color-accent)"
+                : "border-(--color-border) text-(--color-text-muted) hover:text-(--color-text) hover:border-(--color-border-strong)",
+            ].join(" ")}
             aria-pressed={on}
           >
             {q.label}
@@ -195,12 +197,12 @@ function FilterHeader({
   onClearAll: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-baseline gap-2">
+    <div className="flex items-center justify-between gap-3 mb-4">
+      <div className="flex items-baseline gap-2 min-w-0">
         <h2 className="text-sm font-medium text-(--color-text)">{t.filtri}</h2>
         {active > 0 ? (
           <Badge tone="accent" size="sm">
-            {active} attiv{active === 1 ? "o" : "i"}
+            {active === 1 ? t.filtroUno : t.filtriN(active)}
           </Badge>
         ) : (
           <span className="text-xs text-(--color-text-subtle)">
@@ -260,7 +262,7 @@ export function AttivitaFilterBar(props: AttivitaFilterBarProps) {
       <Card className="hidden sm:block" padding="md">
         <FilterHeader active={active} onClearAll={props.onClearAll} />
         <QuickRanges from={props.from} to={props.to} onChange={props.onChange} />
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
           <FilterControls {...props} />
         </div>
       </Card>

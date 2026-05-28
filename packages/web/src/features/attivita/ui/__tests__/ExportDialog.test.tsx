@@ -73,4 +73,24 @@ describe("ExportDialog", () => {
     // The select renders "Tutte" as the only valid option, so its DOM value is "".
     expect(aziendaSelect.value).toBe("");
   });
+
+  it("labels the dialog with an accessible heading", async () => {
+    const { repos } = await seedRepos();
+    render(<ExportDialog onClose={() => {}} />, {
+      wrapper: buildProvidersWrapper({ repos }),
+    });
+    expect(
+      await screen.findByRole("heading", { name: "Esporta in CSV" })
+    ).toBeInTheDocument();
+  });
+
+  it("renders the download action in its idle label", async () => {
+    const { repos } = await seedRepos();
+    render(<ExportDialog onClose={() => {}} />, {
+      wrapper: buildProvidersWrapper({ repos }),
+    });
+    expect(
+      await screen.findByRole("button", { name: "Scarica" })
+    ).toBeInTheDocument();
+  });
 });

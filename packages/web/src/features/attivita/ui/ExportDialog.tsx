@@ -101,11 +101,11 @@ export function ExportDialog({
         <div className="p-5">
           <h2
             id="export-dialog-title"
-            className="text-base font-medium text-(--color-text)"
+            className="text-lg font-medium text-(--color-text)"
           >
             {t.esportaTitolo}
           </h2>
-          <p className="text-sm text-(--color-text-muted) mt-2">
+          <p className="text-sm text-(--color-text-muted) mt-2 max-w-prose">
             {t.esportaDescr}
           </p>
           <form
@@ -143,8 +143,8 @@ export function ExportDialog({
               >
                 {t.annulla}
               </Button>
-              <Button type="submit" variant="primary" disabled={busy}>
-                {t.esportaScarica}
+              <Button type="submit" variant="primary" disabled={busy} aria-busy={busy}>
+                {busy ? t.esportaInCorso : t.esportaScarica}
               </Button>
             </div>
           </form>

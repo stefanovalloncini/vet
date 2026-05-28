@@ -10,6 +10,7 @@ import {
   FormFooter,
   InlineError,
   PageHeader,
+  Spinner,
 } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
@@ -89,7 +90,13 @@ export function AttivitaFormPage() {
   if (existing.isLoading || ref.loading) {
     return (
       <AppShell>
-        <p className="text-sm text-(--color-text-muted)">{t.loading}</p>
+        <PageHeader
+          title={isEdit ? t.titoloModifica : t.titoloNuova}
+          back={{ to: "/attivita", label: t.back }}
+        />
+        <div className="flex min-h-40 items-center justify-center">
+          <Spinner label={t.loading} />
+        </div>
       </AppShell>
     );
   }

@@ -8,6 +8,8 @@ export const attivitaI18n = {
   emptyFilteredHint: "Allarga il periodo o rimuovi un filtro.",
   pulisciFiltri: "Pulisci filtri",
   filtriNessuno: "Nessun filtro",
+  filtroUno: "1 filtro",
+  filtriN: (n: number) => `${n} filtri`,
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   filtri: "Filtri",
@@ -45,6 +47,7 @@ export const attivitaI18n = {
   selezionaTipo: "Scegli tipo",
   erroreSalvataggio: "Salvataggio non riuscito.",
   // list filters
+  filtroPeriodo: "Periodo rapido",
   filtroDataDa: "Da",
   filtroDataA: "A",
   filtroAzienda: "Azienda",
@@ -66,6 +69,7 @@ export const attivitaI18n = {
   esportaTitolo: "Esporta in CSV",
   esportaDescr: "Filtra per periodo e azienda, poi scarica il file per Excel italiano.",
   esportaScarica: "Scarica",
+  esportaInCorso: "Esportazione…",
   esportaNessunDato: "Nessun dato per i filtri scelti.",
   esportaErrore: "Esportazione fallita.",
 } as const;

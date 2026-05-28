@@ -28,7 +28,7 @@ export function AttivitaFormFields({
   aziendaAction,
   tipoAction,
 }: AttivitaFormFieldsProps) {
-  const { control, register, setValue } = useFormContext<AttivitaFormValues>();
+  const { control } = useFormContext<AttivitaFormValues>();
   const oraria = useWatch({ control, name: "oraria" });
   const adElemento = useWatch({ control, name: "adElemento" });
 
@@ -59,60 +59,15 @@ export function AttivitaFormFields({
           action={tipoAction}
         />
 
-        <div className="space-y-2">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              {...register("oraria", {
-                onChange: (e) => {
-                  const checked = (e.target as HTMLInputElement).checked;
-                  if (!checked) setValue("ore", "", { shouldValidate: false });
-                  if (checked) {
-                    setValue("adElemento", false, { shouldValidate: false });
-                    setValue("elementi", "", { shouldValidate: false });
-                  }
-                },
-              })}
-              disabled={busy}
-              className="w-4 h-4 accent-(--color-accent)"
-            />
-            <span className="text-sm text-(--color-text)">{t.campoOraria}</span>
-          </label>
-          <p className="text-xs text-(--color-text-subtle) ml-7">
-            {t.campoOrariaHint}
-          </p>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              {...register("adElemento", {
-                onChange: (e) => {
-                  const checked = (e.target as HTMLInputElement).checked;
-                  if (!checked)
-                    setValue("elementi", "", { shouldValidate: false });
-                  if (checked) {
-                    setValue("oraria", false, { shouldValidate: false });
-                    setValue("ore", "", { shouldValidate: false });
-                  }
-                },
-              })}
-              disabled={busy}
-              className="w-4 h-4 accent-(--color-accent)"
-            />
-            <span className="text-sm text-(--color-text)">
-              {t.campoAdElemento}
-            </span>
-          </label>
-          <p className="text-xs text-(--color-text-subtle) ml-7">
-            {t.campoAdElementoHint}
-          </p>
-        </div>
+        <RateModeToggles busy={busy} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <RHFTextField<AttivitaFormValues>
             name="tariffa"
             type="number"
+            inputMode="decimal"
             step="0.01"
-            min="1"
+            min="0"
             max="100000"
             label={t.campoTariffa}
             required
@@ -123,6 +78,7 @@ export function AttivitaFormFields({
             <RHFTextField<AttivitaFormValues>
               name="ore"
               type="number"
+              inputMode="decimal"
               step="0.25"
               min="0.25"
               max="24"
@@ -135,6 +91,7 @@ export function AttivitaFormFields({
             <RHFTextField<AttivitaFormValues>
               name="elementi"
               type="number"
+              inputMode="numeric"
               step="1"
               min="1"
               max="10000"
@@ -156,14 +113,83 @@ export function AttivitaFormFields({
         {!isEdit ? <AttivitaReminderField busy={busy} /> : null}
 
         {totaleLive !== null ? (
-          <div className="flex items-baseline justify-between pt-2 border-t border-(--color-border)">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pt-2 border-t border-(--color-border)">
             <SectionLabel as="span">{t.totale}</SectionLabel>
-            <span className="text-2xl font-medium text-(--color-text) tabular-nums">
+            <span className="text-2xl font-medium text-(--color-text) tabular-nums tracking-tight">
               {formatEuro(totaleLive)}
             </span>
           </div>
         ) : null}
       </div>
     </Card>
+  );
+}
+
+function RateModeToggles({ busy }: { busy: boolean }) {
+  const { register, setValue } = useFormContext<AttivitaFormValues>();
+  return (
+    <fieldset className="space-y-1">
+      <RateModeToggle
+        label={t.campoOraria}
+        hint={t.campoOrariaHint}
+        disabled={busy}
+        registration={register("oraria", {
+          onChange: (e) => {
+            const checked = (e.target as HTMLInputElement).checked;
+            if (!checked) setValue("ore", "", { shouldValidate: false });
+            if (checked) {
+              setValue("adElemento", false, { shouldValidate: false });
+              setValue("elementi", "", { shouldValidate: false });
+            }
+          },
+        })}
+      />
+      <RateModeToggle
+        label={t.campoAdElemento}
+        hint={t.campoAdElementoHint}
+        disabled={busy}
+        registration={register("adElemento", {
+          onChange: (e) => {
+            const checked = (e.target as HTMLInputElement).checked;
+            if (!checked) setValue("elementi", "", { shouldValidate: false });
+            if (checked) {
+              setValue("oraria", false, { shouldValidate: false });
+              setValue("ore", "", { shouldValidate: false });
+            }
+          },
+        })}
+      />
+    </fieldset>
+  );
+}
+
+type Registration = ReturnType<
+  ReturnType<typeof useFormContext<AttivitaFormValues>>["register"]
+>;
+
+function RateModeToggle({
+  label,
+  hint,
+  disabled,
+  registration,
+}: {
+  label: string;
+  hint: string;
+  disabled: boolean;
+  registration: Registration;
+}) {
+  return (
+    <div>
+      <label className="flex min-h-11 items-center gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          {...registration}
+          disabled={disabled}
+          className="w-4 h-4 shrink-0 accent-(--color-accent)"
+        />
+        <span className="text-sm text-(--color-text)">{label}</span>
+      </label>
+      <p className="text-xs text-(--color-text-subtle) ml-7 -mt-1">{hint}</p>
+    </div>
   );
 }

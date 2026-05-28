@@ -22,6 +22,10 @@ const dayLabelFormatter = new Intl.DateTimeFormat("it-IT", {
   year: "numeric",
 });
 
+const oreFormatter = new Intl.NumberFormat("it-IT", {
+  maximumFractionDigits: 2,
+});
+
 function isoDate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -89,12 +93,12 @@ function buildColumns(): ReadonlyArray<Column<Attivita>> {
       cell: (a) => (
         <Link
           to={routes.attivitaEdit.to({ id: a.id })}
-          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-1 rounded"
+          className="block max-w-[24ch] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-1 rounded"
         >
-          <span className="block text-(--color-text) font-medium hover:text-(--color-accent) transition-colors">
+          <span className="block text-(--color-text) font-medium hover:text-(--color-accent) transition-colors break-words">
             {a.aziendaNome}
           </span>
-          <span className="block text-xs text-(--color-text-subtle) mt-0.5">
+          <span className="block text-xs text-(--color-text-subtle) mt-0.5 truncate">
             {a.ownerName}
           </span>
         </Link>
@@ -108,14 +112,14 @@ function buildColumns(): ReadonlyArray<Column<Attivita>> {
       filterId: "tipo",
       accessor: (a) => a.tipoNome,
       cell: (a) => (
-        <>
-          <span className="text-(--color-text)">{a.tipoNome}</span>
+        <div className="max-w-[28ch]">
+          <span className="block text-(--color-text) break-words">{a.tipoNome}</span>
           {a.note ? (
-            <span className="block text-xs text-(--color-text-subtle) mt-0.5 truncate max-w-[28ch]">
+            <span className="block text-xs text-(--color-text-subtle) mt-0.5 truncate">
               {a.note}
             </span>
           ) : null}
-        </>
+        </div>
       ),
       export: (a) => ({ text: a.tipoNome }),
     },
@@ -128,7 +132,7 @@ function buildColumns(): ReadonlyArray<Column<Attivita>> {
       accessor: (a) => a.ore ?? 0,
       cell: (a) => (
         <span className="tabular-nums text-(--color-text-muted)">
-          {a.oraria && a.ore !== undefined ? a.ore : "—"}
+          {a.oraria && a.ore !== undefined ? oreFormatter.format(a.ore) : "—"}
         </span>
       ),
       export: (a) => ({
@@ -268,7 +272,7 @@ export function AttivitaDataGrid({
 
   return (
     <>
-      <div className="hidden md:block">
+      <div className="hidden md:block -mx-1 overflow-x-auto px-1">
         <DataGrid<Attivita> {...commonProps} mode="table" />
       </div>
       <div className="md:hidden">

@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import type { Attivita, Repositories } from "@vet/shared";
 import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { createInMemoryRepositories } from "../../../../infrastructure/composition/in-memory";
@@ -31,16 +31,30 @@ function makeAttivita(partial: Partial<Attivita> & { id: string }): Attivita {
   } as Attivita;
 }
 
-function renderGrid(items: Attivita[], group: "none" | "azienda" | "giorno" | "vet" = "none") {
+interface RenderGridOverrides {
+  isLoading?: boolean;
+  isError?: boolean;
+  filtersActive?: boolean;
+  onClearFilters?: () => void;
+}
+
+function renderGrid(
+  items: Attivita[],
+  group: "none" | "azienda" | "giorno" | "vet" = "none",
+  overrides: RenderGridOverrides = {}
+) {
   const repos = createInMemoryRepositories() as unknown as Repositories;
   return render(
     <AttivitaDataGrid
       items={items}
       group={group}
-      isLoading={false}
-      isError={false}
-      filtersActive={false}
+      isLoading={overrides.isLoading ?? false}
+      isError={overrides.isError ?? false}
+      filtersActive={overrides.filtersActive ?? false}
       canExport={false}
+      {...(overrides.onClearFilters
+        ? { onClearFilters: overrides.onClearFilters }
+        : {})}
     />,
     {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
@@ -79,6 +93,60 @@ describe("AttivitaDataGrid", () => {
     renderGrid([], "none");
     // EmptyAttivita renders the emptyAll title
     expect(screen.getAllByText("Nessuna attività registrata.").length).toBeGreaterThan(0);
+  });
+
+  it("renders the filtered empty state with a clear-filters action", () => {
+    const onClearFilters = vi.fn();
+    renderGrid([], "none", { filtersActive: true, onClearFilters });
+    expect(
+      screen.getAllByText("Nessun risultato per i filtri scelti.").length
+    ).toBeGreaterThan(0);
+    const clear = screen.getAllByRole("button", { name: "Pulisci filtri" });
+    expect(clear.length).toBeGreaterThan(0);
+    fireEvent.click(clear[0]!);
+    expect(onClearFilters).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a loading state and no rows while isLoading is true", () => {
+    renderGrid(
+      [makeAttivita({ id: "a1", aziendaNome: "Acme" })],
+      "none",
+      { isLoading: true }
+    );
+    expect(screen.queryByText("Acme")).not.toBeInTheDocument();
+  });
+
+  it("shows an error alert when isError is true", () => {
+    renderGrid([], "none", { isError: true });
+    const alerts = screen.getAllByRole("alert");
+    expect(alerts.length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Caricamento fallito.").length).toBeGreaterThan(0);
+  });
+
+  it("formats hours with an Italian decimal comma", () => {
+    renderGrid(
+      [makeAttivita({ id: "a1", oraria: true, ore: 1.5, tariffa: 40, totale: 60 })],
+      "none"
+    );
+    expect(screen.getAllByText("1,5").length).toBeGreaterThan(0);
+  });
+
+  it("renders without breaking on very long azienda, tipo and note values", () => {
+    const longName = "Azienda".repeat(40);
+    const longNote = "x".repeat(500);
+    renderGrid(
+      [
+        makeAttivita({
+          id: "a1",
+          aziendaNome: longName,
+          tipoNome: "Tipo".repeat(40),
+          note: longNote,
+        }),
+      ],
+      "none"
+    );
+    expect(screen.getAllByText(longName).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(longNote).length).toBeGreaterThan(0);
   });
 });
 

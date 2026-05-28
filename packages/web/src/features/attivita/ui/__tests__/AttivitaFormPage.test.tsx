@@ -59,6 +59,20 @@ function renderForm(path: string, repos: Repositories) {
 }
 
 describe("AttivitaFormPage", () => {
+  it("shows a labelled loading spinner before reference data resolves", async () => {
+    const { repos } = await seedRepos();
+    renderForm("/attivita/nuova", repos);
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Nuova attività/i })
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /^Salva$/i })
+      ).toBeInTheDocument();
+    });
+  });
+
   it("creates a new attivita with valid input and navigates to the list", async () => {
     const { repos, aziendaId, tipoId } = await seedRepos();
     renderForm("/attivita/nuova", repos);
@@ -66,6 +80,9 @@ describe("AttivitaFormPage", () => {
     await waitFor(() => {
       expect(
         screen.getByRole("heading", { name: /Nuova attività/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /^Salva$/i })
       ).toBeInTheDocument();
     });
 
@@ -99,6 +116,9 @@ describe("AttivitaFormPage", () => {
     await waitFor(() => {
       expect(
         screen.getByRole("heading", { name: /Nuova attività/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /^Salva$/i })
       ).toBeInTheDocument();
     });
 
@@ -142,6 +162,9 @@ describe("AttivitaFormPage", () => {
     await waitFor(() => {
       expect(
         screen.getByRole("heading", { name: /Nuova attività/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /^Salva$/i })
       ).toBeInTheDocument();
     });
 

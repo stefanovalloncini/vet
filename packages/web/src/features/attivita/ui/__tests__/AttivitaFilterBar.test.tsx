@@ -106,4 +106,44 @@ describe("AttivitaFilterBar", () => {
       screen.queryByRole("button", { name: "Pulisci filtri" })
     ).not.toBeInTheDocument();
   });
+
+  it("labels a single active filter as '1 filtro'", () => {
+    render(<AttivitaFilterBar {...baseProps} aziendaId="az1" onChange={vi.fn()} />);
+    expect(screen.getByText("1 filtro")).toBeInTheDocument();
+  });
+
+  it("labels multiple active filters with the plural 'filtri'", () => {
+    render(
+      <AttivitaFilterBar
+        {...baseProps}
+        aziendaId="az1"
+        tipoId="ginecologia"
+        vetUid="u-1"
+        onChange={vi.fn()}
+      />
+    );
+    expect(screen.getByText("3 filtri")).toBeInTheDocument();
+  });
+
+  it("shows 'Nessun filtro' when nothing is active", () => {
+    render(<AttivitaFilterBar {...baseProps} onChange={vi.fn()} />);
+    expect(screen.getByText("Nessun filtro")).toBeInTheDocument();
+  });
+
+  it("exposes the quick-range chips as a labelled group with toggle state", () => {
+    render(<AttivitaFilterBar {...baseProps} onChange={vi.fn()} />);
+    const group = screen.getByRole("group", { name: "Periodo rapido" });
+    expect(group).toBeInTheDocument();
+    const oggi = screen.getByRole("button", { name: "Oggi", pressed: false });
+    expect(oggi).toBeInTheDocument();
+  });
+
+  it("emits both from and to when a quick range is chosen", () => {
+    const onChange = vi.fn();
+    render(<AttivitaFilterBar {...baseProps} onChange={onChange} />);
+    fireEvent.click(screen.getByRole("button", { name: "Questo mese" }));
+    const keys = onChange.mock.calls.map((c) => c[0]);
+    expect(keys).toContain("from");
+    expect(keys).toContain("to");
+  });
 });
