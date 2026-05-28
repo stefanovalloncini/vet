@@ -4,9 +4,12 @@ import { Brand } from "../../../shared/ui";
 export function PrivacyPage() {
   return (
     <main className="min-h-[100dvh] bg-(--color-background) text-(--color-text) px-6 py-10">
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="max-w-prose mx-auto space-y-8">
         <header className="space-y-3">
-          <Link to="/login" className="inline-block">
+          <Link
+            to="/login"
+            className="inline-block rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 focus-visible:ring-offset-(--color-background)"
+          >
             <Brand size="sm" />
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -29,7 +32,7 @@ export function PrivacyPage() {
             Il gestore tecnico della piattaforma è Stefano Valloncini (
             <a
               href="mailto:stefano.valloncini@gmail.com"
-              className="text-(--color-accent) underline-offset-4 hover:underline"
+              className="text-(--color-accent) underline-offset-4 hover:underline rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 focus-visible:ring-offset-(--color-background)"
             >
               stefano.valloncini@gmail.com
             </a>
@@ -123,7 +126,7 @@ export function PrivacyPage() {
             Per esercitare altri diritti, scrivere a{" "}
             <a
               href="mailto:stefano.valloncini@gmail.com"
-              className="text-(--color-accent) underline-offset-4 hover:underline"
+              className="text-(--color-accent) underline-offset-4 hover:underline rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 focus-visible:ring-offset-(--color-background)"
             >
               stefano.valloncini@gmail.com
             </a>
@@ -136,7 +139,7 @@ export function PrivacyPage() {
               href="https://www.garanteprivacy.it/"
               rel="noopener noreferrer"
               target="_blank"
-              className="text-(--color-accent) underline-offset-4 hover:underline"
+              className="text-(--color-accent) underline-offset-4 hover:underline rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 focus-visible:ring-offset-(--color-background)"
             >
               garanteprivacy.it
             </a>

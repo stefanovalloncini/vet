@@ -46,7 +46,10 @@ export function SicurezzaPage() {
       subtitle={t.subtitle}
       footer={<span>{t.eyebrow}</span>}
     >
-      <ul className="rounded-xl border border-(--color-border) bg-(--color-surface) divide-y divide-(--color-border) overflow-hidden">
+      <ul
+        aria-busy={running}
+        className="rounded-xl border border-(--color-border) bg-(--color-surface) divide-y divide-(--color-border) overflow-hidden"
+      >
         {ORDER.map((name) => {
           const r = results.find((x) => x.name === name);
           return (
@@ -60,23 +63,25 @@ export function SicurezzaPage() {
         })}
       </ul>
 
-      {running ? (
-        <div className="mt-6 flex items-center gap-2 text-sm text-(--color-text-muted)">
-          <Spinner size={14} /> {t.running}
-        </div>
-      ) : null}
+      <div role="status" aria-live="polite">
+        {running ? (
+          <div className="mt-6 flex items-center gap-2 text-sm text-(--color-text-muted)">
+            <Spinner size={14} /> {t.running}
+          </div>
+        ) : null}
 
-      {!running && failed.length > 0 ? (
-        <div className="mt-6 border border-(--color-danger)/30 rounded-xl p-4 text-sm text-(--color-text) space-y-2">
-          {failed.map((r) => (
-            <p key={r.name}>{t.remediation[r.name]}</p>
-          ))}
-        </div>
-      ) : null}
+        {!running && failed.length > 0 ? (
+          <div className="mt-6 border border-(--color-danger)/30 rounded-xl p-4 text-sm text-(--color-text) space-y-2">
+            {failed.map((r) => (
+              <p key={r.name}>{t.remediation[r.name]}</p>
+            ))}
+          </div>
+        ) : null}
 
-      {!running && allOk ? (
-        <p className="mt-6 text-sm text-(--color-accent)">{t.allOk}</p>
-      ) : null}
+        {!running && allOk ? (
+          <p className="mt-6 text-sm text-(--color-accent)">{t.allOk}</p>
+        ) : null}
+      </div>
 
       <div className="flex items-center justify-between gap-3 mt-6">
         <Link
@@ -159,7 +164,7 @@ function StatusDot({ status, running }: StatusDotProps) {
       : status === "fail"
         ? "bg-(--color-danger)"
         : running
-          ? "bg-(--color-accent) animate-pulse"
+          ? "bg-(--color-accent) animate-pulse motion-reduce:animate-none"
           : "bg-(--color-text-subtle)",
   ].join(" ");
   return <span aria-hidden="true" className={cls} />;

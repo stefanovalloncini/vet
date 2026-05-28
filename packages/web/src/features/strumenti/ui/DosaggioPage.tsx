@@ -2,45 +2,43 @@ import { useMemo, useState } from "react";
 import {
   AppShell,
   Card,
+  NumberField,
   PageHeader,
   SectionLabel,
   Select,
-  TextField,
 } from "../../../shared/ui";
-import { DOSAGE_PRESETS, strumentiI18n as t } from "../i18n";
+import { DOSAGE_PRESETS, strumentiI18n as t, type DosagePreset } from "../i18n";
 
 const mlFormatter = new Intl.NumberFormat("it-IT", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
+const MAX_PESO = 2000;
+const MAX_RATE = 100000;
+
+type Num = number | "";
+
 export function DosaggioPage() {
   const [presetId, setPresetId] = useState("custom");
-  const [peso, setPeso] = useState("");
-  const [dose, setDose] = useState("");
-  const [conc, setConc] = useState("");
+  const [peso, setPeso] = useState<Num>("");
+  const [dose, setDose] = useState<Num>("");
+  const [conc, setConc] = useState<Num>("");
 
-  const ml = useMemo(() => {
-    const p = Number(peso);
-    const d = Number(dose);
-    const c = Number(conc);
-    if (!isFinite(p) || !isFinite(d) || !isFinite(c)) return null;
-    if (p <= 0 || d <= 0 || c <= 0) return null;
-    const value = (p * d) / c;
-    return Math.round(value * 100) / 100;
-  }, [peso, dose, conc]);
+  const ml = useMemo(() => computeMl(peso, dose, conc), [peso, dose, conc]);
 
   const presetOptions = DOSAGE_PRESETS.map((p) => ({
     value: p.id,
     label: p.label,
   }));
+  const activePreset = DOSAGE_PRESETS.find((p) => p.id === presetId);
 
   function onPresetChange(id: string) {
     setPresetId(id);
     const preset = DOSAGE_PRESETS.find((p) => p.id === id);
     if (preset && preset.id !== "custom") {
-      setDose(String(preset.dosaggioMgPerKg));
-      setConc(String(preset.concentrazioneMgPerMl));
+      setDose(preset.dosaggioMgPerKg);
+      setConc(preset.concentrazioneMgPerMl);
     }
   }
 
@@ -58,92 +56,57 @@ export function DosaggioPage() {
             onChange={(e) => onPresetChange(e.target.value)}
           />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <TextField
+            <NumberField
               id="peso"
-              type="number"
-              step="1"
-              min="1"
-              max="2000"
               label={t.pesoLabel}
               value={peso}
-              onChange={(e) => setPeso(e.target.value)}
-              placeholder="es. 600"
+              onChange={setPeso}
+              step={1}
+              min={0}
+              max={MAX_PESO}
+              placeholder="600"
             />
-            <TextField
+            <NumberField
               id="dose"
-              type="number"
-              step="0.1"
-              min="0"
               label={t.dosaggioLabel}
               value={dose}
-              onChange={(e) => setDose(e.target.value)}
+              onChange={setDose}
+              step={0.1}
+              min={0}
+              max={MAX_RATE}
             />
-            <TextField
+            <NumberField
               id="conc"
-              type="number"
-              step="0.1"
-              min="0"
               label={t.concentrazioneLabel}
               value={conc}
-              onChange={(e) => setConc(e.target.value)}
+              onChange={setConc}
+              step={0.1}
+              min={0}
+              max={MAX_RATE}
             />
           </div>
 
           <div className="pt-4 border-t border-(--color-border)">
             <SectionLabel>{t.risultatoLabel}</SectionLabel>
-            <p className="text-4xl tabular-nums mt-2 text-(--color-text)">
+            <p
+              aria-live="polite"
+              className="text-4xl tabular-nums mt-2 text-(--color-text) break-words"
+            >
               {ml !== null ? (
                 <>
-                  <span className="font-medium">{formatMl(ml)}</span>
-                  <span className="text-base text-(--color-text-muted) ml-2">ml</span>
+                  <span className="font-medium">{mlFormatter.format(ml)}</span>
+                  <span className="text-base text-(--color-text-muted) ml-2">
+                    ml
+                  </span>
                 </>
               ) : (
                 <span className="text-(--color-text-subtle) text-2xl">—</span>
               )}
             </p>
-            {(() => {
-              const preset = DOSAGE_PRESETS.find((p) => p.id === presetId);
-              if (!preset || preset.id === "custom") return null;
-              return (
-                <dl className="grid grid-cols-3 gap-4 mt-5 text-sm">
-                  {preset.via ? (
-                    <div>
-                      <SectionLabel as="dt">Via</SectionLabel>
-                      <dd className="text-(--color-text) mt-1">{preset.via}</dd>
-                    </div>
-                  ) : null}
-                  {preset.sospensioneCarne !== undefined ? (
-                    <div>
-                      <SectionLabel as="dt">
-                        {t.sospensione} {t.sospensioneCarne}
-                      </SectionLabel>
-                      <dd className="text-(--color-text) mt-1 tabular-nums">
-                        {preset.sospensioneCarne === -1
-                          ? "Non utilizzare"
-                          : `${preset.sospensioneCarne} ${t.giorni}`}
-                      </dd>
-                    </div>
-                  ) : null}
-                  {preset.sospensioneLatte !== undefined ? (
-                    <div>
-                      <SectionLabel as="dt">
-                        {t.sospensione} {t.sospensioneLatte}
-                      </SectionLabel>
-                      <dd className="text-(--color-text) mt-1 tabular-nums">
-                        {preset.sospensioneLatte === -1
-                          ? "Vietato in lattazione"
-                          : preset.sospensioneLatte === 0
-                          ? "0 (no sospensione)"
-                          : `${preset.sospensioneLatte} ${t.giorni}`}
-                      </dd>
-                    </div>
-                  ) : null}
-                </dl>
-              );
-            })()}
+            <PresetDetails preset={activePreset} />
           </div>
 
-          <p className="text-xs text-(--color-text-subtle) -mt-1">
+          <p className="text-xs text-(--color-text-subtle) -mt-1 max-w-prose">
             {t.hint}
           </p>
         </div>
@@ -152,6 +115,60 @@ export function DosaggioPage() {
   );
 }
 
-function formatMl(n: number): string {
-  return mlFormatter.format(n);
+function computeMl(peso: Num, dose: Num, conc: Num): number | null {
+  if (peso === "" || dose === "" || conc === "") return null;
+  if (!isFinite(peso) || !isFinite(dose) || !isFinite(conc)) return null;
+  if (peso <= 0 || dose <= 0 || conc <= 0) return null;
+  const value = (peso * dose) / conc;
+  if (!isFinite(value)) return null;
+  return Math.round(value * 100) / 100;
+}
+
+interface PresetDetailsProps {
+  preset: DosagePreset | undefined;
+}
+
+function PresetDetails({ preset }: PresetDetailsProps) {
+  if (!preset || preset.id === "custom") return null;
+  return (
+    <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mt-5 text-sm">
+      {preset.via ? (
+        <div className="min-w-0">
+          <SectionLabel as="dt">Via</SectionLabel>
+          <dd className="text-(--color-text) mt-1">{preset.via}</dd>
+        </div>
+      ) : null}
+      {preset.sospensioneCarne !== undefined ? (
+        <div className="min-w-0">
+          <SectionLabel as="dt">
+            {t.sospensione} {t.sospensioneCarne}
+          </SectionLabel>
+          <dd className="text-(--color-text) mt-1 tabular-nums">
+            {formatSospensioneCarne(preset.sospensioneCarne)}
+          </dd>
+        </div>
+      ) : null}
+      {preset.sospensioneLatte !== undefined ? (
+        <div className="min-w-0">
+          <SectionLabel as="dt">
+            {t.sospensione} {t.sospensioneLatte}
+          </SectionLabel>
+          <dd className="text-(--color-text) mt-1 tabular-nums">
+            {formatSospensioneLatte(preset.sospensioneLatte)}
+          </dd>
+        </div>
+      ) : null}
+    </dl>
+  );
+}
+
+function formatSospensioneCarne(days: number): string {
+  if (days === -1) return "Non utilizzare";
+  return `${days} ${t.giorni}`;
+}
+
+function formatSospensioneLatte(days: number): string {
+  if (days === -1) return "Vietato in lattazione";
+  if (days === 0) return "0 (no sospensione)";
+  return `${days} ${t.giorni}`;
 }

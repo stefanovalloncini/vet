@@ -28,41 +28,46 @@ export function CestinoRow({
 }: CestinoRowProps) {
   const canAct = canRestore || canPurge;
   const showCheckbox = selectable && canAct;
+  const aziendaNome = a.aziendaNome?.trim() ? a.aziendaNome : t.aziendaSconosciuta;
 
   return (
     <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl px-4 py-3 sm:px-5 sm:py-4 flex items-start gap-3 sm:gap-4 hover:bg-(--color-surface-muted)/40 transition-colors">
       {showCheckbox ? (
-        <input
-          type="checkbox"
-          checked={selected}
-          onChange={(e) => onSelectChange?.(e.target.checked)}
-          className="mt-1.5 w-4 h-4 accent-(--color-accent) flex-shrink-0"
-          aria-label={`Seleziona ${a.aziendaNome}`}
-          disabled={busy}
-        />
+        <label className="-m-2 p-2 mt-0.5 flex items-center cursor-pointer shrink-0">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={(e) => onSelectChange?.(e.target.checked)}
+            className="w-4 h-4 accent-(--color-accent)"
+            aria-label={`${t.seleziona} ${aziendaNome}`}
+            disabled={busy}
+          />
+        </label>
       ) : null}
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge tone="neutral">{t.tipoAttivita}</Badge>
           <span className="font-mono text-xs text-(--color-text-muted) tabular-nums">
             {formatDate(a.data)}
           </span>
-          <h2 className="text-sm sm:text-base font-medium text-(--color-text) truncate">
-            {a.aziendaNome}
+        </div>
+        <div className="mt-1.5 flex items-baseline justify-between gap-3">
+          <h2 className="text-sm sm:text-base font-medium text-(--color-text) break-words min-w-0">
+            {aziendaNome}
           </h2>
-          <span className="text-sm text-(--color-text-muted)">
-            {a.tipoNome}
-          </span>
-          <span className="text-sm sm:text-base font-medium text-(--color-text) tabular-nums">
+          <span className="text-sm sm:text-base font-medium text-(--color-text) tabular-nums shrink-0">
             {formatEuro(a.totale)}
           </span>
         </div>
-        <p className="text-xs text-(--color-text-subtle) mt-1.5">
-          {a.ownerName}
+        <p className="text-xs text-(--color-text-muted) mt-1 break-words">
+          {a.tipoNome}
+        </p>
+        <p className="text-xs text-(--color-text-subtle) mt-1 break-words">
+          {a.ownerName?.trim() ? a.ownerName : t.proprietarioSconosciuto}
           {a.deletedAt ? ` · ${t.deletedAt} ${formatDate(a.deletedAt)}` : ""}
         </p>
       </div>
-      <div className="flex items-center gap-1.5 flex-shrink-0">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 shrink-0">
         {canRestore ? (
           <Button
             type="button"

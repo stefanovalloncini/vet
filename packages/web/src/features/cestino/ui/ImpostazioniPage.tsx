@@ -250,9 +250,9 @@ interface KeyRowProps {
 
 function KeyRow({ label, value }: KeyRowProps) {
   return (
-    <div className="py-3 flex items-center justify-between gap-4">
-      <dt className="text-sm text-(--color-text-muted)">{label}</dt>
-      <dd className="text-sm text-(--color-text) text-right truncate min-w-0">
+    <div className="py-3 flex items-start justify-between gap-4">
+      <dt className="text-sm text-(--color-text-muted) shrink-0">{label}</dt>
+      <dd className="text-sm text-(--color-text) text-right min-w-0 break-words">
         {value}
       </dd>
     </div>
