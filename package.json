@@ -19,6 +19,7 @@
     "lint": "eslint --no-error-on-unmatched-pattern \"packages/**/*.{ts,tsx,js,jsx}\"",
     "seed:roles": "pnpm -F vet-scripts seed:roles",
     "seed:activity-types": "pnpm -F vet-scripts seed:activity-types",
+    "seed:conti-dev": "pnpm -F vet-scripts seed:conti-dev",
     "wipe:types": "pnpm -F vet-scripts wipe:types",
     "create:test-users": "pnpm -F vet-scripts create:test-users",
     "rescue:admin": "pnpm -F vet-scripts rescue:admin",

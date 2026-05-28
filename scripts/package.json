@@ -7,6 +7,7 @@
     "typecheck": "tsc --noEmit",
     "seed:roles": "tsx seed-roles.ts",
     "seed:activity-types": "tsx seed-activity-types.ts",
+    "seed:conti-dev": "tsx seed-conti-dev.ts",
     "wipe:types": "tsx wipe-and-reseed-types.ts",
     "create:test-users": "tsx create-test-users.ts",
     "audit:prime": "tsx audit-prime.ts",
