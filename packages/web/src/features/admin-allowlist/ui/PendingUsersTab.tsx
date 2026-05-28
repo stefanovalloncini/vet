@@ -1,12 +1,8 @@
 import { useMemo, useState } from "react";
-import { Check, X } from "lucide-react";
 import {
-  Badge,
-  Button,
   ConfirmDialog,
   EmptyState,
   InlineError,
-  Select,
 } from "../../../shared/ui";
 import {
   DataGrid,
@@ -20,6 +16,7 @@ import {
   useRejectPendingUser,
 } from "../hooks/usePendingUsers";
 import { allowlistI18n as t } from "../i18n";
+import { PendingUserRow } from "./PendingUserRow";
 
 interface PendingUsersTabProps {
   roles: Role[];
@@ -93,72 +90,19 @@ export function PendingUsersTab({ roles }: PendingUsersTabProps) {
         error={loadError ? t.loadError : null}
         rowActions={[]}
         emptyState={<EmptyState title={t.pendingEmpty} />}
-        card={(u) => {
-          const busy = busyId === u.uid;
-          return (
-            <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl px-4 py-3 grid grid-cols-1 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] gap-3 sm:gap-4 sm:items-center">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 min-w-0">
-                  <p className="text-sm font-mono text-(--color-text) truncate">
-                    {u.email}
-                  </p>
-                  <Badge tone="warning" aria-label={t.statoInAttesa}>
-                    {t.statoInAttesa}
-                  </Badge>
-                </div>
-                <p className="text-xs text-(--color-text-muted) mt-0.5 truncate">
-                  {u.displayName}
-                  <span className="text-(--color-text-subtle)">
-                    {" · "}
-                    {t.pendingSignedUpAt}{" "}
-                  </span>
-                  <span className="tabular-nums">
-                    {u.createdAt.toLocaleDateString("it-IT")}
-                  </span>
-                </p>
-              </div>
-              <div className="max-w-xs sm:max-w-none">
-                <Select
-                  id={`role-${u.uid}`}
-                  label={t.pendingRuolo}
-                  value={roleByUid[u.uid] ?? u.roleId}
-                  onChange={(e) =>
-                    setRoleByUid((r) => ({ ...r, [u.uid]: e.target.value }))
-                  }
-                  options={roleOptions}
-                />
-              </div>
-              <div className="flex items-center gap-1 justify-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleApprove(u)}
-                  disabled={busy}
-                  aria-label={t.pendingApprova}
-                  leadingIcon={
-                    <Check size={14} strokeWidth={1.75} aria-hidden="true" />
-                  }
-                >
-                  <span className="hidden md:inline">{t.pendingApprova}</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setRejecting(u)}
-                  disabled={busy}
-                  aria-label={t.pendingRifiuta}
-                  leadingIcon={
-                    <X size={14} strokeWidth={1.75} aria-hidden="true" />
-                  }
-                >
-                  <span className="hidden md:inline">{t.pendingRifiuta}</span>
-                </Button>
-              </div>
-            </div>
-          );
-        }}
+        card={(u) => (
+          <PendingUserRow
+            user={u}
+            roleOptions={roleOptions}
+            roleValue={roleByUid[u.uid] ?? u.roleId}
+            busy={busyId === u.uid}
+            onRoleChange={(roleId) =>
+              setRoleByUid((r) => ({ ...r, [u.uid]: roleId }))
+            }
+            onApprove={handleApprove}
+            onReject={setRejecting}
+          />
+        )}
       />
 
       <ConfirmDialog

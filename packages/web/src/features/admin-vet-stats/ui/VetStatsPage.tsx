@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp } from "lucide-react";
 import {
   AdminLayout,
   Card,
@@ -11,10 +10,9 @@ import {
 } from "../../../shared/ui";
 import { useVetStats, type VetStat } from "../hooks/useVetStats";
 import { formatEuro } from "../../../shared/lib/format";
+import { SortableTH, type SortDir, type SortKey } from "./SortableTH";
 
 type Range = "month" | "year" | "all";
-type SortKey = "nome" | "count" | "total" | "lastActivity";
-type SortDir = "asc" | "desc";
 
 const RANGE_OPTIONS = [
   { value: "month", label: "Questo mese" },
@@ -29,66 +27,6 @@ function compare(a: VetStat, b: VetStat, key: SortKey): number {
   const aTime = a.lastActivity?.getTime() ?? 0;
   const bTime = b.lastActivity?.getTime() ?? 0;
   return aTime - bTime;
-}
-
-interface SortableTHProps {
-  label: string;
-  sortKey: SortKey;
-  activeKey: SortKey;
-  dir: SortDir;
-  onToggle: (key: SortKey) => void;
-  align?: "left" | "right";
-  className?: string;
-}
-
-function SortableTH({
-  label,
-  sortKey,
-  activeKey,
-  dir,
-  onToggle,
-  align = "left",
-  className = "",
-}: SortableTHProps) {
-  const active = activeKey === sortKey;
-  const ariaSort: "ascending" | "descending" | "none" = active
-    ? dir === "asc"
-      ? "ascending"
-      : "descending"
-    : "none";
-  const thAlign = align === "right" ? "text-right" : "text-left";
-  return (
-    <th
-      scope="col"
-      aria-sort={ariaSort}
-      className={`px-4 py-2.5 ${thAlign} font-normal ${className}`}
-    >
-      <button
-        type="button"
-        onClick={() => onToggle(sortKey)}
-        className={[
-          "inline-flex items-center gap-1 text-[11px] uppercase tracking-wider font-medium transition-colors duration-(--motion-fast) ease-(--ease-out-quart)",
-          active
-            ? "text-(--color-text)"
-            : "text-(--color-text-muted) hover:text-(--color-text)",
-          align === "right" ? "justify-end w-full" : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      >
-        <span>{label}</span>
-        <span aria-hidden="true" className="inline-flex w-3 h-3 items-center">
-          {active ? (
-            dir === "asc" ? (
-              <ArrowUp size={12} strokeWidth={1.75} />
-            ) : (
-              <ArrowDown size={12} strokeWidth={1.75} />
-            )
-          ) : null}
-        </span>
-      </button>
-    </th>
-  );
 }
 
 export function VetStatsPage() {
@@ -153,89 +91,101 @@ export function VetStatsPage() {
         />
       </div>
 
-      {isLoading ? (
-        <LoadingHint />
-      ) : isError ? (
-        <InlineError>Caricamento fallito.</InlineError>
-      ) : stats.length === 0 ? (
-        <EmptyState title="Nessun dato per il periodo." />
-      ) : (
-        <Card padded={false}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-(--color-border) bg-(--color-surface-muted)/50">
-                  <SortableTH
-                    label="Veterinario"
-                    sortKey="nome"
-                    activeKey={sortKey}
-                    dir={sortDir}
-                    onToggle={toggleSort}
-                  />
-                  <SortableTH
-                    label="Visite"
-                    sortKey="count"
-                    activeKey={sortKey}
-                    dir={sortDir}
-                    onToggle={toggleSort}
-                    align="right"
-                  />
-                  <SortableTH
-                    label="Totale"
-                    sortKey="total"
-                    activeKey={sortKey}
-                    dir={sortDir}
-                    onToggle={toggleSort}
-                    align="right"
-                  />
-                  <SortableTH
-                    label="Ultima attività"
-                    sortKey="lastActivity"
-                    activeKey={sortKey}
-                    dir={sortDir}
-                    onToggle={toggleSort}
-                    align="right"
-                    className="hidden sm:table-cell"
-                  />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-(--color-border)">
-                {sorted.map((s) => {
-                  const pct = totalAll > 0 ? Math.round((s.total / totalAll) * 100) : 0;
-                  return (
-                    <tr key={s.uid}>
-                      <td className="px-4 py-2.5">
-                        <p className="text-sm font-medium text-(--color-text) truncate">
-                          {s.nome}
-                        </p>
-                        <p className="text-[11px] text-(--color-text-subtle) font-mono truncate">
-                          {s.email}
-                        </p>
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-(--color-text-muted)">
-                        {s.count}
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        <p className="text-sm font-medium text-(--color-text) tabular-nums">
-                          {formatEuro(s.total)}
-                        </p>
-                        <p className="text-[11px] text-(--color-text-subtle) tabular-nums">
-                          {pct}%
-                        </p>
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-(--color-text-muted) hidden sm:table-cell">
-                        {s.lastActivity
-                          ? s.lastActivity.toLocaleDateString("it-IT")
-                          : ""}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
+      <div aria-live="polite">
+        {isLoading ? (
+          <LoadingHint />
+        ) : isError ? (
+          <InlineError>Caricamento fallito.</InlineError>
+        ) : stats.length === 0 ? (
+          <EmptyState title="Nessun dato per il periodo." />
+        ) : (
+          <Card padded={false}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <caption className="sr-only">
+                  Statistiche per veterinario nel periodo selezionato.
+                </caption>
+                <thead>
+                  <tr className="border-b border-(--color-border) bg-(--color-surface-muted)/50">
+                    <SortableTH
+                      label="Veterinario"
+                      sortKey="nome"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onToggle={toggleSort}
+                    />
+                    <SortableTH
+                      label="Visite"
+                      sortKey="count"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onToggle={toggleSort}
+                      align="right"
+                    />
+                    <SortableTH
+                      label="Totale"
+                      sortKey="total"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onToggle={toggleSort}
+                      align="right"
+                    />
+                    <SortableTH
+                      label="Ultima attività"
+                      sortKey="lastActivity"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onToggle={toggleSort}
+                      align="right"
+                      className="hidden sm:table-cell"
+                    />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-(--color-border)">
+                  {sorted.map((s) => (
+                    <StatRow key={s.uid} stat={s} totalAll={totalAll} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+      </div>
     </AdminLayout>
+  );
+}
+
+function StatRow({ stat, totalAll }: { stat: VetStat; totalAll: number }) {
+  const pct = totalAll > 0 ? Math.round((stat.total / totalAll) * 100) : 0;
+  const nome = stat.nome.trim() || stat.email.trim() || "—";
+  return (
+    <tr>
+      <td className="px-4 py-2.5 max-w-0">
+        <p className="text-sm font-medium text-(--color-text) truncate">
+          {nome}
+        </p>
+        {stat.email.trim() ? (
+          <p className="text-[11px] text-(--color-text-subtle) font-mono truncate">
+            {stat.email}
+          </p>
+        ) : null}
+      </td>
+      <td className="px-4 py-2.5 text-right tabular-nums text-(--color-text-muted) align-top">
+        {stat.count}
+      </td>
+      <td className="px-4 py-2.5 text-right align-top">
+        <p className="text-sm font-medium text-(--color-text) tabular-nums">
+          {formatEuro(stat.total)}
+        </p>
+        <p className="text-[11px] text-(--color-text-subtle) tabular-nums">
+          {pct}%
+        </p>
+      </td>
+      <td className="px-4 py-2.5 text-right tabular-nums text-(--color-text-muted) hidden sm:table-cell align-top">
+        {stat.lastActivity
+          ? stat.lastActivity.toLocaleDateString("it-IT")
+          : "—"}
+      </td>
+    </tr>
   );
 }

@@ -33,15 +33,13 @@ export function AccessRequestRow({
   ].filter(Boolean) as string[];
 
   return (
-    <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl px-4 py-2.5 grid grid-cols-[1fr_auto] items-center gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] sm:gap-4">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <p className="text-sm font-mono text-(--color-text) truncate">
+    <div className="sm:col-span-2 lg:col-span-3 bg-(--color-surface) border border-(--color-border) rounded-xl sm:rounded-2xl px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_auto] md:items-center">
+      <div className="min-w-0 basis-full md:basis-auto">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+          <p className="text-sm font-mono text-(--color-text) break-all min-w-0">
             {request.email}
           </p>
-          <Badge tone="danger" aria-label={t.statoRichiesta}>
-            {t.statoRichiesta}
-          </Badge>
+          <Badge tone="danger">{t.statoRichiesta}</Badge>
         </div>
         {request.displayName ? (
           <p className="text-xs text-(--color-text-muted) mt-0.5 truncate">
@@ -49,17 +47,17 @@ export function AccessRequestRow({
           </p>
         ) : null}
       </div>
-      <p className="hidden sm:block text-xs text-(--color-text-muted) truncate">
+      <p className="min-w-0 basis-full md:basis-auto text-xs text-(--color-text-muted) md:truncate tabular-nums">
         {meta.join(" · ")}
       </p>
-      <div className="flex items-center gap-1 justify-end">
+      <div className="ml-auto md:ml-0 flex items-center gap-1 justify-end shrink-0">
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={() => onAccept(request)}
           disabled={busy}
-          aria-label={t.requestAccept}
+          aria-label={`${t.requestAccept} ${request.email}`}
           leadingIcon={<Check size={14} strokeWidth={1.75} aria-hidden="true" />}
         >
           <span className="hidden md:inline">{t.requestAccept}</span>
@@ -70,7 +68,7 @@ export function AccessRequestRow({
           size="sm"
           onClick={() => onReject(request)}
           disabled={busy}
-          aria-label={t.requestReject}
+          aria-label={`${t.requestReject} ${request.email}`}
           leadingIcon={<X size={14} strokeWidth={1.75} aria-hidden="true" />}
         >
           <span className="hidden md:inline">{t.requestReject}</span>

@@ -21,26 +21,30 @@ export function AllowlistEntryRow({
   const roleLabel =
     roles.find((r) => r.id === entry.defaultRoleId)?.name ?? entry.defaultRoleId;
   return (
-    <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl px-4 py-2.5 grid grid-cols-[1fr_auto] items-center gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] sm:gap-4">
-      <div className="min-w-0">
-        <p className="text-sm font-mono text-(--color-text) truncate">
+    <div className="sm:col-span-2 lg:col-span-3 bg-(--color-surface) border border-(--color-border) rounded-xl sm:rounded-2xl px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto] md:items-center">
+      <div className="min-w-0 basis-full md:basis-auto">
+        <p className="text-sm font-mono text-(--color-text) break-all">
           {entry.email}
         </p>
         {entry.notes ? (
-          <p className="text-xs text-(--color-text-subtle) mt-0.5 truncate">
+          <p className="text-xs text-(--color-text-subtle) mt-0.5 break-words line-clamp-2">
             {entry.notes}
           </p>
         ) : null}
       </div>
-      <div className="hidden sm:block">
-        <Badge tone="neutral">{roleLabel}</Badge>
+      <div className="min-w-0">
+        <Badge tone="neutral">
+          <span className="truncate max-w-[14ch]">{roleLabel}</span>
+        </Badge>
       </div>
-      <div className="hidden sm:block text-xs text-(--color-text-muted) tabular-nums truncate">
-        {entry.invitedAt.toLocaleDateString("it-IT")}
+      <p className="min-w-0 hidden md:block text-xs text-(--color-text-muted) truncate">
+        <span className="tabular-nums">
+          {entry.invitedAt.toLocaleDateString("it-IT")}
+        </span>
         <span className="text-(--color-text-subtle)"> {t.invitedBy} </span>
         <span>{entry.invitedBy}</span>
-      </div>
-      <div className="flex items-center gap-1 justify-end">
+      </p>
+      <div className="ml-auto md:ml-0 flex items-center justify-end shrink-0">
         {canManage ? (
           <Button
             type="button"
@@ -48,7 +52,7 @@ export function AllowlistEntryRow({
             size="sm"
             onClick={() => onRemove(entry)}
             disabled={busy}
-            aria-label={t.elimina}
+            aria-label={`${t.elimina} ${entry.email}`}
             leadingIcon={<Trash2 size={14} strokeWidth={1.75} aria-hidden="true" />}
           >
             <span className="hidden md:inline">{t.elimina}</span>

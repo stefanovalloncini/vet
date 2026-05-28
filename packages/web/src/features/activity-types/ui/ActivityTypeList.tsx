@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 import { GINECOLOGIA_TIPO_ID, type ActivityType } from "@vet/shared";
-import { Button, Card } from "../../../shared/ui";
+import { Button, Card, EmptyState } from "../../../shared/ui";
 import {
   DataGrid,
   dataGridIt,
@@ -10,6 +10,7 @@ import { ActivityTypeForm } from "./ActivityTypeForm";
 
 interface SectionProps {
   title: string;
+  emptyTitle: string;
   items: ActivityType[];
   busyId: string | null;
   canManage: boolean;
@@ -21,6 +22,7 @@ interface SectionProps {
 export function ActivityTypeList(props: SectionProps) {
   const {
     title,
+    emptyTitle,
     items,
     busyId,
     canManage,
@@ -28,6 +30,7 @@ export function ActivityTypeList(props: SectionProps) {
     onToggle,
     onSaveTariffa,
   } = props;
+  const headingId = useId();
 
   const columns = useMemo<ReadonlyArray<Column<ActivityType>>>(
     () => [
@@ -48,8 +51,11 @@ export function ActivityTypeList(props: SectionProps) {
   );
 
   return (
-    <section>
-      <h2 className="text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-3">
+    <section aria-labelledby={headingId}>
+      <h2
+        id={headingId}
+        className="text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-3"
+      >
         {title}
       </h2>
       <DataGrid<ActivityType>
@@ -59,6 +65,7 @@ export function ActivityTypeList(props: SectionProps) {
         mode="cards"
         i18n={dataGridIt}
         rowActions={[]}
+        emptyState={<EmptyState title={emptyTitle} />}
         card={(tipo) => (
           <Row
             tipo={tipo}
@@ -94,12 +101,15 @@ function Row({
   const isGinecologia = tipo.id === GINECOLOGIA_TIPO_ID;
   const busy = busyId === tipo.id;
   return (
-    <Card padded={false} className="px-5 py-4">
+    <Card padded={false} className="sm:col-span-2 lg:col-span-3 px-5 py-4">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-base font-medium text-(--color-text)">{tipo.nome}</p>
+          <p className="text-base font-medium text-(--color-text) break-words">
+            {tipo.nome}
+          </p>
           <p className="text-xs text-(--color-text-subtle) mt-1">
-            id: <span className="font-mono">{tipo.id}</span> · ordine {tipo.ordine}
+            id: <span className="font-mono break-all">{tipo.id}</span> · ordine{" "}
+            <span className="tabular-nums">{tipo.ordine}</span>
           </p>
         </div>
         {canManage ? (

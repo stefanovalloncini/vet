@@ -20,6 +20,7 @@ export function AllowlistPage() {
 
   const showTabs = canApprove || canManageAllowlist;
 
+  const requestsCount = requestsState.items.length;
   const tabs = [
     { value: "allowlist" as const, label: t.tabAllowlist },
     ...(canApprove ? [{ value: "pending" as const, label: t.tabPending }] : []),
@@ -27,10 +28,8 @@ export function AllowlistPage() {
       ? [
           {
             value: "requests" as const,
-            label:
-              requestsState.items.length > 0
-                ? `${t.tabRequests} (${requestsState.items.length})`
-                : t.tabRequests,
+            label: t.tabRequests,
+            ...(requestsCount > 0 ? { badge: requestsCount } : {}),
           },
         ]
       : []),

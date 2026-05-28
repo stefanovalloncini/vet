@@ -3,6 +3,8 @@ export const activityTypesI18n = {
   subtitle: "Tipi di attività configurabili.",
   attivi: "Attivi",
   archiviati: "Archiviati",
+  attiviVuoto: "Nessun tipo attivo.",
+  archiviatiVuoto: "Nessun tipo archiviato.",
   attivo: "Attivo",
   inattivo: "Inattivo",
   attiva: "Attiva",

@@ -9,6 +9,7 @@ export const auditI18n = {
   target: "Target",
   quando: "Quando",
   dettagli: "Dettagli",
+  filtri: "Filtri",
   filtroTutti: "Tutte",
   filtroAzione: "Filtra per azione",
   filtroTarget: "Filtra per target",

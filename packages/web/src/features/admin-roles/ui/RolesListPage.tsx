@@ -70,7 +70,7 @@ export function RolesListPage() {
         card={(role) => {
           const count = countById.get(role.id) ?? null;
           return (
-            <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden">
+            <div className="sm:col-span-2 lg:col-span-3 bg-(--color-surface) border border-(--color-border) rounded-xl sm:rounded-2xl overflow-hidden">
               <Link
                 to={`/admin/ruoli/${role.id}`}
                 className="block px-4 py-3 hover:bg-(--color-surface-muted) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) focus:outline-none focus-visible:bg-(--color-surface-muted)"
@@ -84,10 +84,10 @@ export function RolesListPage() {
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <h2 className="text-sm font-medium text-(--color-text)">
+                      <h2 className="text-sm font-medium text-(--color-text) min-w-0 break-words">
                         {role.name}
                       </h2>
-                      <span className="text-[11px] text-(--color-text-subtle) font-mono">
+                      <span className="text-[11px] text-(--color-text-subtle) font-mono break-all">
                         {role.id}
                       </span>
                       {role.locked ? (

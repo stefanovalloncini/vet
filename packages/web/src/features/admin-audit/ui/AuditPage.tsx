@@ -15,6 +15,7 @@ import {
 import { useAuditEvents } from "../hooks/useAuditEvents";
 import { ACTION_LABELS, auditI18n as t } from "../i18n";
 import type { AuditAction, AuditEvent, AuditFilters } from "@vet/shared";
+import { AuditRow } from "./AuditRow";
 
 type TargetType = NonNullable<AuditFilters["targetType"]>;
 
@@ -47,46 +48,6 @@ function parseDate(value: string): Date | null {
   if (!value) return null;
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function AuditRow({ event }: { event: AuditEvent }) {
-  const actor = event.actorEmail || event.actorUid;
-  return (
-    <div className="bg-(--color-surface) border border-(--color-border) rounded-2xl px-4 py-3">
-      <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 sm:gap-4 sm:grid-cols-[5ch_minmax(0,2fr)_minmax(0,1fr)]">
-        <span className="text-xs text-(--color-text-muted) font-mono tabular-nums shrink-0 pt-0.5">
-          {event.at.toLocaleTimeString("it-IT", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm text-(--color-text) leading-snug">
-            {ACTION_LABELS[event.action] ?? event.action}
-          </p>
-          <p className="text-[11px] text-(--color-text-subtle) mt-0.5 font-mono truncate">
-            {event.targetType}/{event.targetId}
-          </p>
-          <p className="sm:hidden text-[11px] text-(--color-text-muted) font-mono truncate mt-0.5">
-            {actor}
-          </p>
-        </div>
-        <p className="hidden sm:block text-xs text-(--color-text-muted) font-mono truncate">
-          {actor}
-        </p>
-        {event.details ? (
-          <details className="col-start-2 sm:col-span-2 mt-1">
-            <summary className="text-[11px] text-(--color-text-subtle) cursor-pointer hover:text-(--color-text-muted)">
-              {t.dettagli}
-            </summary>
-            <pre className="text-[11px] text-(--color-text-subtle) mt-2 overflow-x-auto whitespace-pre-wrap bg-(--color-surface-muted) rounded-md p-2 font-mono">
-              {JSON.stringify(event.details, null, 0)}
-            </pre>
-          </details>
-        ) : null}
-      </div>
-    </div>
-  );
 }
 
 export function AuditPage() {
@@ -138,7 +99,7 @@ export function AuditPage() {
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
       <section
-        aria-label={t.filtroAttore}
+        aria-label={t.filtri}
         className="border border-(--color-border) rounded-xl p-4 mb-6 bg-(--color-surface)"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

@@ -1,4 +1,9 @@
-import { AppShell, PageHeader } from "../../../shared/ui";
+import {
+  AppShell,
+  InlineError,
+  LoadingHint,
+  PageHeader,
+} from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import {
   useActivityTypesEditor,
@@ -16,16 +21,16 @@ export function ActivityTypesPage() {
     <AppShell>
       <PageHeader title={t.title} subtitle={t.subtitle} />
       {!canManage ? (
-        <p className="-mt-3 mb-6 text-xs text-(--color-text-subtle)">
+        <p className="-mt-3 mb-6 text-xs text-(--color-text-subtle) max-w-prose">
           {t.readonly}
         </p>
       ) : null}
 
-      {editor.globalError ? (
-        <p role="alert" className="text-sm text-(--color-danger) mb-4">
-          {editor.globalError}
-        </p>
-      ) : null}
+      <div aria-live="polite">
+        {editor.globalError ? (
+          <InlineError className="mb-4">{editor.globalError}</InlineError>
+        ) : null}
+      </div>
 
       {renderBody({ editor, canManage })}
     </AppShell>
@@ -39,15 +44,16 @@ interface BodyProps {
 
 function renderBody({ editor, canManage }: BodyProps) {
   if (editor.loading) {
-    return <p className="text-sm text-(--color-text-muted)">{t.loading}</p>;
+    return <LoadingHint label={t.loading} />;
   }
   if (editor.loadError) {
-    return <p className="text-sm text-(--color-danger)">{t.erroreSalvataggio}</p>;
+    return <InlineError>{t.erroreSalvataggio}</InlineError>;
   }
   return (
     <div className="space-y-8">
       <ActivityTypeList
         title={t.attivi}
+        emptyTitle={t.attiviVuoto}
         items={editor.active}
         busyId={editor.busyId}
         canManage={canManage}
@@ -58,6 +64,7 @@ function renderBody({ editor, canManage }: BodyProps) {
       {editor.inactive.length > 0 ? (
         <ActivityTypeList
           title={t.archiviati}
+          emptyTitle={t.archiviatiVuoto}
           items={editor.inactive}
           busyId={editor.busyId}
           canManage={canManage}
