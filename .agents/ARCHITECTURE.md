@@ -656,3 +656,39 @@ Per-callback `notify(err, "error")` lines across feature mutation hooks were rem
 ### 11.7 Pagamenti read model
 
 [`usePagamentiOverview`](packages/web/src/features/pagamenti/hooks/usePagamentiOverview.ts) is the single source of truth for per-azienda payment state: `totaleAperto`, `ultimoContoAt`, `hasUnpaid`, and `needsNewConto` (derived from `cadenzaFatturazione` + last emit + unbilled attivita window via [contoPeriodPolicy.ts](packages/web/src/features/pagamenti/lib/contoPeriodPolicy.ts)). Both the dedicated `/pagamenti` page and the status badge on the Aziende cards consume this hook so the answer never disagrees with itself.
+
+---
+
+## 12. Backup pipeline
+
+Three scheduled Cloud Functions in [packages/functions/src/backup/](../packages/functions/src/backup/), all `europe-west1`, `ingressSettings: ALLOW_INTERNAL_ONLY`.
+
+| Function | Schedule (Europe/Rome) | What it does |
+|---|---|---|
+| [`scheduledFirestoreBackup`](../packages/functions/src/backup/scheduledBackup.ts) | `0 3 * * *` | Managed Firestore export to `gs://<project>-backups/auto-<date>`. Auth via instance metadata token. Disaster-recovery copy in GCS, not for human reading. |
+| [`dailyDriveExport`](../packages/functions/src/backup/dailyDriveExport.ts) | `0 2 * * *` | Per-collection JSONL + CSV + a manifest JSON, all uploaded to a Drive day-folder under the configured root. Italian CSV is formula-injection-guarded (`escapeCsvCell` prefixes a `'` on cells starting with `= + - @` or whitespace). Covers `attivita`, `aziende`, `conti`, `activity_types`, `users`, `roles`, `allowlist`, `audit`. |
+| [`cleanupOldDriveBackups`](../packages/functions/src/backup/cleanupOldDriveBackups.ts) | `0 3 * * *` | Sorts dated folders desc and keeps the top `RETENTION_COUNT = 7`; older day-folders are deleted. |
+| [`weeklyBackupDigest`](../packages/functions/src/backup/weeklyBackupDigest.ts) | `0 8 * * 1` | Pulls the last 7 day-folders + manifests and emails an HTML digest via `repos.mail.send` (Italian copy). |
+
+### Secrets required (Firebase Secrets Manager)
+
+- `drive-backup-key` — JSON of a Google service account with `https://www.googleapis.com/auth/drive.file` scope.
+- `drive-backup-folder-id` — the Drive folder ID to write into. **The service account email must be granted Editor on this folder.**
+- `drive-backup-digest-recipient` — email address that receives the weekly digest. Empty disables the digest.
+
+Set them with `firebase functions:secrets:set <name>`. Rotate periodically.
+
+### Local invocation
+
+Backups are scheduled, but the orchestration functions (`runDriveExport`, `runCleanup`, `renderDigestHtml`) are pure and unit-tested in [`__tests__/`](../packages/functions/src/backup/__tests__/). To exercise Drive end-to-end locally, deploy with `firebase deploy --only functions:dailyDriveExport` against a test GCP project that has the secrets configured. There is intentionally no `pnpm backup:run-once` script — running it locally without the secrets would just fail at `secrets[…].value()`.
+
+### Audit trail
+
+Every run (success or failure) calls `repos.audit.record(...)` with action one of:
+
+- `backup.firestore.export`
+- `backup.drive.export.success` / `backup.drive.export.failure`
+- `backup.drive.cleanup.success` / `backup.drive.cleanup.failure`
+- `backup.drive.digest.sent`
+
+Search the `audit` collection by `action` to verify the last run.
