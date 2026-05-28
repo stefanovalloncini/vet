@@ -12,6 +12,7 @@ export interface ContoPdfData {
   emessoIl: Date;
   emessoDa: { uid: string; displayName: string };
   totale: number;
+  armadietto?: number;
   note?: string;
 }
 
@@ -25,6 +26,7 @@ export interface ProformaPdfData {
   emessoIl: Date;
   emessoDa: { uid: string; displayName: string };
   totale: number;
+  armadietto?: number;
 }
 
 export interface RiepilogoPdfData {

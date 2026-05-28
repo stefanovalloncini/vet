@@ -5,7 +5,7 @@ import {
   contoModalitaSchema,
   type ContoEmitInput,
 } from "../domain/schemas/conto.js";
-import { metodoPagamentoSchema } from "../domain/schemas/money.js";
+import { euroAmountSchema, metodoPagamentoSchema } from "../domain/schemas/money.js";
 import {
   timestampLike,
   timestampToDate,
@@ -22,6 +22,7 @@ export const contoDtoSchema = z
     periodoTo: timestampLike,
     attivitaIds: z.array(z.string().min(1).max(64)).max(10_000),
     totaleConto: z.number().nonnegative().max(2_400_000),
+    armadiettoImporto: euroAmountSchema.optional(),
     modalita: contoModalitaSchema,
     saldato: z.boolean(),
     emittedAt: timestampLike,
@@ -52,6 +53,9 @@ export function parseConto(id: string, raw: unknown): Conto {
     periodoTo: timestampToDate(dto.periodoTo),
     attivitaIds: [...dto.attivitaIds],
     totaleConto: dto.totaleConto,
+    ...(dto.armadiettoImporto !== undefined
+      ? { armadiettoImporto: dto.armadiettoImporto }
+      : {}),
     modalita: dto.modalita,
     saldato: dto.saldato,
     emittedAt: timestampToDate(dto.emittedAt),
@@ -110,6 +114,9 @@ export function buildContoEmitDoc<TStamp, TServerStamp>(
     periodoTo: deps.fromDate(args.input.periodoTo),
     attivitaIds: [...args.denorm.attivitaIds],
     totaleConto: args.denorm.totaleConto,
+    ...(args.input.armadiettoImporto !== undefined
+      ? { armadiettoImporto: args.input.armadiettoImporto }
+      : {}),
     modalita: args.input.modalita,
     saldato: false,
     emittedAt: deps.serverTimestamp(),

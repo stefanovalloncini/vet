@@ -81,13 +81,25 @@ export function AziendaFormFields({ busy }: { busy: boolean }) {
             disabled={busy}
           />
         </div>
-        <RHFTextField<AziendaFormValues>
-          name="emailFatturazione"
-          type="email"
-          label={t.campoEmailFatturazione}
-          disabled={busy}
-          maxLength={120}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <RHFTextField<AziendaFormValues>
+            name="emailFatturazione"
+            type="email"
+            label={t.campoEmailFatturazione}
+            disabled={busy}
+            maxLength={120}
+          />
+          <RHFTextField<AziendaFormValues>
+            name="armadiettoCanoneAnnuo"
+            type="number"
+            min={0}
+            max={100000}
+            step="0.01"
+            label={t.campoArmadietto}
+            hint={t.campoArmadiettoHint}
+            disabled={busy}
+          />
+        </div>
         <RHFTextArea<AziendaFormValues>
           name="note"
           label={t.campoNote}

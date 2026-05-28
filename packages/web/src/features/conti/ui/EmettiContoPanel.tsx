@@ -15,8 +15,10 @@ import {
   parseDateInput,
 } from "../../../shared/lib/format";
 import { useEmettiConto } from "../hooks/useConti";
+import { useArmadietto } from "../hooks/useArmadietto";
 import { contiI18n as t } from "../i18n";
 import { computeContoPreview, defaultPeriodoFor } from "../lib/contoPreview";
+import { ArmadiettoRow } from "./ArmadiettoRow";
 import { PeriodPicker } from "./PeriodPicker";
 
 interface EmettiContoPanelProps {
@@ -47,13 +49,21 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
     return computeContoPreview(items, azienda.id, fromDate, endOfDay);
   }, [items, azienda.id, fromDate, toDate, periodValid]);
 
+  const armadietto = useArmadietto(azienda, fromDate, toDate);
+  const armadiettoImporto =
+    armadietto.attivo && armadietto.importoNum !== null
+      ? armadietto.importoNum
+      : undefined;
+  const grandTotal = preview.totaleConto + (armadiettoImporto ?? 0);
+  const hasContent = preview.count > 0 || armadiettoImporto !== undefined;
+
   const canProforma = user?.caps.has("conti.proforma") ?? false;
   const canEmit = user?.caps.has("conti.emit") ?? false;
 
   if (!canProforma && !canEmit) return null;
 
   async function doEmit(modalita: "proforma" | "emesso"): Promise<void> {
-    if (!user || !fromDate || !toDate || preview.count === 0) return;
+    if (!user || !fromDate || !toDate || !hasContent) return;
     const endOfDay = new Date(toDate);
     endOfDay.setHours(23, 59, 59, 999);
     const includedAttivita = items.filter((a) =>
@@ -66,11 +76,12 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
           periodoFrom: fromDate,
           periodoTo: endOfDay,
           modalita,
+          ...(armadiettoImporto !== undefined ? { armadiettoImporto } : {}),
         },
         denorm: {
           aziendaNome: azienda.nome,
           attivitaIds: preview.attivitaIds,
-          totaleConto: preview.totaleConto,
+          totaleConto: grandTotal,
         },
         actor: user,
       });
@@ -95,7 +106,10 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
               periodo,
               emessoIl,
               emessoDa: { uid: user.uid, displayName: user.displayName },
-              totale: preview.totaleConto,
+              ...(armadiettoImporto !== undefined
+                ? { armadietto: armadiettoImporto }
+                : {}),
+              totale: grandTotal,
             }}
           />,
           filenameStem
@@ -110,7 +124,10 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
               emessoIl,
               emessoDa: { uid: user.uid, displayName: user.displayName },
               numero: contoNumeroFor(emessoIl),
-              totale: preview.totaleConto,
+              ...(armadiettoImporto !== undefined
+                ? { armadietto: armadiettoImporto }
+                : {}),
+              totale: grandTotal,
             }}
           />,
           filenameStem
@@ -143,7 +160,7 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
     return `${yyyy}-${ts}`;
   }
 
-  const disabled = !periodValid || preview.count === 0 || emit.isPending;
+  const disabled = !periodValid || !hasContent || emit.isPending;
 
   function applyRange(nextFrom: Date, nextTo: Date): void {
     setFrom(dateInputValue(nextFrom));
@@ -167,12 +184,16 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
         />
       </div>
 
+      {armadietto.applicable ? <ArmadiettoRow state={armadietto} /> : null}
+
       <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2 border-t border-(--color-border) pt-4">
         <span className="text-xs uppercase tracking-wider text-(--color-text-muted)">
-          {t.attivita}: {preview.count} · {t.totale}
+          {armadiettoImporto !== undefined
+            ? `${t.attivitaSubtotale} ${formatEuro(preview.totaleConto)} · ${t.armadietto} ${formatEuro(armadiettoImporto)}`
+            : `${t.attivita}: ${preview.count} · ${t.totale}`}
         </span>
         <span className="font-mono text-2xl font-semibold text-(--color-text) tabular-nums">
-          {formatEuro(preview.totaleConto)}
+          {formatEuro(grandTotal)}
         </span>
       </div>
 
@@ -181,7 +202,7 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
           Il periodo finale deve essere dopo l&apos;iniziale.
         </p>
       ) : null}
-      {preview.count === 0 && periodValid ? (
+      {preview.count === 0 && armadiettoImporto === undefined && periodValid ? (
         <p className="mt-3 text-xs text-(--color-text-muted)">
           {t.noActivities}
         </p>

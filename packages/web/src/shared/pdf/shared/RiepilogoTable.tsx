@@ -21,9 +21,14 @@ function formatTariffa(a: Attivita): string {
 interface RiepilogoTableProps {
   righe: ReadonlyArray<Attivita>;
   totale: number;
+  armadietto?: number;
 }
 
-export function RiepilogoTable({ righe, totale }: RiepilogoTableProps) {
+export function RiepilogoTable({
+  righe,
+  totale,
+  armadietto,
+}: RiepilogoTableProps) {
   return (
     <View style={styles.table}>
       <View style={styles.tableHead} fixed>
@@ -55,6 +60,19 @@ export function RiepilogoTable({ righe, totale }: RiepilogoTableProps) {
           </View>
         ))
       )}
+
+      {armadietto !== undefined ? (
+        <View style={styles.tableRow} wrap={false}>
+          <Text style={[styles.td, styles.colData]}>—</Text>
+          <Text style={[styles.td, styles.colTipo]}>Armadietto farmaci</Text>
+          <Text style={[styles.tdMuted, styles.colNote]}>Canone periodo</Text>
+          <Text style={[styles.td, styles.colOre]}>—</Text>
+          <Text style={[styles.td, styles.colTariffa]}>—</Text>
+          <Text style={[styles.td, styles.colTotale]}>
+            {formatEuro(armadietto)}
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.totalsRow}>
         <Text style={styles.totalsLabel}>Totale</Text>

@@ -8,6 +8,7 @@ export interface Conto {
   periodoTo: Date;
   attivitaIds: string[];
   totaleConto: number;
+  armadiettoImporto?: number;
   modalita: "proforma" | "emesso";
   saldato: boolean;
   emittedAt: Date;

@@ -13,7 +13,8 @@ interface ProformaDocumentProps {
 }
 
 export function ProformaDocument({ data }: ProformaDocumentProps) {
-  const { azienda, righe, periodo, emessoIl, emessoDa, totale } = data;
+  const { azienda, righe, periodo, emessoIl, emessoDa, totale, armadietto } =
+    data;
 
   return (
     <PdfShell
@@ -37,7 +38,11 @@ export function ProformaDocument({ data }: ProformaDocumentProps) {
         ]}
       />
 
-      <RiepilogoTable righe={righe} totale={totale} />
+      <RiepilogoTable
+        righe={righe}
+        totale={totale}
+        {...(armadietto !== undefined ? { armadietto } : {})}
+      />
     </PdfShell>
   );
 }

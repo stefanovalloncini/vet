@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { metodoPagamentoSchema } from "./money.js";
+import { euroAmountSchema, metodoPagamentoSchema } from "./money.js";
 import { safeName } from "./safeString.js";
 
 export const CONTO_MODALITA = ["proforma", "emesso"] as const;
@@ -17,6 +17,7 @@ export const contoEmitInputSchema = z
     periodoFrom: z.date(),
     periodoTo: z.date(),
     modalita: contoModalitaSchema,
+    armadiettoImporto: euroAmountSchema.optional(),
   })
   .strict()
   .superRefine((val, ctx) => {
@@ -46,6 +47,7 @@ export const contoDocSchema = z
     periodoTo: z.date(),
     attivitaIds: z.array(z.string().min(1).max(64)).max(10_000),
     totaleConto: totaleSchema,
+    armadiettoImporto: euroAmountSchema.optional(),
     modalita: contoModalitaSchema,
     saldato: z.boolean(),
     emittedAt: z.date(),
@@ -67,3 +69,21 @@ export const contoDocSchema = z
 export type ContoEmitInput = z.infer<typeof contoEmitInputSchema>;
 export type ContoSaldoInput = z.infer<typeof contoSaldoInputSchema>;
 export type ContoDoc = z.infer<typeof contoDocSchema>;
+
+export function monthsInPeriod(from: Date, to: Date): number {
+  return (
+    to.getFullYear() * 12 +
+    to.getMonth() -
+    (from.getFullYear() * 12 + from.getMonth()) +
+    1
+  );
+}
+
+export function prorateArmadietto(
+  canoneAnnuo: number,
+  from: Date,
+  to: Date
+): number {
+  const raw = (canoneAnnuo * monthsInPeriod(from, to)) / 12;
+  return Math.round(raw * 100) / 100;
+}

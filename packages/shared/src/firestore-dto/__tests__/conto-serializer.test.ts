@@ -115,6 +115,28 @@ describe("buildContoEmitDoc", () => {
     );
   });
 
+  it("includes armadiettoImporto from input when present", () => {
+    const payload = buildContoEmitDoc(
+      { input: { ...input, armadiettoImporto: 200 }, denorm, actor },
+      deps
+    );
+    expect(payload.armadiettoImporto).toBe(200);
+  });
+
+  it("omits armadiettoImporto when not provided", () => {
+    const payload = buildContoEmitDoc({ input, denorm, actor }, deps);
+    expect("armadiettoImporto" in payload).toBe(false);
+  });
+
+  it("round-trips armadiettoImporto through schema + parseConto", () => {
+    const payload = buildContoEmitDoc(
+      { input: { ...input, armadiettoImporto: 200 }, denorm, actor },
+      deps
+    );
+    const entity = parseConto("conto-1", payload);
+    expect(entity.armadiettoImporto).toBe(200);
+  });
+
   it("rejects unknown keys via .strict() when fed back to the schema", () => {
     const payload = buildContoEmitDoc({ input, denorm, actor }, deps);
     const withExtra = { ...payload, extra: "nope" };

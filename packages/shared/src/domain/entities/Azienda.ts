@@ -12,6 +12,7 @@ export interface Azienda {
   numeroCapi?: number;
   telefono?: string;
   note?: string;
+  armadiettoCanoneAnnuo?: number;
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;

@@ -120,6 +120,45 @@ describe("aziendaInputSchema", () => {
     if (r.success) expect(r.data.piva).toBe("12345678903");
   });
 
+  it("accepts a positive armadiettoCanoneAnnuo", () => {
+    expect(
+      aziendaInputSchema.safeParse({ nome: "x", armadiettoCanoneAnnuo: 800 })
+        .success
+    ).toBe(true);
+  });
+
+  it("accepts armadiettoCanoneAnnuo with two decimals", () => {
+    expect(
+      aziendaInputSchema.safeParse({ nome: "x", armadiettoCanoneAnnuo: 800.5 })
+        .success
+    ).toBe(true);
+  });
+
+  it("rejects zero or negative armadiettoCanoneAnnuo", () => {
+    expect(
+      aziendaInputSchema.safeParse({ nome: "x", armadiettoCanoneAnnuo: 0 })
+        .success
+    ).toBe(false);
+    expect(
+      aziendaInputSchema.safeParse({ nome: "x", armadiettoCanoneAnnuo: -100 })
+        .success
+    ).toBe(false);
+  });
+
+  it("rejects armadiettoCanoneAnnuo over the cap", () => {
+    expect(
+      aziendaInputSchema.safeParse({ nome: "x", armadiettoCanoneAnnuo: 100_001 })
+        .success
+    ).toBe(false);
+  });
+
+  it("rejects armadiettoCanoneAnnuo with more than two decimals", () => {
+    expect(
+      aziendaInputSchema.safeParse({ nome: "x", armadiettoCanoneAnnuo: 80.123 })
+        .success
+    ).toBe(false);
+  });
+
   it("rejects extra fields in strict mode", () => {
     expect(
       aziendaInputSchema.safeParse({ nome: "x", sneaky: 1 }).success
@@ -138,6 +177,24 @@ describe("aziendaDocSchema", () => {
       emailFatturazione: "x@y.it",
       cadenzaFatturazione: "monthly",
       note: "n",
+      createdAt: now,
+      updatedAt: now,
+      createdBy: "uid1",
+      updatedBy: "uid1",
+      createdByName: "Stefano",
+      updatedByName: "Stefano",
+      isDeleted: false,
+      schemaVersion: 1,
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("accepts a doc with armadiettoCanoneAnnuo", () => {
+    const now = new Date();
+    const r = aziendaDocSchema.safeParse({
+      nome: "Cascina",
+      nomeNorm: "cascina",
+      armadiettoCanoneAnnuo: 800,
       createdAt: now,
       updatedAt: now,
       createdBy: "uid1",

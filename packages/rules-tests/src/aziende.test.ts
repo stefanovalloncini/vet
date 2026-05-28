@@ -109,6 +109,99 @@ describe("aziende rules", () => {
     );
   });
 
+  it("create allowed with a valid armadiettoCanoneAnnuo", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["aziende.create"]);
+    await assertSucceeds(
+      setDoc(doc(db, "aziende/new"), {
+        nome: "Nuova",
+        nomeNorm: "nuova",
+        armadiettoCanoneAnnuo: 800,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "u",
+        updatedBy: "u",
+        createdByName: "U",
+        updatedByName: "U",
+        isDeleted: false,
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("create denied with a negative armadiettoCanoneAnnuo", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["aziende.create"]);
+    await assertFails(
+      setDoc(doc(db, "aziende/new"), {
+        nome: "Nuova",
+        nomeNorm: "nuova",
+        armadiettoCanoneAnnuo: -100,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "u",
+        updatedBy: "u",
+        createdByName: "U",
+        updatedByName: "U",
+        isDeleted: false,
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("create denied with armadiettoCanoneAnnuo over the cap", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["aziende.create"]);
+    await assertFails(
+      setDoc(doc(db, "aziende/new"), {
+        nome: "Nuova",
+        nomeNorm: "nuova",
+        armadiettoCanoneAnnuo: 100001,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "u",
+        updatedBy: "u",
+        createdByName: "U",
+        updatedByName: "U",
+        isDeleted: false,
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("create denied with a non-number armadiettoCanoneAnnuo", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["aziende.create"]);
+    await assertFails(
+      setDoc(doc(db, "aziende/new"), {
+        nome: "Nuova",
+        nomeNorm: "nuova",
+        armadiettoCanoneAnnuo: "800",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: "u",
+        updatedBy: "u",
+        createdByName: "U",
+        updatedByName: "U",
+        isDeleted: false,
+        schemaVersion: 1,
+      })
+    );
+  });
+
+  it("update allowed setting armadiettoCanoneAnnuo", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["aziende.update"]);
+    await assertSucceeds(
+      updateDoc(doc(db, "aziende/a1"), {
+        armadiettoCanoneAnnuo: 900,
+        updatedAt: serverTimestamp(),
+        updatedBy: "u",
+        updatedByName: "U",
+      })
+    );
+  });
+
   it("create denied when isDeleted=true (must start active)", async () => {
     const env = await getEnv();
     const db = authedAs(env, "u", ["aziende.create"]);

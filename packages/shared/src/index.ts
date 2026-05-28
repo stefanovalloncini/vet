@@ -252,6 +252,8 @@ export {
   contoDocSchema,
   contoModalitaSchema,
   CONTO_MODALITA,
+  monthsInPeriod,
+  prorateArmadietto,
   type ContoEmitInput,
   type ContoSaldoInput,
   type ContoDoc,

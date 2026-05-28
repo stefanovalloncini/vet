@@ -274,4 +274,109 @@ describe("EmettiContoPanel", () => {
     expect(emitSpy).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).toBeNull();
   });
+
+  describe("armadietto farmaci", () => {
+    const withCanone = () => azienda({ armadiettoCanoneAnnuo: 800 });
+
+    it("shows the row with the prorated default and the grand total", () => {
+      const { repos } = buildSetup(["conti.emit"]);
+      render(
+        <EmettiContoPanel azienda={withCanone()} items={withItemsInPeriod()} />,
+        { wrapper: buildProvidersWrapper({ repos }) }
+      );
+      // quarterly default period = 3 months -> 800 * 3/12 = 200
+      const toggle = screen.getByRole("checkbox", {
+        name: /Armadietto farmaci/i,
+      });
+      expect(toggle).toBeChecked();
+      const importo = screen.getByLabelText("Importo (€)") as HTMLInputElement;
+      expect(importo.value).toBe("200");
+      // grand total 150 + 200 = 350
+      expect(screen.getByText(/350,00/)).toBeInTheDocument();
+    });
+
+    it("has no row when the azienda has no canone", () => {
+      const { repos } = buildSetup(["conti.emit"]);
+      render(
+        <EmettiContoPanel azienda={azienda()} items={withItemsInPeriod()} />,
+        { wrapper: buildProvidersWrapper({ repos }) }
+      );
+      expect(
+        screen.queryByRole("checkbox", { name: /Armadietto farmaci/i })
+      ).toBeNull();
+    });
+
+    it("emit includes armadiettoImporto and the grand total", async () => {
+      const { repos, conti } = buildSetup(["conti.proforma"]);
+      const emitSpy = vi.spyOn(conti, "emit");
+      render(
+        <EmettiContoPanel azienda={withCanone()} items={withItemsInPeriod()} />,
+        { wrapper: buildProvidersWrapper({ repos, withToast: true }) }
+      );
+      fireEvent.click(
+        screen.getByRole("button", { name: /Salva come pro forma/i })
+      );
+      await waitFor(() => expect(emitSpy).toHaveBeenCalledTimes(1));
+      const [input, denorm] = emitSpy.mock.calls[0] ?? [];
+      expect(input?.armadiettoImporto).toBe(200);
+      expect(denorm?.totaleConto).toBe(350);
+    });
+
+    it("toggling off excludes it from the total and the emit payload", async () => {
+      const { repos, conti } = buildSetup(["conti.proforma"]);
+      const emitSpy = vi.spyOn(conti, "emit");
+      render(
+        <EmettiContoPanel azienda={withCanone()} items={withItemsInPeriod()} />,
+        { wrapper: buildProvidersWrapper({ repos, withToast: true }) }
+      );
+      fireEvent.click(
+        screen.getByRole("checkbox", { name: /Armadietto farmaci/i })
+      );
+      expect(screen.getByText(/150,00/)).toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole("button", { name: /Salva come pro forma/i })
+      );
+      await waitFor(() => expect(emitSpy).toHaveBeenCalledTimes(1));
+      const [input, denorm] = emitSpy.mock.calls[0] ?? [];
+      expect(input?.armadiettoImporto).toBeUndefined();
+      expect(denorm?.totaleConto).toBe(150);
+    });
+
+    it("editing the amount updates the total and the emit payload", async () => {
+      const { repos, conti } = buildSetup(["conti.proforma"]);
+      const emitSpy = vi.spyOn(conti, "emit");
+      render(
+        <EmettiContoPanel azienda={withCanone()} items={withItemsInPeriod()} />,
+        { wrapper: buildProvidersWrapper({ repos, withToast: true }) }
+      );
+      fireEvent.change(screen.getByLabelText("Importo (€)"), {
+        target: { value: "180" },
+      });
+      expect(screen.getByText(/330,00/)).toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole("button", { name: /Salva come pro forma/i })
+      );
+      await waitFor(() => expect(emitSpy).toHaveBeenCalledTimes(1));
+      expect(emitSpy.mock.calls[0]?.[0].armadiettoImporto).toBe(180);
+      expect(emitSpy.mock.calls[0]?.[1].totaleConto).toBe(330);
+    });
+
+    it("allows an armadietto-only conto when no activities fall in the period", async () => {
+      const { repos, conti } = buildSetup(["conti.proforma"]);
+      const emitSpy = vi.spyOn(conti, "emit");
+      render(<EmettiContoPanel azienda={withCanone()} items={[]} />, {
+        wrapper: buildProvidersWrapper({ repos, withToast: true }),
+      });
+      const proforma = screen.getByRole("button", {
+        name: /Salva come pro forma/i,
+      });
+      expect(proforma).not.toBeDisabled();
+      fireEvent.click(proforma);
+      await waitFor(() => expect(emitSpy).toHaveBeenCalledTimes(1));
+      const [input, denorm] = emitSpy.mock.calls[0] ?? [];
+      expect(input?.armadiettoImporto).toBe(200);
+      expect(denorm?.attivitaIds).toEqual([]);
+      expect(denorm?.totaleConto).toBe(200);
+    });
+  });
 });

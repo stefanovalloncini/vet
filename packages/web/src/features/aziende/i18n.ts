@@ -37,6 +37,9 @@ export const aziendeI18n = {
   tipoMisto: "Misto",
   tipoAltro: "Altro",
   campoTipoNessuno: "—",
+  campoArmadietto: "Armadietto farmaci (€/anno)",
+  campoArmadiettoHint:
+    "Canone annuo concordato. Lascia vuoto se non segui l'armadietto per questa azienda.",
   campoNote: "Note",
   erroreSalvataggio: "Salvataggio non riuscito. Riprova.",
   erroreNomeDuplicato: "Esiste già un'azienda con questo nome.",

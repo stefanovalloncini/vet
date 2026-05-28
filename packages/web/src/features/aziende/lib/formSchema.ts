@@ -23,6 +23,18 @@ const numeroCapiSchema = z.string().refine(
   { message: "Numero non valido" }
 );
 
+const canoneFormSchema = z.string().refine(
+  (v) => {
+    const s = v.trim();
+    if (s === "") return true;
+    const n = Number(s);
+    return (
+      Number.isFinite(n) && n > 0 && n <= 100_000 && Math.round(n * 100) === n * 100
+    );
+  },
+  { message: "Canone non valido" }
+);
+
 const pivaFormSchema = z.string().max(13).refine(
   (v) => v.trim() === "" || isValidPartitaIva(v.trim().replace(/^IT/i, "")),
   { message: t.errorePivaNonValida }
@@ -46,6 +58,7 @@ export const aziendaFormSchema = z.object({
   tipoAllevamento: z.enum(TIPO_WITH_EMPTY),
   numeroCapi: numeroCapiSchema,
   note: z.string().max(1000),
+  armadiettoCanoneAnnuo: canoneFormSchema,
 });
 
 export type AziendaFormValues = z.infer<typeof aziendaFormSchema>;
@@ -60,6 +73,7 @@ export const emptyAziendaForm: AziendaFormValues = {
   tipoAllevamento: "",
   numeroCapi: "",
   note: "",
+  armadiettoCanoneAnnuo: "",
 };
 
 export function formFromAzienda(a: Azienda): AziendaFormValues {
@@ -73,6 +87,10 @@ export function formFromAzienda(a: Azienda): AziendaFormValues {
     tipoAllevamento: a.tipoAllevamento ?? "",
     numeroCapi: a.numeroCapi !== undefined ? String(a.numeroCapi) : "",
     note: a.note ?? "",
+    armadiettoCanoneAnnuo:
+      a.armadiettoCanoneAnnuo !== undefined
+        ? String(a.armadiettoCanoneAnnuo)
+        : "",
   };
 }
 
@@ -83,6 +101,7 @@ export function formToAziendaInput(values: AziendaFormValues): AziendaInput {
   const email = values.emailFatturazione.trim();
   const capi = values.numeroCapi.trim();
   const note = values.note.trim();
+  const canone = values.armadiettoCanoneAnnuo.trim();
   return {
     nome: values.nome.trim(),
     ...(indirizzo ? { indirizzo } : {}),
@@ -97,5 +116,6 @@ export function formToAziendaInput(values: AziendaFormValues): AziendaInput {
       : {}),
     ...(capi ? { numeroCapi: Number(capi) } : {}),
     ...(note ? { note } : {}),
+    ...(canone ? { armadiettoCanoneAnnuo: Number(canone) } : {}),
   };
 }

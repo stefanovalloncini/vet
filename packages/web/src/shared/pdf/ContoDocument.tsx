@@ -21,6 +21,7 @@ export function ContoDocument({ data }: ContoDocumentProps) {
     emessoIl,
     emessoDa,
     totale,
+    armadietto,
     note,
   } = data;
 
@@ -43,7 +44,11 @@ export function ContoDocument({ data }: ContoDocumentProps) {
         ]}
       />
 
-      <RiepilogoTable righe={righe} totale={totale} />
+      <RiepilogoTable
+        righe={righe}
+        totale={totale}
+        {...(armadietto !== undefined ? { armadietto } : {})}
+      />
 
       {note ? (
         <View style={styles.notesBlock} wrap={false}>

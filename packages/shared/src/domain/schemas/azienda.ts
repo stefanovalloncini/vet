@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { euroAmountSchema } from "./money.js";
 import { safeEmail, safeName } from "./safeString.js";
 
 export const CADENZA_FATTURAZIONE = ["monthly", "quarterly", "semiannual"] as const;
@@ -59,6 +60,7 @@ export const aziendaInputSchema = z
     numeroCapi: z.number().int().nonnegative().max(100_000).optional(),
     telefono: z.string().max(40).optional(),
     note: z.string().max(1000).optional(),
+    armadiettoCanoneAnnuo: euroAmountSchema.optional(),
   })
   .strict();
 
@@ -74,6 +76,7 @@ export const aziendaDocSchema = z
     numeroCapi: z.number().int().nonnegative().max(100_000).optional(),
     telefono: z.string().max(40).optional(),
     note: z.string().max(1000).optional(),
+    armadiettoCanoneAnnuo: euroAmountSchema.optional(),
     createdAt: z.date(),
     updatedAt: z.date(),
     createdBy: z.string().min(1).max(128),

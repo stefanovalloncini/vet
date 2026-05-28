@@ -278,7 +278,7 @@ service cloud.firestore {
       function valid() {
         let d = request.resource.data;
         return d.keys().hasAll(["nome", "nomeNorm", "createdAt", "updatedAt", "createdBy", "updatedBy", "createdByName", "updatedByName", "isDeleted", "schemaVersion"])
-          && d.keys().hasOnly(["nome", "nomeNorm", "indirizzo", "piva", "emailFatturazione", "cadenzaFatturazione", "tipoAllevamento", "numeroCapi", "telefono", "note", "createdAt", "updatedAt", "createdBy", "updatedBy", "createdByName", "updatedByName", "isDeleted", "deletedAt", "schemaVersion"])
+          && d.keys().hasOnly(["nome", "nomeNorm", "indirizzo", "piva", "emailFatturazione", "cadenzaFatturazione", "tipoAllevamento", "numeroCapi", "telefono", "note", "armadiettoCanoneAnnuo", "createdAt", "updatedAt", "createdBy", "updatedBy", "createdByName", "updatedByName", "isDeleted", "deletedAt", "schemaVersion"])
           && d.nome is string && d.nome.size() >= 1 && d.nome.size() <= 200
           && !d.nome.matches("^[\\s=+\\-@].*")
           && d.nomeNorm is string && d.nomeNorm.size() >= 1 && d.nomeNorm.size() <= 200
@@ -290,6 +290,7 @@ service cloud.firestore {
           && (!("numeroCapi" in d.keys()) || (d.numeroCapi is int && d.numeroCapi >= 0 && d.numeroCapi <= 100000))
           && (!("telefono" in d.keys()) || (d.telefono is string && d.telefono.size() <= 40))
           && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 1000 && !d.note.matches("^[\\s=+\\-@].*")))
+          && (!("armadiettoCanoneAnnuo" in d.keys()) || (d.armadiettoCanoneAnnuo is number && d.armadiettoCanoneAnnuo > 0 && d.armadiettoCanoneAnnuo <= 100000))
           && d.createdBy is string && d.createdBy.size() <= 128
           && d.updatedBy is string && d.updatedBy.size() <= 128
           && d.createdByName is string && d.createdByName.size() >= 1 && d.createdByName.size() <= 80
@@ -364,13 +365,14 @@ service cloud.firestore {
       function validCreate() {
         let d = request.resource.data;
         return d.keys().hasAll(["aziendaId", "aziendaNome", "periodoFrom", "periodoTo", "attivitaIds", "totaleConto", "modalita", "saldato", "emittedAt", "emittedBy", "emittedByName", "isDeleted", "schemaVersion"])
-          && d.keys().hasOnly(["aziendaId", "aziendaNome", "periodoFrom", "periodoTo", "attivitaIds", "totaleConto", "modalita", "saldato", "emittedAt", "emittedBy", "emittedByName", "isDeleted", "schemaVersion"])
+          && d.keys().hasOnly(["aziendaId", "aziendaNome", "periodoFrom", "periodoTo", "attivitaIds", "totaleConto", "armadiettoImporto", "modalita", "saldato", "emittedAt", "emittedBy", "emittedByName", "isDeleted", "schemaVersion"])
           && d.aziendaId is string && d.aziendaId.size() >= 1 && d.aziendaId.size() <= 64
           && d.aziendaNome is string && d.aziendaNome.size() >= 1 && d.aziendaNome.size() <= 200
           && d.periodoFrom is timestamp
           && d.periodoTo is timestamp
           && d.attivitaIds is list && d.attivitaIds.size() <= 10000
           && d.totaleConto is number && d.totaleConto >= 0 && d.totaleConto <= 2400000
+          && (!("armadiettoImporto" in d.keys()) || (d.armadiettoImporto is number && d.armadiettoImporto > 0 && d.armadiettoImporto <= 100000))
           && d.modalita in ["proforma", "emesso"]
           && d.saldato == false
           && d.emittedBy is string && d.emittedBy.size() <= 128

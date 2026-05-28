@@ -92,6 +92,23 @@ describe("aziendaFormSchema", () => {
     });
     expect(r.success).toBe(true);
   });
+
+  it("accepts empty or valid armadiettoCanoneAnnuo, rejects invalid", () => {
+    const ok = (v: string) =>
+      aziendaFormSchema.safeParse({
+        ...emptyAziendaForm,
+        nome: "X",
+        armadiettoCanoneAnnuo: v,
+      }).success;
+    expect(ok("")).toBe(true);
+    expect(ok("800")).toBe(true);
+    expect(ok("800.50")).toBe(true);
+    expect(ok("-5")).toBe(false);
+    expect(ok("0")).toBe(false);
+    expect(ok("200000")).toBe(false);
+    expect(ok("80.123")).toBe(false);
+    expect(ok("abc")).toBe(false);
+  });
 });
 
 describe("formFromAzienda", () => {
@@ -106,6 +123,14 @@ describe("formFromAzienda", () => {
   it("stringifies numeroCapi when present", () => {
     const r = formFromAzienda(fullAzienda({ numeroCapi: 42 }));
     expect(r.numeroCapi).toBe("42");
+  });
+
+  it("stringifies armadiettoCanoneAnnuo when present, empty otherwise", () => {
+    expect(
+      formFromAzienda(fullAzienda({ armadiettoCanoneAnnuo: 800 }))
+        .armadiettoCanoneAnnuo
+    ).toBe("800");
+    expect(formFromAzienda(fullAzienda()).armadiettoCanoneAnnuo).toBe("");
   });
 });
 
@@ -143,5 +168,19 @@ describe("formToAziendaInput", () => {
       cadenzaFatturazione: "monthly",
     });
     expect(r.cadenzaFatturazione).toBe("monthly");
+  });
+
+  it("converts armadiettoCanoneAnnuo to a number and omits when empty", () => {
+    expect(
+      formToAziendaInput({
+        ...emptyAziendaForm,
+        nome: "X",
+        armadiettoCanoneAnnuo: "800",
+      }).armadiettoCanoneAnnuo
+    ).toBe(800);
+    expect(
+      "armadiettoCanoneAnnuo" in
+        formToAziendaInput({ ...emptyAziendaForm, nome: "X" })
+    ).toBe(false);
   });
 });

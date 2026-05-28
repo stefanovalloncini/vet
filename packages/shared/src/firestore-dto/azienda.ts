@@ -7,6 +7,7 @@ import {
   tipoAllevamentoSchema,
   type AziendaInput,
 } from "../domain/schemas/azienda.js";
+import { euroAmountSchema } from "../domain/schemas/money.js";
 import { safeEmail, safeName } from "../domain/schemas/safeString.js";
 import {
   timestampLike,
@@ -26,6 +27,7 @@ export const aziendaDtoSchema = z
     numeroCapi: z.number().int().nonnegative().max(100_000).optional(),
     telefono: z.string().max(40).optional(),
     note: z.string().max(1000).optional(),
+    armadiettoCanoneAnnuo: euroAmountSchema.optional(),
     createdAt: timestampLike,
     updatedAt: timestampLike,
     createdBy: z.string().min(1).max(128),
@@ -60,6 +62,9 @@ export function parseAzienda(id: string, raw: unknown): Azienda {
     ...(dto.numeroCapi !== undefined ? { numeroCapi: dto.numeroCapi } : {}),
     ...(dto.telefono !== undefined ? { telefono: dto.telefono } : {}),
     ...(dto.note !== undefined ? { note: dto.note } : {}),
+    ...(dto.armadiettoCanoneAnnuo !== undefined
+      ? { armadiettoCanoneAnnuo: dto.armadiettoCanoneAnnuo }
+      : {}),
     createdAt: timestampToDate(dto.createdAt),
     updatedAt: timestampToDate(dto.updatedAt),
     createdBy: dto.createdBy,
@@ -105,6 +110,9 @@ export function buildAziendaCreateDoc<TServerStamp>(
     ...(input.numeroCapi !== undefined ? { numeroCapi: input.numeroCapi } : {}),
     ...(input.telefono !== undefined ? { telefono: input.telefono } : {}),
     ...(input.note !== undefined ? { note: input.note } : {}),
+    ...(input.armadiettoCanoneAnnuo !== undefined
+      ? { armadiettoCanoneAnnuo: input.armadiettoCanoneAnnuo }
+      : {}),
     createdAt: now,
     updatedAt: now,
     createdBy: actor.uid,
@@ -127,6 +135,7 @@ export interface AziendaUpdatePatch<TServerStamp, TDeleteSentinel> {
   numeroCapi: number | TDeleteSentinel;
   telefono: string | TDeleteSentinel;
   note: string | TDeleteSentinel;
+  armadiettoCanoneAnnuo: number | TDeleteSentinel;
   updatedAt: TServerStamp;
   updatedBy: string;
   updatedByName: string;
@@ -157,6 +166,10 @@ export function buildAziendaUpdatePatch<TServerStamp, TDeleteSentinel>(
     numeroCapi: input.numeroCapi !== undefined ? input.numeroCapi : del,
     telefono: input.telefono !== undefined ? input.telefono : del,
     note: input.note !== undefined ? input.note : del,
+    armadiettoCanoneAnnuo:
+      input.armadiettoCanoneAnnuo !== undefined
+        ? input.armadiettoCanoneAnnuo
+        : del,
     updatedAt: deps.serverTimestamp(),
     updatedBy: actor.uid,
     updatedByName: actor.displayName,

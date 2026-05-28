@@ -41,6 +41,29 @@ describe("contoEmitInputSchema", () => {
     ).toBe(false);
   });
 
+  it("accepts an armadiettoImporto", () => {
+    expect(
+      contoEmitInputSchema.safeParse({ ...validEmit, armadiettoImporto: 200 })
+        .success
+    ).toBe(true);
+  });
+
+  it("rejects a negative armadiettoImporto", () => {
+    expect(
+      contoEmitInputSchema.safeParse({ ...validEmit, armadiettoImporto: -1 })
+        .success
+    ).toBe(false);
+  });
+
+  it("rejects an armadiettoImporto over the cap", () => {
+    expect(
+      contoEmitInputSchema.safeParse({
+        ...validEmit,
+        armadiettoImporto: 100_001,
+      }).success
+    ).toBe(false);
+  });
+
   it("rejects extra fields in strict mode", () => {
     expect(
       contoEmitInputSchema.safeParse({ ...validEmit, extra: "field" }).success
@@ -153,6 +176,18 @@ describe("contoDocSchema", () => {
   it("rejects negative totaleConto", () => {
     expect(
       contoDocSchema.safeParse({ ...baseDoc, totaleConto: -1 }).success
+    ).toBe(false);
+  });
+
+  it("accepts a doc with armadiettoImporto", () => {
+    expect(
+      contoDocSchema.safeParse({ ...baseDoc, armadiettoImporto: 200 }).success
+    ).toBe(true);
+  });
+
+  it("rejects a doc with negative armadiettoImporto", () => {
+    expect(
+      contoDocSchema.safeParse({ ...baseDoc, armadiettoImporto: -5 }).success
     ).toBe(false);
   });
 });
