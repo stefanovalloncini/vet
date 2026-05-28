@@ -96,9 +96,7 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
       onClose();
     } catch (err) {
       console.error("quick add tipo failed", err);
-      form.setError("root", {
-        message: err instanceof Error ? err.message : "Salvataggio non riuscito",
-      });
+      form.setError("root", { message: "Salvataggio non riuscito" });
     }
   }
 

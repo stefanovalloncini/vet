@@ -114,6 +114,32 @@ describe("QuickAddTipoDialog", () => {
     expect(created.tariffaStandard).toBeUndefined();
   });
 
+  it("does not leak the raw error message when the save fails", async () => {
+    const repo = new InMemoryActivityTypesRepository();
+    vi.spyOn(repo, "upsert").mockRejectedValue(
+      new Error("Firestore: permission-denied at projects/vet-marinoni")
+    );
+    const Wrapper = buildWrapper(repo);
+    render(
+      <Wrapper>
+        <QuickAddTipoDialog
+          open
+          onClose={vi.fn()}
+          onCreated={vi.fn()}
+          nextOrdine={10}
+        />
+      </Wrapper>
+    );
+    fireEvent.change(screen.getByLabelText(/Nome/i), {
+      target: { value: "Cesareo" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Crea/i }));
+    expect(
+      await screen.findByText(/Salvataggio non riuscito/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/permission-denied/i)).toBeNull();
+  });
+
   it("does not render when closed", () => {
     const repo = new InMemoryActivityTypesRepository();
     const Wrapper = buildWrapper(repo);

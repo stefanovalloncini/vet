@@ -27,6 +27,7 @@ export function useCreateTipoAttivita() {
       return created;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.tipiAttivita }),
+    meta: { errorMessage: "Salvataggio non riuscito" },
   });
 }
 
@@ -36,6 +37,7 @@ export function useUpdateTipoAttivita() {
   return useMutation({
     mutationFn: ({ id, input }: UpsertVars) => repo.upsert(id, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.tipiAttivita }),
+    meta: { errorMessage: "Salvataggio non riuscito" },
   });
 }
 
@@ -50,6 +52,7 @@ export function useToggleTipoAttivitaActive() {
   return useMutation({
     mutationFn: ({ id, attivo }: ToggleVars) => repo.setActive(id, attivo),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.tipiAttivita }),
+    meta: { errorMessage: "Operazione non riuscita" },
   });
 }
 
@@ -65,5 +68,6 @@ export function useSaveTipoTariffa() {
     mutationFn: ({ id, tariffa }: TariffaVars) =>
       repo.setStandardTariff(id, tariffa),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.tipiAttivita }),
+    meta: { errorMessage: "Salvataggio non riuscito" },
   });
 }

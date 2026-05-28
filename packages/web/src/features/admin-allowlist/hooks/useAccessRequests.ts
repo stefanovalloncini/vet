@@ -41,7 +41,9 @@ export function useAcceptAccessRequest() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: queryKeys.accessRequests });
       void qc.invalidateQueries({ queryKey: queryKeys.allowlist });
+      void qc.invalidateQueries({ queryKey: queryKeys.roleUserCounts });
     },
+    meta: { errorMessage: "Operazione non riuscita" },
   });
 }
 
@@ -52,5 +54,6 @@ export function useRejectAccessRequest() {
       await callable<{ email: string }, void>("rejectAccessRequest")({ email });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.accessRequests }),
+    meta: { errorMessage: "Operazione non riuscita" },
   });
 }

@@ -71,6 +71,29 @@ describe("QuickAddAziendaDialog", () => {
     expect(created?.nome).toBe("Cascina San Marco");
   });
 
+  it("does not leak the raw error message when the save fails", async () => {
+    const { repos } = buildRepos();
+    vi.spyOn(repos.aziende, "create").mockRejectedValue(
+      new Error("Firestore: Missing or insufficient permissions")
+    );
+    render(
+      <QuickAddAziendaDialog
+        open={true}
+        onClose={vi.fn()}
+        onCreated={vi.fn()}
+      />,
+      { wrapper: makeWrapper(repos) }
+    );
+    fireEvent.change(screen.getByLabelText(/Nome/i), {
+      target: { value: "Cascina San Marco" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Crea/i }));
+    expect(
+      await screen.findByText(/Salvataggio non riuscito/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/insufficient permissions/i)).toBeNull();
+  });
+
   it("does not save when nome is empty whitespace", async () => {
     const { repos } = buildRepos();
     const onCreated = vi.fn();

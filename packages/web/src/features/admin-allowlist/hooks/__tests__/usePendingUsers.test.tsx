@@ -77,6 +77,29 @@ describe("usePendingUsers", () => {
     await waitFor(() => expect(result.current.list.items).toHaveLength(0));
   });
 
+  it("approve invalidates the cached role user counts", async () => {
+    users.setForTest("u1", pendingUser("u1", "a@vet.it"));
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const repos = { users } as unknown as Repositories;
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>
+        <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
+      </QueryClientProvider>
+    );
+    client.setQueryData(["roleUserCount", "vet"], 3);
+
+    const { result } = renderHook(() => useApprovePendingUser(), { wrapper });
+    await result.current.mutateAsync({ uid: "u1", roleId: "vet" });
+
+    await waitFor(() =>
+      expect(
+        client.getQueryState(["roleUserCount", "vet"])?.isInvalidated
+      ).toBe(true)
+    );
+  });
+
   it("reject mutation refetches the pending list", async () => {
     users.setForTest("u1", pendingUser("u1", "a@vet.it"));
     const wrapper = makeWrapper(users);

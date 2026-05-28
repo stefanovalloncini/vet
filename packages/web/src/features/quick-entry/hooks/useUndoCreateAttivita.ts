@@ -40,9 +40,8 @@ export function useUndoCreateAttivita() {
       const snapshots: UndoContext["snapshots"] = [];
       for (const key of OPTIMISTICALLY_PATCHED_KEYS) {
         snapshots.push(...qc.getQueriesData<Attivita[]>({ queryKey: key }));
-        qc.setQueriesData<Attivita[]>(
-          { queryKey: key },
-          (old) => (old ?? []).filter((a) => a.id !== id)
+        qc.setQueriesData<Attivita[]>({ queryKey: key }, (old) =>
+          Array.isArray(old) ? old.filter((a) => a.id !== id) : old
         );
       }
       return { snapshots };

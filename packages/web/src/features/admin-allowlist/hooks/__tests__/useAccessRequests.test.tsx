@@ -1,11 +1,16 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InMemoryAccessRequestRepository } from "@vet/shared/testing";
 import type { Repositories } from "@vet/shared";
 import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
-import { useAccessRequests } from "../useAccessRequests";
+import { useAccessRequests, useAcceptAccessRequest } from "../useAccessRequests";
+
+vi.mock("firebase/functions", () => ({
+  getFunctions: () => ({}),
+  httpsCallable: () => async () => ({ data: undefined }),
+}));
 
 function makeWrapper(repo: InMemoryAccessRequestRepository) {
   const client = new QueryClient({
@@ -54,5 +59,27 @@ describe("useAccessRequests", () => {
       "second@vet.it",
       "first@vet.it",
     ]);
+  });
+
+  it("accept invalidates the cached role user counts", async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const repos = { accessRequests: repo } as unknown as Repositories;
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>
+        <RepositoriesProvider value={repos}>{children}</RepositoriesProvider>
+      </QueryClientProvider>
+    );
+    client.setQueryData(["roleUserCount", "vet"], 2);
+
+    const { result } = renderHook(() => useAcceptAccessRequest(), { wrapper });
+    await result.current.mutateAsync({ email: "x@vet.it", roleId: "vet" });
+
+    await waitFor(() =>
+      expect(
+        client.getQueryState(["roleUserCount", "vet"])?.isInvalidated
+      ).toBe(true)
+    );
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ATTIVITA_DEPENDENT_KEYS,
   createQueryClient,
   DEFAULT_GC_TIME_MS,
   DEFAULT_STALE_TIME_MS,
@@ -69,5 +70,27 @@ describe("queryKeys", () => {
       { ownerUid: "u1" },
     ]);
     expect(queryKeys.trash()).toEqual(["trash", {}]);
+  });
+
+  it("exposes role user count keys under a shared prefix", () => {
+    expect(queryKeys.roleUserCounts).toEqual(["roleUserCount"]);
+    expect(queryKeys.roleUserCount("vet")).toEqual(["roleUserCount", "vet"]);
+  });
+});
+
+describe("ATTIVITA_DEPENDENT_KEYS", () => {
+  it("includes every read view derived from attivita", () => {
+    const top = ATTIVITA_DEPENDENT_KEYS.map((k) => k[0]);
+    for (const key of [
+      "attivita",
+      "agenda",
+      "vetStats",
+      "dashboardStats",
+      "statistiche",
+      "trash",
+      "riepilogoPdf",
+    ]) {
+      expect(top).toContain(key);
+    }
   });
 });

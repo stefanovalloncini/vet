@@ -17,10 +17,7 @@ export function registerMutationErrorNotifier(fn: ToastFn | null): void {
   registeredNotifier = fn;
 }
 
-function defaultErrorMessage(err: unknown): string {
-  if (err instanceof Error && err.message) return err.message;
-  return "Operazione non riuscita. Riprova.";
-}
+const GENERIC_ERROR_MESSAGE = "Operazione non riuscita. Riprova.";
 
 export function createQueryClient(): QueryClient {
   return new QueryClient({
@@ -33,13 +30,13 @@ export function createQueryClient(): QueryClient {
       },
     },
     mutationCache: new MutationCache({
-      onError: (error, _variables, _context, mutation) => {
+      onError: (_error, _variables, _context, mutation) => {
         const meta = (mutation.meta ?? {}) as {
           silent?: boolean;
           errorMessage?: string;
         };
         if (meta.silent) return;
-        const msg = meta.errorMessage ?? defaultErrorMessage(error);
+        const msg = meta.errorMessage ?? GENERIC_ERROR_MESSAGE;
         registeredNotifier?.(msg, "error");
       },
     }),
@@ -76,6 +73,8 @@ export const queryKeys = {
   accessRequests: ["accessRequests"] as const,
   roles: ["roles"] as const,
   role: (id: string) => ["roles", id] as const,
+  roleUserCounts: ["roleUserCount"] as const,
+  roleUserCount: (id: string) => ["roleUserCount", id] as const,
   dashboardStats: (filters?: Readonly<Record<string, unknown>>) =>
     ["dashboardStats", filters ?? {}] as const,
   statistiche: (filters?: Readonly<Record<string, unknown>>) =>
@@ -98,6 +97,7 @@ export const ATTIVITA_DEPENDENT_KEYS = [
   ["dashboardStats"],
   ["statistiche"],
   ["trash"],
+  ["riepilogoPdf"],
 ] as const;
 
 export const AZIENDE_DEPENDENT_KEYS = [

@@ -9,7 +9,7 @@ describe("createQueryClient mutationCache.onError", () => {
     registerMutationErrorNotifier(null);
   });
 
-  it("forwards the error message to the registered notifier", async () => {
+  it("never leaks the raw error message; shows the generic message instead", async () => {
     const notifier = vi.fn();
     registerMutationErrorNotifier(notifier);
     const client = createQueryClient();
@@ -19,14 +19,17 @@ describe("createQueryClient mutationCache.onError", () => {
         .getMutationCache()
         .build(client, {
           mutationFn: () => {
-            throw new Error("Boom");
+            throw new Error("Missing or insufficient permissions");
           },
         })
         .execute(undefined)
-    ).rejects.toThrow("Boom");
+    ).rejects.toThrow("Missing or insufficient permissions");
 
     expect(notifier).toHaveBeenCalledTimes(1);
-    expect(notifier).toHaveBeenCalledWith("Boom", "error");
+    expect(notifier).toHaveBeenCalledWith(
+      "Operazione non riuscita. Riprova.",
+      "error"
+    );
   });
 
   it("suppresses the toast when meta.silent is true", async () => {

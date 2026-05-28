@@ -31,8 +31,8 @@ interface RoleWriteVars {
 }
 
 function invalidateRoles(qc: ReturnType<typeof useQueryClient>): void {
-  void qc.invalidateQueries({ queryKey: ["roles"] });
-  void qc.invalidateQueries({ queryKey: ["allowlist"] });
+  void qc.invalidateQueries({ queryKey: queryKeys.roles });
+  void qc.invalidateQueries({ queryKey: queryKeys.allowlist });
 }
 
 export function useCreateRole() {
@@ -42,6 +42,7 @@ export function useCreateRole() {
     mutationFn: (vars: RoleWriteVars) =>
       repo.create(vars.id, vars.input, vars.actor),
     onSuccess: () => invalidateRoles(qc),
+    meta: { errorMessage: "Salvataggio non riuscito" },
   });
 }
 
@@ -52,6 +53,7 @@ export function useUpdateRole() {
     mutationFn: (vars: RoleWriteVars) =>
       repo.update(vars.id, vars.input, vars.actor),
     onSuccess: () => invalidateRoles(qc),
+    meta: { errorMessage: "Salvataggio non riuscito" },
   });
 }
 
@@ -61,5 +63,6 @@ export function useDeleteRole() {
   return useMutation({
     mutationFn: (vars: { id: string }) => repo.delete(vars.id),
     onSuccess: () => invalidateRoles(qc),
+    meta: { errorMessage: "Eliminazione non riuscita" },
   });
 }

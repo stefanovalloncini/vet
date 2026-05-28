@@ -41,9 +41,7 @@ export function QuickAddAziendaDialog({
       onClose();
     } catch (err) {
       console.error("quick add azienda failed", err);
-      form.setError("root", {
-        message: err instanceof Error ? err.message : "Salvataggio non riuscito",
-      });
+      form.setError("root", { message: "Salvataggio non riuscito" });
     }
   }
 

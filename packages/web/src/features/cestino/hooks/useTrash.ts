@@ -44,6 +44,7 @@ export function useRestoreTrashed() {
   return useMutation({
     mutationFn: (id: string) => trash.restoreAttivita(id),
     onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
+    meta: { errorMessage: "Ripristino non riuscito" },
   });
 }
 
@@ -53,5 +54,6 @@ export function usePurgeTrashed() {
   return useMutation({
     mutationFn: (id: string) => trash.purgeAttivita(id),
     onSuccess: () => invalidateMany(qc, ATTIVITA_DEPENDENT_KEYS),
+    meta: { errorMessage: "Eliminazione non riuscita" },
   });
 }

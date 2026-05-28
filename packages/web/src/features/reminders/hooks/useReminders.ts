@@ -28,7 +28,7 @@ export function useReminders(
   const filters = opts.onlyOpen ? { onlyOpen: true } : {};
   const query = useQuery<Reminder[]>({
     queryKey: queryKeys.reminders(filters),
-    queryFn: () => repo.list(opts),
+    queryFn: () => repo.list(filters),
   });
   return {
     reminders: query.data ?? [],
@@ -65,6 +65,7 @@ export function useUpdateReminder() {
   return useMutation({
     mutationFn: ({ id, done }: UpdateReminderInput) => repo.markDone(id, done),
     onSuccess: () => invalidateMany(qc, REMINDERS_DEPENDENT_KEYS),
+    meta: { errorMessage: "Operazione non riuscita" },
   });
 }
 
@@ -74,5 +75,6 @@ export function useDeleteReminder() {
   return useMutation({
     mutationFn: (id: string) => repo.delete(id),
     onSuccess: () => invalidateMany(qc, REMINDERS_DEPENDENT_KEYS),
+    meta: { errorMessage: "Eliminazione non riuscita" },
   });
 }

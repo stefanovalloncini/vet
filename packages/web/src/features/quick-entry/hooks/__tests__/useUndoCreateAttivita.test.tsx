@@ -81,6 +81,36 @@ describe("useUndoCreateAttivita", () => {
     expect(cached?.some((a) => a.id === "a-2")).toBe(true);
   });
 
+  it("leaves non-array caches (byId / lastByAziendaTipo) intact", async () => {
+    const repo = new InMemoryAttivitaRepository();
+    const { Wrapper, client } = buildWrapper(repo);
+    client.setQueryData(
+      ["attivita", {}],
+      [fakeAttivita("a-1"), fakeAttivita("a-2")]
+    );
+    const single = fakeAttivita("a-1");
+    client.setQueryData(
+      ["attivita", "lastByAziendaTipo", "az-1", "visita"],
+      single
+    );
+    client.setQueryData(["attivita", "byId", "a-1"], single);
+
+    const { result } = renderHook(() => useUndoCreateAttivita(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({ id: "a-1", user: actor() });
+    });
+
+    const list = client.getQueryData<Attivita[]>(["attivita", {}]);
+    expect(list?.some((a) => a.id === "a-1")).toBe(false);
+    expect(
+      client.getQueryData(["attivita", "lastByAziendaTipo", "az-1", "visita"])
+    ).toEqual(single);
+    expect(client.getQueryData(["attivita", "byId", "a-1"])).toEqual(single);
+  });
+
   it("rolls back the cache when the mutation fails", async () => {
     const repo = new InMemoryAttivitaRepository();
     const failing: AttivitaRepository = {

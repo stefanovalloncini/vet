@@ -77,5 +77,6 @@ export function useSaldaConto() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["conti"] });
     },
+    meta: { errorMessage: "Salvataggio non riuscito" },
   });
 }

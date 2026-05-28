@@ -1,6 +1,7 @@
 import { useQueries } from "@tanstack/react-query";
 import type { Role } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
+import { queryKeys } from "../../../shared/data/queryClient";
 
 export interface RoleUserCount {
   readonly roleId: string;
@@ -14,7 +15,7 @@ export function useRoleUserCounts(
   const { users } = useRepositories();
   const results = useQueries({
     queries: roles.map((role) => ({
-      queryKey: ["roleUserCount", role.id] as const,
+      queryKey: queryKeys.roleUserCount(role.id),
       queryFn: async () => (await users.listByRole(role.id)).length,
     })),
   });

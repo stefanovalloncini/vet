@@ -32,7 +32,11 @@ export function useApprovePendingUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ uid, roleId }: ApproveInput) => users.approve(uid, roleId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.pendingUsers }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.pendingUsers });
+      void qc.invalidateQueries({ queryKey: queryKeys.roleUserCounts });
+    },
+    meta: { errorMessage: "Operazione non riuscita" },
   });
 }
 
@@ -42,5 +46,6 @@ export function useRejectPendingUser() {
   return useMutation({
     mutationFn: (uid: string) => users.delete(uid),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.pendingUsers }),
+    meta: { errorMessage: "Operazione non riuscita" },
   });
 }

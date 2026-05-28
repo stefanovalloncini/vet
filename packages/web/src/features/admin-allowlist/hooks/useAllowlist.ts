@@ -49,6 +49,7 @@ export function useAddAllowlistEntry() {
   return useMutation({
     mutationFn: ({ input, actor }: AddInput) => allowlist.add(input, actor),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allowlist }),
+    meta: { errorMessage: "Salvataggio non riuscito" },
   });
 }
 
@@ -58,5 +59,6 @@ export function useRemoveAllowlistEntry() {
   return useMutation({
     mutationFn: (email: string) => allowlist.remove(email),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allowlist }),
+    meta: { errorMessage: "Rimozione non riuscita" },
   });
 }

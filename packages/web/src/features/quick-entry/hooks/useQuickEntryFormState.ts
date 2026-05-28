@@ -203,11 +203,10 @@ export function useQuickEntryFormState({
   });
   const items = useMemo(() => recentQuery.data ?? [], [recentQuery.data]);
 
-  const watched = useWatch({ control: form.control });
-  const data = watched.data ?? "";
-  const aziendaId = watched.aziendaId ?? "";
-  const tipoId = watched.tipoId ?? "";
-  const tariffa = watched.tariffa ?? "";
+  const data = useWatch({ control: form.control, name: "data" }) ?? "";
+  const aziendaId = useWatch({ control: form.control, name: "aziendaId" }) ?? "";
+  const tipoId = useWatch({ control: form.control, name: "tipoId" }) ?? "";
+  const tariffa = useWatch({ control: form.control, name: "tariffa" }) ?? "";
 
   const tariffaNum = parseTariffa(tariffa);
   const candidateDate = useMemo(
