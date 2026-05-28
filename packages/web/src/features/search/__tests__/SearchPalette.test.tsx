@@ -132,6 +132,90 @@ describe("SearchPalette", () => {
     expect(screen.getByText(/Nessun risultato/)).toBeInTheDocument();
   });
 
+  it("exposes a labelled dialog with a combobox input wired to the results", async () => {
+    const repos = createInMemoryRepositories();
+    (repos.auth as InMemoryAuthService).setSimulatedUser(
+      makeActor(["aziende.read"])
+    );
+    const actor = makeActor(["aziende.read"]);
+    await repos.aziende.create({ nome: "Allevamento Rossi" }, actor);
+
+    mountPalette({ repos });
+    openPalette();
+
+    const dialog = await screen.findByRole("dialog", { name: /Cerca/i });
+    expect(dialog).toBeInTheDocument();
+
+    const combobox = screen.getByRole("combobox", { name: /Cerca/i });
+    expect(combobox).toHaveAttribute("aria-controls", "search-palette-results");
+    expect(combobox).toHaveAttribute("aria-autocomplete", "list");
+
+    await screen.findByText(/Allevamento Rossi/);
+    const listbox = screen.getByRole("listbox");
+    expect(listbox).toHaveAttribute("id", "search-palette-results");
+    const options = screen.getAllByRole("option");
+    expect(options.length).toBeGreaterThan(0);
+    expect(options[0]).toHaveAttribute("aria-selected", "false");
+  });
+
+  it("closes on Escape and clears the query so a reopen starts empty", async () => {
+    const repos = createInMemoryRepositories();
+    (repos.auth as InMemoryAuthService).setSimulatedUser(
+      makeActor(["aziende.read"])
+    );
+    const actor = makeActor(["aziende.read"]);
+    await repos.aziende.create({ nome: "Allevamento Bianchi" }, actor);
+    await repos.aziende.create({ nome: "Stalla Verdi" }, actor);
+
+    mountPalette({ repos });
+    openPalette();
+
+    await screen.findByText(/Allevamento Bianchi/);
+    const input = screen.getByPlaceholderText(/Cerca un'azienda/i);
+    fireEvent.change(input, { target: { value: "verdi" } });
+    await waitFor(() => {
+      expect(screen.queryByText(/Allevamento Bianchi/)).toBeNull();
+    });
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    await waitFor(() => {
+      expect(screen.queryByPlaceholderText(/Cerca un'azienda/i)).toBeNull();
+    });
+
+    openPalette();
+    const reopened = await screen.findByPlaceholderText(/Cerca un'azienda/i);
+    expect(reopened).toHaveValue("");
+    expect(await screen.findByText(/Allevamento Bianchi/)).toBeInTheDocument();
+  });
+
+  it("renders an empty-results region with the stable id when the query matches nothing", async () => {
+    const repos = createInMemoryRepositories();
+    (repos.auth as InMemoryAuthService).setSimulatedUser(
+      makeActor(["aziende.read"])
+    );
+    const actor = makeActor(["aziende.read"]);
+    await repos.aziende.create({ nome: "Allevamento Rossi" }, actor);
+
+    mountPalette({ repos });
+    openPalette();
+
+    await screen.findByText(/Allevamento Rossi/);
+    fireEvent.change(screen.getByPlaceholderText(/Cerca un'azienda/i), {
+      target: { value: "zzz-nessuna-corrispondenza" },
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Allevamento Rossi/)).toBeNull();
+    });
+    expect(await screen.findByText("Nessun risultato.")).toBeInTheDocument();
+    const combobox = screen.getByRole("combobox");
+    const controlled = document.getElementById(
+      combobox.getAttribute("aria-controls") ?? ""
+    );
+    expect(controlled).not.toBeNull();
+    expect(controlled).toHaveTextContent(/Nessun risultato/i);
+  });
+
   it("does not refetch when reopened while the cache is fresh", async () => {
     const repos = createInMemoryRepositories();
     (repos.auth as InMemoryAuthService).setSimulatedUser(

@@ -100,7 +100,16 @@ export function SearchPalette() {
   }
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} size="lg" className="overflow-hidden">
+    <Dialog
+      open={open}
+      onClose={closeAndReset}
+      size="lg"
+      labelledBy="search-palette-label"
+      className="overflow-hidden"
+    >
+      <h2 id="search-palette-label" className="sr-only">
+        Cerca
+      </h2>
       <div className="flex items-center gap-3 px-4 py-3.5 border-b border-(--color-border)">
         <Search
           size={18}
@@ -113,15 +122,37 @@ export function SearchPalette() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Cerca un'azienda…"
-          className="flex-1 bg-transparent text-base text-(--color-text) placeholder:text-(--color-text-subtle) focus:outline-none"
+          className="flex-1 min-w-0 bg-transparent text-base text-(--color-text) placeholder:text-(--color-text-subtle) focus:outline-none"
           aria-label="Cerca"
+          role="combobox"
+          aria-expanded={totalResults > 0}
+          aria-controls="search-palette-results"
+          aria-autocomplete="list"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          enterKeyHint="search"
         />
       </div>
+
+      <p role="status" aria-live="polite" className="sr-only">
+        {hasQuery
+          ? totalResults === 0
+            ? "Nessun risultato"
+            : `${totalResults} risultati`
+          : ""}
+      </p>
 
       {totalResults === 0 ? (
         <EmptyResults hasQuery={hasQuery} />
       ) : (
-        <div className="max-h-96 overflow-y-auto">
+        <ul
+          id="search-palette-results"
+          role="listbox"
+          aria-label="Risultati"
+          className="max-h-96 overflow-y-auto overscroll-contain py-1"
+        >
           {filteredAziende.length > 0 ? (
             <ResultGroup title="Aziende">
               {filteredAziende.map((a) => (
@@ -144,7 +175,7 @@ export function SearchPalette() {
               ))}
             </ResultGroup>
           ) : null}
-        </div>
+        </ul>
       )}
 
       <div className="flex items-center justify-end gap-3 px-4 py-2 bg-(--color-surface-muted) text-xs text-(--color-text-subtle)">
@@ -168,7 +199,7 @@ interface EmptyResultsProps {
 
 function EmptyResults({ hasQuery }: EmptyResultsProps) {
   return (
-    <div className="py-10 px-5 text-center">
+    <div id="search-palette-results" className="py-10 px-5 text-center">
       <p className="text-sm text-(--color-text-muted)">Nessun risultato.</p>
       {!hasQuery ? (
         <p className="text-xs text-(--color-text-subtle) mt-1">
@@ -187,12 +218,19 @@ interface ResultGroupProps {
 
 function ResultGroup({ title, divided = false, children }: ResultGroupProps) {
   return (
-    <section className={divided ? "border-t border-(--color-border)/60" : ""}>
-      <h3 className="px-5 pt-3 pb-1 text-[10px] uppercase tracking-wider font-medium text-(--color-text-muted)">
+    <li
+      role="group"
+      aria-label={title}
+      className={divided ? "mt-1 border-t border-(--color-border)/60" : ""}
+    >
+      <p
+        aria-hidden="true"
+        className="px-5 pt-3 pb-1 text-[10px] uppercase tracking-wider font-medium text-(--color-text-muted)"
+      >
         {title}
-      </h3>
-      <ul>{children}</ul>
-    </section>
+      </p>
+      <ul role="presentation">{children}</ul>
+    </li>
   );
 }
 
@@ -203,22 +241,24 @@ interface AziendaResultProps {
 
 function AziendaResult({ azienda: a, onSelect }: AziendaResultProps) {
   return (
-    <li>
+    <li role="presentation">
       <button
         type="button"
+        role="option"
+        aria-selected={false}
         onClick={onSelect}
-        className="w-full text-left px-5 py-3 hover:bg-(--color-surface-muted) flex items-center justify-between gap-3 focus:outline-none focus-visible:bg-(--color-surface-muted)"
+        className="w-full text-left px-5 py-3 min-h-11 hover:bg-(--color-surface-muted) flex items-center justify-between gap-3 focus:outline-none focus-visible:-outline-offset-2 focus-visible:bg-(--color-surface-muted)"
       >
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-(--color-text) truncate">
+        <span className="min-w-0">
+          <span className="block text-sm font-medium text-(--color-text) truncate">
             {a.nome}
-          </p>
+          </span>
           {a.indirizzo ? (
-            <p className="text-xs text-(--color-text-muted) truncate">
+            <span className="block text-xs text-(--color-text-muted) truncate">
               {a.indirizzo}
-            </p>
+            </span>
           ) : null}
-        </div>
+        </span>
         {a.numeroCapi !== undefined ? (
           <span className="text-xs text-(--color-text-subtle) tabular-nums flex-shrink-0">
             {a.numeroCapi} capi
@@ -236,20 +276,22 @@ interface AttivitaResultProps {
 
 function AttivitaResult({ attivita: a, onSelect }: AttivitaResultProps) {
   return (
-    <li>
+    <li role="presentation">
       <button
         type="button"
+        role="option"
+        aria-selected={false}
         onClick={onSelect}
-        className="w-full text-left px-5 py-3 hover:bg-(--color-surface-muted) flex items-center justify-between gap-3 focus:outline-none focus-visible:bg-(--color-surface-muted)"
+        className="w-full text-left px-5 py-3 min-h-11 hover:bg-(--color-surface-muted) flex items-center justify-between gap-3 focus:outline-none focus-visible:-outline-offset-2 focus-visible:bg-(--color-surface-muted)"
       >
-        <div className="min-w-0">
-          <p className="text-sm text-(--color-text) truncate">
+        <span className="min-w-0">
+          <span className="block text-sm text-(--color-text) truncate">
             {a.aziendaNome} · {a.tipoNome}
-          </p>
-          <p className="text-xs text-(--color-text-muted) truncate font-mono tabular-nums">
+          </span>
+          <span className="block text-xs text-(--color-text-muted) truncate font-mono tabular-nums">
             {a.data.toLocaleDateString("it-IT")}
-          </p>
-        </div>
+          </span>
+        </span>
       </button>
     </li>
   );
