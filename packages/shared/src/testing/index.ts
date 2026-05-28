@@ -12,3 +12,17 @@ export { InMemoryContiRepository } from "./InMemoryContiRepository.js";
 export { InMemoryRemindersRepository } from "./InMemoryRemindersRepository.js";
 export { InMemoryMailRepository } from "./InMemoryMailRepository.js";
 export { InMemoryAuthService } from "./InMemoryAuthService.js";
+export {
+  makeAttivita,
+  makeUser,
+  makeActorContext,
+  type ActorContextOverrides,
+  makeAzienda,
+  makeActivityType,
+  makeConto,
+  makeReminder,
+  makeRole,
+  makeAllowlistEntry,
+  makeAccessRequest,
+  makeAuditEvent,
+} from "./factories.js";
