@@ -75,4 +75,39 @@ describe("useArmadietto", () => {
     );
     expect(result.current.suggested).toBe(0);
   });
+
+  it("re-suggests the prorated amount when the period changes", () => {
+    const { result, rerender } = renderHook(
+      ({ from, to }) =>
+        useArmadietto(azienda({ armadiettoCanoneAnnuo: 800 }), from, to),
+      { initialProps: { from: q1From, to: q1To } }
+    );
+    expect(result.current.importoNum).toBe(200);
+    rerender({ from: new Date(2026, 0, 1), to: new Date(2026, 11, 31) });
+    expect(result.current.suggested).toBe(800);
+    expect(result.current.importoNum).toBe(800);
+  });
+
+  it("keeps a manual edit while the period is unchanged", () => {
+    const { result, rerender } = renderHook(
+      ({ from, to }) =>
+        useArmadietto(azienda({ armadiettoCanoneAnnuo: 800 }), from, to),
+      { initialProps: { from: q1From, to: q1To } }
+    );
+    act(() => result.current.setImporto("123"));
+    expect(result.current.importoNum).toBe(123);
+    rerender({ from: q1From, to: q1To });
+    expect(result.current.importoNum).toBe(123);
+  });
+
+  it("overrides a manual edit when the period changes the suggestion", () => {
+    const { result, rerender } = renderHook(
+      ({ from, to }) =>
+        useArmadietto(azienda({ armadiettoCanoneAnnuo: 800 }), from, to),
+      { initialProps: { from: q1From, to: q1To } }
+    );
+    act(() => result.current.setImporto("123"));
+    rerender({ from: new Date(2026, 0, 1), to: new Date(2026, 5, 30) });
+    expect(result.current.importoNum).toBe(400);
+  });
 });
