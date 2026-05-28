@@ -66,6 +66,46 @@ describe("activityTypeInputSchema", () => {
       }).success
     ).toBe(false);
   });
+
+  describe("tariffaStandard bounds (regression: client reported 1000 minimum bug)", () => {
+    const base = { nome: "Tipo", ordine: 1 };
+    it("accepts 0", () => {
+      expect(
+        activityTypeInputSchema.safeParse({ ...base, tariffaStandard: 0 })
+          .success
+      ).toBe(true);
+    });
+    it("accepts 1", () => {
+      expect(
+        activityTypeInputSchema.safeParse({ ...base, tariffaStandard: 1 })
+          .success
+      ).toBe(true);
+    });
+    it("accepts 999", () => {
+      expect(
+        activityTypeInputSchema.safeParse({ ...base, tariffaStandard: 999 })
+          .success
+      ).toBe(true);
+    });
+    it("accepts the upper bound 100000", () => {
+      expect(
+        activityTypeInputSchema.safeParse({ ...base, tariffaStandard: 100000 })
+          .success
+      ).toBe(true);
+    });
+    it("rejects negative", () => {
+      expect(
+        activityTypeInputSchema.safeParse({ ...base, tariffaStandard: -1 })
+          .success
+      ).toBe(false);
+    });
+    it("rejects above 100000", () => {
+      expect(
+        activityTypeInputSchema.safeParse({ ...base, tariffaStandard: 100001 })
+          .success
+      ).toBe(false);
+    });
+  });
 });
 
 describe("activityTypeDocSchema", () => {

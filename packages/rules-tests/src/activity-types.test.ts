@@ -144,4 +144,54 @@ describe("activity_types rules", () => {
     const db = authedAs(env, "u", ["activity_types.read"]);
     await assertFails(deleteDoc(doc(db, "activity_types/visita")));
   });
+
+  describe("tariffaStandard bounds (regression: client reported 1000 minimum bug)", () => {
+    const baseCreate = (tariffaStandard: number) => ({
+      nome: "Nuovo",
+      ordine: 100,
+      attivo: true,
+      tariffaStandard,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      schemaVersion: 1,
+    });
+
+    it("create allowed with tariffaStandard 0", async () => {
+      const env = await getEnv();
+      const db = authedAs(env, "u", ["activity_types.manage"]);
+      await assertSucceeds(setDoc(doc(db, "activity_types/t0"), baseCreate(0)));
+    });
+
+    it("create allowed with tariffaStandard 999", async () => {
+      const env = await getEnv();
+      const db = authedAs(env, "u", ["activity_types.manage"]);
+      await assertSucceeds(
+        setDoc(doc(db, "activity_types/t999"), baseCreate(999))
+      );
+    });
+
+    it("create allowed with tariffaStandard 100000 (upper bound)", async () => {
+      const env = await getEnv();
+      const db = authedAs(env, "u", ["activity_types.manage"]);
+      await assertSucceeds(
+        setDoc(doc(db, "activity_types/tmax"), baseCreate(100000))
+      );
+    });
+
+    it("create denied with negative tariffaStandard", async () => {
+      const env = await getEnv();
+      const db = authedAs(env, "u", ["activity_types.manage"]);
+      await assertFails(
+        setDoc(doc(db, "activity_types/tneg"), baseCreate(-1))
+      );
+    });
+
+    it("create denied with tariffaStandard above 100000", async () => {
+      const env = await getEnv();
+      const db = authedAs(env, "u", ["activity_types.manage"]);
+      await assertFails(
+        setDoc(doc(db, "activity_types/tover"), baseCreate(100001))
+      );
+    });
+  });
 });
