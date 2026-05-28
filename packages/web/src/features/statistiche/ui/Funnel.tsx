@@ -1,3 +1,5 @@
+import { ChartEmpty } from "./ChartEmpty";
+
 interface FunnelStage {
   label: string;
   value: number;
@@ -10,10 +12,10 @@ interface FunnelProps {
 }
 
 export function Funnel({ stages, formatValue }: FunnelProps) {
-  if (stages.length === 0) return null;
-  const max = Math.max(...stages.map((s) => s.value), 1);
+  const max = Math.max(...stages.map((s) => s.value), 0);
+  if (stages.length === 0 || max === 0) return <ChartEmpty />;
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-3">
       {stages.map((s, i) => {
         const pct = Math.round((s.value / max) * 100);
         const prev = i > 0 ? stages[i - 1]!.value : null;
@@ -23,18 +25,18 @@ export function Funnel({ stages, formatValue }: FunnelProps) {
             : null;
         return (
           <li key={s.label}>
-            <div className="flex items-baseline justify-between mb-1 text-sm">
-              <span className="text-(--color-text)">{s.label}</span>
-              <span className="tabular-nums text-(--color-text-muted)">
+            <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
+              <span className="min-w-0 text-(--color-text)">{s.label}</span>
+              <span className="shrink-0 tabular-nums text-(--color-text-muted)">
                 {formatValue ? formatValue(s.value) : s.value}
                 {dropoff !== null ? (
                   <span className="ml-2 text-xs text-(--color-text-subtle)">
-                    {dropoff}%
+                    {dropoff}% del precedente
                   </span>
                 ) : null}
               </span>
             </div>
-            <div className="w-full h-3 bg-(--color-surface-muted) rounded-full overflow-hidden">
+            <div className="h-3 w-full overflow-hidden rounded-full bg-(--color-surface-muted)">
               <div
                 className="h-full rounded-full"
                 style={{
@@ -44,9 +46,7 @@ export function Funnel({ stages, formatValue }: FunnelProps) {
               />
             </div>
             {s.hint ? (
-              <p className="text-xs text-(--color-text-subtle) mt-1">
-                {s.hint}
-              </p>
+              <p className="mt-1 text-xs text-(--color-text-subtle)">{s.hint}</p>
             ) : null}
           </li>
         );

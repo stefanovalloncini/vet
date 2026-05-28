@@ -52,7 +52,7 @@ export function AgendaWeekStrip({
             type="button"
             onClick={() => shiftWeek(-1)}
             aria-label={t.settimanaScorsa}
-            className="w-9 h-9 inline-flex items-center justify-center rounded-lg text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) active:scale-[0.97] active:duration-(--motion-press) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
+            className="w-11 h-11 inline-flex items-center justify-center rounded-lg text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) active:scale-[0.97] active:duration-(--motion-press) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
           >
             <ChevronLeft size={18} strokeWidth={2} aria-hidden="true" />
           </button>
@@ -63,7 +63,7 @@ export function AgendaWeekStrip({
             type="button"
             onClick={() => shiftWeek(1)}
             aria-label={t.settimanaProssima}
-            className="w-9 h-9 inline-flex items-center justify-center rounded-lg text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) active:scale-[0.97] active:duration-(--motion-press) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
+            className="w-11 h-11 inline-flex items-center justify-center rounded-lg text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) active:scale-[0.97] active:duration-(--motion-press) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
           >
             <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
           </button>

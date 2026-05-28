@@ -67,7 +67,10 @@ export function AgendaDayList({ date, items, loading = false }: AgendaDayListPro
   return (
     <section aria-label="Attività del giorno" className="min-w-0">
       <header className="mb-3 px-1">
-        <h2 className="text-sm font-medium text-(--color-text-muted) capitalize">
+        <h2
+          className="text-sm font-medium text-(--color-text-muted) capitalize"
+          aria-live="polite"
+        >
           {formatHeading(date)}
         </h2>
       </header>
@@ -104,10 +107,10 @@ function AgendaRow({ attivita }: AgendaRowProps) {
       >
         <div className="flex items-center gap-3">
           <time
-            dateTime={attivita.createdAt.toISOString()}
+            dateTime={attivita.data.toISOString()}
             className="font-mono text-sm text-(--color-text-muted) tabular-nums shrink-0 w-12"
           >
-            {formatTime(attivita.createdAt)}
+            {formatTime(attivita.data)}
           </time>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-(--color-text) truncate">
@@ -117,9 +120,11 @@ function AgendaRow({ attivita }: AgendaRowProps) {
               {attivita.ownerName}
             </p>
           </div>
-          <Badge tone="accent" size="sm">
-            {attivita.tipoNome}
-          </Badge>
+          <span className="shrink-0">
+            <Badge tone="accent" size="sm">
+              {attivita.tipoNome}
+            </Badge>
+          </span>
         </div>
       </Card>
     </Link>

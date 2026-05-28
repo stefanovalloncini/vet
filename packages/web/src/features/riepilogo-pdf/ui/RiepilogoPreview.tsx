@@ -50,7 +50,7 @@ export function RiepilogoPreview({ summary }: RiepilogoPreviewProps) {
           <p className="text-[10px] uppercase tracking-wider text-(--color-text-muted) print:text-black/60">
             {t.cliente}
           </p>
-          <p className="text-base font-medium mt-1.5 text-(--color-text) print:text-black">
+          <p className="text-base font-medium mt-1.5 text-(--color-text) print:text-black break-words">
             {azienda.nome}
           </p>
           {azienda.indirizzo ? (
@@ -122,7 +122,7 @@ export function RiepilogoPreview({ summary }: RiepilogoPreviewProps) {
                 <td className="py-2.5 pr-3 text-(--color-text) print:text-black">
                   {a.tipoNome}
                 </td>
-                <td className="py-2.5 pr-3 text-xs text-(--color-text-muted) print:text-black/70 leading-snug max-w-[260px]">
+                <td className="py-2.5 pr-3 text-xs text-(--color-text-muted) print:text-black/70 leading-snug max-w-[260px] break-words">
                   {a.note ?? ""}
                 </td>
                 <td className="py-2.5 pr-3 text-right tabular-nums text-(--color-text) print:text-black">

@@ -49,4 +49,30 @@ test.describe("riepilogo PDF (azienda)", () => {
       signedInVet.getByText(/Cliente non trovato/i)
     ).toBeVisible({ timeout: 10_000 });
   });
+
+  test("not-found state offers a way back", async ({ signedInVet }) => {
+    await signedInVet.goto("/aziende/does-not-exist/riepilogo");
+    await expect(
+      signedInVet.getByRole("button", { name: /Torna indietro/i })
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("preview renders without horizontal overflow on a narrow viewport", async ({
+    signedInVet,
+  }) => {
+    await signedInVet.setViewportSize({ width: 320, height: 720 });
+    await signedInVet.goto(
+      `/aziende/${FIXTURE.azienda.id}/riepilogo?from=2026-05-01&to=2026-05-31`
+    );
+    await expect(
+      signedInVet.getByRole("heading", { level: 1, name: /Riepilogo prestazioni/i })
+    ).toBeVisible({ timeout: 15_000 });
+
+    const overflow = await signedInVet.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
 });

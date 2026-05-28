@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AppShell, Card, InlineError, SectionLabel, Skeleton } from "../../../shared/ui";
+import { AppShell, Card, EmptyState, InlineError, SectionLabel, Skeleton } from "../../../shared/ui";
 import { dashboardI18n as t } from "../i18n";
 import { formatEuro } from "../../../shared/lib/format";
 import { TrailingBarChart } from "../../../shared/ui/charts/TrailingBarChart";
@@ -20,12 +20,14 @@ export function DashboardPage() {
 
   return (
     <AppShell>
-      <header className="mb-6 flex items-baseline justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl text-(--color-text)">{t.title}</h1>
-          <p className="text-(--color-text-muted) mt-1 text-sm">{t.subtitle}</p>
+      <header className="mb-6 flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-(--color-text)">
+            {t.title}
+          </h1>
+          <p className="text-(--color-text-muted) mt-1.5 text-sm">{t.subtitle}</p>
         </div>
-        <p className="hidden sm:block text-xs uppercase tracking-[0.12em] text-(--color-text-subtle) tabular-nums">
+        <p className="hidden sm:block shrink-0 text-xs uppercase tracking-[0.12em] text-(--color-text-subtle) tabular-nums">
           {periodLabel(now)}
         </p>
       </header>
@@ -92,7 +94,10 @@ function KpiCard({ label, value }: KpiCardProps) {
   return (
     <Card className="flex flex-col gap-3">
       <p className="text-sm text-(--color-text-muted)">{label}</p>
-      <p className="font-semibold tabular-nums text-(--color-text) text-3xl leading-none">
+      <p
+        className="font-semibold tabular-nums text-(--color-text) text-3xl leading-none"
+        aria-live="polite"
+      >
         {value}
       </p>
     </Card>
@@ -101,9 +106,8 @@ function KpiCard({ label, value }: KpiCardProps) {
 
 function DashboardEmpty() {
   return (
-    <Card className="flex flex-col gap-2">
-      <p className="text-sm text-(--color-text)">{t.noActivity}</p>
-      <p className="text-xs text-(--color-text-muted)">{t.noActivityHint}</p>
+    <Card padding="lg">
+      <EmptyState title={t.noActivity} description={t.noActivityHint} />
     </Card>
   );
 }
@@ -111,8 +115,8 @@ function DashboardEmpty() {
 function DashboardSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-        {Array.from({ length: 3 }).map((_, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+        {Array.from({ length: 2 }).map((_, i) => (
           <Card key={i} className="flex flex-col gap-3">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-9 w-20" />
@@ -122,7 +126,7 @@ function DashboardSkeleton() {
       <Card>
         <div className="flex items-center justify-between gap-3 mb-3">
           <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-9 w-44" />
         </div>
         <Skeleton className="h-28 w-full" />
       </Card>
@@ -140,7 +144,7 @@ function ChartModeToggle({ mode, onChange }: ChartModeToggleProps) {
     <div
       role="tablist"
       aria-label="Vista grafico"
-      className="inline-flex rounded-full border border-(--color-border) bg-(--color-surface) text-xs"
+      className="inline-flex rounded-lg border border-(--color-border) bg-(--color-surface-muted) p-0.5 text-xs"
     >
       <ToggleOption
         active={mode === "attivita"}
@@ -172,9 +176,10 @@ function ToggleOption({
       aria-selected={active}
       onClick={onClick}
       className={[
-        "px-3 py-1 rounded-full transition-colors",
+        "min-h-9 rounded-md px-3 py-1.5 transition-colors duration-(--motion-fast) ease-(--ease-out-quart)",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-1",
         active
-          ? "bg-(--color-accent) text-white"
+          ? "bg-(--color-surface) text-(--color-text) font-medium shadow-[0_1px_2px_oklch(20%_0.012_240/0.06)]"
           : "text-(--color-text-muted) hover:text-(--color-text)",
       ].join(" ")}
     >

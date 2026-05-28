@@ -1,3 +1,5 @@
+import { ChartEmpty } from "./ChartEmpty";
+
 interface DonutSlice {
   label: string;
   value: number;
@@ -27,8 +29,9 @@ export function DonutChart({
   thickness = 20,
   formatValue,
 }: DonutChartProps) {
+  const fmt = formatValue ?? String;
   const total = slices.reduce((s, x) => s + x.value, 0);
-  if (total === 0) return null;
+  if (slices.length === 0 || total === 0) return <ChartEmpty />;
   const r = size / 2 - thickness / 2;
   const c = size / 2;
   const circ = 2 * Math.PI * r;
@@ -55,9 +58,20 @@ export function DonutChart({
     );
   });
 
+  const summary = slices
+    .map((s) => `${s.label}: ${fmt(s.value)}`)
+    .join(", ");
+
   return (
-    <div className="flex items-center gap-6">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-6">
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="shrink-0"
+        role="img"
+        aria-label={`Distribuzione per tipo. Totale ${fmt(total)}. ${summary}`}
+      >
         <circle
           cx={c}
           cy={c}
@@ -83,21 +97,22 @@ export function DonutChart({
           className="fill-(--color-text)"
           style={{ fontSize: 18, fontWeight: 500 }}
         >
-          {formatValue ? formatValue(total) : total}
+          {fmt(total)}
         </text>
       </svg>
-      <ul className="flex-1 space-y-1 text-sm">
+      <ul className="w-full min-w-0 flex-1 space-y-1.5 text-sm">
         {slices.map((s, i) => (
           <li key={s.label} className="flex items-center gap-2">
             <span
-              className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+              aria-hidden="true"
+              className="h-2.5 w-2.5 shrink-0 rounded-sm"
               style={{ backgroundColor: PALETTE[i % PALETTE.length] }}
             />
-            <span className="text-(--color-text) truncate flex-1">
+            <span className="min-w-0 flex-1 truncate text-(--color-text)">
               {s.label}
             </span>
-            <span className="text-(--color-text-muted) tabular-nums">
-              {formatValue ? formatValue(s.value) : s.value}
+            <span className="shrink-0 tabular-nums text-(--color-text-muted)">
+              {fmt(s.value)}
             </span>
           </li>
         ))}

@@ -1,7 +1,9 @@
 import { useCallback, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Button, InlineError, LoadingHint } from "../../../shared/ui";
 import { dateInputValue } from "../../../shared/lib/format";
 import { defaultPeriodoFor } from "../../conti";
+import { riepilogoI18n as t } from "../i18n";
 import { useRiepilogoPdf } from "../hooks/useRiepilogoPdf";
 import { RiepilogoFilters } from "./RiepilogoFilters";
 import { RiepilogoPreview } from "./RiepilogoPreview";
@@ -51,16 +53,17 @@ export function RiepilogoPdfPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-(--color-background) p-10">
-        <p className="text-sm text-(--color-text-muted)">Caricamento…</p>
+        <LoadingHint />
       </main>
     );
   }
 
-  if (error === "not-found" || !summary) {
+  if (error || !summary) {
     return (
-      <main className="min-h-screen bg-(--color-background) p-10">
-        <p className="text-sm text-(--color-danger)">Cliente non trovato.</p>
-      </main>
+      <RiepilogoStatus
+        message={error === "load-failed" ? t.loadError : t.notFound}
+        onBack={() => navigate(-1)}
+      />
     );
   }
 
@@ -81,6 +84,24 @@ export function RiepilogoPdfPage() {
             : {})}
         />
         <RiepilogoPreview summary={summary} />
+      </div>
+    </main>
+  );
+}
+
+interface RiepilogoStatusProps {
+  message: string;
+  onBack: () => void;
+}
+
+function RiepilogoStatus({ message, onBack }: RiepilogoStatusProps) {
+  return (
+    <main className="min-h-screen bg-(--color-background) p-10">
+      <div className="mx-auto flex max-w-md flex-col items-start gap-4">
+        <InlineError>{message}</InlineError>
+        <Button type="button" variant="secondary" onClick={onBack}>
+          {t.back}
+        </Button>
       </div>
     </main>
   );

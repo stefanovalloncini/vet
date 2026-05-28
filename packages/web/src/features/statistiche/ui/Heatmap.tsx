@@ -1,4 +1,5 @@
 import type { Attivita } from "@vet/shared";
+import { ChartEmpty } from "./ChartEmpty";
 
 interface HeatmapProps {
   items: Attivita[];
@@ -19,11 +20,15 @@ export function Heatmap({ items, weeks = 13, now = new Date() }: HeatmapProps) {
   firstDay.setDate(lastDay.getDate() - days + 1);
 
   const counts = new Map<string, number>();
+  let inRange = 0;
   for (const a of items) {
     if (a.data < firstDay) continue;
     const k = dayKey(a.data);
     counts.set(k, (counts.get(k) ?? 0) + 1);
+    inRange += 1;
   }
+
+  if (inRange === 0) return <ChartEmpty />;
 
   const max = Math.max(...counts.values(), 1);
 
@@ -39,18 +44,31 @@ export function Heatmap({ items, weeks = 13, now = new Date() }: HeatmapProps) {
     grid[dow]!.push({ date: d, count });
   }
 
+  const rangeLabel = `${firstDay.toLocaleDateString("it-IT", {
+    day: "numeric",
+    month: "short",
+  })} – ${lastDay.toLocaleDateString("it-IT", {
+    day: "numeric",
+    month: "short",
+  })}`;
+
   return (
     <div className="flex gap-2">
-      <div className="flex flex-col gap-[2px] text-[10px] text-(--color-text-subtle)">
+      <div
+        aria-hidden="true"
+        className="flex flex-col gap-[2px] text-[10px] text-(--color-text-subtle)"
+      >
         {ITALIAN_DAYS.map((d, i) => (
           <span key={i} className="h-3 leading-3">
             {i % 2 === 0 ? d : ""}
           </span>
         ))}
       </div>
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <div
           className="grid gap-[2px]"
+          role="img"
+          aria-label={`Mappa attività dal ${rangeLabel}, ${inRange} visite.`}
           style={{
             gridTemplateColumns: `repeat(${weeks}, minmax(0, 1fr))`,
             gridAutoFlow: "column",
@@ -76,7 +94,7 @@ export function Heatmap({ items, weeks = 13, now = new Date() }: HeatmapProps) {
             })
           )}
         </div>
-        <p className="text-[10px] text-(--color-text-subtle) mt-1 flex justify-between">
+        <p className="mt-1 flex justify-between text-[10px] tabular-nums text-(--color-text-subtle)">
           <span>
             {firstDay.toLocaleDateString("it-IT", {
               day: "numeric",

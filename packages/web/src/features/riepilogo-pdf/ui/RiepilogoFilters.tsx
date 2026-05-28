@@ -42,7 +42,7 @@ export function RiepilogoFilters({
       <button
         type="button"
         onClick={onBack}
-        className="text-sm text-(--color-text-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) inline-flex items-center gap-1.5"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-md text-sm text-(--color-text-muted) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) hover:text-(--color-text) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
       >
         <span aria-hidden="true">←</span>
         <span>{t.back}</span>

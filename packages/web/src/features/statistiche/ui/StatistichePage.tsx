@@ -9,6 +9,7 @@ import {
   Select,
 } from "../../../shared/ui";
 import { BarChart } from "../../../shared/ui/charts/BarChart";
+import { ChartEmpty } from "./ChartEmpty";
 import { Heatmap } from "./Heatmap";
 import { DonutChart } from "./DonutChart";
 import { StackedBarChart } from "./StackedBarChart";
@@ -102,13 +103,17 @@ function StatistichePanels({ data, now }: StatistichePanelsProps) {
           <DonutChart slices={data.byTipo} formatValue={formatEuro} />
         </Panel>
         <Panel title="Top 5 clienti">
-          <BarChart
-            bars={data.topClients.map((c) => ({
-              label: `${c.label} (${c.count})`,
-              value: c.value,
-            }))}
-            formatValue={formatEuro}
-          />
+          {data.topClients.length === 0 ? (
+            <ChartEmpty />
+          ) : (
+            <BarChart
+              bars={data.topClients.map((c) => ({
+                label: `${c.label} (${c.count})`,
+                value: c.value,
+              }))}
+              formatValue={formatEuro}
+            />
+          )}
         </Panel>
       </div>
 
@@ -171,7 +176,8 @@ function YoyBadge({ value }: { value: number }) {
   const arrow = value > 0 ? "↑" : value < 0 ? "↓" : "→";
   return (
     <span className={cls}>
-      {arrow} {Math.abs(value)}% vs anno scorso
+      <span aria-hidden="true">{arrow}</span> {Math.abs(value)}% rispetto all&apos;anno
+      scorso
     </span>
   );
 }
@@ -196,7 +202,10 @@ interface SummaryStripProps {
 function SummaryStrip({ visite, ricavi, aziendeAttive }: SummaryStripProps) {
   return (
     <Card>
-      <dl className="grid grid-cols-3 gap-4 sm:gap-8">
+      <dl
+        className="grid grid-cols-3 gap-4 sm:gap-8"
+        aria-live="polite"
+      >
         <SummaryCell label="Visite" value={String(visite)} />
         <SummaryCell label="Ricavi" value={formatEuro(ricavi)} />
         <SummaryCell label="Aziende attive" value={String(aziendeAttive)} />

@@ -151,4 +151,55 @@ describe("DashboardPage", () => {
     renderDashboard();
     expect(screen.getByText("Caricamento fallito.")).toBeInTheDocument();
   });
+
+  it("renders exactly one h1 heading", () => {
+    useDashboardStatsMock.mockReturnValue(
+      baseStats({ items: [{ id: "a1" } as Attivita] })
+    );
+    renderDashboard();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+
+  it("exposes KPI figures via an aria-live region", () => {
+    useDashboardStatsMock.mockReturnValue(
+      baseStats({ items: [{ id: "a1" } as Attivita] })
+    );
+    renderDashboard();
+    const value = screen.getByText("7");
+    expect(value).toHaveAttribute("aria-live", "polite");
+  });
+
+  it("keeps the chart toggle tabs keyboard-focusable", () => {
+    useDashboardStatsMock.mockReturnValue(
+      baseStats({ items: [{ id: "a1" } as Attivita] })
+    );
+    renderDashboard();
+    const toggle = screen.getByRole("tablist", { name: /Vista grafico/i });
+    const tab = within(toggle).getByRole("tab", { name: "Incassi" });
+    tab.focus();
+    expect(tab).toHaveFocus();
+  });
+
+  it("does not break on zero and very large values", () => {
+    useDashboardStatsMock.mockReturnValue(
+      baseStats({
+        items: [{ id: "a1" } as Attivita],
+        thisMonth: {
+          total: 0,
+          count: 0,
+          byAzienda: new Map(),
+          byTipo: new Map(),
+        },
+        aziendeAttiveCount: 0,
+        trailing: {
+          totals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9_999_999],
+          counts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          labels: ["Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic", "Gen", "Feb", "Mar", "Apr", "Mag"],
+        },
+      })
+    );
+    renderDashboard();
+    expect(screen.getByText("Attività del mese")).toBeInTheDocument();
+    expect(screen.getAllByText("0").length).toBeGreaterThan(0);
+  });
 });

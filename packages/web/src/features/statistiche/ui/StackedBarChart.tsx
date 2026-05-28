@@ -1,3 +1,5 @@
+import { ChartEmpty } from "./ChartEmpty";
+
 interface Segment {
   key: string;
   label: string;
@@ -26,11 +28,11 @@ const PALETTE = [
   "color-mix(in oklab, var(--color-text-subtle) 35%, transparent)",
 ];
 
-export function StackedBarChart({
-  bars,
-  formatValue,
-}: StackedBarChartProps) {
-  const max = Math.max(...bars.map((b) => b.total), 1);
+export function StackedBarChart({ bars, formatValue }: StackedBarChartProps) {
+  const fmt = formatValue ?? String;
+  const peak = Math.max(...bars.map((b) => b.total), 0);
+  if (bars.length === 0 || peak === 0) return <ChartEmpty />;
+  const max = Math.max(peak, 1);
   const allKeys = new Map<string, { label: string; total: number }>();
   for (const b of bars) {
     for (const s of b.segments) {
@@ -47,23 +49,29 @@ export function StackedBarChart({
       return { key: k, label: v.label, total: v.total };
     });
 
+  const summary = bars.map((b) => `${b.label}: ${fmt(b.total)}`).join(", ");
+
   return (
     <div>
-      <div className="flex items-end gap-1 h-44">
+      <div
+        className="flex h-44 items-end gap-1"
+        role="img"
+        aria-label={`Ricavi mese per mese: ${summary}.`}
+      >
         {bars.map((b) => {
           const heightPct = (b.total / max) * 100;
           return (
             <div
               key={b.label}
-              className="flex-1 flex flex-col items-center min-w-0 group"
+              className="group flex min-w-0 flex-1 flex-col items-center"
             >
-              <div className="text-[10px] text-(--color-text-subtle) tabular-nums opacity-0 group-hover:opacity-100 transition-opacity h-3">
-                {formatValue ? formatValue(b.total) : b.total}
+              <div className="h-3 text-[10px] tabular-nums text-(--color-text-subtle) opacity-0 transition-opacity group-hover:opacity-100">
+                {fmt(b.total)}
               </div>
               <div
-                className="w-full bg-(--color-surface-muted) rounded-sm flex flex-col-reverse overflow-hidden"
+                className="flex w-full flex-col-reverse overflow-hidden rounded-sm bg-(--color-surface-muted)"
                 style={{ height: `${heightPct}%`, minHeight: 1 }}
-                title={`${b.label}: ${formatValue ? formatValue(b.total) : b.total}`}
+                title={`${b.label}: ${fmt(b.total)}`}
               >
                 {b.segments.map((seg) => {
                   const segPct = b.total > 0 ? (seg.value / b.total) * 100 : 0;
@@ -78,7 +86,7 @@ export function StackedBarChart({
                   );
                 })}
               </div>
-              <span className="text-[10px] text-(--color-text-muted) mt-1 truncate w-full text-center">
+              <span className="mt-1 w-full truncate text-center text-[10px] text-(--color-text-muted)">
                 {b.label}
               </span>
             </div>
@@ -86,14 +94,15 @@ export function StackedBarChart({
         })}
       </div>
       {orderedKeys.length > 0 ? (
-        <div className="flex flex-wrap gap-3 mt-4 text-xs">
+        <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1.5 text-xs">
           {orderedKeys.slice(0, 8).map((k) => (
-            <div key={k.key} className="flex items-center gap-1.5">
+            <div key={k.key} className="flex min-w-0 items-center gap-1.5">
               <span
-                className="w-2.5 h-2.5 rounded-sm"
+                aria-hidden="true"
+                className="h-2.5 w-2.5 shrink-0 rounded-sm"
                 style={{ backgroundColor: colorByKey.get(k.key) }}
               />
-              <span className="text-(--color-text-muted)">{k.label}</span>
+              <span className="truncate text-(--color-text-muted)">{k.label}</span>
             </div>
           ))}
         </div>
