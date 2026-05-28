@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 import type { ReactNode } from "react";
 import type { ActorContext, Repositories } from "@vet/shared";
+import { makeActorContext } from "@vet/shared/testing";
 import { createInMemoryRepositories } from "../../../../infrastructure/composition/in-memory";
 import { RepositoriesProvider } from "../../../../infrastructure/RepositoriesContext";
 import { createQueryClient } from "../../../../shared/data/queryClient";
@@ -18,15 +19,7 @@ function wrapWith(repos: Repositories) {
 }
 
 function makeActor(overrides: Partial<ActorContext> = {}): ActorContext {
-  return {
-    uid: "vet-1",
-    email: "vet1@example.com",
-    displayName: "Vet One",
-    roleId: "vet",
-    caps: new Set<never>(),
-    approved: true,
-    ...overrides,
-  };
+  return makeActorContext({ uid: "vet-1", roleId: "vet", ...overrides });
 }
 
 async function seedActivity(

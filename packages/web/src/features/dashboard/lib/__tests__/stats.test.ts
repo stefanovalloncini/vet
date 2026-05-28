@@ -1,27 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { makeAttivita } from "@vet/shared/testing";
 import { trailingMonths } from "../stats";
-import type { Attivita } from "@vet/shared";
-
-function makeAttivita(overrides: Partial<Attivita>): Attivita {
-  const now = new Date("2026-05-15T10:00:00Z");
-  return {
-    id: overrides.id ?? `a-${Math.random()}`,
-    data: overrides.data ?? now,
-    aziendaId: overrides.aziendaId ?? "az1",
-    aziendaNome: overrides.aziendaNome ?? "Cascina",
-    tipoId: overrides.tipoId ?? "visita",
-    tipoNome: overrides.tipoNome ?? "Visita",
-    oraria: overrides.oraria ?? false,
-    tariffa: overrides.tariffa ?? 50,
-    totale: overrides.totale ?? overrides.tariffa ?? 50,
-    ownerUid: overrides.ownerUid ?? "u1",
-    ownerEmail: overrides.ownerEmail ?? "u1@vet.com",
-    ownerName: overrides.ownerName ?? "Vet One",
-    createdAt: overrides.createdAt ?? now,
-    updatedAt: overrides.updatedAt ?? now,
-    isDeleted: overrides.isDeleted ?? false,
-  } as Attivita;
-}
 
 describe("trailingMonths", () => {
   it("returns 12 months of zeros when no items", () => {

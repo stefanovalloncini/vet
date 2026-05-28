@@ -1,28 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Attivita } from "@vet/shared";
+import { makeAttivita as att } from "@vet/shared/testing";
 import { computeTotals, groupAttivita } from "../totals";
-
-function att(over: Partial<Attivita> & { id: string }): Attivita {
-  return {
-    data: new Date(2026, 4, 15),
-    aziendaId: "az1",
-    aziendaNome: "Cascina Uno",
-    tipoId: "t1",
-    tipoNome: "Visita",
-    oraria: false,
-    adElemento: false,
-    tariffa: 50,
-    totale: 50,
-    ownerUid: "u1",
-    ownerEmail: "u1@x.it",
-    ownerName: "Vet Uno",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isDeleted: false,
-    schemaVersion: 1,
-    ...over,
-  };
-}
 
 describe("computeTotals", () => {
   it("counts items and sums totale", () => {
