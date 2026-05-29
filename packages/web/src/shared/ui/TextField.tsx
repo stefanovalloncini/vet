@@ -5,6 +5,7 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string | undefined;
   hint?: string | undefined;
+  compact?: boolean;
 }
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField({
@@ -12,12 +13,13 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   label,
   error,
   hint,
+  compact = false,
   className = "",
   ...rest
 }, ref) {
   const isDateLike = rest.type === "date" || rest.type === "datetime-local" || rest.type === "time" || rest.type === "month" || rest.type === "week";
   const inputCls = [
-    "block w-full min-w-0 box-border h-11 rounded-lg border bg-(--color-surface) px-3.5 text-sm text-(--color-text)",
+    `block w-full min-w-0 box-border ${compact ? "h-9" : "h-11"} rounded-md border bg-(--color-surface) px-3.5 text-sm text-(--color-text)`,
     "placeholder:text-(--color-text-subtle)",
     "focus:outline-none disabled:opacity-50",
     "transition-[border-color] duration-(--motion-fast) ease-(--ease-out-quart)",
@@ -28,12 +30,13 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     className,
   ].join(" ");
 
+  const labelCls = compact
+    ? "block text-[11px] uppercase tracking-wider font-medium text-(--color-text-muted) mb-1"
+    : "block text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-2";
+
   return (
     <div>
-      <label
-        htmlFor={id}
-        className="block text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-2"
-      >
+      <label htmlFor={id} className={labelCls}>
         {label}
       </label>
       <input ref={ref} id={id} {...rest} className={inputCls} />

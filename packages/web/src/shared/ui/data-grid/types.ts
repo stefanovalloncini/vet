@@ -21,6 +21,7 @@ export interface Column<T> {
   footer?: (rows: ReadonlyArray<T>) => ReactNode;
   sortable?: boolean;
   align?: Align;
+  tone?: "default" | "muted";
   width?: number | string;
   hiddenByDefault?: boolean;
   export?: (row: T) => ExportCell;

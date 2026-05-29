@@ -22,43 +22,47 @@ export function FilterBar({ filters, onChange, i18nLabels }: FilterBarProps) {
   const reactId = useId();
   if (filters.length === 0) return null;
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div className="flex flex-wrap items-end gap-2 rounded-lg border border-(--color-border) bg-(--color-surface-muted)/40 p-2">
       {filters.map((f) => {
         const fieldId = `${reactId}-${f.id}`;
         if (f.kind === "text") {
           const value = typeof f.value === "string" ? f.value : "";
           return (
-            <TextField
-              key={f.id}
-              id={fieldId}
-              label={f.label}
-              value={value}
-              onChange={(e) => onChange(updateFilter(filters, f.id, e.target.value))}
-            />
+            <div key={f.id} className="min-w-[11rem]">
+              <TextField
+                compact
+                id={fieldId}
+                label={f.label}
+                value={value}
+                onChange={(e) => onChange(updateFilter(filters, f.id, e.target.value))}
+              />
+            </div>
           );
         }
         if (f.kind === "select") {
           const value = typeof f.value === "string" ? f.value : "";
           const opts = f.options ?? [];
           return (
-            <Select
-              key={f.id}
-              id={fieldId}
-              label={f.label}
-              value={value}
-              options={opts}
-              onChange={(e) => onChange(updateFilter(filters, f.id, e.target.value))}
-            />
+            <div key={f.id} className="min-w-[11rem]">
+              <Select
+                compact
+                id={fieldId}
+                label={f.label}
+                value={value}
+                options={opts}
+                onChange={(e) => onChange(updateFilter(filters, f.id, e.target.value))}
+              />
+            </div>
           );
         }
         if (f.kind === "multi-select") {
           const arr = Array.isArray(f.value) ? (f.value as ReadonlyArray<string>) : [];
           const opts = f.options ?? [];
           return (
-            <div key={f.id}>
+            <div key={f.id} className="min-w-[11rem]">
               <label
                 htmlFor={fieldId}
-                className="block text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-2"
+                className="block text-[11px] uppercase tracking-wider font-medium text-(--color-text-muted) mb-1"
               >
                 {f.label}
               </label>
@@ -71,7 +75,7 @@ export function FilterBar({ filters, onChange, i18nLabels }: FilterBarProps) {
                   for (const opt of e.target.selectedOptions) selected.push(opt.value);
                   onChange(updateFilter(filters, f.id, selected));
                 }}
-                className="w-full min-h-[2.75rem] rounded-lg border border-(--color-border) bg-(--color-surface) px-3.5 py-2 text-sm text-(--color-text) focus:outline-none focus:border-(--color-accent) hover:border-(--color-border-strong)"
+                className="w-full min-h-[2.25rem] rounded-md border border-(--color-border) bg-(--color-surface) px-3.5 py-1.5 text-sm text-(--color-text) focus:outline-none focus:border-(--color-accent) hover:border-(--color-border-strong)"
               >
                 {opts.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -91,6 +95,7 @@ export function FilterBar({ filters, onChange, i18nLabels }: FilterBarProps) {
           return (
             <div key={f.id} className="grid grid-cols-2 gap-2">
               <TextField
+                compact
                 id={`${fieldId}-from`}
                 type="date"
                 label={`${f.label} ↦`}
@@ -100,6 +105,7 @@ export function FilterBar({ filters, onChange, i18nLabels }: FilterBarProps) {
                 }
               />
               <TextField
+                compact
                 id={`${fieldId}-to`}
                 type="date"
                 label={`${f.label} ↤`}

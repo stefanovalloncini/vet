@@ -31,7 +31,7 @@ const dotMap: Record<Tone, string> = {
   danger: "bg-(--color-danger)",
 };
 
-export function Badge({ tone = "neutral", size = "sm", dot, children, ...rest }: BadgeProps) {
+export function Badge({ tone = "neutral", size: _size, dot, children, ...rest }: BadgeProps) {
   if (dot && !children) {
     return (
       <span
@@ -41,9 +41,8 @@ export function Badge({ tone = "neutral", size = "sm", dot, children, ...rest }:
       />
     );
   }
-  const padding = size === "sm" ? "px-1.5 py-0.5 text-[11px]" : "px-2 py-1 text-xs";
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-md border ${padding} ${toneMap[tone]} font-medium`} {...rest}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full h-5 px-2 text-[12px] border ${toneMap[tone]} font-medium`} {...rest}>
       {dot ? <span className={`h-1.5 w-1.5 rounded-full ${dotMap[tone]}`} aria-hidden="true" /> : null}
       {children}
     </span>

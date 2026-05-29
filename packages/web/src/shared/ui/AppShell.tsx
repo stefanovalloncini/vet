@@ -42,7 +42,7 @@ export function AppShell({ children, rightRail, wide = false }: AppShellProps) {
   useBackupReminder();
 
   const askLogout = () => setConfirmLogout(true);
-  const maxW = wide ? "max-w-[1400px]" : "max-w-6xl";
+  const maxW = wide ? "max-w-none" : "max-w-[1600px]";
 
   return (
     <div className="min-h-screen flex bg-(--color-background)">

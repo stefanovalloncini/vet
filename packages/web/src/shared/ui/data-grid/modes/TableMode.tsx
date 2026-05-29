@@ -97,8 +97,10 @@ export function TableMode<T>({
               <td
                 key={col.id}
                 className={cx(
-                  "py-2.5 pr-3 align-top text-(--color-text)",
+                  "py-2.5 pr-3 align-top",
+                  col.tone === "muted" ? "text-(--color-text-muted)" : "text-(--color-text)",
                   alignClass(col.align as Column<unknown>["align"]),
+                  col.align === "end" ? "tabular-nums" : false,
                   col.cellClassName
                 )}
                 style={col.width !== undefined ? { width: col.width } : undefined}
@@ -146,10 +148,10 @@ export function TableMode<T>({
   }
 
   return (
-    <table className="w-full text-sm border-collapse">
+    <table className="w-full text-[13px] border-collapse">
       {caption ? <caption className="sr-only">{caption}</caption> : null}
       <thead>
-        <tr className="text-left text-xs uppercase tracking-wider text-(--color-text-muted) border-b border-(--color-border)">
+        <tr className="text-left text-xs uppercase tracking-wider text-(--color-text) border-b border-(--color-border-strong)">
           {expand ? <th className="py-2 pr-2 font-medium w-8" /> : null}
           {columns.map((col) => {
             const isSortable = col.sortable !== false;

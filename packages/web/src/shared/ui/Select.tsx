@@ -12,6 +12,7 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   error?: string | undefined;
   hint?: string | undefined;
   action?: ReactNode;
+  compact?: boolean;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select({
@@ -21,11 +22,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   error,
   hint,
   action,
+  compact = false,
   className = "",
   ...rest
 }, ref) {
   const cls = [
-    "w-full h-11 rounded-lg border bg-(--color-surface) px-3.5 text-sm text-(--color-text)",
+    `w-full ${compact ? "h-9" : "h-11"} rounded-md border bg-(--color-surface) px-3.5 text-sm text-(--color-text)`,
     "focus:outline-none disabled:opacity-50 appearance-none",
     "transition-[border-color] duration-(--motion-fast) ease-(--ease-out-quart)",
     "bg-[url('data:image/svg+xml;utf8,<svg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%236b6b73%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22><polyline%20points=%226%209%2012%2015%2018%209%22/></svg>')] bg-no-repeat bg-[right_1rem_center] pr-10",
@@ -35,13 +37,17 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
     className,
   ].join(" ");
 
+  const headRowCls = compact
+    ? "flex items-baseline justify-between mb-1 gap-3"
+    : "flex items-baseline justify-between mb-2 gap-3";
+  const labelCls = compact
+    ? "block text-[11px] uppercase tracking-wider font-medium text-(--color-text-muted)"
+    : "block text-xs uppercase tracking-wider font-medium text-(--color-text-muted)";
+
   return (
     <div>
-      <div className="flex items-baseline justify-between mb-2 gap-3">
-        <label
-          htmlFor={id}
-          className="block text-xs uppercase tracking-wider font-medium text-(--color-text-muted)"
-        >
+      <div className={headRowCls}>
+        <label htmlFor={id} className={labelCls}>
           {label}
         </label>
         {action ? <div className="text-xs">{action}</div> : null}

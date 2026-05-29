@@ -26,7 +26,7 @@ export function Card({
 }: CardProps) {
   const pad = padding ?? (padded ? "md" : "none");
   const cls = [
-    "bg-(--color-surface) border border-(--color-border) rounded-xl sm:rounded-2xl",
+    "bg-(--color-surface) border border-(--color-border) rounded-lg",
     paddingMap[pad],
     elevated ? "shadow-[var(--shadow-soft)]" : "",
     className,

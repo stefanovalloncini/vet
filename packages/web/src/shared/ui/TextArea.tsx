@@ -16,7 +16,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
   ...rest
 }, ref) {
   const cls = [
-    "w-full rounded-xl border bg-(--color-surface) px-4 py-3 text-sm text-(--color-text)",
+    "w-full rounded-md border bg-(--color-surface) px-4 py-3 text-sm text-(--color-text)",
     "placeholder:text-(--color-text-subtle) min-h-[3rem] resize-y",
     "focus:outline-none focus:ring-2 disabled:opacity-50",
     error
