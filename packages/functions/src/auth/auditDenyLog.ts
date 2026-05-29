@@ -9,7 +9,8 @@ export type AuthDenyReason =
   | "allowlist-miss"
   | "role-missing"
   | "provider-not-allowed"
-  | "email-not-verified";
+  | "email-not-verified"
+  | "ticket-invalid";
 
 export type AuthDenySource = "beforeSignIn" | "beforeUserCreated";
 

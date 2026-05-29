@@ -184,6 +184,14 @@
         { "fieldPath": "action", "order": "ASCENDING" },
         { "fieldPath": "at", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "signInTickets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "emailNorm", "order": "ASCENDING" },
+        { "fieldPath": "consumed", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

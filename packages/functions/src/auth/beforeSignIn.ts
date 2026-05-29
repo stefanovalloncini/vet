@@ -1,10 +1,13 @@
 import { beforeUserSignedIn, HttpsError } from "firebase-functions/v2/identity";
 import { logger } from "firebase-functions/v2";
+import { Timestamp } from "firebase-admin/firestore";
 import type { Capability } from "@vet/shared";
 import { encodeCaps, normalizeEmail } from "@vet/shared";
+import { adminDb } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
 import { recordAccessRequest } from "./accessRequestLog.js";
 import { recordAuthDenyAudit, type AuthDenyReason } from "./auditDenyLog.js";
+import { decideTicketEnforcement } from "./ticketEnforcement.js";
 
 interface ComposeInput {
   roleId: string;
@@ -58,6 +61,42 @@ export function decideAuthResult(input: DecideInput): DecideOutput {
 function denyAndThrow(reason: AuthDenyReason, context: Record<string, unknown>): never {
   logger.warn("auth.beforeSignIn.deny", { reason, ...context });
   throw new HttpsError("permission-denied", "");
+}
+
+async function enforceSignInTicket(
+  signInMethod: string | undefined,
+  emailNorm: string
+): Promise<boolean> {
+  if (!decideTicketEnforcement({ signInMethod, ticket: null, nowMs: 0 }).requiresTicket) {
+    return true;
+  }
+
+  const nowMs = Date.now();
+  const snap = await adminDb
+    .collection("signInTickets")
+    .where("emailNorm", "==", emailNorm)
+    .where("consumed", "==", true)
+    .limit(10)
+    .get();
+
+  const valid = snap.docs.find(
+    (d) =>
+      decideTicketEnforcement({
+        signInMethod,
+        ticket: {
+          consumed: true,
+          expiresAtMs: (d.get("expiresAt") as Timestamp | undefined)?.toMillis(),
+        },
+        nowMs,
+      }).allow
+  );
+
+  if (!valid) return false;
+
+  await adminDb.runTransaction(async (tx) => {
+    tx.delete(valid.ref);
+  });
+  return true;
 }
 
 const ALLOWED_PROVIDERS = new Set(["google.com", "password"]);
@@ -128,6 +167,20 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
         eventType,
       });
       denyAndThrow("allowlist-miss", { email: norm, uid, eventType });
+    }
+
+    const signInMethod = event.credential?.signInMethod;
+    const ticketOk = await enforceSignInTicket(signInMethod, norm);
+    if (!ticketOk) {
+      await recordAuthDenyAudit({
+        emailNorm: norm,
+        email,
+        actorUid: uid,
+        reason: "ticket-invalid",
+        source: "beforeSignIn",
+        eventType,
+      });
+      denyAndThrow("ticket-invalid", { email: norm, uid, signInMethod, eventType });
     }
 
     const existingUser = uid ? await repos.users.getById(uid) : null;
