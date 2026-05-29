@@ -1,6 +1,7 @@
 export { LoginPage } from "./ui/LoginPage";
 export { EmailLinkCompletePage } from "./ui/EmailLinkCompletePage";
 export { RequireAuth } from "./ui/RequireAuth";
+export { RequireCapability } from "./ui/RequireCapability";
 export { PendingApproval } from "./ui/PendingApproval";
 export { CenteredAuthLayout } from "./ui/CenteredAuthLayout";
 export { useAuthState } from "./hooks/useAuthState";

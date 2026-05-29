@@ -5,6 +5,7 @@ import {
   type ComponentType,
   type ReactNode,
 } from "react";
+import type { Capability } from "@vet/shared";
 import { Brand, RouteBoundary, Spinner } from "./shared/ui";
 
 type LazyComp = LazyExoticComponent<ComponentType>;
@@ -88,6 +89,7 @@ const StatistichePage = lazy(() =>
 export interface AppRoute {
   path: string;
   Component: LazyComp;
+  requiredCap?: Capability;
 }
 
 type RouteParam = string;
@@ -185,13 +187,13 @@ export const PROTECTED_ROUTES: ReadonlyArray<AppRoute> = [
   { path: routes.aziendaRiepilogo.path, Component: RiepilogoPdfPage },
   { path: routes.cestino.path, Component: CestinoPage },
   { path: routes.impostazioni.path, Component: ImpostazioniPage },
-  { path: routes.adminTipiAttivita.path, Component: ActivityTypesPage },
-  { path: routes.adminRoles.path, Component: RolesListPage },
-  { path: routes.adminRoleNew.path, Component: RoleEditorPage },
-  { path: routes.adminRoleEdit.path, Component: RoleEditorPage },
-  { path: routes.adminAllowlist.path, Component: AllowlistPage },
-  { path: routes.adminAudit.path, Component: AuditPage },
-  { path: routes.adminStatsVet.path, Component: VetStatsPage },
+  { path: routes.adminTipiAttivita.path, Component: ActivityTypesPage, requiredCap: "activity_types.manage" },
+  { path: routes.adminRoles.path, Component: RolesListPage, requiredCap: "roles.read" },
+  { path: routes.adminRoleNew.path, Component: RoleEditorPage, requiredCap: "roles.read" },
+  { path: routes.adminRoleEdit.path, Component: RoleEditorPage, requiredCap: "roles.read" },
+  { path: routes.adminAllowlist.path, Component: AllowlistPage, requiredCap: "allowlist.read" },
+  { path: routes.adminAudit.path, Component: AuditPage, requiredCap: "audit.read" },
+  { path: routes.adminStatsVet.path, Component: VetStatsPage, requiredCap: "users.read.all" },
   { path: routes.conti.path, Component: ContiPage },
   { path: routes.pagamenti.path, Component: PagamentiPage },
   { path: routes.agenda.path, Component: AgendaPage },

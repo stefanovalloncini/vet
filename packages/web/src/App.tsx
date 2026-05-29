@@ -4,6 +4,7 @@ import {
   LoginPage,
   EmailLinkCompletePage,
   RequireAuth,
+  RequireCapability,
 } from "./features/auth";
 import {
   PROTECTED_ROUTES,
@@ -102,14 +103,20 @@ function AppRoutes() {
             }
           />
         ) : null}
-        {PROTECTED_ROUTES.map(({ path, Component }) => (
+        {PROTECTED_ROUTES.map(({ path, Component, requiredCap }) => (
           <Route
             key={path}
             path={path}
             element={
               <RouteShell pathname={pathname}>
                 <RequireAuth>
-                  <Component />
+                  {requiredCap ? (
+                    <RequireCapability cap={requiredCap}>
+                      <Component />
+                    </RequireCapability>
+                  ) : (
+                    <Component />
+                  )}
                 </RequireAuth>
               </RouteShell>
             }

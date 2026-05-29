@@ -41,7 +41,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: "Amministrazione",
     items: [
-      { to: "/admin/tipi-attivita", label: "Tipi attività", icon: Tags, requiredCap: "activity_types.read" },
+      { to: "/admin/tipi-attivita", label: "Tipi attività", icon: Tags, requiredCap: "activity_types.manage" },
       { to: "/admin/ruoli", label: "Ruoli", icon: ShieldCheck, requiredCap: "roles.read" },
       { to: "/admin/allowlist", label: "Allowlist", icon: KeyRound, requiredCap: "allowlist.read" },
       { to: "/admin/audit", label: "Audit", icon: ScrollText, requiredCap: "audit.read" },
