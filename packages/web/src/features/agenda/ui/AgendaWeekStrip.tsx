@@ -4,7 +4,7 @@ import type { Attivita } from "@vet/shared";
 import { Button } from "../../../shared/ui";
 import { MONTHS, WEEKDAYS_SHORT, agendaI18n as t } from "../i18n";
 import { addDays, buildWeekStrip, sameDay, startOfWeek } from "../lib/calendar";
-import { dateInputValue } from "../../../shared/lib/format";
+import { dateInputValue, mondayIndex } from "../../../shared/lib/format";
 
 interface AgendaWeekStripProps {
   readonly selectedDate: Date;
@@ -74,7 +74,7 @@ export function AgendaWeekStrip({
         {days.map((d) => {
           const count = counts.get(dateInputValue(d.date)) ?? 0;
           const isSelected = sameDay(d.date, selectedDate);
-          const idx = (d.date.getDay() + 6) % 7;
+          const idx = mondayIndex(d.date);
           return (
             <button
               key={d.date.toISOString()}

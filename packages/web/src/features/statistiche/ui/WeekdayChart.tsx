@@ -1,4 +1,5 @@
 import type { Attivita } from "@vet/shared";
+import { mondayIndex } from "../../../shared/lib/format";
 import { WEEKDAYS_IT as WEEKDAYS } from "../../../shared/i18n/months";
 import { ChartEmpty } from "./ChartEmpty";
 
@@ -9,7 +10,7 @@ interface WeekdayChartProps {
 export function WeekdayChart({ items }: WeekdayChartProps) {
   const buckets = new Array<number>(7).fill(0);
   for (const a of items) {
-    const dow = (a.data.getDay() + 6) % 7;
+    const dow = mondayIndex(a.data);
     buckets[dow] = (buckets[dow] ?? 0) + 1;
   }
   const total = buckets.reduce((s, n) => s + n, 0);

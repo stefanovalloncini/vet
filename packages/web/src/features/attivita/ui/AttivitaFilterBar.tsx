@@ -2,7 +2,7 @@ import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Badge, Button, Card, Dialog, IconButton, Select, TextField } from "../../../shared/ui";
 import { attivitaI18n as t } from "../i18n";
-import { dateInputValue } from "../../../shared/lib/format";
+import { dateInputValue, mondayIndex } from "../../../shared/lib/format";
 
 const QUICK_RANGES = [
   {
@@ -17,7 +17,7 @@ const QUICK_RANGES = [
     id: "week",
     label: "Questa settimana",
     compute: (now: Date) => {
-      const day = (now.getDay() + 6) % 7;
+      const day = mondayIndex(now);
       const start = new Date(now);
       start.setDate(now.getDate() - day);
       const end = new Date(start);

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { mondayIndex } from "../../../shared/lib/format";
 import type { Attivita } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { filterKey, queryKeys } from "../../../shared/data/queryClient";
@@ -27,7 +28,7 @@ interface UseAgendaDataResult {
 }
 
 function startOfWeek(d: Date): Date {
-  const dayOfWeek = (d.getDay() + 6) % 7;
+  const dayOfWeek = mondayIndex(d);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() - dayOfWeek, 0, 0, 0, 0);
 }
 

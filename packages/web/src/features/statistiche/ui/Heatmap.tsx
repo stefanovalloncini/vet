@@ -1,4 +1,5 @@
 import type { Attivita } from "@vet/shared";
+import { mondayIndex } from "../../../shared/lib/format";
 import { ChartEmpty } from "./ChartEmpty";
 
 interface HeatmapProps {
@@ -13,7 +14,7 @@ export function Heatmap({ items, weeks = 13, now = new Date() }: HeatmapProps) {
   const days = weeks * 7;
   const startOfDay = new Date(now);
   startOfDay.setHours(0, 0, 0, 0);
-  const offset = (startOfDay.getDay() + 6) % 7;
+  const offset = mondayIndex(startOfDay);
   const lastDay = new Date(startOfDay);
   lastDay.setDate(startOfDay.getDate() + (6 - offset));
   const firstDay = new Date(lastDay);
@@ -39,7 +40,7 @@ export function Heatmap({ items, weeks = 13, now = new Date() }: HeatmapProps) {
   for (let i = 0; i < days; i++) {
     const d = new Date(firstDay);
     d.setDate(firstDay.getDate() + i);
-    const dow = (d.getDay() + 6) % 7;
+    const dow = mondayIndex(d);
     const count = counts.get(dayKey(d)) ?? 0;
     grid[dow]!.push({ date: d, count });
   }

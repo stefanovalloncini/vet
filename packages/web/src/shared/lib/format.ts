@@ -19,6 +19,10 @@ export function formatDate(value: Date): string {
   return dateFormatter.format(value);
 }
 
+export function mondayIndex(d: Date): number {
+  return (d.getDay() + 6) % 7;
+}
+
 export function dateInputValue(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");

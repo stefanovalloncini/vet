@@ -3,6 +3,7 @@ import {
   formatEuro,
   formatDate,
   dateInputValue,
+  mondayIndex,
   parseDateInput,
 } from "../format";
 
@@ -79,5 +80,14 @@ describe("parseDateInput", () => {
     expect(parsed?.getFullYear()).toBe(original.getFullYear());
     expect(parsed?.getMonth()).toBe(original.getMonth());
     expect(parsed?.getDate()).toBe(original.getDate());
+  });
+});
+
+describe("mondayIndex", () => {
+  it("maps Monday to 0 through Sunday to 6", () => {
+    // 2024-01-01 was a Monday.
+    for (let i = 0; i < 7; i++) {
+      expect(mondayIndex(new Date(2024, 0, 1 + i))).toBe(i);
+    }
   });
 });

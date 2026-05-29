@@ -1,3 +1,5 @@
+import { mondayIndex } from "../../../shared/lib/format";
+
 export interface WeekDay {
   date: Date;
   isToday: boolean;
@@ -14,7 +16,7 @@ export function buildWeekStrip(anchor: Date, today: Date = new Date()): WeekDay[
 }
 
 export function startOfWeek(d: Date): Date {
-  const dayOfWeek = (d.getDay() + 6) % 7;
+  const dayOfWeek = mondayIndex(d);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() - dayOfWeek, 0, 0, 0, 0);
 }
 
