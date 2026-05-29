@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
+import { readActorClaims } from "./actorClaims.js";
 
 interface Caller {
   uid: string;
@@ -16,7 +17,7 @@ export const selfRevoke = onCall(
   async (request) => {
     const auth = request.auth;
     const caller: Caller | null = auth
-      ? { uid: auth.uid, email: (auth.token.email as string) ?? "" }
+      ? { uid: auth.uid, email: readActorClaims(auth.token).email }
       : null;
 
     ensureCallerSignedIn(caller);

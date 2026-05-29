@@ -3,7 +3,8 @@ import { logger } from "firebase-functions/v2";
 import { z } from "zod";
 import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
-import { decodeCaps, encodeCaps } from "@vet/shared";
+import { encodeCaps } from "@vet/shared";
+import { readActorClaims } from "./actorClaims.js";
 
 const inputSchema = z
   .object({
@@ -16,8 +17,8 @@ export const approveUser = onCall(
   { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
     const actorUid = request.auth?.uid;
-    const rawCaps = (request.auth?.token?.caps as string[] | undefined) ?? [];
-    if (!actorUid || !decodeCaps(rawCaps).includes("users.approve")) {
+    const { email: actorEmail, caps } = readActorClaims(request.auth?.token);
+    if (!actorUid || !caps.includes("users.approve")) {
       throw new HttpsError("permission-denied", "");
     }
 
@@ -40,7 +41,6 @@ export const approveUser = onCall(
     if (!user) throw new HttpsError("not-found", "user");
     if (!role) throw new HttpsError("not-found", "role");
 
-    const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
     const capsVer = Date.now();
 
     await repos.run(async (tx) => {

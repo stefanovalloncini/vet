@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { getRepositories } from "../infrastructure/composition.js";
-import { decodeCaps } from "@vet/shared";
+import { readActorClaims } from "../auth/actorClaims.js";
 import { ensureRecentAuth } from "../auth/recentAuth.js";
 
 const inputSchema = z.object({ id: z.string().min(1).max(64) }).strict();
@@ -24,11 +24,7 @@ export const purgeAttivita = onCall(
   async (request) => {
     const auth = request.auth;
     const caller: Caller | null = auth
-      ? {
-          uid: auth.uid,
-          email: (auth.token.email as string) ?? "",
-          caps: decodeCaps((auth.token.caps as string[]) ?? []),
-        }
+      ? { uid: auth.uid, ...readActorClaims(auth.token) }
       : null;
 
     ensureCanPurge(caller);

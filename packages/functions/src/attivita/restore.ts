@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { getRepositories } from "../infrastructure/composition.js";
-import { decodeCaps } from "@vet/shared";
+import { readActorClaims } from "../auth/actorClaims.js";
 
 const inputSchema = z.object({ id: z.string().min(1).max(64) }).strict();
 
@@ -27,11 +27,7 @@ export const restoreAttivita = onCall(
   async (request) => {
     const auth = request.auth;
     if (!auth) throw new HttpsError("unauthenticated", "");
-    const caller: Caller = {
-      uid: auth.uid,
-      email: (auth.token.email as string) ?? "",
-      caps: decodeCaps((auth.token.caps as string[]) ?? []),
-    };
+    const caller: Caller = { uid: auth.uid, ...readActorClaims(auth.token) };
 
     let id: string;
     try {

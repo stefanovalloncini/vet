@@ -3,7 +3,7 @@ import { logger } from "firebase-functions/v2";
 import { z } from "zod";
 import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
-import { decodeCaps } from "@vet/shared";
+import { readActorClaims } from "./actorClaims.js";
 import { ensureRecentAuth } from "./recentAuth.js";
 
 const inputSchema = z.object({ uid: z.string().min(1).max(128) }).strict();
@@ -12,8 +12,8 @@ export const rejectUser = onCall(
   { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
     const actorUid = request.auth?.uid;
-    const rawCaps = (request.auth?.token?.caps as string[] | undefined) ?? [];
-    if (!actorUid || !decodeCaps(rawCaps).includes("users.approve")) {
+    const { email: actorEmail, caps } = readActorClaims(request.auth?.token);
+    if (!actorUid || !caps.includes("users.approve")) {
       throw new HttpsError("permission-denied", "");
     }
     ensureRecentAuth(request);
@@ -33,8 +33,6 @@ export const rejectUser = onCall(
     if (!user) {
       throw new HttpsError("not-found", "user");
     }
-
-    const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
 
     await repos.run(async (tx) => {
       await tx.users.hardDelete(targetUid);

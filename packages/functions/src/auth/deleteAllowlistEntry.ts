@@ -1,7 +1,8 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { getRepositories } from "../infrastructure/composition.js";
-import { decodeCaps, normalizeEmail } from "@vet/shared";
+import { normalizeEmail } from "@vet/shared";
+import { readActorClaims } from "./actorClaims.js";
 import { ensureRecentAuth } from "./recentAuth.js";
 
 const inputSchema = z
@@ -26,11 +27,7 @@ export const deleteAllowlistEntry = onCall(
   async (request) => {
     const auth = request.auth;
     const caller: Caller | null = auth
-      ? {
-          uid: auth.uid,
-          email: (auth.token.email as string) ?? "",
-          caps: decodeCaps((auth.token.caps as string[]) ?? []),
-        }
+      ? { uid: auth.uid, ...readActorClaims(auth.token) }
       : null;
 
     ensureCanManageAllowlist(caller);

@@ -2,18 +2,15 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
 import { getRepositories } from "../infrastructure/composition.js";
 import { toHttpsError } from "../infrastructure/httpsErrors.js";
-import {
-  decodeCaps,
-  normalizeEmail,
-  rejectAccessRequestInputSchema,
-} from "@vet/shared";
+import { normalizeEmail, rejectAccessRequestInputSchema } from "@vet/shared";
+import { readActorClaims } from "./actorClaims.js";
 
 export const rejectAccessRequest = onCall(
   { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
     const actorUid = request.auth?.uid;
-    const rawCaps = (request.auth?.token?.caps as string[] | undefined) ?? [];
-    if (!actorUid || !decodeCaps(rawCaps).includes("allowlist.manage")) {
+    const { email: actorEmail, caps } = readActorClaims(request.auth?.token);
+    if (!actorUid || !caps.includes("allowlist.manage")) {
       throw new HttpsError("permission-denied", "");
     }
 
@@ -25,7 +22,6 @@ export const rejectAccessRequest = onCall(
     }
 
     const emailNorm = normalizeEmail(input.email);
-    const actorEmail = (request.auth?.token?.email as string | undefined) ?? "";
     const repos = getRepositories();
 
     try {

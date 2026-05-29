@@ -2,7 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { z } from "zod";
 import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
-import { decodeCaps } from "@vet/shared";
+import { readActorClaims } from "./actorClaims.js";
 import { ensureRecentAuth } from "./recentAuth.js";
 
 const inputSchema = z.object({ uid: z.string().min(1).max(128) }).strict();
@@ -23,9 +23,8 @@ export const revokeUserSession = onCall(
   { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
     const auth = request.auth;
-    const caller: Caller | null = auth
-      ? { uid: auth.uid, caps: decodeCaps((auth.token.caps as string[]) ?? []) }
-      : null;
+    const { email: actorEmail, caps } = readActorClaims(auth?.token);
+    const caller: Caller | null = auth ? { uid: auth.uid, caps } : null;
 
     ensureCanRevoke(caller);
     ensureRecentAuth(request);
@@ -49,7 +48,7 @@ export const revokeUserSession = onCall(
       });
       await tx.audit.record({
         actorUid: caller!.uid,
-        actorEmail: (auth?.token.email as string) ?? "",
+        actorEmail,
         action: "user.session.revoke",
         targetType: "user",
         targetId: uid,

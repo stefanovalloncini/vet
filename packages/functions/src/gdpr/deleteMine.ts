@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
 import { ensureRecentAuth } from "../auth/recentAuth.js";
+import { readActorClaims } from "../auth/actorClaims.js";
 
 const ANON_UID = "deleted-user";
 const ANON_NAME = "—";
@@ -13,7 +14,7 @@ export const gdprDeleteMine = onCall(
     if (!auth) throw new HttpsError("unauthenticated", "");
     ensureRecentAuth(request);
     const uid = auth.uid;
-    const email = (auth.token.email as string) ?? "";
+    const email = readActorClaims(auth.token).email;
 
     const repos = getRepositories();
     const attivita = await repos.attivita.deleteAllForOwner(uid);
