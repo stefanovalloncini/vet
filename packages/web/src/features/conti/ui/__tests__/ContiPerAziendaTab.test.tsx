@@ -8,6 +8,7 @@ import type {
 } from "@vet/shared";
 import { InMemoryAuthService } from "@vet/shared/testing";
 import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
+import { setViewport } from "../../../../__tests__/viewport";
 import { ContiPerAziendaTab } from "../ContiPerAziendaTab";
 
 function actor(caps: Capability[] = []): ActorContext {
@@ -111,6 +112,34 @@ describe("ContiPerAziendaTab", () => {
       })
     );
     expect(btn.className).toContain("h-11");
+  });
+
+  it("renders the period as a formatted date range and euro total in the desktop table", async () => {
+    setViewport(1280);
+    const repos = reposWith([], () =>
+      Promise.resolve([
+        conto({
+          periodoFrom: new Date(2026, 0, 1),
+          periodoTo: new Date(2026, 2, 31),
+          totaleConto: 250,
+        }),
+      ])
+    );
+    const { container } = render(<ContiPerAziendaTab aziendaId="az1" />, {
+      wrapper: buildProvidersWrapper({ repos }),
+    });
+    await waitFor(() =>
+      expect(
+        within(container).getByText(
+          (text) =>
+            text.includes("01/01/2026") && text.includes("31/03/2026")
+        )
+      ).toBeInTheDocument()
+    );
+    expect(within(container).getByText(/250,00/)).toBeInTheDocument();
+    expect(
+      within(container).queryByText(/\d{2}\.\d{3}\.\d{3}\.\d{3}/)
+    ).not.toBeInTheDocument();
   });
 
   it("does not crash on a very large total", async () => {

@@ -31,6 +31,7 @@ const COLUMNS: ReadonlyArray<Column<Conto>> = [
     header: "Periodo",
     accessor: (c) => c.periodoFrom.getTime(),
     sortable: true,
+    cell: (c) => `${formatDate(c.periodoFrom)} – ${formatDate(c.periodoTo)}`,
   },
   {
     id: "totale",
@@ -38,6 +39,7 @@ const COLUMNS: ReadonlyArray<Column<Conto>> = [
     accessor: (c) => c.totaleConto,
     sortable: true,
     align: "end",
+    cell: (c) => formatEuro(c.totaleConto),
   },
   {
     id: "stato",
