@@ -26,6 +26,7 @@ import type {
   TrashFilters,
 } from "@vet/shared";
 import {
+  attivitaInputSchema,
   buildAttivitaCreateDoc,
   buildAttivitaSoftDeletePatch,
   buildAttivitaUpdatePatch,
@@ -95,11 +96,12 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     denorm: { aziendaNome: string; tipoNome: string },
     actor: ActorContext
   ): Promise<Attivita> {
+    const valid = attivitaInputSchema.parse(input);
     const ref = doc(collection(this.db, "attivita"));
-    await setDoc(ref, buildAttivitaCreateDoc({ input, denorm, actor }, stampDeps));
+    await setDoc(ref, buildAttivitaCreateDoc({ input: valid, denorm, actor }, stampDeps));
     return buildOptimisticEntity({
       id: ref.id,
-      buildDoc: (deps) => buildAttivitaCreateDoc({ input, denorm, actor }, deps),
+      buildDoc: (deps) => buildAttivitaCreateDoc({ input: valid, denorm, actor }, deps),
       parse: parseAttivita,
       now: new Date(),
     });
@@ -111,8 +113,9 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     denorm: { aziendaNome: string; tipoNome: string },
     actor: ActorContext
   ): Promise<void> {
+    const valid = attivitaInputSchema.parse(input);
     const patch = buildAttivitaUpdatePatch(
-      { input, denorm, actor },
+      { input: valid, denorm, actor },
       updateDeps
     );
     await updateDoc(doc(this.db, "attivita", id), { ...patch });
