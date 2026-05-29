@@ -27,7 +27,7 @@ export function Tabs<T extends string>({
     <div
       role="tablist"
       aria-label={label}
-      className="flex items-center gap-1 border-b border-(--color-border)"
+      className="flex items-center gap-1 overflow-x-auto border-b border-(--color-border)"
     >
       {items.map((item) => {
         const active = item.value === value;
@@ -41,7 +41,7 @@ export function Tabs<T extends string>({
             onClick={() => onChange(item.value)}
             className={[
               padding,
-              "inline-flex items-center gap-2 -mb-px border-b-2 transition-[color,border-color] duration-(--motion-base) ease-(--ease-out-quart)",
+              "inline-flex shrink-0 items-center gap-2 -mb-px whitespace-nowrap border-b-2 transition-[color,border-color] duration-(--motion-base) ease-(--ease-out-quart)",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 rounded-t-md",
               active
                 ? "border-(--color-accent) text-(--color-text) font-medium"

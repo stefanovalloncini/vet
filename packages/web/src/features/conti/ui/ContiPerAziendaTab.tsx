@@ -39,6 +39,7 @@ const COLUMNS: ReadonlyArray<Column<Conto>> = [
     accessor: (c) => c.totaleConto,
     sortable: true,
     align: "end",
+    width: 120,
     cell: (c) => formatEuro(c.totaleConto),
   },
   {
@@ -123,7 +124,7 @@ function ContoCard({ conto, actions }: ContoCardProps) {
           </p>
         </div>
         <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:flex-col sm:items-end">
-          <span className="font-mono text-lg font-medium text-(--color-text) tabular-nums break-all">
+          <span className="font-mono text-lg font-medium text-(--color-text) tabular-nums whitespace-nowrap">
             {formatEuro(conto.totaleConto)}
           </span>
           {actions.map((action) => {

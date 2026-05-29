@@ -69,7 +69,7 @@ export function ContiPage() {
           <span className="text-xs uppercase tracking-wider text-(--color-text-muted)">
             {t.totaleDaRiscuotere}
           </span>
-          <span className="font-mono text-xl font-semibold text-(--color-danger) tabular-nums break-all">
+          <span className="font-mono text-xl font-semibold text-(--color-danger) tabular-nums whitespace-nowrap">
             {formatEuro(counters.totaleUnsaldati)}
           </span>
         </div>

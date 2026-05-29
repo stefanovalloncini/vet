@@ -182,7 +182,7 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
             ? `${t.attivitaSubtotale} ${formatEuro(preview.totaleConto)} · ${t.armadietto} ${formatEuro(armadiettoImporto)}`
             : `${t.attivita}: ${preview.count} · ${t.totale}`}
         </span>
-        <span className="font-mono text-2xl font-semibold text-(--color-text) tabular-nums break-all">
+        <span className="font-mono text-2xl font-semibold text-(--color-text) tabular-nums whitespace-nowrap">
           {formatEuro(grandTotal)}
         </span>
       </div>
