@@ -21,6 +21,7 @@ import type {
   SerializerStampDeps,
 } from "@vet/shared";
 import {
+  activityTypeInputSchema,
   buildActivityTypeCreateDoc,
   buildActivityTypeUpdateDoc,
   parseActivityType,
@@ -59,13 +60,14 @@ export class FirestoreActivityTypesRepository
   }
 
   async upsert(id: string, input: ActivityTypeInput): Promise<void> {
+    const valid = activityTypeInputSchema.parse(input);
     const ref = doc(this.db, "activity_types", id);
     const snap = await getDoc(ref);
     if (snap.exists()) {
-      await updateDoc(ref, buildActivityTypeUpdateDoc({ input }, stampDeps));
+      await updateDoc(ref, buildActivityTypeUpdateDoc({ input: valid }, stampDeps));
       return;
     }
-    await setDoc(ref, buildActivityTypeCreateDoc({ input }, stampDeps));
+    await setDoc(ref, buildActivityTypeCreateDoc({ input: valid }, stampDeps));
   }
 
   async setActive(id: string, attivo: boolean): Promise<void> {
