@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { Card, SectionLabel } from "../../../shared/ui";
 import { sanitizeTel } from "../lib/sanitizeTel";
 import { formatEuro } from "../../../shared/lib/format";
+import { routes } from "../../../routes";
 import type { Azienda } from "@vet/shared";
 import { TagsEditor } from "./TagsEditor";
 
@@ -61,7 +62,7 @@ export function AziendaInfoCard({
       {canExport ? (
         <div className="mt-4 pt-4 border-t border-(--color-border)">
           <Link
-            to={`/aziende/${azienda.id}/riepilogo`}
+            to={routes.aziendaRiepilogo.to({ id: azienda.id })}
             className="inline-flex items-center gap-1 rounded text-sm text-(--color-accent) hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
           >
             Apri riepilogo stampabile

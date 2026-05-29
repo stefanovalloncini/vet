@@ -22,6 +22,7 @@ import {
   type ContiByAziendaMap,
 } from "../lib/groupContiByAzienda";
 import { contiI18n as t } from "../i18n";
+import { routes } from "../../../routes";
 
 export function ContiPage() {
   const {
@@ -144,7 +145,7 @@ function AziendaRow({ azienda, bucket }: AziendaRowProps) {
     ? "Ci sono conti non saldati"
     : "Tutti i conti saldati";
   return (
-    <Link to={`/aziende/${azienda.id}?tab=conti`} className="block group">
+    <Link to={`${routes.aziendaDetail.to({ id: azienda.id })}?tab=conti`} className="block group">
       <Card className="transition-colors duration-(--motion-fast) ease-(--ease-out-quart) group-hover:border-(--color-border-strong)">
         <div className="flex items-center gap-4">
           <span

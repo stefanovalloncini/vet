@@ -3,6 +3,7 @@ import { ClipboardList, Bell } from "lucide-react";
 import { Card, EmptyState } from "../../../shared/ui";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { formatDate, formatEuro } from "../../../shared/lib/format";
+import { routes } from "../../../routes";
 import type { Attivita } from "@vet/shared";
 
 export function StoricoTab({ items }: { items: Attivita[] }) {
@@ -19,7 +20,7 @@ export function StoricoTab({ items }: { items: Attivita[] }) {
       {items.map((a) => (
         <li key={a.id}>
           <Link
-            to={`/attivita/${a.id}`}
+            to={routes.attivitaEdit.to({ id: a.id })}
             className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 sm:rounded-2xl"
           >
             <Card className="hover:border-(--color-border-strong) transition-colors">

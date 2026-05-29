@@ -29,6 +29,7 @@ import {
   type AttivitaFormValues,
 } from "../lib/formSchema";
 import { AttivitaFormFields } from "./AttivitaFormFields";
+import { routes } from "../../../routes";
 
 export function AttivitaFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -140,7 +141,7 @@ export function AttivitaFormPage() {
               canDelete ? (
                 <DeleteActions
                   busy={submit.busy}
-                  onDuplicate={() => navigate(`/attivita/nuova?clone=${id}`)}
+                  onDuplicate={() => navigate(`${routes.attivitaNew.to()}?clone=${id}`)}
                   onDelete={() => setConfirmDelete(true)}
                 />
               ) : null

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { formatDate, formatEuro } from "../../../shared/lib/format";
+import { routes } from "../../../routes";
 import type { Attivita } from "@vet/shared";
 
 const oreFormatter = new Intl.NumberFormat("it-IT", {
@@ -9,7 +10,7 @@ const oreFormatter = new Intl.NumberFormat("it-IT", {
 export function AttivitaRow({ attivita: a }: { attivita: Attivita }) {
   return (
     <Link
-      to={`/attivita/${a.id}`}
+      to={routes.attivitaEdit.to({ id: a.id })}
       className="flex items-start justify-between gap-3 px-4 py-3 min-h-[56px] hover:bg-(--color-surface-muted) transition-colors focus:outline-none focus-visible:bg-(--color-surface-muted)"
     >
       <div className="min-w-0 flex-1">

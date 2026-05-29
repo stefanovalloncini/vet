@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { groupByZone } from "../lib/zones";
+import { routes } from "../../../routes";
 import type { Azienda } from "@vet/shared";
 import { ChartEmpty } from "./ChartEmpty";
 
@@ -29,7 +30,7 @@ export function ZonePanel({ aziende }: ZonePanelProps) {
             {z.aziende.map((a) => (
               <Link
                 key={a.id}
-                to={`/aziende/${a.id}`}
+                to={routes.aziendaDetail.to({ id: a.id })}
                 className="max-w-full truncate rounded-md bg-(--color-surface-muted) px-2 py-1 text-xs text-(--color-text-muted) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) hover:bg-(--color-accent-soft) hover:text-(--color-text) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-1"
               >
                 {a.nome}

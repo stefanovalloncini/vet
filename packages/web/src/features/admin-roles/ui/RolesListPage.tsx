@@ -16,6 +16,7 @@ import {
 import { useRoles } from "../hooks/useRoles";
 import { useRoleUserCounts } from "../hooks/useRoleUserCounts";
 import { rolesI18n as t } from "../i18n";
+import { routes } from "../../../routes";
 
 const EMPTY_ROLES: ReadonlyArray<Role> = [];
 
@@ -72,7 +73,7 @@ export function RolesListPage() {
           return (
             <div className="sm:col-span-2 lg:col-span-3 bg-(--color-surface) border border-(--color-border) rounded-xl sm:rounded-2xl overflow-hidden">
               <Link
-                to={`/admin/ruoli/${role.id}`}
+                to={routes.adminRoleEdit.to({ id: role.id })}
                 className="block px-4 py-3 hover:bg-(--color-surface-muted) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) focus:outline-none focus-visible:bg-(--color-surface-muted)"
               >
                 <div className="flex items-center gap-3">

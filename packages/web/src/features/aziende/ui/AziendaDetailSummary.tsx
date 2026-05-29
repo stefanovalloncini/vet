@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Pencil, ArchiveX, ExternalLink } from "lucide-react";
 import { Button } from "../../../shared/ui";
+import { routes } from "../../../routes";
 import type { Azienda } from "@vet/shared";
 import { BackToAziende } from "./BackToAziende";
 
@@ -42,7 +43,7 @@ export function AziendaDetailSummary({
         </div>
         {canEdit ? (
           <div className="flex shrink-0 items-center gap-2">
-            <Link to={`/aziende/${azienda.id}/modifica`}>
+            <Link to={routes.aziendaEdit.to({ id: azienda.id })}>
               <Button
                 type="button"
                 variant="secondary"
