@@ -133,4 +133,20 @@ describe("NumberField", () => {
     fireEvent.click(screen.getByRole("button", { name: "Aumenta" }));
     expect((screen.getByLabelText("Tariffa") as HTMLInputElement).value).toBe("0.3");
   });
+
+  it("sets native step to any so typed non-multiples never step-mismatch", () => {
+    render(<Harness initial="" step={10} />);
+    const input = screen.getByLabelText("Tariffa") as HTMLInputElement;
+    expect(input).toHaveAttribute("step", "any");
+    fireEvent.change(input, { target: { value: "49,50" } });
+    expect(input.validity.stepMismatch).toBe(false);
+    fireEvent.change(input, { target: { value: "1" } });
+    expect(input.validity.stepMismatch).toBe(false);
+  });
+
+  it("arrows step by 10 by default while the input keeps any typed value", () => {
+    render(<Harness initial={1} />);
+    fireEvent.click(screen.getByRole("button", { name: "Aumenta" }));
+    expect((screen.getByLabelText("Tariffa") as HTMLInputElement).value).toBe("11");
+  });
 });

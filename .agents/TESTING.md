@@ -97,7 +97,7 @@ Each step lists the expected result; deviations are bugs.
 1. Tap the `+` FAB → `Voce rapida` modal opens.
 2. All fields visible at viewport start: Data, Azienda, Tipo, Modalità tariffa, Tariffa (EUR), Note.
 3. `MODALITÀ TARIFFA` segmented control: `Oraria`, `Ad elemento`, `Fissa` each fit on ONE line — no wrap on iPhone SE.
-4. `TARIFFA (EUR)` accepts `step=0.01` — typing 49,50 or 1 should not trigger a step warning. Stepper arrows still bump by `0.01`; this is fine for manual entry. The min is 0.
+4. `TARIFFA (EUR)` accepts any typed value — typing 49,50 or 1 must not trigger a step warning (native `step=any`). The stepper arrows bump by 10 (Alessandro logs round euro figures). The min is 0.
 5. Scroll down inside the modal — the Salva / Annulla / Salva e nuova action bar stays sticky at the bottom of the dialog (1px top border, surface background). The user never has to scroll past the form to reach Salva.
 6. Tap `+ Nuova` next to Azienda → `Nuova azienda` dialog opens on top. Stacking is allowed but uncomfortable; close it and try entering an azienda inline instead if possible.
 7. Submit with all fields blank → each invalid field shows a single-line red error below it. The form does NOT add an extra root banner repeating the same message.

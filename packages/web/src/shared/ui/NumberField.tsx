@@ -58,7 +58,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
             const parsed = Number(v.replace(",", "."));
             onChange(Number.isFinite(parsed) ? parsed : "");
           }}
-          step={step}
+          step="any"
           {...(typeof min === "number" ? { min } : {})}
           {...(typeof max === "number" ? { max } : {})}
           disabled={disabled}

@@ -8,7 +8,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button, Dialog, InlineError } from "../../../shared/ui";
-import { RHFTextField } from "../../../shared/ui/rhf";
+import { RHFNumberField, RHFTextField } from "../../../shared/ui/rhf";
 import {
   activityTypeInputSchema,
   modalitaSchema,
@@ -133,15 +133,12 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
             disabled={busy}
             placeholder="Es. Cesareo"
           />
-          <RHFTextField<QuickTipoFormValues>
+          <RHFNumberField<QuickTipoFormValues>
             name="tariffa"
-            idPrefix="quick-tipo"
             label="Tariffa standard (€)"
-            type="number"
-            step="0.01"
-            min="0"
+            step={10}
+            min={0}
             disabled={busy}
-            placeholder="opzionale"
             hint="Lascia vuoto se la tariffa cambia di volta in volta."
           />
           <ModalitaDefaultField disabled={busy} />

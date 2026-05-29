@@ -162,7 +162,7 @@ export function QuickEntryDialog({ open, onClose }: QuickEntryDialogProps) {
               <RHFNumberField<QuickEntryFormValues>
                 name="tariffa"
                 label="Tariffa (EUR)"
-                step={0.01}
+                step={10}
                 min={0}
                 {...(s.rangeWarning ? { hint: s.rangeWarning } : {})}
               />

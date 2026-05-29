@@ -281,15 +281,19 @@ describe("QuickEntryDialog", () => {
     });
   });
 
-  it("uses NumberField with step=0.01 for tariffa and stepper buttons", async () => {
+  it("tariffa accepts any typed value and arrows bump by 10", async () => {
     const world = await buildWorld();
     await mount(world);
     const tariffaInput = document.querySelector(
       'input[name="tariffa"]'
     ) as HTMLInputElement;
-    expect(tariffaInput.step).toBe("0.01");
+    expect(tariffaInput.step).toBe("any");
     expect(tariffaInput.type).toBe("number");
-    expect(screen.getByRole("button", { name: /Aumenta/i })).toBeInTheDocument();
+    fireEvent.change(tariffaInput, { target: { value: "49.5" } });
+    expect(tariffaInput.validity.stepMismatch).toBe(false);
+    fireEvent.change(tariffaInput, { target: { value: "75" } });
+    fireEvent.click(screen.getByRole("button", { name: /Aumenta/i }));
+    expect(tariffaInput.value).toBe("85");
     expect(screen.getByRole("button", { name: /Diminuisci/i })).toBeInTheDocument();
   });
 
