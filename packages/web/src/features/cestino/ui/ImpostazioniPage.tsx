@@ -91,9 +91,9 @@ export function ImpostazioniPage() {
   }
 
   function formatLastBackup(ts: number | null): string {
+    if (ts === null) return t.datiBackupMaiFatto;
     const age = backupAge(ts);
-    if (age.kind === "never") return t.datiBackupMaiFatto;
-    const d = new Date(ts!);
+    const d = new Date(ts);
     const dt = d.toLocaleDateString("it-IT", {
       day: "2-digit",
       month: "short",
