@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -41,6 +42,7 @@ const ACTION_DURATION = 6000;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const timers = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const notify = useCallback<ToastApi["notify"]>((text, kindOrOpts) => {
     const opts: NotifyOptions =
       typeof kindOrOpts === "string"
@@ -55,15 +57,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     if (opts.persistent) return;
     const duration =
       opts.duration ?? (opts.action ? ACTION_DURATION : DEFAULT_DURATION);
-    setTimeout(() => {
+    const handle = setTimeout(() => {
+      timers.current.delete(handle);
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, duration);
+    timers.current.add(handle);
   }, []);
   const value = useMemo(() => ({ notify }), [notify]);
   useEffect(() => {
     registerMutationErrorNotifier((text, kind) => notify(text, kind));
     return () => registerMutationErrorNotifier(null);
   }, [notify]);
+  useEffect(() => {
+    const pending = timers.current;
+    return () => {
+      for (const handle of pending) clearTimeout(handle);
+      pending.clear();
+    };
+  }, []);
   return (
     <ToastContext.Provider value={value}>
       {children}
@@ -72,34 +83,37 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         aria-live="polite"
         aria-atomic
       >
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            className={[
-              "flex items-center gap-3 pl-4 pr-2 py-2 rounded-xl shadow-lg text-sm border max-w-xs animate-toast-in",
-              t.kind === "success"
-                ? "bg-(--color-accent-soft) text-(--color-text) border-(--color-accent)/30"
-                : t.kind === "error"
-                ? "bg-(--color-danger)/10 text-(--color-danger) border-(--color-danger)/30"
-                : "bg-(--color-surface) text-(--color-text) border-(--color-border)",
-            ].join(" ")}
-            role="status"
-          >
-            <span>{t.text}</span>
-            {t.action ? (
-              <button
-                type="button"
-                onClick={() => {
-                  t.action!.onClick();
-                  setToasts((prev) => prev.filter((x) => x.id !== t.id));
-                }}
-                className="px-2 py-1 rounded-md text-xs font-medium text-(--color-accent) hover:bg-(--color-accent)/10"
-              >
-                {t.action.label}
-              </button>
-            ) : null}
-          </div>
-        ))}
+        {toasts.map((t) => {
+          const action = t.action;
+          return (
+            <div
+              key={t.id}
+              className={[
+                "flex items-center gap-3 pl-4 pr-2 py-2 rounded-xl shadow-lg text-sm border max-w-xs animate-toast-in",
+                t.kind === "success"
+                  ? "bg-(--color-accent-soft) text-(--color-text) border-(--color-accent)/30"
+                  : t.kind === "error"
+                  ? "bg-(--color-danger)/10 text-(--color-danger) border-(--color-danger)/30"
+                  : "bg-(--color-surface) text-(--color-text) border-(--color-border)",
+              ].join(" ")}
+              role="status"
+            >
+              <span>{t.text}</span>
+              {action ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    action.onClick();
+                    setToasts((prev) => prev.filter((x) => x.id !== t.id));
+                  }}
+                  className="px-2 py-1 rounded-md text-xs font-medium text-(--color-accent) hover:bg-(--color-accent)/10"
+                >
+                  {action.label}
+                </button>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </ToastContext.Provider>
   );
