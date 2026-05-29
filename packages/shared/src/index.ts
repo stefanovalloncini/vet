@@ -33,7 +33,7 @@ export {
 export { CAPABILITY_LABELS } from "./domain/caps/labels.js";
 export {
   VETERINARIO_CAPS,
-  VETERINARIO_CAPO_CAPS,
+  TITOLARE_CAPS,
   AMMINISTRATORE_CAPS,
   ROLE_BUNDLES,
   type RoleBundle,

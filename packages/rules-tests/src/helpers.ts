@@ -53,14 +53,15 @@ export const VETERINARIO_SEMPLICE_CAPS: ReadonlyArray<Capability> = [
   "reminders.delete.own",
 ];
 
-export const VETERINARIO_CAPO_CAPS: ReadonlyArray<Capability> = [
+export const TITOLARE_CAPS: ReadonlyArray<Capability> = [
   ...VETERINARIO_SEMPLICE_CAPS,
   "conti.emit",
   "conti.saldo",
 ];
 
 export const AMMINISTRATORE_CAPS: ReadonlyArray<Capability> = [
-  ...VETERINARIO_CAPO_CAPS,
+  ...TITOLARE_CAPS,
+  "activity_types.manage",
   "roles.read",
   "roles.manage",
   "roles.assign",
@@ -77,9 +78,9 @@ export function asVeterinarioSemplice(env: RulesTestEnvironment, uid: string) {
   });
 }
 
-export function asVeterinarioCapo(env: RulesTestEnvironment, uid: string) {
-  return authedAs(env, uid, [...VETERINARIO_CAPO_CAPS], {
-    roleId: "veterinario_capo",
+export function asTitolare(env: RulesTestEnvironment, uid: string) {
+  return authedAs(env, uid, [...TITOLARE_CAPS], {
+    roleId: "titolare",
   });
 }
 

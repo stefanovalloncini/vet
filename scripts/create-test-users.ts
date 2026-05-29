@@ -12,9 +12,9 @@ interface TestUser {
 
 const TEST_USERS: ReadonlyArray<TestUser> = [
   {
-    suffix: "capo",
-    roleId: "veterinario_capo",
-    displayName: "Test Veterinario Capo",
+    suffix: "titolare",
+    roleId: "titolare",
+    displayName: "Test Titolare",
   },
   {
     suffix: "semplice",

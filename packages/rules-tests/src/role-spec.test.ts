@@ -11,7 +11,7 @@ import {
 import { disposeEnv, getEnv } from "./setup";
 import {
   asAmministratore,
-  asVeterinarioCapo,
+  asTitolare,
   asVeterinarioSemplice,
 } from "./helpers";
 
@@ -85,7 +85,7 @@ describe("role spec — three-role authorization model", () => {
         actorEmail: "x@example.com",
         action: "role.update",
         targetType: "role",
-        targetId: "veterinario_capo",
+        targetId: "titolare",
       });
     });
   });
@@ -147,10 +147,10 @@ describe("role spec — three-role authorization model", () => {
     });
   });
 
-  describe("veterinario_capo", () => {
+  describe("titolare", () => {
     it("can create a conto in modalita 'proforma'", async () => {
       const env = await getEnv();
-      const db = asVeterinarioCapo(env, "capo");
+      const db = asTitolare(env, "capo");
       await assertSucceeds(
         setDoc(
           doc(db, "conti/capo-proforma"),
@@ -161,7 +161,7 @@ describe("role spec — three-role authorization model", () => {
 
     it("can create a conto in modalita 'emesso'", async () => {
       const env = await getEnv();
-      const db = asVeterinarioCapo(env, "capo");
+      const db = asTitolare(env, "capo");
       await assertSucceeds(
         setDoc(
           doc(db, "conti/capo-emesso"),
@@ -172,7 +172,7 @@ describe("role spec — three-role authorization model", () => {
 
     it("can mark a conto as saldato", async () => {
       const env = await getEnv();
-      const db = asVeterinarioCapo(env, "capo");
+      const db = asTitolare(env, "capo");
       await assertSucceeds(
         updateDoc(doc(db, "conti/emesso-aperto"), {
           saldato: true,
@@ -185,7 +185,7 @@ describe("role spec — three-role authorization model", () => {
 
     it("cannot approve other users (no users.approve)", async () => {
       const env = await getEnv();
-      const db = asVeterinarioCapo(env, "capo");
+      const db = asTitolare(env, "capo");
       await assertFails(
         updateDoc(doc(db, "users/pending-1"), {
           approved: true,
@@ -199,7 +199,7 @@ describe("role spec — three-role authorization model", () => {
 
     it("cannot read the audit log (no audit.read)", async () => {
       const env = await getEnv();
-      const db = asVeterinarioCapo(env, "capo");
+      const db = asTitolare(env, "capo");
       await assertFails(getDoc(doc(db, "audit/abc")));
     });
   });

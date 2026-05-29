@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AMMINISTRATORE_CAPS,
   ROLE_BUNDLES,
-  VETERINARIO_CAPO_CAPS,
+  TITOLARE_CAPS,
   VETERINARIO_CAPS,
 } from "../bundles.js";
 import { isCapability } from "../registry.js";
@@ -11,14 +11,14 @@ const has = (caps: ReadonlyArray<string>, c: string): boolean => caps.includes(c
 
 const ALL_BUNDLES = [
   VETERINARIO_CAPS,
-  VETERINARIO_CAPO_CAPS,
+  TITOLARE_CAPS,
   AMMINISTRATORE_CAPS,
 ];
 
 describe("capability bundles", () => {
-  it("compose: capo ⊇ veterinario, amministratore ⊇ capo", () => {
-    for (const c of VETERINARIO_CAPS) expect(VETERINARIO_CAPO_CAPS).toContain(c);
-    for (const c of VETERINARIO_CAPO_CAPS) expect(AMMINISTRATORE_CAPS).toContain(c);
+  it("compose: titolare ⊇ veterinario_semplice, amministratore ⊇ titolare", () => {
+    for (const c of VETERINARIO_CAPS) expect(TITOLARE_CAPS).toContain(c);
+    for (const c of TITOLARE_CAPS) expect(AMMINISTRATORE_CAPS).toContain(c);
   });
 
   it("contains no duplicate capabilities", () => {
@@ -45,6 +45,7 @@ describe("capability bundles", () => {
       "roles.assign",
       "allowlist.manage",
       "audit.read",
+      "activity_types.manage",
       "activities.delete.any",
       "activities.update.any",
       "trash.purge",
@@ -52,16 +53,17 @@ describe("capability bundles", () => {
     for (const c of forbidden) expect(has(VETERINARIO_CAPS, c)).toBe(false);
   });
 
-  it("grants veterinario_capo only billing caps over the base, no admin caps", () => {
-    expect(has(VETERINARIO_CAPO_CAPS, "conti.emit")).toBe(true);
-    expect(has(VETERINARIO_CAPO_CAPS, "conti.saldo")).toBe(true);
+  it("grants titolare only billing caps over the base, no admin caps", () => {
+    expect(has(TITOLARE_CAPS, "conti.emit")).toBe(true);
+    expect(has(TITOLARE_CAPS, "conti.saldo")).toBe(true);
     for (const c of [
       "users.approve",
       "roles.manage",
       "allowlist.manage",
       "audit.read",
+      "activity_types.manage",
     ]) {
-      expect(has(VETERINARIO_CAPO_CAPS, c)).toBe(false);
+      expect(has(TITOLARE_CAPS, c)).toBe(false);
     }
   });
 
@@ -75,6 +77,7 @@ describe("capability bundles", () => {
       "allowlist.read",
       "allowlist.manage",
       "audit.read",
+      "activity_types.manage",
     ]) {
       expect(has(AMMINISTRATORE_CAPS, c)).toBe(true);
     }
@@ -83,7 +86,7 @@ describe("capability bundles", () => {
   it("maps each product role in ROLE_BUNDLES to its bundle", () => {
     const byId = new Map(ROLE_BUNDLES.map((b) => [b.id, b.caps]));
     expect(byId.get("veterinario_semplice")).toBe(VETERINARIO_CAPS);
-    expect(byId.get("veterinario_capo")).toBe(VETERINARIO_CAPO_CAPS);
+    expect(byId.get("titolare")).toBe(TITOLARE_CAPS);
     expect(byId.get("amministratore")).toBe(AMMINISTRATORE_CAPS);
   });
 });

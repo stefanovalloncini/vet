@@ -4,8 +4,8 @@ import type { Capability } from "./registry.js";
  * Capability bundles for the three product roles described in the client
  * transcript. These are the source of truth for what a freshly-seeded role
  * gets; admin UIs can offer "Create role from bundle" using these arrays as
- * the starting point. The bundles compose: veterinario_capo ⊃ veterinario,
- * amministratore ⊃ veterinario_capo.
+ * the starting point. The bundles compose: titolare ⊃ veterinario_semplice,
+ * amministratore ⊃ titolare.
  */
 
 export const VETERINARIO_CAPS: ReadonlyArray<Capability> = [
@@ -27,14 +27,15 @@ export const VETERINARIO_CAPS: ReadonlyArray<Capability> = [
   "reminders.delete.own",
 ];
 
-export const VETERINARIO_CAPO_CAPS: ReadonlyArray<Capability> = [
+export const TITOLARE_CAPS: ReadonlyArray<Capability> = [
   ...VETERINARIO_CAPS,
   "conti.emit",
   "conti.saldo",
 ];
 
 export const AMMINISTRATORE_CAPS: ReadonlyArray<Capability> = [
-  ...VETERINARIO_CAPO_CAPS,
+  ...TITOLARE_CAPS,
+  "activity_types.manage",
   "roles.read",
   "roles.manage",
   "roles.assign",
@@ -47,7 +48,7 @@ export const AMMINISTRATORE_CAPS: ReadonlyArray<Capability> = [
 
 export type RoleBundleId =
   | "veterinario_semplice"
-  | "veterinario_capo"
+  | "titolare"
   | "amministratore";
 
 export interface RoleBundle {
@@ -63,9 +64,9 @@ export const ROLE_BUNDLES = [
     caps: VETERINARIO_CAPS,
   },
   {
-    id: "veterinario_capo",
-    name: "Veterinario capo",
-    caps: VETERINARIO_CAPO_CAPS,
+    id: "titolare",
+    name: "Titolare",
+    caps: TITOLARE_CAPS,
   },
   {
     id: "amministratore",
