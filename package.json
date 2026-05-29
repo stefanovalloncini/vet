@@ -16,7 +16,7 @@
     "test:rules": "pnpm -F @vet/rules-tests test",
     "test:all": "pnpm -r test",
     "test:e2e": "pnpm -F @vet/web test:e2e",
-    "lint": "eslint --no-error-on-unmatched-pattern \"packages/**/*.{ts,tsx,js,jsx}\"",
+    "lint": "eslint --max-warnings 0 --no-error-on-unmatched-pattern \"packages/**/*.{ts,tsx,js,jsx}\"",
     "seed:roles": "pnpm -F vet-scripts seed:roles",
     "seed:activity-types": "pnpm -F vet-scripts seed:activity-types",
     "seed:conti-dev": "pnpm -F vet-scripts seed:conti-dev",
