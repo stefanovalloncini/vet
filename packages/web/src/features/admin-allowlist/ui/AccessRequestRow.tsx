@@ -30,7 +30,7 @@ export function AccessRequestRow({
     `${t.requestFirstSeen} ${request.firstAttemptAt.toLocaleDateString("it-IT")}`,
     `${t.requestLastSeen} ${request.lastAttemptAt.toLocaleDateString("it-IT")}`,
     provider,
-  ].filter(Boolean) as string[];
+  ].filter((x): x is string => Boolean(x));
 
   return (
     <div className="sm:col-span-2 lg:col-span-3 bg-(--color-surface) border border-(--color-border) rounded-xl sm:rounded-2xl px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_auto] md:items-center">

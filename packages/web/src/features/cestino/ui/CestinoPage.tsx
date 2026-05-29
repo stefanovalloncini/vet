@@ -29,11 +29,8 @@ export function CestinoPage() {
 
   const [view, setView] = useState<"mine" | "all">(canSeeAny ? "all" : "mine");
 
-  const filters = useMemo(
-    () =>
-      view === "mine" && user
-        ? { ownerUid: user.uid }
-        : ({} as { ownerUid?: string }),
+  const filters = useMemo<{ ownerUid?: string }>(
+    () => (view === "mine" && user ? { ownerUid: user.uid } : {}),
     [view, user]
   );
 

@@ -23,8 +23,8 @@ function aggregate(items: ReadonlyArray<Attivita>): VetStat[] {
         email: a.ownerEmail,
         total: 0,
         count: 0,
-        lastActivity: null,
-      } as VetStat);
+        lastActivity: null as Date | null,
+      });
     const last =
       cur.lastActivity === null || a.data > cur.lastActivity ? a.data : cur.lastActivity;
     map.set(a.ownerUid, {
