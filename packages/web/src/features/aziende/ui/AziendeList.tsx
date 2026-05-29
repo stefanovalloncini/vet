@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import { Badge, EmptyState } from "../../../shared/ui";
 import { DataGrid, dataGridIt } from "../../../shared/ui/data-grid";
@@ -7,6 +8,7 @@ import type {
   FilterDef,
   RowAction,
 } from "../../../shared/ui/data-grid";
+import { routes } from "../../../routes";
 import { aziendeI18n as t } from "../i18n";
 import { AziendaCard, statusFor } from "./AziendaCard";
 import type { Azienda } from "@vet/shared";
@@ -56,6 +58,15 @@ export function AziendeList({
         header: "Nome",
         accessor: (a) => a.nome,
         sortable: true,
+        cell: (a) => (
+          <Link
+            to={routes.aziendaDetail.to({ id: a.id })}
+            className="block max-w-[20rem] truncate font-medium text-(--color-text) hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-1 rounded"
+            title={a.nome}
+          >
+            {a.nome}
+          </Link>
+        ),
       },
       {
         id: "tipo",

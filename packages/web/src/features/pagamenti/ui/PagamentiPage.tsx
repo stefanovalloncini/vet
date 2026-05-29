@@ -29,7 +29,8 @@ const STATO_OPTIONS = [
 ] as const;
 
 export function PagamentiPage() {
-  const { rows, loading, error } = usePagamentiOverview();
+  const now = useMemo(() => new Date(), []);
+  const { rows, loading, error } = usePagamentiOverview(now);
   const [statoFilter, setStatoFilter] = useState<string>("");
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
     () => new Set()

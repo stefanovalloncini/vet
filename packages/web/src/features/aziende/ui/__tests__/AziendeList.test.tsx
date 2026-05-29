@@ -82,6 +82,33 @@ describe("AziendeList (DataGrid cards mode)", () => {
     expect(pinButtons).toHaveLength(3);
   });
 
+  it("links each name to the azienda detail in the desktop table", () => {
+    const items: ReadonlyArray<Azienda> = [
+      makeAzienda({ id: "a1", nome: "Allevamento Alfa" }),
+    ];
+
+    render(
+      <MemoryRouter>
+        <AziendeList
+          items={items}
+          loading={false}
+          error={null}
+          canEdit={true}
+          canCreate={true}
+          searching={false}
+          isPinned={() => false}
+          onTogglePin={() => {}}
+          filters={defaultFilters()}
+          onFiltersChange={() => {}}
+        />
+      </MemoryRouter>
+    );
+
+    const table = screen.getByRole("table");
+    const link = within(table).getByRole("link", { name: "Allevamento Alfa" });
+    expect(link).toHaveAttribute("href", "/aziende/a1");
+  });
+
   it("narrows visible cards when the stato filter is set to 'unpaid'", () => {
     const items: ReadonlyArray<Azienda> = [
       makeAzienda({ id: "a1", nome: "Allevamento Alfa" }),

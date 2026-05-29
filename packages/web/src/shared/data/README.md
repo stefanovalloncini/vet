@@ -68,15 +68,20 @@ example. Default to invalidate-and-refetch unless you have a concrete reason.
 
 ### Cross-feature invalidation
 
-A mutation may need to invalidate more than one entity. Examples:
+A mutation may need to invalidate more than one entity. Example:
 
-- `useCreateConto` invalidates both `["conti"]` and `["aziende"]` because
-  `useAziendaDetail` is keyed under the aziende prefix and the conti tab must
-  refresh after a new conto is emitted.
-- `useRestoreTrashed` invalidates both `["trash"]` and `["attivita"]`.
+- `useRestoreTrashed` invalidates `ATTIVITA_DEPENDENT_KEYS` (which covers
+  `["attivita"]`, `["trash"]`, and the derived stats keys) so the list,
+  the trash view, and the dashboards all refresh after a restore.
 
-When this happens, extract a small `invalidate<Scope>(qc)` helper in the same
-file to make the scope obvious at the mutation site.
+When this happens, extract a small `invalidate<Scope>(qc)` helper (or reuse a
+shared `*_DEPENDENT_KEYS` array with `invalidateMany`) to make the scope obvious
+at the mutation site.
+
+A single `["conti"]` invalidation, by contrast, is enough on its own: per-azienda
+conti live under the `["conti", "azienda", id]` prefix, so invalidating the
+`["conti"]` prefix already refreshes the conti tab. `useEmettiConto` and
+`useSaldaConto` invalidate only `queryKeys.conti` for this reason.
 
 ### Composite hooks
 

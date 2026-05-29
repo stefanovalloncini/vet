@@ -225,7 +225,6 @@ interface AttivitaDataGridProps {
   isLoading: boolean;
   isError: boolean;
   filtersActive: boolean;
-  canExport: boolean;
   onClearFilters?: () => void;
 }
 
@@ -235,7 +234,6 @@ export function AttivitaDataGrid({
   isLoading,
   isError,
   filtersActive,
-  canExport,
   onClearFilters,
 }: AttivitaDataGridProps) {
   const columns = useMemo(() => buildColumns(), []);
@@ -250,14 +248,6 @@ export function AttivitaDataGrid({
 
   const error = isError ? t.loadError : null;
 
-  const toolbarConfig = canExport
-    ? {
-        showExport: { csv: true, pdf: true },
-        pdfTitle: t.title,
-        filenameStem: "attivita",
-      }
-    : undefined;
-
   const commonProps = {
     rows: items,
     columns,
@@ -267,7 +257,6 @@ export function AttivitaDataGrid({
     error,
     emptyState,
     ...(grouping ? { groupBy: grouping } : {}),
-    ...(toolbarConfig ? { toolbar: toolbarConfig } : {}),
   } as const;
 
   return <DataGrid<Attivita> {...commonProps} mode="responsive" card={attivitaCard} />;

@@ -10,15 +10,12 @@ import type {
   ContoSaldoInput,
 } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
-
-const KEY = ["conti"] as const;
-const keyForAzienda = (id: string) => ["conti", "azienda", id] as const;
-const KEY_UNSALDATI = ["conti", "unsaldati"] as const;
+import { queryKeys } from "../../../shared/data/queryClient";
 
 export function useConti() {
   const { conti } = useRepositories();
   return useQuery<Conto[]>({
-    queryKey: KEY,
+    queryKey: queryKeys.conti,
     queryFn: () => conti.list(),
   });
 }
@@ -26,7 +23,7 @@ export function useConti() {
 export function useContiForAzienda(aziendaId: string | undefined) {
   const { conti } = useRepositories();
   return useQuery<Conto[]>({
-    queryKey: keyForAzienda(aziendaId ?? ""),
+    queryKey: queryKeys.contiForAzienda(aziendaId ?? ""),
     queryFn: () =>
       aziendaId ? conti.listForAzienda(aziendaId) : Promise.resolve([]),
     enabled: !!aziendaId,
@@ -36,7 +33,7 @@ export function useContiForAzienda(aziendaId: string | undefined) {
 export function useContiUnsaldati() {
   const { conti } = useRepositories();
   return useQuery<Conto[]>({
-    queryKey: KEY_UNSALDATI,
+    queryKey: queryKeys.contiUnsaldati,
     queryFn: () => conti.listUnsaldati(),
   });
 }
@@ -58,7 +55,7 @@ export function useEmettiConto() {
     mutationFn: (vars: EmitVars) =>
       conti.emit(vars.input, vars.denorm, vars.actor),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["conti"] });
+      void qc.invalidateQueries({ queryKey: queryKeys.conti });
     },
     meta: { errorMessage: "Salvataggio non riuscito" },
   });
@@ -75,7 +72,7 @@ export function useSaldaConto() {
   return useMutation({
     mutationFn: (vars: SaldoVars) => conti.saldo(vars.input, vars.actor),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["conti"] });
+      void qc.invalidateQueries({ queryKey: queryKeys.conti });
     },
     meta: { errorMessage: "Salvataggio non riuscito" },
   });

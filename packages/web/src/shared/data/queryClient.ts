@@ -61,6 +61,9 @@ export const queryKeys = {
       aziendaId ?? null,
       tipoId ?? null,
     ] as const,
+  conti: ["conti"] as const,
+  contiForAzienda: (id: string) => ["conti", "azienda", id] as const,
+  contiUnsaldati: ["conti", "unsaldati"] as const,
   tipiAttivita: ["tipiAttivita"] as const,
   reminders: (filters?: Readonly<Record<string, unknown>>) =>
     ["reminders", filters ?? {}] as const,

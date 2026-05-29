@@ -23,7 +23,8 @@ export function AziendeListPage() {
   const { pinned, toggle: togglePin, isPinned } = usePinned();
   const [search, setSearch] = useState("");
   const [statoFilter, setStatoFilter] = useState<string>("");
-  const overview = usePagamentiOverview();
+  const now = useMemo(() => new Date(), []);
+  const overview = usePagamentiOverview(now);
   const { hasUnsaldatiContiBy, needsNewContoBy } = useMemo(() => {
     const unpaid = new Set<string>();
     const needs = new Set<string>();

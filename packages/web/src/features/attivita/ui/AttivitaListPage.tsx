@@ -89,7 +89,6 @@ export function AttivitaListPage() {
         isLoading={attivitaQuery.isLoading}
         isError={attivitaQuery.isError}
         filtersActive={Object.keys(fs.filters).length > 0}
-        canExport={canExport}
         onClearFilters={fs.clearAll}
       />
       {showExport ? (

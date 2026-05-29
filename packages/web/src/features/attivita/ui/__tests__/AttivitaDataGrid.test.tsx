@@ -51,7 +51,6 @@ function renderGrid(
       isLoading={overrides.isLoading ?? false}
       isError={overrides.isError ?? false}
       filtersActive={overrides.filtersActive ?? false}
-      canExport={false}
       {...(overrides.onClearFilters
         ? { onClearFilters: overrides.onClearFilters }
         : {})}
