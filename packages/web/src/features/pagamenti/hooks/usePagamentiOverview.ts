@@ -114,12 +114,11 @@ export function usePagamentiOverview(now: Date = new Date()): UsePagamentiOvervi
   const contiQuery = useConti();
   const attivitaQuery = useAttivita();
 
-  const aziende = aziendeQuery.data ?? [];
-  const conti = contiQuery.data ?? [];
-  const attivita = attivitaQuery.items;
-
   const rows = useMemo<ReadonlyArray<PagamentoOverview>>(() => {
+    const aziende = aziendeQuery.data ?? [];
     if (aziende.length === 0) return [];
+    const conti = contiQuery.data ?? [];
+    const attivita = attivitaQuery.items;
     const contiAgg = aggregateConti(conti);
     const attivitaByAzienda = buildAttivitaByAzienda(attivita);
     const out: PagamentoOverview[] = aziende.map((azienda) => {
@@ -137,7 +136,7 @@ export function usePagamentiOverview(now: Date = new Date()): UsePagamentiOvervi
     });
     out.sort((a, b) => a.azienda.nomeNorm.localeCompare(b.azienda.nomeNorm, "it"));
     return out;
-  }, [aziende, conti, attivita, now]);
+  }, [aziendeQuery.data, contiQuery.data, attivitaQuery.items, now]);
 
   const loading =
     aziendeQuery.isLoading || contiQuery.isLoading || attivitaQuery.loading;

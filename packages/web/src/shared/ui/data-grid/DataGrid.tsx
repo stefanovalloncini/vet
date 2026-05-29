@@ -105,9 +105,10 @@ export function DataGrid<T>(props: DataGridProps<T>) {
   const [internalFilters, setInternalFilters] = useState<ReadonlyArray<FilterDef>>(
     () => filtersProp ?? []
   );
-  const filters: ReadonlyArray<FilterDef> = filtersControlled
-    ? filtersProp ?? []
-    : internalFilters;
+  const filters = useMemo<ReadonlyArray<FilterDef>>(
+    () => (filtersControlled ? filtersProp ?? [] : internalFilters),
+    [filtersControlled, filtersProp, internalFilters]
+  );
 
   const handleFiltersChange = useCallback(
     (next: ReadonlyArray<FilterDef>) => {
@@ -121,7 +122,11 @@ export function DataGrid<T>(props: DataGridProps<T>) {
   const [internalExpanded, setInternalExpanded] = useState<ReadonlySet<string>>(
     new Set()
   );
-  const expandedIds = expandedControlled ? expandedIdsProp ?? new Set<string>() : internalExpanded;
+  const expandedIds = useMemo<ReadonlySet<string>>(
+    () =>
+      expandedControlled ? expandedIdsProp ?? new Set<string>() : internalExpanded,
+    [expandedControlled, expandedIdsProp, internalExpanded]
+  );
 
   const toggleExpand = useCallback(
     (id: string) => {

@@ -40,8 +40,14 @@ export function AziendeList({
   filters,
   onFiltersChange,
 }: AziendeListProps) {
-  const hasUnsaldati = hasUnsaldatiContiBy ?? new Set<string>();
-  const needsNew = needsNewContoBy ?? new Set<string>();
+  const hasUnsaldati = useMemo(
+    () => hasUnsaldatiContiBy ?? new Set<string>(),
+    [hasUnsaldatiContiBy]
+  );
+  const needsNew = useMemo(
+    () => needsNewContoBy ?? new Set<string>(),
+    [needsNewContoBy]
+  );
 
   const columns = useMemo<ReadonlyArray<Column<Azienda>>>(
     () => [
