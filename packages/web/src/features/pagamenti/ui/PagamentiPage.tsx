@@ -116,7 +116,7 @@ export function PagamentiPage() {
   );
 
   return (
-    <AppShell>
+    <AppShell wide>
       <PageHeader title={t.title} subtitle={t.subtitle} />
       <DataGrid<PagamentoOverview>
         rows={rows}

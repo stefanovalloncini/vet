@@ -175,7 +175,7 @@ export function CestinoPage() {
   );
 
   return (
-    <AppShell>
+    <AppShell wide>
       <PageHeader
         title={t.title}
         subtitle={t.subtitle}

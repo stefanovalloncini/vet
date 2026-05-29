@@ -57,7 +57,7 @@ export function ContiPage() {
   const noContiAtAll = grouped.size === 0;
 
   return (
-    <AppShell>
+    <AppShell wide>
       <PageHeader title={t.title} subtitle={t.subtitle} />
 
       {counters.totaleUnsaldati > 0 ? (

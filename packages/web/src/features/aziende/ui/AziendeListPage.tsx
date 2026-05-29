@@ -69,7 +69,7 @@ export function AziendeListPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell wide>
       <PageHeader
         title={t.title}
         subtitle={t.subtitle}

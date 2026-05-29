@@ -60,7 +60,7 @@ export function AttivitaListPage() {
   );
 
   return (
-    <AppShell>
+    <AppShell wide>
       <PageHeader title={t.title} subtitle={t.subtitle} />
       <AttivitaFilterBar
         from={fs.from}

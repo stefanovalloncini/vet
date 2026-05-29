@@ -30,7 +30,7 @@ export function StatistichePage() {
   const data = useStatistiche(range, now);
 
   return (
-    <AppShell>
+    <AppShell wide>
       <Header range={range} onRangeChange={setRange} />
 
       {data.loading ? (
