@@ -61,7 +61,9 @@ export class FirebaseAuthService implements AuthService {
         for (const cb of this.subscribers) cb(this.current);
         return;
       }
-      this.current = await this.toActorFromToken(fbUser);
+      const actor = await this.toActorFromToken(fbUser);
+      if (this.auth.currentUser?.uid !== fbUser.uid) return;
+      this.current = actor;
       this.initialized = true;
       for (const cb of this.subscribers) cb(this.current);
       void this.refreshDisplayName(fbUser);
