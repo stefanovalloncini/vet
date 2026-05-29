@@ -55,7 +55,8 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
     armadietto.attivo && armadietto.importoNum !== null
       ? armadietto.importoNum
       : undefined;
-  const grandTotal = preview.totaleConto + (armadiettoImporto ?? 0);
+  const grandTotal =
+    Math.round((preview.totaleConto + (armadiettoImporto ?? 0)) * 100) / 100;
   const hasContent = preview.count > 0 || armadiettoImporto !== undefined;
 
   const canProforma = user?.caps.has("conti.proforma") ?? false;
