@@ -135,6 +135,7 @@ export function QuickAddTipoDialog({ open, onClose, onCreated, nextOrdine }: Pro
           />
           <RHFNumberField<QuickTipoFormValues>
             name="tariffa"
+            idPrefix="quick-tipo"
             label="Tariffa standard (€)"
             step={10}
             min={0}

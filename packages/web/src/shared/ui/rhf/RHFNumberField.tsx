@@ -10,6 +10,7 @@ interface RHFNumberFieldProps<TFieldValues extends FieldValues> {
   hint?: string;
   suffix?: string;
   disabled?: boolean;
+  idPrefix?: string;
 }
 
 export function RHFNumberField<TFieldValues extends FieldValues>({
@@ -21,6 +22,7 @@ export function RHFNumberField<TFieldValues extends FieldValues>({
   hint,
   suffix,
   disabled,
+  idPrefix,
 }: RHFNumberFieldProps<TFieldValues>) {
   const { control } = useFormContext<TFieldValues>();
   const { field, fieldState } = useController({ name, control });
@@ -31,9 +33,10 @@ export function RHFNumberField<TFieldValues extends FieldValues>({
     typeof numericValue === "number" && Number.isFinite(numericValue)
       ? numericValue
       : "";
+  const id = idPrefix ? `${idPrefix}-${String(name)}` : String(name);
   return (
     <NumberField
-      id={String(name)}
+      id={id}
       label={label}
       name={field.name}
       value={valueProp}
