@@ -5,6 +5,7 @@ import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
 import { encodeCaps } from "@vet/shared";
 import { readActorClaims } from "./actorClaims.js";
+import { ensureRecentAuth } from "./recentAuth.js";
 
 const inputSchema = z
   .object({
@@ -21,12 +22,16 @@ export const approveUser = onCall(
     if (!actorUid || !caps.includes("users.approve")) {
       throw new HttpsError("permission-denied", "");
     }
+    ensureRecentAuth(request);
 
     let targetUid: string;
     let roleId: string;
     try {
       ({ uid: targetUid, roleId } = inputSchema.parse(request.data));
     } catch {
+      throw new HttpsError("invalid-argument", "");
+    }
+    if (roleId === "admin") {
       throw new HttpsError("invalid-argument", "");
     }
     if (targetUid === actorUid) {

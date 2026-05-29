@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ensureCanRevoke } from "../revokeUserSession.js";
+import { ensureCanRevoke, ensureNotSelf } from "../revokeUserSession.js";
 
 describe("ensureCanRevoke", () => {
   it("allows admin caller with allowlist.manage", () => {
@@ -22,5 +22,15 @@ describe("ensureCanRevoke", () => {
 
   it("rejects unauthenticated caller", () => {
     expect(() => ensureCanRevoke(null)).toThrow();
+  });
+});
+
+describe("ensureNotSelf", () => {
+  it("rejects revoking your own session", () => {
+    expect(() => ensureNotSelf("same-uid", "same-uid")).toThrow();
+  });
+
+  it("allows revoking another user's session", () => {
+    expect(() => ensureNotSelf("target-uid", "caller-uid")).not.toThrow();
   });
 });

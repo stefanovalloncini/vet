@@ -23,6 +23,9 @@ export const acceptAccessRequest = onCall(
     } catch {
       throw new HttpsError("invalid-argument", "");
     }
+    if (input.roleId === "admin") {
+      throw new HttpsError("invalid-argument", "");
+    }
 
     const emailNorm = normalizeEmail(input.email);
     const repos = getRepositories();

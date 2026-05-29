@@ -1,4 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { logger } from "firebase-functions/v2";
 import { z } from "zod";
 import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
@@ -19,6 +20,12 @@ export function ensureCanRevoke(caller: Caller | null): void {
   }
 }
 
+export function ensureNotSelf(targetUid: string, callerUid: string): void {
+  if (targetUid === callerUid) {
+    throw new HttpsError("failed-precondition", "cannot-revoke-self");
+  }
+}
+
 export const revokeUserSession = onCall(
   { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
@@ -35,11 +42,16 @@ export const revokeUserSession = onCall(
     } catch {
       throw new HttpsError("invalid-argument", "");
     }
+    ensureNotSelf(uid, caller!.uid);
 
     const repos = getRepositories();
 
-    await adminAuth.revokeRefreshTokens(uid);
-    await adminAuth.updateUser(uid, { disabled: true });
+    try {
+      await adminAuth.revokeRefreshTokens(uid);
+      await adminAuth.updateUser(uid, { disabled: true });
+    } catch (err) {
+      logger.warn("auth.revokeUserSession.authUpdateFailed", { uid, err: String(err) });
+    }
 
     await repos.run(async (tx) => {
       await tx.users.applyRevokeSessionPatch(uid, {
