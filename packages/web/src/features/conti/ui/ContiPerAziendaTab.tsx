@@ -44,6 +44,14 @@ const COLUMNS: ReadonlyArray<Column<Conto>> = [
     header: "Stato",
     accessor: (c) => (c.modalita !== "emesso" ? "proforma" : c.saldato ? "saldato" : "non-saldato"),
     filterId: "stato",
+    cell: (c) => {
+      const status = statusFor(c);
+      return (
+        <Badge tone={status.tone} dot>
+          {status.label}
+        </Badge>
+      );
+    },
   },
 ];
 
@@ -79,7 +87,7 @@ export function ContiPerAziendaTab({ aziendaId }: ContiPerAziendaTabProps) {
       rows={conti}
       columns={COLUMNS}
       getRowId={(c) => c.id}
-      mode="cards"
+      mode="responsive"
       i18n={dataGridIt}
       loading={query.isPending}
       error={query.isError ? "load-failed" : null}

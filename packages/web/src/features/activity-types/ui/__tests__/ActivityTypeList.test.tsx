@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { GINECOLOGIA_TIPO_ID, type ActivityType } from "@vet/shared";
 import { ActivityTypeList } from "../ActivityTypeList";
@@ -18,7 +18,7 @@ function makeTipo(overrides: Partial<ActivityType> = {}): ActivityType {
 }
 
 function renderList(items: ActivityType[], canManage = true) {
-  render(
+  return render(
     <ActivityTypeList
       title="Attivi"
       emptyTitle="Nessun tipo attivo."
@@ -32,6 +32,12 @@ function renderList(items: ActivityType[], canManage = true) {
   );
 }
 
+function mobileCards(container: HTMLElement): HTMLElement {
+  const el = container.querySelector<HTMLElement>(".md\\:hidden");
+  if (!el) throw new Error("mobile cards container not found");
+  return el;
+}
+
 describe("ActivityTypeList", () => {
   it("links the section to its heading for assistive tech", () => {
     renderList([makeTipo()]);
@@ -40,8 +46,8 @@ describe("ActivityTypeList", () => {
   });
 
   it("renders each row spanning the full grid width", () => {
-    renderList([makeTipo()]);
-    const name = screen.getByText("Visita");
+    const { container } = renderList([makeTipo()]);
+    const name = within(mobileCards(container)).getByText("Visita");
     const card = name.closest("div.sm\\:col-span-2");
     expect(card).not.toBeNull();
     expect((card as HTMLElement).className).toContain("lg:col-span-3");

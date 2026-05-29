@@ -62,7 +62,7 @@ export function ActivityTypeList(props: SectionProps) {
         rows={items}
         columns={columns}
         getRowId={(t) => t.id}
-        mode="cards"
+        mode="responsive"
         i18n={dataGridIt}
         rowActions={[]}
         emptyState={<EmptyState title={emptyTitle} />}

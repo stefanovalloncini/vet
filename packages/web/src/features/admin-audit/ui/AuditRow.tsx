@@ -6,20 +6,36 @@ const TIME_FMT = new Intl.DateTimeFormat("it-IT", {
   minute: "2-digit",
 });
 
+export function auditTime(event: AuditEvent): string {
+  return TIME_FMT.format(event.at);
+}
+
+export function auditActor(event: AuditEvent): string {
+  return event.actorEmail || event.actorUid || "—";
+}
+
+export function auditActionLabel(event: AuditEvent): string {
+  return ACTION_LABELS[event.action] ?? event.action;
+}
+
+export function auditTarget(event: AuditEvent): string {
+  return `${event.targetType}/${event.targetId}`;
+}
+
 export function AuditRow({ event }: { event: AuditEvent }) {
-  const actor = event.actorEmail || event.actorUid || "—";
+  const actor = auditActor(event);
   return (
     <div className="sm:col-span-2 lg:col-span-3 bg-(--color-surface) border border-(--color-border) rounded-xl sm:rounded-2xl px-4 py-3">
       <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 sm:grid-cols-[5ch_minmax(0,2fr)_minmax(0,1fr)]">
         <span className="text-xs text-(--color-text-muted) font-mono tabular-nums shrink-0 pt-0.5">
-          {TIME_FMT.format(event.at)}
+          {auditTime(event)}
         </span>
         <div className="min-w-0">
           <p className="text-sm text-(--color-text) leading-snug">
-            {ACTION_LABELS[event.action] ?? event.action}
+            {auditActionLabel(event)}
           </p>
           <p className="text-[11px] text-(--color-text-subtle) mt-0.5 font-mono break-all">
-            {event.targetType}/{event.targetId}
+            {auditTarget(event)}
           </p>
           <p className="sm:hidden text-[11px] text-(--color-text-muted) font-mono truncate mt-0.5">
             {actor}

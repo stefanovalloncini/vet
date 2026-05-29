@@ -270,14 +270,5 @@ export function AttivitaDataGrid({
     ...(toolbarConfig ? { toolbar: toolbarConfig } : {}),
   } as const;
 
-  return (
-    <>
-      <div className="hidden md:block -mx-1 overflow-x-auto px-1">
-        <DataGrid<Attivita> {...commonProps} mode="table" />
-      </div>
-      <div className="md:hidden">
-        <DataGrid<Attivita> {...commonProps} mode="cards" card={attivitaCard} />
-      </div>
-    </>
-  );
+  return <DataGrid<Attivita> {...commonProps} mode="responsive" card={attivitaCard} />;
 }

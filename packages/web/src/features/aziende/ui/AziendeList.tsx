@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Star } from "lucide-react";
-import { EmptyState } from "../../../shared/ui";
+import { Badge, EmptyState } from "../../../shared/ui";
 import { DataGrid, dataGridIt } from "../../../shared/ui/data-grid";
 import type {
   Column,
@@ -75,6 +75,14 @@ export function AziendeList({
         accessor: (a) =>
           statusFor(hasUnsaldati.has(a.id), needsNew.has(a.id)).key,
         filterId: "stato",
+        cell: (a) => {
+          const status = statusFor(hasUnsaldati.has(a.id), needsNew.has(a.id));
+          return (
+            <Badge tone={status.tone} dot>
+              {status.label}
+            </Badge>
+          );
+        },
       },
     ],
     [hasUnsaldati, needsNew]
@@ -97,7 +105,7 @@ export function AziendeList({
       rows={items}
       columns={columns}
       getRowId={(a) => a.id}
-      mode="cards"
+      mode="responsive"
       i18n={dataGridIt}
       loading={loading}
       error={error}

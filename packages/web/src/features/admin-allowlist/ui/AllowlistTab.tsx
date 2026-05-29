@@ -125,7 +125,7 @@ export function AllowlistTab({ entries, roles, loading, error }: AllowlistTabPro
         rows={entries}
         columns={columns}
         getRowId={(e) => e.emailNorm}
-        mode="cards"
+        mode="responsive"
         i18n={dataGridIt}
         loading={loading}
         error={error ? t.loadError : null}

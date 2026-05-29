@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type {
   ActorContext,
@@ -39,6 +39,12 @@ function conto(over: Partial<Conto> = {}): Conto {
     schemaVersion: 1,
   };
   return { ...base, ...over };
+}
+
+function mobileCards(container: HTMLElement): HTMLElement {
+  const el = container.querySelector<HTMLElement>(".md\\:hidden");
+  if (!el) throw new Error("mobile cards container not found");
+  return el;
 }
 
 function reposWith(
@@ -84,15 +90,17 @@ describe("ContiPerAziendaTab", () => {
     );
   });
 
-  it("renders a single labelled status badge per conto", async () => {
+  it("renders a single labelled status badge per conto card", async () => {
     const repos = reposWith([], () =>
       Promise.resolve([conto({ saldato: false })])
     );
-    render(<ContiPerAziendaTab aziendaId="az1" />, {
+    const { container } = render(<ContiPerAziendaTab aziendaId="az1" />, {
       wrapper: buildProvidersWrapper({ repos }),
     });
     await waitFor(() =>
-      expect(screen.getByText("Non saldato")).toBeInTheDocument()
+      expect(
+        within(mobileCards(container)).getByText("Non saldato")
+      ).toBeInTheDocument()
     );
   });
 
@@ -100,10 +108,14 @@ describe("ContiPerAziendaTab", () => {
     const repos = reposWith(["conti.saldo"], () =>
       Promise.resolve([conto({ saldato: false })])
     );
-    render(<ContiPerAziendaTab aziendaId="az1" />, {
+    const { container } = render(<ContiPerAziendaTab aziendaId="az1" />, {
       wrapper: buildProvidersWrapper({ repos, withToast: true }),
     });
-    const btn = await screen.findByRole("button", { name: /Segna saldato/i });
+    const btn = await waitFor(() =>
+      within(mobileCards(container)).getByRole("button", {
+        name: /Segna saldato/i,
+      })
+    );
     expect(btn.className).toContain("h-11");
   });
 
@@ -111,11 +123,13 @@ describe("ContiPerAziendaTab", () => {
     const repos = reposWith([], () =>
       Promise.resolve([conto({ totaleConto: 1234567.89 })])
     );
-    render(<ContiPerAziendaTab aziendaId="az1" />, {
+    const { container } = render(<ContiPerAziendaTab aziendaId="az1" />, {
       wrapper: buildProvidersWrapper({ repos }),
     });
     await waitFor(() =>
-      expect(screen.getByText(/1\.234\.567,89/)).toBeInTheDocument()
+      expect(
+        within(mobileCards(container)).getByText(/1\.234\.567,89/)
+      ).toBeInTheDocument()
     );
   });
 });

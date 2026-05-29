@@ -53,6 +53,14 @@ export function AgendaDayList({ date, items, loading = false }: AgendaDayListPro
         header: "Ora",
         accessor: (a) => formatTime(a.data),
         sortable: true,
+        cell: (a) => (
+          <time
+            dateTime={a.data.toISOString()}
+            className="font-mono text-(--color-text-muted) tabular-nums"
+          >
+            {formatTime(a.data)}
+          </time>
+        ),
       },
       {
         id: "azienda",
@@ -79,7 +87,7 @@ export function AgendaDayList({ date, items, loading = false }: AgendaDayListPro
         rows={dayItems}
         columns={columns}
         getRowId={(a) => a.id}
-        mode="cards"
+        mode="responsive"
         i18n={dataGridIt}
         loading={loading}
         rowActions={[]}

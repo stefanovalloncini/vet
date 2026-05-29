@@ -62,7 +62,7 @@ export function RolesListPage() {
         rows={roles}
         columns={columns}
         getRowId={(r) => r.id}
-        mode="cards"
+        mode="responsive"
         i18n={dataGridIt}
         loading={isLoading}
         error={isError ? t.loadError : null}

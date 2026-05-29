@@ -225,7 +225,7 @@ export function CestinoPage() {
         rows={items}
         columns={columns}
         getRowId={(a) => a.id}
-        mode="cards"
+        mode="responsive"
         i18n={dataGridIt}
         loading={loading}
         error={error ? t.loadError : null}

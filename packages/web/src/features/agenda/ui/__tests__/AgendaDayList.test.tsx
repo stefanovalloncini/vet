@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import type { Attivita } from "@vet/shared";
@@ -53,6 +53,12 @@ function renderList(items: Attivita[], date = new Date("2026-05-04T00:00:00")) {
   );
 }
 
+function mobileCards(container: HTMLElement): HTMLElement {
+  const el = container.querySelector<HTMLElement>(".md\\:hidden");
+  if (!el) throw new Error("mobile cards container not found");
+  return el;
+}
+
 describe("AgendaDayList", () => {
   it("labels the day section and exposes the heading via aria-live", () => {
     renderList([]);
@@ -71,8 +77,11 @@ describe("AgendaDayList", () => {
   });
 
   it("renders the activity time from the activity date, not createdAt", () => {
-    renderList([attivita({ data: new Date("2026-05-04T09:30:00") })]);
-    const time = screen.getByText("09:30");
+    const { container } = renderList([
+      attivita({ data: new Date("2026-05-04T09:30:00") }),
+    ]);
+    const cards = within(mobileCards(container));
+    const time = cards.getByText("09:30");
     expect(time.tagName.toLowerCase()).toBe("time");
     expect(time).toHaveAttribute(
       "datetime",
@@ -82,14 +91,15 @@ describe("AgendaDayList", () => {
   });
 
   it("does not break with a very long azienda name", () => {
-    renderList([
+    const { container } = renderList([
       attivita({
         aziendaNome:
           "Società Agricola Allevamento Bovini da Latte della Bassa Pianura Padana e Dintorni",
       }),
     ]);
+    const cards = within(mobileCards(container));
     expect(
-      screen.getByText(/Società Agricola Allevamento Bovini/i)
+      cards.getByText(/Società Agricola Allevamento Bovini/i)
     ).toBeInTheDocument();
   });
 });

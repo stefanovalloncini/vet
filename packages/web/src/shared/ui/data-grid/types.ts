@@ -1,6 +1,6 @@
 import type { ReactNode, RefObject } from "react";
 
-export type DataGridRenderMode = "table" | "cards" | "virtual";
+export type DataGridRenderMode = "table" | "cards" | "virtual" | "responsive";
 export type SortDirection = "asc" | "desc";
 export interface SortState {
   columnId: string;

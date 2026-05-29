@@ -281,7 +281,36 @@ export function DataGrid<T>(props: DataGridProps<T>) {
         emptyState={emptyState ?? defaultEmpty}
         {...(onRetry ? { onRetry } : {})}
       >
-        {mode === "cards" && card ? (
+        {mode === "responsive" && card ? (
+          <>
+            <div className="hidden md:block -mx-1 overflow-x-auto px-1">
+              <TableMode
+                rows={sorted}
+                columns={colsVisible}
+                getRowId={getRowId}
+                sort={sort}
+                onToggleSort={toggleSort}
+                {...(groupBy ? { groupBy } : {})}
+                {...(expand ? { expand } : {})}
+                expandedIds={expandedIds}
+                onToggleExpand={toggleExpand}
+                {...(rowActions ? { rowActions } : {})}
+                i18n={i18n}
+                showFooter
+                {...(caption !== undefined ? { caption } : {})}
+              />
+            </div>
+            <div className="md:hidden">
+              <CardsMode
+                rows={sorted}
+                getRowId={getRowId}
+                card={card}
+                rowActions={rowActions ?? []}
+                {...(groupBy ? { groupBy } : {})}
+              />
+            </div>
+          </>
+        ) : mode === "cards" && card ? (
           <CardsMode
             rows={sorted}
             getRowId={getRowId}

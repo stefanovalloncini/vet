@@ -84,7 +84,7 @@ export function PendingUsersTab({ roles }: PendingUsersTabProps) {
         rows={items}
         columns={columns}
         getRowId={(u) => u.uid}
-        mode="cards"
+        mode="responsive"
         i18n={dataGridIt}
         loading={loading}
         error={loadError ? t.loadError : null}

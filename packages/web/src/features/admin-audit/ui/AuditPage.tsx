@@ -15,7 +15,13 @@ import {
 import { useAuditEvents } from "../hooks/useAuditEvents";
 import { ACTION_LABELS, auditI18n as t } from "../i18n";
 import type { AuditAction, AuditEvent, AuditFilters } from "@vet/shared";
-import { AuditRow } from "./AuditRow";
+import {
+  AuditRow,
+  auditActionLabel,
+  auditActor,
+  auditTarget,
+  auditTime,
+} from "./AuditRow";
 
 type TargetType = NonNullable<AuditFilters["targetType"]>;
 
@@ -82,8 +88,46 @@ export function AuditPage() {
       {
         id: "at",
         header: t.quando,
+        width: 80,
         accessor: (e) => e.at.getTime(),
         sortable: true,
+        cell: (e) => (
+          <span className="font-mono text-(--color-text-muted) tabular-nums">
+            {auditTime(e)}
+          </span>
+        ),
+        export: (e) => ({ text: auditTime(e) }),
+      },
+      {
+        id: "actor",
+        header: t.attore,
+        accessor: (e) => auditActor(e),
+        sortable: true,
+        cell: (e) => (
+          <span className="font-mono text-(--color-text-muted) break-all">
+            {auditActor(e)}
+          </span>
+        ),
+      },
+      {
+        id: "action",
+        header: t.azione,
+        accessor: (e) => auditActionLabel(e),
+        sortable: true,
+        cell: (e) => (
+          <span className="text-(--color-text)">{auditActionLabel(e)}</span>
+        ),
+      },
+      {
+        id: "target",
+        header: t.target,
+        accessor: (e) => auditTarget(e),
+        sortable: true,
+        cell: (e) => (
+          <span className="font-mono text-(--color-text-subtle) break-all">
+            {auditTarget(e)}
+          </span>
+        ),
       },
     ],
     []
@@ -146,7 +190,7 @@ export function AuditPage() {
         rows={events}
         columns={columns}
         getRowId={(e) => e.id}
-        mode="cards"
+        mode="responsive"
         i18n={dataGridIt}
         loading={isLoading}
         error={isError ? t.loadError : null}
