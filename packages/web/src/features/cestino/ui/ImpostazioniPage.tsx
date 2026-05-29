@@ -63,8 +63,7 @@ export function ImpostazioniPage() {
       markBackupDone(now);
       setLastBackupAt(now);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setExportError(`${t.datiBackupError}: ${msg}`);
+      setExportError(t.datiBackupError);
       console.error("export failed", err);
     } finally {
       setExporting(false);
@@ -82,8 +81,7 @@ export function ImpostazioniPage() {
       markBackupDone(now);
       setLastBackupAt(now);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setCsvError(`${t.datiCsvError}: ${msg}`);
+      setCsvError(t.datiCsvError);
       console.error("csv export failed", err);
     } finally {
       setCsvExporting(false);
