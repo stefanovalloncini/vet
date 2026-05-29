@@ -48,7 +48,7 @@ test.describe("role editor (rhf)", () => {
       timeout: 15_000,
     });
     await expect(
-      signedInAdmin.getByRole("heading", { level: 2, name: new RegExp(roleName) })
+      signedInAdmin.getByRole("cell", { name: new RegExp(roleName) }).first()
     ).toBeVisible({ timeout: 10_000 });
   });
 

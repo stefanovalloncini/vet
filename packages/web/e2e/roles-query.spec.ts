@@ -7,10 +7,10 @@ test.describe("admin roles (tanstack query)", () => {
       signedInAdmin.getByRole("heading", { level: 1, name: /Ruoli/i })
     ).toBeVisible({ timeout: 15_000 });
     await expect(
-      signedInAdmin.getByRole("heading", { level: 2, name: /Amministratore/i })
+      signedInAdmin.getByRole("cell", { name: /Amministratore/i }).first()
     ).toBeVisible({ timeout: 10_000 });
     await expect(
-      signedInAdmin.getByRole("heading", { level: 2, name: /Veterinario/i })
+      signedInAdmin.getByRole("cell", { name: /Veterinario/i }).first()
     ).toBeVisible();
   });
 
@@ -39,7 +39,7 @@ test.describe("admin roles (tanstack query)", () => {
     });
 
     await expect(
-      signedInAdmin.getByRole("heading", { level: 2, name: new RegExp(roleName) })
+      signedInAdmin.getByRole("cell", { name: new RegExp(roleName) }).first()
     ).toBeVisible({ timeout: 10_000 });
   });
 

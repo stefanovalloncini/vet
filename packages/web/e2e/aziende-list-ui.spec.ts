@@ -15,10 +15,7 @@ test.describe("aziende list UI", () => {
     ).toBeVisible({ timeout: 15_000 });
 
     await expect(
-      signedInVet.getByRole("heading", {
-        level: 2,
-        name: FIXTURE.azienda.nome,
-      })
+      signedInVet.getByRole("link", { name: FIXTURE.azienda.nome })
     ).toBeVisible({ timeout: 10_000 });
   });
 
@@ -38,16 +35,14 @@ test.describe("aziende list UI", () => {
       signedInVet.getByText("Nessun risultato.").first()
     ).toBeVisible({ timeout: 10_000 });
     await expect(
-      signedInVet.getByRole("heading", {
-        level: 2,
-        name: FIXTURE.azienda.nome,
-      })
+      signedInVet.getByRole("link", { name: FIXTURE.azienda.nome })
     ).toHaveCount(0);
   });
 
   test("a card exposes a pin toggle reachable by keyboard", async ({
     signedInVet,
   }) => {
+    await signedInVet.setViewportSize({ width: 390, height: 844 });
     await signedInVet.goto("/aziende");
     await expect(
       signedInVet.getByRole("heading", { level: 1 })
