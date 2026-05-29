@@ -99,7 +99,7 @@ function matchesDateRange(value: unknown, range: readonly [string, string]): boo
   return true;
 }
 
-function isFilterActive(v: FilterValue): boolean {
+export function isFilterActive(v: FilterValue): boolean {
   if (v == null) return false;
   if (typeof v === "string") return v !== "";
   if (typeof v === "number") return Number.isFinite(v);

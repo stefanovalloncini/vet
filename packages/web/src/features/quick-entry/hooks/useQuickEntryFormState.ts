@@ -19,6 +19,7 @@ import {
   formatEuro,
   parseDateInput,
 } from "../../../shared/lib/format";
+import type { Option } from "../../../shared/lib/options";
 import { queryKeys } from "../../../shared/data/queryClient";
 import {
   useCreateAttivita,
@@ -40,11 +41,6 @@ import { computeCombos, type ComputeCombosResult } from "../lib/recentCombos";
 const RECENT_AZIENDE_LIMIT = 6;
 
 export type { QuickEntryFormValues };
-
-interface Option {
-  value: string;
-  label: string;
-}
 
 export interface QuickEntryFormState {
   form: UseFormReturn<QuickEntryFormValues>;

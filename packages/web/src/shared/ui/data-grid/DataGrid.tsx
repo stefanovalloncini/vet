@@ -6,7 +6,7 @@ import { FilterBar } from "./FilterBar";
 import { DataGridToolbar } from "./Toolbar";
 import { TableMode } from "./modes/TableMode";
 import { CardsMode } from "./modes/CardsMode";
-import { applyFilters, applySort, visibleColumns } from "./engine";
+import { applyFilters, applySort, isFilterActive, visibleColumns } from "./engine";
 import { downloadCsv, toCsv } from "./export/csv";
 import { useMediaQuery } from "../../lib/useMediaQuery";
 import type {
@@ -191,20 +191,10 @@ export function DataGrid<T>(props: DataGridProps<T>) {
   );
 
   const isEmpty = sorted.length === 0;
-  const hasActiveFilters = filters.some((f) => {
-    const v = f.value;
-    if (v == null) return false;
-    if (typeof v === "string") return v !== "";
-    if (typeof v === "number") return Number.isFinite(v);
-    if (typeof v === "boolean") return true;
-    if (Array.isArray(v)) {
-      if (v.length === 2 && typeof v[0] === "string" && typeof v[1] === "string") {
-        return v[0] !== "" || v[1] !== "";
-      }
-      return v.length > 0;
-    }
-    return false;
-  });
+  const hasActiveFilters = useMemo(
+    () => filters.some((f) => isFilterActive(f.value)),
+    [filters]
+  );
 
   const defaultEmpty = (
     <EmptyState title={hasActiveFilters ? i18n.emptyFiltered : i18n.empty} />

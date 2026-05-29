@@ -7,15 +7,9 @@ import {
   startOfMonthLocal,
   statsForRange,
   trailingMonths,
+  type MonthStats,
 } from "../lib/stats";
 import type { Attivita, Azienda, AttivitaFilters } from "@vet/shared";
-
-interface MonthStats {
-  total: number;
-  count: number;
-  byAzienda: Map<string, { nome: string; total: number; count: number }>;
-  byTipo: Map<string, { nome: string; total: number; count: number }>;
-}
 
 export interface DashboardStats {
   loading: boolean;
