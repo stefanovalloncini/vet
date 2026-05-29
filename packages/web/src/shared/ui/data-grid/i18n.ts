@@ -9,7 +9,6 @@ export const dataGridIt: DataGridI18n = {
   sortAsc: "Ordina crescente",
   sortDesc: "Ordina decrescente",
   exportCsv: "Esporta CSV",
-  exportPdf: "Esporta PDF",
   columns: "Colonne",
   rowsOf: (n: number, total: number) => `${n} di ${total} righe`,
 };

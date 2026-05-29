@@ -6,10 +6,8 @@ import { FilterBar } from "./FilterBar";
 import { DataGridToolbar } from "./Toolbar";
 import { TableMode } from "./modes/TableMode";
 import { CardsMode } from "./modes/CardsMode";
-import { VirtualMode } from "./modes/VirtualMode";
 import { applyFilters, applySort, visibleColumns } from "./engine";
 import { downloadCsv, toCsv } from "./export/csv";
-import { exportToPdf } from "./export/pdf";
 import { useMediaQuery } from "../../lib/useMediaQuery";
 import type {
   DataGridProps,
@@ -66,7 +64,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     rowActions,
     card,
     cardsLayout,
-    virtual,
     toolbar,
     emptyState,
     footerNote,
@@ -183,28 +180,14 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     },
     [buildCsv, toolbar?.filenameStem]
   );
-  const handleExportPdf = useCallback(
-    async (opts?: { title?: string; filename?: string }) => {
-      const pdfOpts: { title?: string; filename?: string } = {};
-      const title = opts?.title ?? toolbar?.pdfTitle;
-      if (title !== undefined) pdfOpts.title = title;
-      const filename =
-        opts?.filename ?? `${toolbar?.filenameStem ?? "export"}.pdf`;
-      pdfOpts.filename = filename;
-      await exportToPdf(colsVisible, sorted, pdfOpts);
-    },
-    [colsVisible, sorted, toolbar?.pdfTitle, toolbar?.filenameStem]
-  );
-
   useImperativeHandle(
     apiRef ?? { current: null },
     () => ({
       toCSV: () => buildCsv(),
       downloadCSV: (filename?: string) => handleDownloadCsv(filename),
-      toPDF: (opts?: { title?: string; filename?: string }) => handleExportPdf(opts),
       getVisibleRows: () => sorted,
     }),
-    [buildCsv, handleDownloadCsv, handleExportPdf, sorted]
+    [buildCsv, handleDownloadCsv, sorted]
   );
 
   const isEmpty = sorted.length === 0;
@@ -228,7 +211,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
   );
 
   const showCsv = toolbar?.showExport?.csv ?? false;
-  const showPdf = toolbar?.showExport?.pdf ?? false;
   const showColumnsToggle = toolbar?.showColumnsToggle ?? false;
 
   const clearFilters = useCallback(() => {
@@ -268,9 +250,7 @@ export function DataGrid<T>(props: DataGridProps<T>) {
           onToggleColumn={toggleColumn}
           showColumnsToggle={showColumnsToggle}
           showCsv={showCsv}
-          showPdf={showPdf}
           onExportCsv={showCsv ? () => handleDownloadCsv() : undefined}
-          onExportPdf={showPdf ? () => void handleExportPdf() : undefined}
           rowsVisible={sorted.length}
           rowsTotal={rows.length}
           i18n={i18n}
@@ -321,18 +301,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
             rowActions={rowActions ?? []}
             {...(groupBy ? { groupBy } : {})}
             {...(cardsLayout ? { layout: cardsLayout } : {})}
-          />
-        ) : mode === "virtual" && virtual ? (
-          <VirtualMode
-            rows={sorted}
-            columns={colsVisible}
-            getRowId={getRowId}
-            rowHeight={virtual.rowHeight}
-            height={virtual.height}
-            sort={sort}
-            onToggleSort={toggleSort}
-            {...(rowActions ? { rowActions } : {})}
-            i18n={i18n}
           />
         ) : (
           <TableMode

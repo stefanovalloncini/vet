@@ -100,8 +100,7 @@ describe("DataGrid integration contract", () => {
         groupBy={groupBy}
         toolbar={{
           showColumnsToggle: true,
-          showExport: { csv: true, pdf: true },
-          pdfTitle: "Attività",
+          showExport: { csv: true },
           filenameStem: "attivita",
         }}
       />

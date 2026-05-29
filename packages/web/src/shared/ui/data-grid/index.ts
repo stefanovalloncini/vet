@@ -1,7 +1,6 @@
 export { DataGrid } from "./DataGrid";
 export { dataGridIt } from "./i18n";
 export { toCsv, quoteCsvCell, downloadCsv, formatNumberItalian } from "./export/csv";
-export { exportToPdf, buildAutoTableConfig } from "./export/pdf";
 export { applyFilters, applySort, groupRows, visibleColumns } from "./engine";
 export type {
   Accessor,

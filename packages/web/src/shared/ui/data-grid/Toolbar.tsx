@@ -8,9 +8,7 @@ interface DataGridToolbarProps<T> {
   onToggleColumn: (id: string) => void;
   showColumnsToggle: boolean;
   showCsv: boolean;
-  showPdf: boolean;
   onExportCsv?: (() => void) | undefined;
-  onExportPdf?: (() => void) | undefined;
   rowsVisible: number;
   rowsTotal: number;
   i18n: DataGridI18n;
@@ -23,9 +21,7 @@ export function DataGridToolbar<T>({
   onToggleColumn,
   showColumnsToggle,
   showCsv,
-  showPdf,
   onExportCsv,
-  onExportPdf,
   rowsVisible,
   rowsTotal,
   i18n,
@@ -92,11 +88,6 @@ export function DataGridToolbar<T>({
         {showCsv && onExportCsv ? (
           <Button variant="secondary" size="sm" onClick={onExportCsv}>
             {i18n.exportCsv}
-          </Button>
-        ) : null}
-        {showPdf && onExportPdf ? (
-          <Button variant="secondary" size="sm" onClick={onExportPdf}>
-            {i18n.exportPdf}
           </Button>
         ) : null}
       </div>

@@ -1,6 +1,6 @@
 import type { ReactNode, RefObject } from "react";
 
-export type DataGridRenderMode = "table" | "cards" | "virtual" | "responsive";
+export type DataGridRenderMode = "table" | "cards" | "responsive";
 export type CardsLayout = "grid" | "list";
 export type SortDirection = "asc" | "desc";
 export interface SortState {
@@ -66,7 +66,6 @@ export interface DataGridI18n {
   sortAsc: string;
   sortDesc: string;
   exportCsv: string;
-  exportPdf: string;
   columns: string;
   rowsOf: (n: number, total: number) => string;
 }
@@ -94,11 +93,9 @@ export interface DataGridProps<T> {
   rowActions?: ReadonlyArray<RowAction<T>>;
   card?: CardRenderer<T>;
   cardsLayout?: CardsLayout;
-  virtual?: { rowHeight: number; height: number };
   toolbar?: {
     showColumnsToggle?: boolean;
-    showExport?: { csv?: boolean; pdf?: boolean };
-    pdfTitle?: string;
+    showExport?: { csv?: boolean };
     filenameStem?: string;
     extra?: ReactNode;
     visibilityStorageKey?: string;
@@ -110,6 +107,5 @@ export interface DataGridProps<T> {
 export interface DataGridHandle<T> {
   toCSV: () => string;
   downloadCSV: (filename?: string) => void;
-  toPDF: (opts?: { title?: string; filename?: string }) => Promise<void>;
   getVisibleRows: () => ReadonlyArray<T>;
 }
