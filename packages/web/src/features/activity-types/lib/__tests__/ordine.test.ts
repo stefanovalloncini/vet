@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ActivityType } from "@vet/shared";
+import { ALTRO_TIPO_ID, type ActivityType } from "@vet/shared";
 import { nextOrdine } from "../ordine";
 
 function tipo(id: string, ordine: number): ActivityType {
@@ -29,11 +29,18 @@ describe("nextOrdine", () => {
     expect(nextOrdine([tipo("x", 100)])).toBe(110);
   });
 
-  it("ignores non-numeric ordine gaps and returns +10 from the highest", () => {
-    expect(nextOrdine([tipo("a", 999), tipo("b", 1)])).toBe(1009);
-  });
-
   it("returns 10 when all ordine values are 0 or negative", () => {
     expect(nextOrdine([tipo("a", 0), tipo("b", -5)])).toBe(10);
+  });
+
+  it("never exceeds the schema max of 1000 (clamps)", () => {
+    expect(nextOrdine([tipo("a", 999), tipo("b", 1)])).toBe(1000);
+    expect(nextOrdine([tipo("a", 1000)])).toBe(1000);
+  });
+
+  it("excludes the Altro sentinel so new types slot before it", () => {
+    expect(
+      nextOrdine([tipo("visita", 50), tipo(ALTRO_TIPO_ID, 999)])
+    ).toBe(60);
   });
 });
