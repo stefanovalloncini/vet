@@ -1,10 +1,9 @@
 import { useMemo } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Attivita } from "@vet/shared";
-import { Button } from "../../../shared/ui";
-import { MONTHS, WEEKDAYS_SHORT, agendaI18n as t } from "../i18n";
-import { addDays, buildWeekStrip, sameDay, startOfWeek } from "../lib/calendar";
+import { WEEKDAYS_SHORT } from "../i18n";
+import { buildWeekStrip, sameDay, startOfWeek } from "../lib/calendar";
 import { dateInputValue, mondayIndex } from "../../../shared/lib/format";
+import { AgendaWeekNav } from "./AgendaWeekNav";
 
 interface AgendaWeekStripProps {
   readonly selectedDate: Date;
@@ -29,46 +28,13 @@ export function AgendaWeekStrip({
   const weekStart = useMemo(() => startOfWeek(selectedDate), [selectedDate]);
   const days = useMemo(() => buildWeekStrip(weekStart), [weekStart]);
   const counts = useMemo(() => buildCountsByDay(items), [items]);
-  const mid = useMemo(() => addDays(weekStart, 3), [weekStart]);
-  const monthLabel = `${MONTHS[mid.getMonth()]} ${mid.getFullYear()}`;
-
-  const shiftWeek = (delta: number) => onSelectDate(addDays(selectedDate, delta * 7));
-  const goToday = () => onSelectDate(new Date());
 
   return (
     <section
       aria-label="Selettore data"
       className="mb-5 sm:mb-6 print:hidden"
     >
-      <div className="flex items-center justify-between mb-3">
-        <h2
-          className="text-base font-medium text-(--color-text) capitalize tabular-nums"
-          aria-live="polite"
-        >
-          {monthLabel}
-        </h2>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => shiftWeek(-1)}
-            aria-label={t.settimanaScorsa}
-            className="w-11 h-11 inline-flex items-center justify-center rounded-lg text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) active:scale-[0.97] active:duration-(--motion-press) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
-          >
-            <ChevronLeft size={18} strokeWidth={2} aria-hidden="true" />
-          </button>
-          <Button type="button" variant="ghost" size="sm" onClick={goToday}>
-            {t.oggi}
-          </Button>
-          <button
-            type="button"
-            onClick={() => shiftWeek(1)}
-            aria-label={t.settimanaProssima}
-            className="w-11 h-11 inline-flex items-center justify-center rounded-lg text-(--color-text-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text) transition-colors duration-(--motion-fast) ease-(--ease-out-quart) active:scale-[0.97] active:duration-(--motion-press) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
-          >
-            <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
-          </button>
-        </div>
-      </div>
+      <AgendaWeekNav selectedDate={selectedDate} onSelectDate={onSelectDate} />
 
       <div role="radiogroup" aria-label="Giorni della settimana" className="grid grid-cols-7 gap-1.5">
         {days.map((d) => {

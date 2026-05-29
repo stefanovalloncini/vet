@@ -14,7 +14,7 @@ test.describe("quick entry dialog (react hook form)", () => {
       timeout: 15_000,
     });
 
-    await signedInVet.getByRole("button", { name: /Voce rapida/i }).click();
+    await signedInVet.keyboard.press("n");
     const dialog = signedInVet.getByRole("dialog", { name: /Voce rapida/i });
     await expect(dialog).toBeVisible({ timeout: 10_000 });
 
@@ -36,7 +36,7 @@ test.describe("quick entry dialog (react hook form)", () => {
       timeout: 15_000,
     });
 
-    await signedInVet.getByRole("button", { name: /Voce rapida/i }).click();
+    await signedInVet.keyboard.press("n");
     const dialog = signedInVet.getByRole("dialog", { name: /Voce rapida/i });
     await expect(dialog).toBeVisible({ timeout: 10_000 });
 
@@ -55,7 +55,7 @@ test.describe("quick entry dialog (react hook form)", () => {
       timeout: 15_000,
     });
 
-    await signedInVet.getByRole("button", { name: /Voce rapida/i }).click();
+    await signedInVet.keyboard.press("n");
     await expect(
       signedInVet.getByRole("heading", { name: /Voce rapida/i })
     ).toBeVisible({ timeout: 10_000 });

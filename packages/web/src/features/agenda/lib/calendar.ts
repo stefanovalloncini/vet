@@ -1,8 +1,13 @@
-import { mondayIndex } from "../../../shared/lib/format";
+import type { Attivita } from "@vet/shared";
+import { dateInputValue, mondayIndex } from "../../../shared/lib/format";
 
 export interface WeekDay {
   date: Date;
   isToday: boolean;
+}
+
+export interface WeekDayColumn extends WeekDay {
+  items: Attivita[];
 }
 
 export function buildWeekStrip(anchor: Date, today: Date = new Date()): WeekDay[] {
@@ -30,6 +35,27 @@ export function sameDay(a: Date, b: Date): boolean {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   );
+}
+
+export function groupWeekByWeekday(
+  anchor: Date,
+  items: Attivita[],
+  today: Date = new Date()
+): WeekDayColumn[] {
+  const week = buildWeekStrip(anchor, today);
+  const byDay = new Map<string, Attivita[]>();
+  for (const a of items) {
+    const key = dateInputValue(a.data);
+    const bucket = byDay.get(key);
+    if (bucket) bucket.push(a);
+    else byDay.set(key, [a]);
+  }
+  return week.map((d) => {
+    const dayItems = (byDay.get(dateInputValue(d.date)) ?? [])
+      .slice()
+      .sort((a, b) => a.data.getTime() - b.data.getTime());
+    return { ...d, items: dayItems };
+  });
 }
 
 export function startOfMonth(d: Date): Date {

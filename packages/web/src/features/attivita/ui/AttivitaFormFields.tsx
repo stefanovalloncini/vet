@@ -34,94 +34,118 @@ export function AttivitaFormFields({
 
   return (
     <Card>
-      <div className="space-y-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <RHFTextField<AttivitaFormValues>
-            name="data"
-            type="date"
-            label={t.campoData}
-            required
-            disabled={busy}
-          />
-          <RHFSelect<AttivitaFormValues>
-            name="aziendaId"
-            label={t.campoAzienda}
-            options={aziendaOptions}
-            disabled={busy}
-            action={aziendaAction}
-          />
-        </div>
-        <RHFSelect<AttivitaFormValues>
-          name="tipoId"
-          label={t.campoTipo}
-          options={tipoOptions}
-          disabled={busy}
-          action={tipoAction}
-        />
-
-        <RateModeToggles busy={busy} />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <RHFTextField<AttivitaFormValues>
-            name="tariffa"
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min="0"
-            max="100000"
-            label={t.campoTariffa}
-            required
-            disabled={busy}
-            {...(tariffaSuggested ? { hint: t.ginecologiaSuggerita } : {})}
-          />
-          {oraria ? (
+      <div className="space-y-7">
+        <Section legend={t.sezioneDati} first>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <RHFTextField<AttivitaFormValues>
-              name="ore"
+              name="data"
+              type="date"
+              label={t.campoData}
+              required
+              disabled={busy}
+            />
+            <RHFSelect<AttivitaFormValues>
+              name="aziendaId"
+              label={t.campoAzienda}
+              options={aziendaOptions}
+              disabled={busy}
+              action={aziendaAction}
+            />
+          </div>
+          <RHFSelect<AttivitaFormValues>
+            name="tipoId"
+            label={t.campoTipo}
+            options={tipoOptions}
+            disabled={busy}
+            action={tipoAction}
+          />
+          <RHFTextArea<AttivitaFormValues>
+            name="note"
+            label={t.campoNote}
+            rows={2}
+            disabled={busy}
+            maxLength={2000}
+          />
+        </Section>
+
+        <Section legend={t.sezioneTariffa}>
+          <RateModeToggles busy={busy} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <RHFTextField<AttivitaFormValues>
+              name="tariffa"
               type="number"
               inputMode="decimal"
-              step="0.25"
-              min="0.25"
-              max="24"
-              label={t.campoOre}
+              step="0.01"
+              min="0"
+              max="100000"
+              label={t.campoTariffa}
               required
               disabled={busy}
+              {...(tariffaSuggested ? { hint: t.ginecologiaSuggerita } : {})}
             />
-          ) : null}
-          {adElemento ? (
-            <RHFTextField<AttivitaFormValues>
-              name="elementi"
-              type="number"
-              inputMode="numeric"
-              step="1"
-              min="1"
-              max="10000"
-              label={t.campoElementi}
-              required
-              disabled={busy}
-            />
-          ) : null}
-        </div>
-
-        <RHFTextArea<AttivitaFormValues>
-          name="note"
-          label={t.campoNote}
-          rows={2}
-          disabled={busy}
-          maxLength={2000}
-        />
-
-        {!isEdit ? <AttivitaReminderField busy={busy} /> : null}
-
-        {totaleLive !== null ? (
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pt-2 border-t border-(--color-border)">
-            <SectionLabel as="span">{t.totale}</SectionLabel>
-            <span className="text-2xl font-medium text-(--color-text) tabular-nums tracking-tight">
-              {formatEuro(totaleLive)}
-            </span>
+            {oraria ? (
+              <RHFTextField<AttivitaFormValues>
+                name="ore"
+                type="number"
+                inputMode="decimal"
+                step="0.25"
+                min="0.25"
+                max="24"
+                label={t.campoOre}
+                required
+                disabled={busy}
+              />
+            ) : null}
+            {adElemento ? (
+              <RHFTextField<AttivitaFormValues>
+                name="elementi"
+                type="number"
+                inputMode="numeric"
+                step="1"
+                min="1"
+                max="10000"
+                label={t.campoElementi}
+                required
+                disabled={busy}
+              />
+            ) : null}
           </div>
+          {totaleLive !== null ? (
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pt-3 border-t border-(--color-border)">
+              <SectionLabel as="span">{t.totale}</SectionLabel>
+              <span className="text-2xl font-medium text-(--color-text) tabular-nums tracking-tight">
+                {formatEuro(totaleLive)}
+              </span>
+            </div>
+          ) : null}
+        </Section>
+
+        {!isEdit ? (
+          <Section legend={t.sezionePromemoria}>
+            <AttivitaReminderField busy={busy} />
+          </Section>
         ) : null}
       </div>
     </Card>
+  );
+}
+
+function Section({
+  legend,
+  first,
+  children,
+}: {
+  legend: string;
+  first?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <section className={first ? "" : "border-t border-(--color-border) pt-6"}>
+      <SectionLabel as="h2" className="mb-4 font-medium text-(--color-text)">
+        {legend}
+      </SectionLabel>
+      <div className="space-y-5">{children}</div>
+    </section>
   );
 }
 

@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { AppShell, PageHeader } from "../../../shared/ui";
+import { Link } from "react-router-dom";
+import { AppShell, Button, PageHeader } from "../../../shared/ui";
+import { routes } from "../../../routes";
 import { withAllOption } from "../../../shared/lib/options";
 import { useAuthState } from "../../auth";
 import { useAttivita } from "../hooks/useAttivita";
@@ -33,6 +35,7 @@ export function AttivitaListPage() {
   const totals = useMemo(() => computeTotals(items), [items]);
 
   const canExport = user?.caps.has("activities.export") ?? false;
+  const canCreate = user?.caps.has("activities.create") ?? false;
 
   const aziendaOptions = useMemo(
     () =>
@@ -61,7 +64,19 @@ export function AttivitaListPage() {
 
   return (
     <AppShell wide>
-      <PageHeader title={t.title} subtitle={t.subtitle} />
+      <PageHeader
+        title={t.title}
+        subtitle={t.subtitle}
+        actions={
+          canCreate ? (
+            <Link to={routes.attivitaNew.to()} className="hidden sm:inline-flex">
+              <Button type="button" variant="primary">
+                {t.nuovaAttivita}
+              </Button>
+            </Link>
+          ) : null
+        }
+      />
       <AttivitaFilterBar
         from={fs.from}
         to={fs.to}

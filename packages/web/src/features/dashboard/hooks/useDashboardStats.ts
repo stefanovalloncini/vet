@@ -11,6 +11,13 @@ import {
 } from "../lib/stats";
 import type { Attivita, Azienda, AttivitaFilters } from "@vet/shared";
 
+export interface TipoBreakdownRow {
+  id: string;
+  nome: string;
+  count: number;
+  total: number;
+}
+
 export interface DashboardStats {
   loading: boolean;
   isError: boolean;
@@ -19,9 +26,14 @@ export interface DashboardStats {
   thisMonth: MonthStats;
   aziendeAttiveCount: number;
   trailing: { totals: number[]; counts: number[]; labels: string[] };
+  trailingTotal: number;
+  recent: Attivita[];
+  tipiMese: TipoBreakdownRow[];
 }
 
 const TRAILING_MONTHS = 12;
+const RECENT_LIMIT = 8;
+const TIPI_LIMIT = 6;
 const EMPTY_AZIENDE: Azienda[] = [];
 
 export function useDashboardStats(now: Date): DashboardStats {
@@ -58,6 +70,28 @@ export function useDashboardStats(now: Date): DashboardStats {
     [items, now]
   );
 
+  const trailingTotal = useMemo(
+    () => Math.round(trailing.totals.reduce((s, v) => s + v, 0) * 100) / 100,
+    [trailing]
+  );
+
+  const recent = useMemo(
+    () =>
+      [...items]
+        .sort((a, b) => b.data.getTime() - a.data.getTime())
+        .slice(0, RECENT_LIMIT),
+    [items]
+  );
+
+  const tipiMese = useMemo<TipoBreakdownRow[]>(
+    () =>
+      [...thisMonth.byTipo.entries()]
+        .map(([id, v]) => ({ id, nome: v.nome, count: v.count, total: v.total }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, TIPI_LIMIT),
+    [thisMonth]
+  );
+
   return {
     loading,
     isError,
@@ -66,5 +100,8 @@ export function useDashboardStats(now: Date): DashboardStats {
     thisMonth,
     aziendeAttiveCount: thisMonth.byAzienda.size,
     trailing,
+    trailingTotal,
+    recent,
+    tipiMese,
   };
 }

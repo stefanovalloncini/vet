@@ -8,10 +8,15 @@ import type {
   FilterDef,
   RowAction,
 } from "../../../shared/ui/data-grid";
+import { formatEuro } from "../../../shared/lib/format";
 import { routes } from "../../../routes";
 import { aziendeI18n as t } from "../i18n";
 import { AziendaCard, statusFor } from "./AziendaCard";
 import type { Azienda } from "@vet/shared";
+
+const capiFormatter = new Intl.NumberFormat("it-IT", {
+  maximumFractionDigits: 0,
+});
 
 interface AziendeListProps {
   items: ReadonlyArray<Azienda>;
@@ -24,6 +29,7 @@ interface AziendeListProps {
   onTogglePin: (id: string) => void;
   hasUnsaldatiContiBy?: ReadonlySet<string>;
   needsNewContoBy?: ReadonlySet<string>;
+  totaleApertoBy?: ReadonlyMap<string, number>;
   filters: ReadonlyArray<FilterDef>;
   onFiltersChange: (next: ReadonlyArray<FilterDef>) => void;
 }
@@ -39,6 +45,7 @@ export function AziendeList({
   onTogglePin,
   hasUnsaldatiContiBy,
   needsNewContoBy,
+  totaleApertoBy,
   filters,
   onFiltersChange,
 }: AziendeListProps) {
@@ -50,9 +57,21 @@ export function AziendeList({
     () => needsNewContoBy ?? new Set<string>(),
     [needsNewContoBy]
   );
+  const totaleAperto = useMemo(
+    () => totaleApertoBy ?? new Map<string, number>(),
+    [totaleApertoBy]
+  );
 
   const columns = useMemo<ReadonlyArray<Column<Azienda>>>(
     () => [
+      {
+        id: "search",
+        header: "Cerca",
+        accessor: (a) => a.nomeNorm,
+        filterId: "search",
+        hiddenByDefault: true,
+        sortable: false,
+      },
       {
         id: "nome",
         header: "Nome",
@@ -69,16 +88,45 @@ export function AziendeList({
         ),
       },
       {
-        id: "tipo",
-        header: "Tipo",
-        accessor: (a) => a.tipoAllevamento ?? "",
-        filterId: "tipo",
+        id: "capi",
+        header: "Capi",
+        accessor: (a) => a.numeroCapi ?? -1,
+        align: "end",
+        tone: "muted",
+        cell: (a) => (
+          <span className="tabular-nums">
+            {a.numeroCapi !== undefined
+              ? capiFormatter.format(a.numeroCapi)
+              : "—"}
+          </span>
+        ),
       },
       {
-        id: "cadenza",
-        header: "Cadenza",
-        accessor: (a) => a.cadenzaFatturazione ?? "",
-        filterId: "cadenza",
+        id: "telefono",
+        header: "Telefono",
+        accessor: (a) => a.telefono ?? "",
+        tone: "muted",
+        cell: (a) =>
+          a.telefono ? (
+            <span className="tabular-nums">{a.telefono}</span>
+          ) : (
+            <span className="text-(--color-text-subtle)">—</span>
+          ),
+      },
+      {
+        id: "dovuto",
+        header: "Totale dovuto",
+        accessor: (a) => totaleAperto.get(a.id) ?? 0,
+        align: "end",
+        sortable: true,
+        cell: (a) => {
+          const v = totaleAperto.get(a.id) ?? 0;
+          return v > 0 ? (
+            <span className="font-mono tabular-nums">{formatEuro(v)}</span>
+          ) : (
+            <span className="text-(--color-text-subtle)">—</span>
+          );
+        },
       },
       {
         id: "stato",
@@ -96,7 +144,7 @@ export function AziendeList({
         },
       },
     ],
-    [hasUnsaldati, needsNew]
+    [hasUnsaldati, needsNew, totaleAperto]
   );
 
   const rowActions = useMemo<ReadonlyArray<RowAction<Azienda>>>(

@@ -1,12 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AppShell, Button, PageHeader, TextField } from "../../../shared/ui";
+import { AppShell, Button, PageHeader } from "../../../shared/ui";
 import type { FilterDef } from "../../../shared/ui/data-grid";
 import { useAuthState } from "../../auth";
 import { useAziende } from "../hooks/useAziende";
 import { usePinned } from "../hooks/usePinned";
 import { aziendeI18n as t } from "../i18n";
-import { normalizeAziendaNome } from "@vet/shared";
 import { AziendeList } from "./AziendeList";
 import { usePagamentiOverview } from "../../pagamenti";
 
@@ -25,33 +24,44 @@ export function AziendeListPage() {
   const [statoFilter, setStatoFilter] = useState<string>("");
   const now = useMemo(() => new Date(), []);
   const overview = usePagamentiOverview(now);
-  const { hasUnsaldatiContiBy, needsNewContoBy } = useMemo(() => {
+  const { hasUnsaldatiContiBy, needsNewContoBy, totaleApertoBy } = useMemo(() => {
     const unpaid = new Set<string>();
     const needs = new Set<string>();
+    const aperto = new Map<string, number>();
     for (const row of overview.rows) {
       if (row.hasUnpaid) unpaid.add(row.azienda.id);
       if (row.needsNewConto) needs.add(row.azienda.id);
+      if (row.totaleAperto > 0) aperto.set(row.azienda.id, row.totaleAperto);
     }
-    return { hasUnsaldatiContiBy: unpaid, needsNewContoBy: needs };
+    return {
+      hasUnsaldatiContiBy: unpaid,
+      needsNewContoBy: needs,
+      totaleApertoBy: aperto,
+    };
   }, [overview.rows]);
 
   const canCreate = user?.caps.has("aziende.create") ?? false;
   const canUpdate = user?.caps.has("aziende.update") ?? false;
 
-  const filtered = useMemo(() => {
-    const base = search.trim()
-      ? aziende.filter((a) => a.nomeNorm.includes(normalizeAziendaNome(search)))
-      : aziende;
-    return [...base].sort((a, b) => {
-      const ap = pinned.has(a.id) ? 0 : 1;
-      const bp = pinned.has(b.id) ? 0 : 1;
-      if (ap !== bp) return ap - bp;
-      return a.nomeNorm.localeCompare(b.nomeNorm, "it");
-    });
-  }, [aziende, search, pinned]);
+  const sorted = useMemo(
+    () =>
+      [...aziende].sort((a, b) => {
+        const ap = pinned.has(a.id) ? 0 : 1;
+        const bp = pinned.has(b.id) ? 0 : 1;
+        if (ap !== bp) return ap - bp;
+        return a.nomeNorm.localeCompare(b.nomeNorm, "it");
+      }),
+    [aziende, pinned]
+  );
 
   const filters = useMemo<ReadonlyArray<FilterDef>>(
     () => [
+      {
+        id: "search",
+        label: "Cerca",
+        kind: "text",
+        value: search,
+      },
       {
         id: "stato",
         label: "Stato",
@@ -60,11 +70,13 @@ export function AziendeListPage() {
         options: STATO_OPTIONS,
       },
     ],
-    [statoFilter]
+    [search, statoFilter]
   );
 
   const handleFiltersChange = (next: ReadonlyArray<FilterDef>) => {
+    const nextSearch = next.find((f) => f.id === "search");
     const stato = next.find((f) => f.id === "stato");
+    setSearch(typeof nextSearch?.value === "string" ? nextSearch.value : "");
     setStatoFilter(typeof stato?.value === "string" ? stato.value : "");
   };
 
@@ -84,18 +96,8 @@ export function AziendeListPage() {
         }
       />
 
-      <div className="mb-6 max-w-md">
-        <TextField
-          id="cerca-aziende"
-          label="Cerca"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t.cercaPlaceholder}
-        />
-      </div>
-
       <AziendeList
-        items={filtered}
+        items={sorted}
         loading={isLoading}
         error={isError ? t.erroreSalvataggio : null}
         canEdit={canUpdate}
@@ -105,6 +107,7 @@ export function AziendeListPage() {
         onTogglePin={togglePin}
         hasUnsaldatiContiBy={hasUnsaldatiContiBy}
         needsNewContoBy={needsNewContoBy}
+        totaleApertoBy={totaleApertoBy}
         filters={filters}
         onFiltersChange={handleFiltersChange}
       />

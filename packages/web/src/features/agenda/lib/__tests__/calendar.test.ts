@@ -1,12 +1,37 @@
 import { describe, expect, it } from "vitest";
+import type { Attivita } from "@vet/shared";
 import {
   addDays,
   buildWeekStrip,
   endOfMonth,
+  groupWeekByWeekday,
   sameDay,
   startOfMonth,
   startOfWeek,
 } from "../calendar";
+
+function attivita(data: Date, over: Partial<Attivita> = {}): Attivita {
+  return {
+    id: `a-${data.getTime()}`,
+    data,
+    aziendaId: "az1",
+    aziendaNome: "Cascina Verde",
+    tipoId: "t1",
+    tipoNome: "Visita",
+    oraria: false,
+    adElemento: false,
+    tariffa: 40,
+    totale: 40,
+    ownerUid: "u1",
+    ownerEmail: "u1@vet.com",
+    ownerName: "Vet One",
+    createdAt: data,
+    updatedAt: data,
+    isDeleted: false,
+    schemaVersion: 1,
+    ...over,
+  };
+}
 
 describe("startOfWeek", () => {
   it("returns the same date when called on a Monday", () => {
@@ -80,6 +105,44 @@ describe("buildWeekStrip", () => {
     const w = buildWeekStrip(today, today);
     expect(w.find((d) => sameDay(d.date, today))?.isToday).toBe(true);
     expect(w.filter((d) => d.isToday)).toHaveLength(1);
+  });
+});
+
+describe("groupWeekByWeekday", () => {
+  it("returns 7 columns Monday-first", () => {
+    const cols = groupWeekByWeekday(new Date(2026, 4, 27), []);
+    expect(cols).toHaveLength(7);
+    expect(sameDay(cols[0]!.date, new Date(2026, 4, 25))).toBe(true);
+    expect(sameDay(cols[6]!.date, new Date(2026, 4, 31))).toBe(true);
+  });
+
+  it("buckets activities into the matching weekday", () => {
+    const mon = attivita(new Date(2026, 4, 25, 9, 0));
+    const wed = attivita(new Date(2026, 4, 27, 14, 0));
+    const cols = groupWeekByWeekday(new Date(2026, 4, 27), [mon, wed]);
+    expect(cols[0]!.items).toEqual([mon]);
+    expect(cols[1]!.items).toEqual([]);
+    expect(cols[2]!.items).toEqual([wed]);
+  });
+
+  it("sorts each day's activities by time ascending", () => {
+    const late = attivita(new Date(2026, 4, 25, 16, 0));
+    const early = attivita(new Date(2026, 4, 25, 8, 30));
+    const cols = groupWeekByWeekday(new Date(2026, 4, 25), [late, early]);
+    expect(cols[0]!.items.map((a) => a.id)).toEqual([early.id, late.id]);
+  });
+
+  it("ignores activities outside the visible week", () => {
+    const outside = attivita(new Date(2026, 5, 2, 9, 0));
+    const cols = groupWeekByWeekday(new Date(2026, 4, 27), [outside]);
+    expect(cols.flatMap((c) => c.items)).toHaveLength(0);
+  });
+
+  it("flags the today column", () => {
+    const today = new Date(2026, 4, 27);
+    const cols = groupWeekByWeekday(today, [], today);
+    expect(cols.filter((c) => c.isToday)).toHaveLength(1);
+    expect(cols.find((c) => c.isToday)?.date.getDate()).toBe(27);
   });
 });
 

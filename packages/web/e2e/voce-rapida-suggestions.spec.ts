@@ -14,7 +14,7 @@ test.describe("voce rapida — suggestions panel", () => {
       timeout: 15_000,
     });
 
-    await signedInVet.getByRole("button", { name: /Voce rapida/i }).click();
+    await signedInVet.keyboard.press("n");
     const dialog = signedInVet.getByRole("dialog", { name: /Voce rapida/i });
     await expect(dialog).toBeVisible({ timeout: 10_000 });
 
@@ -43,7 +43,7 @@ test.describe("voce rapida — suggestions panel", () => {
     await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({
       timeout: 15_000,
     });
-    await signedInVet.getByRole("button", { name: /Voce rapida/i }).click();
+    await signedInVet.keyboard.press("n");
     const dialog = signedInVet.getByRole("dialog", { name: /Voce rapida/i });
     await expect(dialog).toBeVisible({ timeout: 10_000 });
 

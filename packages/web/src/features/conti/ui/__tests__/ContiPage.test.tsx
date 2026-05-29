@@ -13,6 +13,8 @@ import {
   InMemoryContiRepository,
 } from "@vet/shared/testing";
 import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
+import { setViewport } from "../../../../__tests__/viewport";
+import { formatEuro } from "../../../../shared/lib/format";
 import { ContiPage } from "../ContiPage";
 
 vi.mock("../../../../shared/ui/AppShell", () => ({
@@ -104,6 +106,7 @@ describe("ContiPage", () => {
   });
 
   it("lists aziende with conti in alphabetical order", async () => {
+    setViewport(1280);
     const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
     const idB = await seedAzienda(aziende, "Cascina Bianchi");
     const idA = await seedAzienda(aziende, "Allevamento Rossi");
@@ -118,8 +121,8 @@ describe("ContiPage", () => {
       expect(screen.getByText("Cascina Bianchi")).toBeInTheDocument()
     );
     const names = screen
-      .getAllByRole("heading", { level: 2 })
-      .map((h) => h.textContent);
+      .getAllByRole("link")
+      .map((a) => a.textContent);
     expect(names).toEqual([
       "Allevamento Rossi",
       "Cascina Bianchi",
@@ -174,7 +177,8 @@ describe("ContiPage", () => {
     );
   });
 
-  it("renders a red status pill with the unsaldati pill when an azienda has non-saldati", async () => {
+  it("shows a danger 'Non saldato' pill and the unsaldati count when an azienda has non-saldati", async () => {
+    setViewport(1280);
     const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
     const id1 = await seedAzienda(aziende, "Cascina A");
     await seedConto(conti, id1, "Cascina A", {
@@ -191,13 +195,15 @@ describe("ContiPage", () => {
     await waitFor(() =>
       expect(screen.getByText("Cascina A")).toBeInTheDocument()
     );
-    expect(screen.getByText(/2 non saldati/i)).toBeInTheDocument();
+    expect(screen.getByText("Non saldato")).toBeInTheDocument();
     expect(
-      screen.getByTitle(/Ci sono conti non saldati/i)
+      screen.getByLabelText(/Ci sono conti non saldati/i)
     ).toBeInTheDocument();
+    const cells = screen.getAllByRole("cell").map((c) => c.textContent);
+    expect(cells).toContain("2");
   });
 
-  it("renders the 'tutto saldato' badge with a green dot when all conti are saldati", async () => {
+  it("shows a success 'Saldato' pill when all conti are saldati", async () => {
     const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
     const id1 = await seedAzienda(aziende, "Cascina A");
     await seedConto(conti, id1, "Cascina A", { saldato: true });
@@ -209,9 +215,9 @@ describe("ContiPage", () => {
     await waitFor(() =>
       expect(screen.getByText("Cascina A")).toBeInTheDocument()
     );
-    expect(screen.getByText(/Tutto saldato/i)).toBeInTheDocument();
+    expect(screen.getByText("Saldato")).toBeInTheDocument();
     expect(
-      screen.getByTitle(/Tutti i conti saldati/i)
+      screen.getByLabelText(/Tutti i conti saldati/i)
     ).toBeInTheDocument();
   });
 
@@ -262,7 +268,26 @@ describe("ContiPage", () => {
     );
   });
 
-  it("announces the outstanding total through a live region", async () => {
+  it("totals the outstanding amount in the table footer", async () => {
+    setViewport(1280);
+    const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
+    const id1 = await seedAzienda(aziende, "Cascina A");
+    await seedConto(conti, id1, "Cascina A", {
+      saldato: false,
+      totaleConto: 1234.5,
+    });
+    const { container } = render(<ContiPage />, {
+      wrapper: buildProvidersWrapper({ repos, withRouter: true }),
+    });
+    await waitFor(() =>
+      expect(screen.getByText("Cascina A")).toBeInTheDocument()
+    );
+    const footer = container.querySelector("tfoot");
+    expect(footer).not.toBeNull();
+    expect(footer?.textContent ?? "").toContain(formatEuro(1234.5));
+  });
+
+  it("keeps the pending-aziende count in a live region", async () => {
     const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
     const id1 = await seedAzienda(aziende, "Cascina A");
     await seedConto(conti, id1, "Cascina A", {
@@ -272,12 +297,15 @@ describe("ContiPage", () => {
     render(<ContiPage />, {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
-    const banner = await screen.findByRole("status");
-    expect(banner).toHaveTextContent(/Totale da riscuotere/i);
-    expect(banner).toHaveAttribute("aria-live", "polite");
+    await waitFor(() =>
+      expect(screen.getByText("Cascina A")).toBeInTheDocument()
+    );
+    const live = screen.getByText(/pagamenti pendenti/i);
+    expect(live).toHaveAttribute("aria-live", "polite");
   });
 
   it("keeps a long azienda name and a large total in the same row without dropping either", async () => {
+    setViewport(1280);
     const { repos, conti, aziende } = buildHarness(["conti.proforma"]);
     const longName =
       "Società Agricola Cooperativa Allevamenti Riuniti della Bassa Pianura Padana";
@@ -286,13 +314,15 @@ describe("ContiPage", () => {
       saldato: false,
       totaleConto: 1234567.89,
     });
-    render(<ContiPage />, {
+    const { container } = render(<ContiPage />, {
       wrapper: buildProvidersWrapper({ repos, withRouter: true }),
     });
-    expect(
-      await screen.findByRole("heading", { level: 2, name: longName })
-    ).toBeInTheDocument();
-    expect(screen.getByText(/1 non saldati/i)).toBeInTheDocument();
+    expect(await screen.findByText(longName)).toBeInTheDocument();
+    const cells = screen.getAllByRole("cell").map((c) => c.textContent);
+    expect(cells).toContain("1");
+    expect(container.querySelector("tfoot")?.textContent ?? "").toContain(
+      formatEuro(1234567.89)
+    );
   });
 
   it("excludes aziende that have only pro forma conti from the unsaldati view", async () => {

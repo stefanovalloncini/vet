@@ -8,6 +8,8 @@ export const agendaI18n = {
   oggi: "Oggi",
   emptyDay: "Nessuna attività in agenda.",
   emptyHint: "Tocca + per registrarne una.",
+  emptyShort: "Libero",
+  aggiungiShort: "+ Aggiungi",
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   nuovaCta: "Nuova attività",

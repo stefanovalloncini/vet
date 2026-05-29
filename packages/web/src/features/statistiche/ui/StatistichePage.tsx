@@ -201,28 +201,22 @@ interface SummaryStripProps {
 
 function SummaryStrip({ visite, ricavi, aziendeAttive }: SummaryStripProps) {
   return (
-    <Card>
-      <dl
-        className="grid grid-cols-3 gap-4 sm:gap-8"
-        aria-live="polite"
-      >
-        <SummaryCell label="Visite" value={String(visite)} />
-        <SummaryCell label="Ricavi" value={formatEuro(ricavi)} />
-        <SummaryCell label="Aziende attive" value={String(aziendeAttive)} />
-      </dl>
-    </Card>
+    <dl
+      className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-(--color-border) bg-(--color-surface) px-4 py-2.5 text-sm"
+      aria-live="polite"
+    >
+      <SummaryCell label="Visite" value={String(visite)} />
+      <SummaryCell label="Ricavi" value={formatEuro(ricavi)} />
+      <SummaryCell label="Aziende attive" value={String(aziendeAttive)} />
+    </dl>
   );
 }
 
 function SummaryCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0">
-      <dt className="text-[10px] uppercase tracking-wider font-medium text-(--color-text-muted)">
-        {label}
-      </dt>
-      <dd className="mt-1 text-xl sm:text-2xl font-medium text-(--color-text) tabular-nums truncate">
-        {value}
-      </dd>
+    <div className="flex items-baseline gap-1.5 min-w-0">
+      <dt className="text-(--color-text-muted)">{label}</dt>
+      <dd className="tabular-nums text-(--color-text)">{value}</dd>
     </div>
   );
 }

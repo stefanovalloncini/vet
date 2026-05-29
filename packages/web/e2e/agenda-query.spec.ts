@@ -41,9 +41,11 @@ test.describe("agenda (tanstack query)", () => {
       .getByRole("button", { name: /Settimana successiva/i })
       .click();
     await signedInVet.getByRole("button", { name: /^Oggi$/i }).click();
-    const todayDay = signedInVet
-      .getByRole("radio", { checked: true })
-      .filter({ hasText: todayLabel });
-    await expect(todayDay).toBeVisible({ timeout: 5_000 });
+    const weekView = signedInVet.locator(
+      'section[aria-label="Settimana"], [role="radiogroup"]'
+    );
+    await expect(
+      weekView.getByText(todayLabel, { exact: true }).first()
+    ).toBeVisible({ timeout: 5_000 });
   });
 });

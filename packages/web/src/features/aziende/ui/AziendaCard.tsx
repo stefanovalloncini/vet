@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ChevronRight, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { Badge } from "../../../shared/ui";
 import { aziendeI18n as t } from "../i18n";
 import { routes } from "../../../routes";
@@ -102,14 +102,6 @@ export function AziendaCard({
               pinned={pinned}
             />
           ))}
-          {canEdit ? (
-            <ChevronRight
-              size={16}
-              strokeWidth={1.75}
-              className="ml-0.5 mr-1 shrink-0 text-(--color-text-subtle) group-hover:text-(--color-text-muted)"
-              aria-hidden="true"
-            />
-          ) : null}
         </div>
       </header>
 

@@ -129,7 +129,7 @@ export function AziendaFormPage() {
         <form
           noValidate
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6 max-w-2xl"
+          className="space-y-6 max-w-[760px]"
         >
           <AziendaFormFields busy={busy} />
           {rootError ? <InlineError>{rootError}</InlineError> : null}

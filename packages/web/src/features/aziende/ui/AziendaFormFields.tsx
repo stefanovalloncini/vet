@@ -1,4 +1,5 @@
-import { Card, SectionLabel } from "../../../shared/ui";
+import { Card } from "../../../shared/ui";
+import { FieldGroup } from "../../../shared/ui/forms/FieldGroup";
 import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
 import { aziendeI18n as t } from "../i18n";
 import type { AziendaFormValues } from "../lib/formSchema";
@@ -26,8 +27,7 @@ export function AziendaFormFields({ busy }: { busy: boolean }) {
   return (
     <Card>
       <div className="space-y-8">
-        <div className="space-y-5">
-          <SectionLabel>{t.gruppoAnagrafica}</SectionLabel>
+        <FieldGroup legend={t.gruppoAnagrafica}>
           <RHFTextField<AziendaFormValues>
             name="nome"
             label={t.campoNome}
@@ -44,21 +44,12 @@ export function AziendaFormFields({ busy }: { busy: boolean }) {
             maxLength={300}
           />
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <RHFTextField<AziendaFormValues>
-              name="telefono"
-              label={t.campoTelefono}
-              inputMode="tel"
-              disabled={busy}
-              maxLength={40}
-            />
             <RHFSelect<AziendaFormValues>
               name="tipoAllevamento"
               label={t.campoTipoAllevamento}
               options={TIPO_OPTIONS}
               disabled={busy}
             />
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <RHFTextField<AziendaFormValues>
               name="numeroCapi"
               type="number"
@@ -70,10 +61,27 @@ export function AziendaFormFields({ busy }: { busy: boolean }) {
               disabled={busy}
             />
           </div>
-        </div>
+        </FieldGroup>
 
-        <div className="space-y-5">
-          <SectionLabel>{t.gruppoFatturazione}</SectionLabel>
+        <FieldGroup legend={t.gruppoContatti} layout="grid-2">
+          <RHFTextField<AziendaFormValues>
+            name="telefono"
+            label={t.campoTelefono}
+            inputMode="tel"
+            disabled={busy}
+            maxLength={40}
+          />
+          <RHFTextField<AziendaFormValues>
+            name="emailFatturazione"
+            type="email"
+            inputMode="email"
+            label={t.campoEmailFatturazione}
+            disabled={busy}
+            maxLength={120}
+          />
+        </FieldGroup>
+
+        <FieldGroup legend={t.gruppoFatturazione}>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <RHFTextField<AziendaFormValues>
               name="piva"
@@ -90,35 +98,24 @@ export function AziendaFormFields({ busy }: { busy: boolean }) {
               disabled={busy}
             />
           </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <RHFTextField<AziendaFormValues>
-              name="emailFatturazione"
-              type="email"
-              inputMode="email"
-              label={t.campoEmailFatturazione}
-              disabled={busy}
-              maxLength={120}
-            />
-            <RHFTextField<AziendaFormValues>
-              name="armadiettoCanoneAnnuo"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              max={100000}
-              step="0.01"
-              label={t.campoArmadietto}
-              hint={t.campoArmadiettoHint}
-              disabled={busy}
-            />
-          </div>
-        </div>
-
-        <RHFTextArea<AziendaFormValues>
-          name="note"
-          label={t.campoNote}
-          disabled={busy}
-          maxLength={1000}
-        />
+          <RHFTextField<AziendaFormValues>
+            name="armadiettoCanoneAnnuo"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            max={100000}
+            step="0.01"
+            label={t.campoArmadietto}
+            hint={t.campoArmadiettoHint}
+            disabled={busy}
+          />
+          <RHFTextArea<AziendaFormValues>
+            name="note"
+            label={t.campoNote}
+            disabled={busy}
+            maxLength={1000}
+          />
+        </FieldGroup>
       </div>
     </Card>
   );
