@@ -20,7 +20,12 @@ import type {
   ContoSaldoInput,
   ContiRepository,
 } from "@vet/shared";
-import { buildContoEmitDoc, parseConto } from "@vet/shared";
+import {
+  buildContoEmitDoc,
+  contoEmitInputSchema,
+  contoSaldoInputSchema,
+  parseConto,
+} from "@vet/shared";
 
 export class FirestoreContiRepository implements ContiRepository {
   constructor(private readonly db: Firestore) {}
@@ -78,9 +83,10 @@ export class FirestoreContiRepository implements ContiRepository {
     },
     actor: ActorContext
   ): Promise<string> {
+    const parsed = contoEmitInputSchema.parse(input);
     const ref = doc(collection(this.db, "conti"));
     const payload = buildContoEmitDoc(
-      { input, denorm, actor },
+      { input: parsed, denorm, actor },
       {
         fromDate: (d) => Timestamp.fromDate(d),
         serverTimestamp: (): FieldValue => serverTimestamp(),
@@ -91,19 +97,20 @@ export class FirestoreContiRepository implements ContiRepository {
   }
 
   async saldo(input: ContoSaldoInput, actor: ActorContext): Promise<void> {
-    const ref = doc(this.db, "conti", input.contoId);
+    const parsed = contoSaldoInputSchema.parse(input);
+    const ref = doc(this.db, "conti", parsed.contoId);
     await updateDoc(ref, {
       saldato: true,
       saldatoAt: serverTimestamp(),
       saldatoBy: actor.uid,
       saldatoByName: actor.displayName,
-      ...(input.importoSaldato !== undefined
-        ? { importoSaldato: input.importoSaldato }
+      ...(parsed.importoSaldato !== undefined
+        ? { importoSaldato: parsed.importoSaldato }
         : {}),
-      ...(input.metodoPagamento !== undefined
-        ? { metodoPagamento: input.metodoPagamento }
+      ...(parsed.metodoPagamento !== undefined
+        ? { metodoPagamento: parsed.metodoPagamento }
         : {}),
-      ...(input.note !== undefined ? { note: input.note } : {}),
+      ...(parsed.note !== undefined ? { note: parsed.note } : {}),
     });
   }
 
