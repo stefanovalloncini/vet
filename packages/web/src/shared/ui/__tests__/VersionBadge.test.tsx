@@ -23,8 +23,8 @@ describe("VersionBadge", () => {
 
   it("renders a tooltip via title attribute", () => {
     render(<VersionBadge />);
-    const p = screen.getByText(/vtest/i);
-    expect(p).toHaveAttribute("title");
-    expect(p.getAttribute("title")).toMatch(/branch/);
+    const badge = screen.getByText(/vtest/i).closest("[title]");
+    expect(badge).not.toBeNull();
+    expect(badge?.getAttribute("title")).toMatch(/branch/);
   });
 });
