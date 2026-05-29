@@ -18,6 +18,7 @@ import { useEmettiConto } from "../hooks/useConti";
 import { useArmadietto } from "../hooks/useArmadietto";
 import { contiI18n as t } from "../i18n";
 import { computeContoPreview, defaultPeriodoFor } from "../lib/contoPreview";
+import { contoFilenameStem, contoNumeroFor } from "../lib/contoDocMeta";
 import { ArmadiettoRow } from "./ArmadiettoRow";
 import { PeriodPicker } from "./PeriodPicker";
 
@@ -97,7 +98,11 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
 
     const emessoIl = new Date();
     const periodo = { from: fromDate, to: endOfDay };
-    const filenameStem = contoFilenameStem({ modalita, azienda, emessoIl });
+    const filenameStem = contoFilenameStem({
+      modalita,
+      aziendaNomeNorm: azienda.nomeNorm,
+      emessoIl,
+    });
     try {
       const pdf = await import("../../../shared/pdf");
       if (modalita === "proforma") {
@@ -139,28 +144,6 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
     } catch {
       notify(t.pdfFallito, "error");
     }
-  }
-
-  function contoFilenameStem({
-    modalita,
-    azienda,
-    emessoIl,
-  }: {
-    modalita: "proforma" | "emesso";
-    azienda: Azienda;
-    emessoIl: Date;
-  }): string {
-    const yyyy = emessoIl.getFullYear();
-    const mm = String(emessoIl.getMonth() + 1).padStart(2, "0");
-    const dd = String(emessoIl.getDate()).padStart(2, "0");
-    const stem = modalita === "proforma" ? "proforma" : "conto";
-    return `${stem}_${azienda.nomeNorm || "azienda"}_${yyyy}${mm}${dd}`;
-  }
-
-  function contoNumeroFor(d: Date): string {
-    const yyyy = d.getFullYear();
-    const ts = `${d.getMonth() + 1}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
-    return `${yyyy}-${ts}`;
   }
 
   const disabled = !periodValid || !hasContent || emit.isPending;
