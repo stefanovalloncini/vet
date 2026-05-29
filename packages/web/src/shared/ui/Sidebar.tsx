@@ -23,6 +23,10 @@ interface SidebarProps {
   onLogoutClick: () => void;
 }
 
+function formatRole(roleId: string): string {
+  return roleId.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+}
+
 export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
   const { user } = useAuthState();
   const location = useLocation();
@@ -80,6 +84,11 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
               {user ? (
                 <span className="min-w-0 block text-[11px] text-(--color-text-muted) truncate">
                   {user.displayName || user.email}
+                </span>
+              ) : null}
+              {user?.roleId ? (
+                <span className="min-w-0 block text-[10px] text-(--color-text-subtle) truncate">
+                  {formatRole(user.roleId)}
                 </span>
               ) : null}
             </div>
