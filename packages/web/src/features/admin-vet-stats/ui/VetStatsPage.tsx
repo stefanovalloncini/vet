@@ -36,7 +36,7 @@ function buildColumns(totalAll: number): ReadonlyArray<Column<VetStat>> {
       sortable: true,
       accessor: (s) => displayName(s),
       cell: (s) => (
-        <div className="max-w-0">
+        <div className="min-w-0">
           <p className="text-sm font-medium text-(--color-text) truncate">
             {displayName(s)}
           </p>
