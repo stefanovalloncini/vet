@@ -239,6 +239,56 @@ describe("attivita rules", () => {
     );
   });
 
+  it("update denied when oraria=true but ore is missing", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        oraria: true,
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update allowed when switching to oraria with ore present", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertSucceeds(
+      updateDoc(doc(db, "attivita/a1"), {
+        oraria: true,
+        ore: 2,
+        totale: 100,
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update denied when oraria=true and elementi present", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        oraria: true,
+        ore: 2,
+        adElemento: true,
+        elementi: 3,
+        totale: 100,
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update denied when adElemento=true but elementi is missing", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        adElemento: true,
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
   it("update other's denied with activities.update.own", async () => {
     const env = await getEnv();
     const db = authedAs(env, "other-uid", ["activities.update.own"]);

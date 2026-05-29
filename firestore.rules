@@ -207,6 +207,9 @@ service cloud.firestore {
           && d.tariffa is number && d.tariffa > 0 && d.tariffa <= 100000
           && (!("ore" in d.keys()) || (d.ore is number && d.ore > 0 && d.ore <= 24))
           && (!("elementi" in d.keys()) || (d.elementi is int && d.elementi > 0 && d.elementi <= 10000))
+          && d.oraria == ("ore" in d.keys())
+          && (!("adElemento" in d.keys()) || d.adElemento == ("elementi" in d.keys()))
+          && !(d.oraria == true && "elementi" in d.keys())
           && d.totale is number && d.totale >= 0 && d.totale <= 2400000
           && (!("note" in d.keys()) || (d.note is string && d.note.size() <= 2000 && !d.note.matches("^[\\s=+\\-@].*")))
           && (!("updatedBy" in d.keys()) || (d.updatedBy is string && d.updatedBy.size() <= 128))
