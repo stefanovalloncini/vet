@@ -6,6 +6,15 @@ Replaces an earlier single-file Firebase prototype that shipped several critical
 
 Live: https://gestionale.stefanovalloncini.com
 
+## Documentazione
+
+Le guide complete sono in [`docs/`](docs/):
+
+- [Requisiti e vincoli](docs/requirements.md): cosa fa l'app e le regole che deve rispettare
+- [Modello di sicurezza](docs/security.md): accesso, capability, regole Firestore, CSP
+- [Architettura](docs/architecture.md): monorepo, livelli, pipeline di deploy
+- [Sviluppo](docs/development.md): setup locale, test, seed dei dati
+
 ## Stack
 
 - Vite 6, React 18, TypeScript strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
