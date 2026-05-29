@@ -22,7 +22,14 @@ vi.mock("firebase/firestore", () => ({
 
 import { FirestoreContiRepository } from "../FirestoreContiRepository";
 
-const actor: ActorContext = { uid: "u1", displayName: "Vet One" };
+const actor: ActorContext = {
+  uid: "u1",
+  email: "vet@example.com",
+  displayName: "Vet One",
+  roleId: "vet",
+  caps: new Set(["conti.emit", "conti.saldo"]),
+  approved: true,
+};
 const db = {} as never;
 
 describe("FirestoreContiRepository input validation", () => {
