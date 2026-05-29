@@ -24,6 +24,7 @@ describe("schema validation in rules", () => {
       tipoId: "visita",
       tipoNome: "Visita",
       oraria: false,
+      adElemento: false,
       tariffa: 50,
       totale: 50,
       ownerUid: "u",

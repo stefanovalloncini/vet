@@ -44,6 +44,7 @@ function basePayload(ownerUid: string, overrides: Record<string, unknown> = {}) 
     tipoId: "visita",
     tipoNome: "Visita",
     oraria: false,
+    adElemento: false,
     tariffa: 50,
     totale: 50,
     ownerUid,
@@ -154,6 +155,13 @@ describe("attivita rules", () => {
     const env = await getEnv();
     const db = authedAs(env, "u", ["activities.create"]);
     await assertSucceeds(setDoc(doc(db, "attivita/new"), basePayload("u")));
+  });
+
+  it("create denied when adElemento is missing", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["activities.create"]);
+    const { adElemento: _omit, ...payload } = basePayload("u");
+    await assertFails(setDoc(doc(db, "attivita/new"), payload));
   });
 
   it("create denied when ownerUid != auth.uid", async () => {
