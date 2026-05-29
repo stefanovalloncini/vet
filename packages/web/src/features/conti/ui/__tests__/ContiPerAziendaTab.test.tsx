@@ -41,12 +41,6 @@ function conto(over: Partial<Conto> = {}): Conto {
   return { ...base, ...over };
 }
 
-function mobileCards(container: HTMLElement): HTMLElement {
-  const el = container.querySelector<HTMLElement>(".md\\:hidden");
-  if (!el) throw new Error("mobile cards container not found");
-  return el;
-}
-
 function reposWith(
   caps: Capability[],
   listForAzienda: () => Promise<Conto[]>
@@ -99,7 +93,7 @@ describe("ContiPerAziendaTab", () => {
     });
     await waitFor(() =>
       expect(
-        within(mobileCards(container)).getByText("Non saldato")
+        within(container).getByText("Non saldato")
       ).toBeInTheDocument()
     );
   });
@@ -112,7 +106,7 @@ describe("ContiPerAziendaTab", () => {
       wrapper: buildProvidersWrapper({ repos, withToast: true }),
     });
     const btn = await waitFor(() =>
-      within(mobileCards(container)).getByRole("button", {
+      within(container).getByRole("button", {
         name: /Segna saldato/i,
       })
     );
@@ -128,7 +122,7 @@ describe("ContiPerAziendaTab", () => {
     });
     await waitFor(() =>
       expect(
-        within(mobileCards(container)).getByText(/1\.234\.567,89/)
+        within(container).getByText(/1\.234\.567,89/)
       ).toBeInTheDocument()
     );
   });

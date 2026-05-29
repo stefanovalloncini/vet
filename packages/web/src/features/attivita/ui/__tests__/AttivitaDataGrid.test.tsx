@@ -4,6 +4,7 @@ import type { Attivita, Repositories } from "@vet/shared";
 import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { createInMemoryRepositories } from "../../../../infrastructure/composition/in-memory";
 import { AttivitaDataGrid, groupingFor } from "../AttivitaDataGrid";
+import { setViewport } from "../../../../__tests__/viewport";
 
 function makeAttivita(partial: Partial<Attivita> & { id: string }): Attivita {
   const now = new Date(2026, 4, 1);
@@ -123,6 +124,7 @@ describe("AttivitaDataGrid", () => {
   });
 
   it("formats hours with an Italian decimal comma", () => {
+    setViewport(1280);
     renderGrid(
       [makeAttivita({ id: "a1", oraria: true, ore: 1.5, tariffa: 40, totale: 60 })],
       "none"

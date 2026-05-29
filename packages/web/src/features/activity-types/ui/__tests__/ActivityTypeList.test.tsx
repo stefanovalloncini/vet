@@ -32,12 +32,6 @@ function renderList(items: ActivityType[], canManage = true) {
   );
 }
 
-function mobileCards(container: HTMLElement): HTMLElement {
-  const el = container.querySelector<HTMLElement>(".md\\:hidden");
-  if (!el) throw new Error("mobile cards container not found");
-  return el;
-}
-
 describe("ActivityTypeList", () => {
   it("links the section to its heading for assistive tech", () => {
     renderList([makeTipo()]);
@@ -47,7 +41,7 @@ describe("ActivityTypeList", () => {
 
   it("renders each row spanning the full grid width", () => {
     const { container } = renderList([makeTipo()]);
-    const name = within(mobileCards(container)).getByText("Visita");
+    const name = within(container).getByText("Visita");
     const card = name.closest("div.sm\\:col-span-2");
     expect(card).not.toBeNull();
     expect((card as HTMLElement).className).toContain("lg:col-span-3");

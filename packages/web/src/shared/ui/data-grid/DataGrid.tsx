@@ -10,6 +10,7 @@ import { VirtualMode } from "./modes/VirtualMode";
 import { applyFilters, applySort, visibleColumns } from "./engine";
 import { downloadCsv, toCsv } from "./export/csv";
 import { exportToPdf } from "./export/pdf";
+import { useMediaQuery } from "../../lib/useMediaQuery";
 import type {
   DataGridProps,
   FilterDef,
@@ -72,6 +73,7 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     apiRef,
   } = props;
 
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const sortControlled = sortProp !== undefined;
   const [internalSort, setInternalSort] = useState<SortState | null>(
     defaultSort ?? null
@@ -283,8 +285,8 @@ export function DataGrid<T>(props: DataGridProps<T>) {
         {...(onRetry ? { onRetry } : {})}
       >
         {mode === "responsive" && card ? (
-          <>
-            <div className="hidden md:block -mx-1 overflow-x-auto px-1">
+          isDesktop ? (
+            <div className="-mx-1 overflow-x-auto px-1">
               <TableMode
                 rows={sorted}
                 columns={colsVisible}
@@ -301,17 +303,16 @@ export function DataGrid<T>(props: DataGridProps<T>) {
                 {...(caption !== undefined ? { caption } : {})}
               />
             </div>
-            <div className="md:hidden">
-              <CardsMode
-                rows={sorted}
-                getRowId={getRowId}
-                card={card}
-                rowActions={rowActions ?? []}
-                {...(groupBy ? { groupBy } : {})}
-                {...(cardsLayout ? { layout: cardsLayout } : {})}
-              />
-            </div>
-          </>
+          ) : (
+            <CardsMode
+              rows={sorted}
+              getRowId={getRowId}
+              card={card}
+              rowActions={rowActions ?? []}
+              {...(groupBy ? { groupBy } : {})}
+              {...(cardsLayout ? { layout: cardsLayout } : {})}
+            />
+          )
         ) : mode === "cards" && card ? (
           <CardsMode
             rows={sorted}

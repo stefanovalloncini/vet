@@ -53,12 +53,6 @@ function renderList(items: Attivita[], date = new Date("2026-05-04T00:00:00")) {
   );
 }
 
-function mobileCards(container: HTMLElement): HTMLElement {
-  const el = container.querySelector<HTMLElement>(".md\\:hidden");
-  if (!el) throw new Error("mobile cards container not found");
-  return el;
-}
-
 describe("AgendaDayList", () => {
   it("labels the day section and exposes the heading via aria-live", () => {
     renderList([]);
@@ -80,7 +74,7 @@ describe("AgendaDayList", () => {
     const { container } = renderList([
       attivita({ data: new Date("2026-05-04T09:30:00") }),
     ]);
-    const cards = within(mobileCards(container));
+    const cards = within(container);
     const time = cards.getByText("09:30");
     expect(time.tagName.toLowerCase()).toBe("time");
     expect(time).toHaveAttribute(
@@ -97,7 +91,7 @@ describe("AgendaDayList", () => {
           "Società Agricola Allevamento Bovini da Latte della Bassa Pianura Padana e Dintorni",
       }),
     ]);
-    const cards = within(mobileCards(container));
+    const cards = within(container);
     expect(
       cards.getByText(/Società Agricola Allevamento Bovini/i)
     ).toBeInTheDocument();

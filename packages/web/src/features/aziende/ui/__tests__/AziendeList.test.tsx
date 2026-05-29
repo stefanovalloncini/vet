@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { Azienda } from "@vet/shared";
 import type { FilterDef } from "../../../../shared/ui/data-grid";
 import { AziendeList } from "../AziendeList";
+import { setViewport } from "../../../../__tests__/viewport";
 
 function makeAzienda(overrides: Partial<Azienda> & { id: string; nome: string }): Azienda {
   const { id, nome, ...rest } = overrides;
@@ -83,6 +84,7 @@ describe("AziendeList (DataGrid cards mode)", () => {
   });
 
   it("links each name to the azienda detail in the desktop table", () => {
+    setViewport(1280);
     const items: ReadonlyArray<Azienda> = [
       makeAzienda({ id: "a1", nome: "Allevamento Alfa" }),
     ];
