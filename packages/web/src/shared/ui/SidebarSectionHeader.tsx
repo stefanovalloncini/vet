@@ -30,7 +30,7 @@ export function SidebarSectionHeader({
             className="w-full flex items-center justify-between px-3 pt-3 pb-1.5 text-[11px] uppercase tracking-[0.14em] text-(--color-text-subtle) font-medium hover:text-(--color-text-muted) transition-colors duration-(--motion-fast) ease-(--ease-out-quart)"
             style={{
               opacity: collapsed ? 0 : 1,
-              transition: "opacity var(--motion-fast) var(--ease-out-quart)",
+              transition: "opacity var(--motion-layout) var(--ease-out-quint)",
             }}
           >
             <span>{title}</span>
@@ -49,7 +49,7 @@ export function SidebarSectionHeader({
             className="px-3 pt-3 pb-1.5 text-[11px] uppercase tracking-[0.14em] text-(--color-text-subtle) font-medium"
             style={{
               opacity: collapsed ? 0 : 1,
-              transition: "opacity var(--motion-fast) var(--ease-out-quart)",
+              transition: "opacity var(--motion-layout) var(--ease-out-quint)",
             }}
           >
             {title}

@@ -36,7 +36,7 @@ export function SidebarActionRow({
           className="min-w-0 truncate text-left"
           style={{
             opacity: collapsed ? 0 : 1,
-            transition: "opacity var(--motion-fast) var(--ease-out-quart)",
+            transition: "opacity var(--motion-layout) var(--ease-out-quint)",
           }}
         >
           {label}

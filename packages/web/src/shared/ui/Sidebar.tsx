@@ -73,9 +73,7 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
               className="min-w-0 flex flex-col leading-tight"
               style={{
                 opacity: collapsed ? 0 : 1,
-                transform: `translateX(${collapsed ? "-4px" : "0"})`,
-                transition:
-                  "opacity var(--motion-fast) var(--ease-out-quart), transform var(--motion-base) var(--ease-out-quart)",
+                transition: "opacity var(--motion-layout) var(--ease-out-quint)",
               }}
             >
               <span className="min-w-0 block text-[13px] font-semibold uppercase tracking-[0.14em] text-(--color-text) truncate">
@@ -179,7 +177,7 @@ export function Sidebar({ theme, onThemeToggle, onLogoutClick }: SidebarProps) {
             className="min-w-0"
             style={{
               opacity: collapsed ? 0 : 1,
-              transition: "opacity var(--motion-fast) var(--ease-out-quart)",
+              transition: "opacity var(--motion-layout) var(--ease-out-quint)",
             }}
           >
             <VersionBadge email={user?.email} />
