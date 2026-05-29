@@ -61,7 +61,7 @@ function renderPage(repos: Repositories): void {
 }
 
 describe("VetStatsPage", () => {
-  it("renders a single h1 and an accessible table caption", async () => {
+  it("renders a single h1 and an accessible table", async () => {
     const actor = makeActor();
     const repos = mount(actor);
     await seedActivity(repos, actor, 50);
@@ -74,7 +74,7 @@ describe("VetStatsPage", () => {
     ).toBeInTheDocument();
     const table = await screen.findByRole("table", undefined, { timeout: 5_000 });
     expect(
-      within(table).getByText(/Statistiche per veterinario/i)
+      within(table).getByRole("columnheader", { name: /Veterinario/i })
     ).toBeInTheDocument();
   });
 

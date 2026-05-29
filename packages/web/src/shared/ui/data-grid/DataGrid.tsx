@@ -49,6 +49,7 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     getRowId,
     mode = "table",
     i18n,
+    caption,
     loading = false,
     error = null,
     onRetry,
@@ -314,6 +315,7 @@ export function DataGrid<T>(props: DataGridProps<T>) {
             {...(rowActions ? { rowActions } : {})}
             i18n={i18n}
             showFooter
+            {...(caption !== undefined ? { caption } : {})}
           />
         )}
       </DataLoader>

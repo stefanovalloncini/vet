@@ -8,9 +8,13 @@ import {
   PageHeader,
   Select,
 } from "../../../shared/ui";
+import {
+  DataGrid,
+  dataGridIt,
+  type Column,
+} from "../../../shared/ui/data-grid";
 import { useVetStats, type VetStat } from "../hooks/useVetStats";
 import { formatEuro } from "../../../shared/lib/format";
-import { SortableTH, type SortDir, type SortKey } from "./SortableTH";
 
 type Range = "month" | "year" | "all";
 
@@ -20,19 +24,81 @@ const RANGE_OPTIONS = [
   { value: "all", label: "Sempre" },
 ];
 
-function compare(a: VetStat, b: VetStat, key: SortKey): number {
-  if (key === "nome") return a.nome.localeCompare(b.nome, "it");
-  if (key === "count") return a.count - b.count;
-  if (key === "total") return a.total - b.total;
-  const aTime = a.lastActivity?.getTime() ?? 0;
-  const bTime = b.lastActivity?.getTime() ?? 0;
-  return aTime - bTime;
+function displayName(stat: VetStat): string {
+  return stat.nome.trim() || stat.email.trim() || "—";
+}
+
+function buildColumns(totalAll: number): ReadonlyArray<Column<VetStat>> {
+  return [
+    {
+      id: "nome",
+      header: "Veterinario",
+      sortable: true,
+      accessor: (s) => displayName(s),
+      cell: (s) => (
+        <div className="max-w-0">
+          <p className="text-sm font-medium text-(--color-text) truncate">
+            {displayName(s)}
+          </p>
+          {s.email.trim() ? (
+            <p className="text-[11px] text-(--color-text-subtle) font-mono truncate">
+              {s.email}
+            </p>
+          ) : null}
+        </div>
+      ),
+    },
+    {
+      id: "count",
+      header: "Visite",
+      align: "end",
+      sortable: true,
+      accessor: (s) => s.count,
+      cell: (s) => (
+        <span className="tabular-nums text-(--color-text-muted)">{s.count}</span>
+      ),
+    },
+    {
+      id: "total",
+      header: "Totale",
+      align: "end",
+      sortable: true,
+      accessor: (s) => s.total,
+      cell: (s) => {
+        const pct = totalAll > 0 ? Math.round((s.total / totalAll) * 100) : 0;
+        return (
+          <div className="text-right">
+            <p className="text-sm font-medium text-(--color-text) tabular-nums">
+              {formatEuro(s.total)}
+            </p>
+            <p className="text-[11px] text-(--color-text-subtle) tabular-nums">
+              {pct}%
+            </p>
+          </div>
+        );
+      },
+    },
+    {
+      id: "lastActivity",
+      header: "Ultima attività",
+      align: "end",
+      sortable: true,
+      headerClassName: "hidden sm:table-cell",
+      cellClassName: "hidden sm:table-cell",
+      accessor: (s) => s.lastActivity?.getTime() ?? 0,
+      cell: (s) => (
+        <span className="tabular-nums text-(--color-text-muted)">
+          {s.lastActivity
+            ? s.lastActivity.toLocaleDateString("it-IT")
+            : "—"}
+        </span>
+      ),
+    },
+  ];
 }
 
 export function VetStatsPage() {
   const [range, setRange] = useState<Range>("month");
-  const [sortKey, setSortKey] = useState<SortKey>("total");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const now = useMemo(() => new Date(), []);
 
   const filters = useMemo(() => {
@@ -54,25 +120,8 @@ export function VetStatsPage() {
   const { data, isLoading, isError } = useVetStats(filters);
   const stats = useMemo(() => data ?? [], [data]);
 
-  const sorted = useMemo(() => {
-    const arr = [...stats];
-    arr.sort((a, b) => {
-      const cmp = compare(a, b, sortKey);
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-    return arr;
-  }, [stats, sortKey, sortDir]);
-
-  function toggleSort(key: SortKey): void {
-    if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-      return;
-    }
-    setSortKey(key);
-    setSortDir(key === "nome" ? "asc" : "desc");
-  }
-
   const totalAll = stats.reduce((s, v) => s + v.total, 0);
+  const columns = useMemo(() => buildColumns(totalAll), [totalAll]);
 
   return (
     <AdminLayout>
@@ -101,91 +150,19 @@ export function VetStatsPage() {
         ) : (
           <Card padded={false}>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <caption className="sr-only">
-                  Statistiche per veterinario nel periodo selezionato.
-                </caption>
-                <thead>
-                  <tr className="border-b border-(--color-border) bg-(--color-surface-muted)/50">
-                    <SortableTH
-                      label="Veterinario"
-                      sortKey="nome"
-                      activeKey={sortKey}
-                      dir={sortDir}
-                      onToggle={toggleSort}
-                    />
-                    <SortableTH
-                      label="Visite"
-                      sortKey="count"
-                      activeKey={sortKey}
-                      dir={sortDir}
-                      onToggle={toggleSort}
-                      align="right"
-                    />
-                    <SortableTH
-                      label="Totale"
-                      sortKey="total"
-                      activeKey={sortKey}
-                      dir={sortDir}
-                      onToggle={toggleSort}
-                      align="right"
-                    />
-                    <SortableTH
-                      label="Ultima attività"
-                      sortKey="lastActivity"
-                      activeKey={sortKey}
-                      dir={sortDir}
-                      onToggle={toggleSort}
-                      align="right"
-                      className="hidden sm:table-cell"
-                    />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-(--color-border)">
-                  {sorted.map((s) => (
-                    <StatRow key={s.uid} stat={s} totalAll={totalAll} />
-                  ))}
-                </tbody>
-              </table>
+              <DataGrid<VetStat>
+                rows={stats}
+                columns={columns}
+                getRowId={(s) => s.uid}
+                mode="table"
+                i18n={dataGridIt}
+                caption="Statistiche per veterinario nel periodo selezionato."
+                defaultSort={{ columnId: "total", direction: "desc" }}
+              />
             </div>
           </Card>
         )}
       </div>
     </AdminLayout>
-  );
-}
-
-function StatRow({ stat, totalAll }: { stat: VetStat; totalAll: number }) {
-  const pct = totalAll > 0 ? Math.round((stat.total / totalAll) * 100) : 0;
-  const nome = stat.nome.trim() || stat.email.trim() || "—";
-  return (
-    <tr>
-      <td className="px-4 py-2.5 max-w-0">
-        <p className="text-sm font-medium text-(--color-text) truncate">
-          {nome}
-        </p>
-        {stat.email.trim() ? (
-          <p className="text-[11px] text-(--color-text-subtle) font-mono truncate">
-            {stat.email}
-          </p>
-        ) : null}
-      </td>
-      <td className="px-4 py-2.5 text-right tabular-nums text-(--color-text-muted) align-top">
-        {stat.count}
-      </td>
-      <td className="px-4 py-2.5 text-right align-top">
-        <p className="text-sm font-medium text-(--color-text) tabular-nums">
-          {formatEuro(stat.total)}
-        </p>
-        <p className="text-[11px] text-(--color-text-subtle) tabular-nums">
-          {pct}%
-        </p>
-      </td>
-      <td className="px-4 py-2.5 text-right tabular-nums text-(--color-text-muted) hidden sm:table-cell align-top">
-        {stat.lastActivity
-          ? stat.lastActivity.toLocaleDateString("it-IT")
-          : "—"}
-      </td>
-    </tr>
   );
 }

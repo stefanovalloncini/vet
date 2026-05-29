@@ -22,6 +22,11 @@ interface TableModeProps<T> {
   rowActions?: ReadonlyArray<RowAction<T>>;
   i18n: DataGridI18n;
   showFooter?: boolean;
+  caption?: string;
+}
+
+function cx(...parts: ReadonlyArray<string | undefined | false>): string {
+  return parts.filter(Boolean).join(" ");
 }
 
 function alignClass(a: Column<unknown>["align"]): string {
@@ -59,6 +64,7 @@ export function TableMode<T>({
   rowActions,
   i18n,
   showFooter,
+  caption,
 }: TableModeProps<T>) {
   const buckets = groupRows(rows, groupBy);
   const hasActions = (rowActions?.length ?? 0) > 0;
@@ -90,10 +96,11 @@ export function TableMode<T>({
             return (
               <td
                 key={col.id}
-                className={[
+                className={cx(
                   "py-2.5 pr-3 align-top text-(--color-text)",
                   alignClass(col.align as Column<unknown>["align"]),
-                ].join(" ")}
+                  col.cellClassName
+                )}
                 style={col.width !== undefined ? { width: col.width } : undefined}
               >
                 {content}
@@ -140,6 +147,7 @@ export function TableMode<T>({
 
   return (
     <table className="w-full text-sm border-collapse">
+      {caption ? <caption className="sr-only">{caption}</caption> : null}
       <thead>
         <tr className="text-left text-xs uppercase tracking-wider text-(--color-text-muted) border-b border-(--color-border)">
           {expand ? <th className="py-2 pr-2 font-medium w-8" /> : null}
@@ -153,10 +161,11 @@ export function TableMode<T>({
               <th
                 key={col.id}
                 scope="col"
-                className={[
+                className={cx(
                   "py-2 pr-3 font-medium",
                   alignClass(col.align as Column<unknown>["align"]),
-                ].join(" ")}
+                  col.headerClassName
+                )}
                 style={col.width !== undefined ? { width: col.width } : undefined}
               >
                 {isSortable ? (

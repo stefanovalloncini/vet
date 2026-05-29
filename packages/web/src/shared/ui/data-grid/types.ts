@@ -24,6 +24,8 @@ export interface Column<T> {
   hiddenByDefault?: boolean;
   export?: (row: T) => ExportCell;
   filterId?: string;
+  headerClassName?: string;
+  cellClassName?: string;
 }
 export type FilterValue = string | number | boolean | null | ReadonlyArray<string> | readonly [string, string];
 export interface FilterDef {
@@ -73,6 +75,7 @@ export interface DataGridProps<T> {
   getRowId: (row: T) => string;
   mode?: DataGridRenderMode;
   i18n: DataGridI18n;
+  caption?: string;
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
