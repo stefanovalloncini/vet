@@ -173,7 +173,7 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     [buildCsv, toolbar?.filenameStem]
   );
   useImperativeHandle(
-    apiRef ?? { current: null },
+    apiRef,
     () => ({
       toCSV: () => buildCsv(),
       downloadCSV: (filename?: string) => handleDownloadCsv(filename),

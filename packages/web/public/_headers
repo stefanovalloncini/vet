@@ -1,3 +1,13 @@
+# CSP deviations from the CLAUDE.md baseline are intentional and load-bearing:
+#  - script-src adds apis.google.com + www.gstatic.com + www.google.com/recaptcha:
+#    required by Firebase Auth (Google sign-in popup) and reCAPTCHA Enterprise App Check.
+#  - connect-src adds *.googleapis.com + cloudfunctions.net + *.a.run.app: v2 onCall
+#    callables hit cloudfunctions.net, which 302-redirects to a Cloud Run *.a.run.app
+#    host that CSP re-checks on the redirect target. Removing *.a.run.app breaks every
+#    callable (approveUser, restore, purge, sign-in ticket, app-check report).
+#  - style-src 'unsafe-inline' is a defense-in-depth gap, not a hard requirement:
+#    Tailwind ships a linked stylesheet and there are no inline <style>/style= sinks,
+#    so it can be tightened to 'self' once verified in a browser.
 /*
   Content-Security-Policy: default-src 'none'; script-src 'self' https://apis.google.com https://www.gstatic.com https://www.google.com/recaptcha/; connect-src 'self' https://*.googleapis.com https://www.google.com https://www.gstatic.com https://apis.google.com https://europe-west8-vet-marinoni.cloudfunctions.net https://*.a.run.app; img-src 'self' data: blob: https://www.gstatic.com https://www.google.com https://*.googleusercontent.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; manifest-src 'self'; worker-src 'self'; frame-src 'self' https://vet-marinoni.firebaseapp.com https://accounts.google.com https://www.google.com; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
