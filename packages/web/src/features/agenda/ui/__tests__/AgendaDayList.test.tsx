@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import type { Attivita } from "@vet/shared";
@@ -62,12 +62,21 @@ describe("AgendaDayList", () => {
     expect(heading).toHaveAttribute("aria-live", "polite");
   });
 
-  it("shows the empty-day message and the new-activity link when allowed", () => {
+  it("shows the empty-day message and the new-activity button when allowed", () => {
     renderList([]);
     expect(screen.getByText("Nessuna attività in agenda.")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /Nuova attività/i })
+      screen.getByRole("button", { name: /Nuova attività/i })
     ).toBeInTheDocument();
+  });
+
+  it("opens quick entry when the new-activity button is clicked", () => {
+    const open = vi.fn();
+    window.addEventListener("vet:quick-entry:open", open);
+    renderList([]);
+    fireEvent.click(screen.getByRole("button", { name: /Nuova attività/i }));
+    window.removeEventListener("vet:quick-entry:open", open);
+    expect(open).toHaveBeenCalledTimes(1);
   });
 
   it("renders the activity time from the activity date, not createdAt", () => {

@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import type { Attivita } from "@vet/shared";
 import { WEEKDAYS, agendaI18n as t } from "../i18n";
 import { groupWeekByWeekday, type WeekDayColumn } from "../lib/calendar";
-import { dateInputValue, mondayIndex } from "../../../shared/lib/format";
+import { mondayIndex } from "../../../shared/lib/format";
+import { openQuickEntry } from "../../quick-entry";
 import { routes } from "../../../routes";
 
 interface AgendaWeekBoardProps {
@@ -72,7 +73,7 @@ function DayColumn({ column, canCreate }: DayColumnProps) {
       </header>
       <div className="flex-1 p-1.5 space-y-1.5">
         {column.items.length === 0 ? (
-          <EmptyColumn date={column.date} canCreate={canCreate} />
+          <EmptyColumn canCreate={canCreate} />
         ) : (
           column.items.map((a) => <ActivityCard key={a.id} attivita={a} />)
         )}
@@ -110,20 +111,20 @@ function ActivityCard({ attivita }: ActivityCardProps) {
 }
 
 interface EmptyColumnProps {
-  readonly date: Date;
   readonly canCreate: boolean;
 }
 
-function EmptyColumn({ date, canCreate }: EmptyColumnProps) {
+function EmptyColumn({ canCreate }: EmptyColumnProps) {
   if (!canCreate) {
     return <span className="block px-1 pt-1 text-[11px] text-(--color-text-subtle)">{t.emptyShort}</span>;
   }
   return (
-    <Link
-      to={`${routes.attivitaNew.path}?data=${dateInputValue(date)}`}
-      className="block rounded-md px-2 py-1.5 text-[11px] text-(--color-text-subtle) hover:text-(--color-accent) hover:bg-(--color-surface-muted)/60 transition-colors duration-(--motion-fast) ease-(--ease-out-quart) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
+    <button
+      type="button"
+      onClick={openQuickEntry}
+      className="block w-full text-left rounded-md px-2 py-1.5 text-[11px] text-(--color-text-subtle) hover:text-(--color-accent) hover:bg-(--color-surface-muted)/60 transition-colors duration-(--motion-fast) ease-(--ease-out-quart) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent)"
     >
       {t.aggiungiShort}
-    </Link>
+    </button>
   );
 }

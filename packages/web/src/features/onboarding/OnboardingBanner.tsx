@@ -1,5 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { openQuickEntry } from "../quick-entry";
+
+const inlineClass = "text-(--color-accent) hover:underline";
 
 const STORAGE_KEY = "vet.onboardingDismissed";
 
@@ -54,9 +57,9 @@ function renderCopy(hasAziende: boolean, hasAttivita: boolean): ReactNode {
       <>
         Per iniziare,{" "}
         <InlineLink to="/aziende/nuova">{"crea un'azienda"}</InlineLink>, poi{" "}
-        <InlineLink to="/attivita/nuova">
+        <InlineButton onClick={openQuickEntry}>
           {"registra un'attività"}
-        </InlineLink>
+        </InlineButton>
         .
       </>
     );
@@ -72,15 +75,23 @@ function renderCopy(hasAziende: boolean, hasAttivita: boolean): ReactNode {
   return (
     <>
       Nessuna attività ancora:{" "}
-      <InlineLink to="/attivita/nuova">registra la prima</InlineLink>.
+      <InlineButton onClick={openQuickEntry}>registra la prima</InlineButton>.
     </>
   );
 }
 
 function InlineLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <Link to={to} className="text-(--color-accent) hover:underline">
+    <Link to={to} className={inlineClass}>
       {children}
     </Link>
+  );
+}
+
+function InlineButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} className={inlineClass}>
+      {children}
+    </button>
   );
 }
