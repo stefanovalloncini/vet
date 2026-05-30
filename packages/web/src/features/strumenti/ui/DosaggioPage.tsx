@@ -8,6 +8,7 @@ import {
   Select,
 } from "../../../shared/ui";
 import { DOSAGE_PRESETS, strumentiI18n as t, type DosagePreset } from "../i18n";
+import { computeMl } from "../lib/dosaggio";
 
 const mlFormatter = new Intl.NumberFormat("it-IT", {
   minimumFractionDigits: 2,
@@ -113,15 +114,6 @@ export function DosaggioPage() {
       </Card>
     </AppShell>
   );
-}
-
-function computeMl(peso: Num, dose: Num, conc: Num): number | null {
-  if (peso === "" || dose === "" || conc === "") return null;
-  if (!isFinite(peso) || !isFinite(dose) || !isFinite(conc)) return null;
-  if (peso <= 0 || dose <= 0 || conc <= 0) return null;
-  const value = (peso * dose) / conc;
-  if (!isFinite(value)) return null;
-  return Math.round(value * 100) / 100;
 }
 
 interface PresetDetailsProps {
