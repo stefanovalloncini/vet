@@ -12,7 +12,7 @@ test.describe("activity type forms via react-hook-form", () => {
       signedInAdmin.getByRole("heading", { level: 1, name: /Tipi di attività/i })
     ).toBeVisible({ timeout: 15_000 });
 
-    const tariffaInput = signedInAdmin.locator(`#tariffa-${FIXTURE.tipo.id}`);
+    const tariffaInput = signedInAdmin.locator(`#${FIXTURE.tipo.id}-tariffa`);
     await expect(tariffaInput).toHaveValue("80");
 
     await tariffaInput.fill("120");
@@ -29,7 +29,7 @@ test.describe("activity type forms via react-hook-form", () => {
       signedInAdmin.getByRole("heading", { level: 1 })
     ).toBeVisible({ timeout: 15_000 });
 
-    const tariffaInput = signedInAdmin.locator(`#tariffa-${FIXTURE.tipo.id}`);
+    const tariffaInput = signedInAdmin.locator(`#${FIXTURE.tipo.id}-tariffa`);
     await tariffaInput.fill("-1");
     await signedInAdmin.getByRole("button", { name: /^Salva$/i }).click();
 
@@ -65,7 +65,7 @@ test.describe("activity type forms via react-hook-form", () => {
       signedInAdmin.getByText(/Castrazione/i).first()
     ).toBeVisible({ timeout: 10_000 });
     await expect(
-      signedInAdmin.locator("#tariffa-castrazione")
+      signedInAdmin.locator("#castrazione-tariffa")
     ).toHaveValue("200");
   });
 

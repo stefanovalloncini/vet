@@ -17,7 +17,7 @@ test.describe("activity types via tanstack query", () => {
     ).toBeVisible({ timeout: 10_000 });
 
     const tariffaInput = signedInAdmin.locator(
-      `#tariffa-${FIXTURE.tipo.id}`
+      `#${FIXTURE.tipo.id}-tariffa`
     );
     await expect(tariffaInput).toHaveValue("80");
 

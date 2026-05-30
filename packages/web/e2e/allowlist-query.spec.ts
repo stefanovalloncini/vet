@@ -59,16 +59,12 @@ test.describe("admin allowlist (tanstack-query)", () => {
       signedInAdmin.getByText(/Solo chi è in questo elenco/i)
     ).toBeVisible();
 
-    // Switch to "In attesa"
-    await signedInAdmin.getByRole("tab", { name: /In attesa/i }).click();
+    // Switch to the consolidated "Richieste di accesso" queue
+    await signedInAdmin
+      .getByRole("tab", { name: /Richieste di accesso/i })
+      .click();
     await expect(
-      signedInAdmin.getByText(/non hanno ancora un profilo confermato/i)
-    ).toBeVisible();
-
-    // Switch to "Richieste accesso"
-    await signedInAdmin.getByRole("tab", { name: /Richieste accesso/i }).click();
-    await expect(
-      signedInAdmin.getByText(/Persone non in allowlist/i)
+      signedInAdmin.getByText(/Chi sta aspettando di entrare/i)
     ).toBeVisible();
   });
 });
