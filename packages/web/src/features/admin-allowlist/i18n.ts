@@ -21,12 +21,9 @@ export const allowlistI18n = {
   tabAllowlist: "Email autorizzate",
   tabAllowlistDescr:
     "Email che possono accedere. Solo chi è in questo elenco può entrare.",
-  tabPending: "In attesa",
-  tabPendingDescr:
-    "Utenti che hanno fatto login con un'email autorizzata ma non hanno ancora un profilo confermato.",
-  tabRequests: "Richieste accesso",
+  tabRequests: "Richieste di accesso",
   tabRequestsDescr:
-    "Persone non in allowlist che hanno chiesto di entrare. Approva per aggiungere la loro email all'elenco.",
+    "Chi sta aspettando di entrare. Già in allowlist da confermare, o non ancora in allowlist.",
   requestsEmpty: "Nessuna richiesta di accesso.",
   requestAccept: "Aggiungi",
   requestReject: "Rifiuta",
@@ -43,9 +40,7 @@ export const allowlistI18n = {
   requestProviderPassword: "via password",
   requestFirstSeen: "primo",
   requestLastSeen: "ultimo",
-  pendingEmpty: "Nessun utente in attesa di approvazione.",
   pendingApprova: "Approva",
-  pendingRifiuta: "Rifiuta",
   pendingRuolo: "Ruolo",
   pendingConfermaRifiutoTitolo: "Rifiutare questo utente?",
   pendingConfermaRifiuto:
@@ -56,6 +51,6 @@ export const allowlistI18n = {
   colEmail: "Email",
   colRuolo: "Ruolo",
   colData: "Data",
-  statoInAttesa: "In attesa",
-  statoRichiesta: "Richiesta",
+  statoDaConfermare: "In allowlist, da confermare",
+  statoNonInAllowlist: "Non in allowlist",
 } as const;

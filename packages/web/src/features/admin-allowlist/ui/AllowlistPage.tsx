@@ -1,35 +1,41 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AdminLayout, PageHeader, Tabs } from "../../../shared/ui";
 import { useAuthState } from "../../auth";
 import { useAllowlist } from "../hooks/useAllowlist";
+import { usePendingUsers } from "../hooks/usePendingUsers";
 import { useAccessRequests } from "../hooks/useAccessRequests";
 import { allowlistI18n as t } from "../i18n";
+import { mergeAccessQueue } from "../lib/mergeAccessQueue";
 import { AllowlistTab } from "./AllowlistTab";
-import { PendingUsersTab } from "./PendingUsersTab";
-import { AccessRequestsTab } from "./AccessRequestsTab";
+import { AccessQueueTab } from "./AccessQueueTab";
 
-type View = "allowlist" | "pending" | "requests";
+type View = "allowlist" | "requests";
 
 export function AllowlistPage() {
   const { user } = useAuthState();
   const { entries, roles, loading, error } = useAllowlist();
   const canApprove = user?.caps.has("users.approve") ?? false;
   const canManageAllowlist = user?.caps.has("allowlist.manage") ?? false;
-  const requestsState = useAccessRequests();
+  const pending = usePendingUsers();
+  const requests = useAccessRequests();
   const [view, setView] = useState<View>("allowlist");
 
-  const showTabs = canApprove || canManageAllowlist;
+  const canSeeQueue = canApprove || canManageAllowlist;
+  const showTabs = canSeeQueue;
 
-  const requestsCount = requestsState.items.length;
+  const queueCount = useMemo(
+    () => mergeAccessQueue(pending.items, requests.items).length,
+    [pending.items, requests.items]
+  );
+
   const tabs = [
     { value: "allowlist" as const, label: t.tabAllowlist },
-    ...(canApprove ? [{ value: "pending" as const, label: t.tabPending }] : []),
-    ...(canManageAllowlist
+    ...(canSeeQueue
       ? [
           {
             value: "requests" as const,
             label: t.tabRequests,
-            ...(requestsCount > 0 ? { badge: requestsCount } : {}),
+            ...(queueCount > 0 ? { badge: queueCount } : {}),
           },
         ]
       : []),
@@ -47,14 +53,12 @@ export function AllowlistPage() {
 
       {showTabs ? (
         <p className="mb-5 text-xs text-(--color-text-subtle) max-w-prose">
-          {viewDescription(view)}
+          {view === "requests" ? t.tabRequestsDescr : t.tabAllowlistDescr}
         </p>
       ) : null}
 
-      {view === "pending" ? (
-        <PendingUsersTab roles={roles} />
-      ) : view === "requests" ? (
-        <AccessRequestsTab roles={roles} />
+      {view === "requests" ? (
+        <AccessQueueTab roles={roles} />
       ) : (
         <AllowlistTab
           entries={entries}
@@ -65,10 +69,4 @@ export function AllowlistPage() {
       )}
     </AdminLayout>
   );
-}
-
-function viewDescription(view: View): string {
-  if (view === "pending") return t.tabPendingDescr;
-  if (view === "requests") return t.tabRequestsDescr;
-  return t.tabAllowlistDescr;
 }

@@ -49,29 +49,25 @@ function renderPage(caps: Capability[]) {
 }
 
 describe("AllowlistPage tab gating", () => {
-  it("shows all three tabs to a full admin (approve + manage)", async () => {
+  it("shows both tabs to a full admin (approve + manage)", async () => {
     renderPage(["allowlist.read", "users.approve", "allowlist.manage"]);
     expect(await screen.findByText(t.tabAllowlist)).toBeInTheDocument();
-    expect(screen.getByText(t.tabPending)).toBeInTheDocument();
     expect(screen.getByText(t.tabRequests)).toBeInTheDocument();
   });
 
-  it("shows no tabs when the user can neither approve nor manage", async () => {
+  it("shows no requests tab when the user can neither approve nor manage", async () => {
     renderPage(["allowlist.read"]);
     await screen.findByText(t.title);
-    expect(screen.queryByText(t.tabPending)).toBeNull();
     expect(screen.queryByText(t.tabRequests)).toBeNull();
   });
 
-  it("shows the pending tab (not requests) for approve-only", async () => {
+  it("shows the consolidated requests tab for approve-only", async () => {
     renderPage(["allowlist.read", "users.approve"]);
-    expect(await screen.findByText(t.tabPending)).toBeInTheDocument();
-    expect(screen.queryByText(t.tabRequests)).toBeNull();
+    expect(await screen.findByText(t.tabRequests)).toBeInTheDocument();
   });
 
-  it("shows the requests tab (not pending) for manage-only", async () => {
+  it("shows the consolidated requests tab for manage-only", async () => {
     renderPage(["allowlist.read", "allowlist.manage"]);
     expect(await screen.findByText(t.tabRequests)).toBeInTheDocument();
-    expect(screen.queryByText(t.tabPending)).toBeNull();
   });
 });
