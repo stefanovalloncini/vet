@@ -1,5 +1,6 @@
 import { logger } from "firebase-functions/v2";
-import { Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { buildAuditDoc } from "@vet/shared";
 import { adminDb } from "../admin/firebaseAdmin.js";
 
 const MAX_PER_EMAIL_PER_DAY = 10;
@@ -64,21 +65,26 @@ export async function recordAuthDenyAudit(
         { merge: true }
       );
       const auditRef = adminDb.collection("audit").doc();
-      tx.set(auditRef, {
-        at: now,
-        actorUid: input.actorUid ?? "anonymous",
-        actorEmail: input.email,
-        action: "auth.signIn.deny",
-        targetType: "auth",
-        targetId: input.emailNorm,
-        details: {
-          reason: input.reason,
-          source: input.source,
-          ...(input.eventType !== undefined
-            ? { eventType: input.eventType }
-            : {}),
-        },
-      });
+      tx.set(
+        auditRef,
+        buildAuditDoc(
+          {
+            actorUid: input.actorUid ?? "anonymous",
+            actorEmail: input.email,
+            action: "auth.signIn.deny",
+            targetType: "auth",
+            targetId: input.emailNorm,
+            details: {
+              reason: input.reason,
+              source: input.source,
+              ...(input.eventType !== undefined
+                ? { eventType: input.eventType }
+                : {}),
+            },
+          },
+          { serverTimestamp: () => FieldValue.serverTimestamp() }
+        )
+      );
     });
   } catch (err) {
     logger.error("auth.audit.deny.failed", {

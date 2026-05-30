@@ -2,6 +2,7 @@ import { z } from "zod";
 import type {
   AuditAction,
   AuditEvent,
+  AuditRecordInput,
   AuditTargetType,
 } from "../domain/entities/AuditEvent.js";
 import { timestampLike, timestampToDate } from "./_shared.js";
@@ -77,5 +78,25 @@ export function parseAuditEvent(id: string, raw: unknown): AuditEvent {
     targetType: dto.targetType,
     targetId: dto.targetId,
     ...(dto.details !== undefined ? { details: dto.details } : {}),
+  };
+}
+
+export type AuditWritePayload<TServerStamp> = Omit<
+  z.input<typeof auditEventDtoSchema>,
+  "at"
+> & { at: TServerStamp };
+
+export function buildAuditDoc<TServerStamp>(
+  event: AuditRecordInput,
+  deps: { serverTimestamp: () => TServerStamp }
+): AuditWritePayload<TServerStamp> {
+  return {
+    at: deps.serverTimestamp(),
+    actorUid: event.actorUid,
+    actorEmail: event.actorEmail,
+    action: event.action,
+    targetType: event.targetType,
+    targetId: event.targetId,
+    ...(event.details !== undefined ? { details: event.details } : {}),
   };
 }

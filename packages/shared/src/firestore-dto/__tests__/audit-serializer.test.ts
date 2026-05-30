@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAuditEvent } from "../audit.js";
+import { buildAuditDoc, parseAuditEvent } from "../audit.js";
 
 const at = new Date("2026-04-01T12:00:00.000Z");
 
@@ -65,5 +65,41 @@ describe("parseAuditEvent", () => {
     expect(() =>
       parseAuditEvent("evt-1", { ...validDoc, targetId: "t".repeat(201) })
     ).toThrow();
+  });
+});
+
+describe("buildAuditDoc", () => {
+  const deps = { serverTimestamp: () => "SERVER_TS" as const };
+  const base = {
+    actorUid: "uid-admin",
+    actorEmail: "admin@example.com",
+    action: "user.approve",
+    targetType: "user",
+    targetId: "uid-target",
+  } as const;
+
+  it("stamps `at` from the server-timestamp dep, not a client clock", () => {
+    expect(buildAuditDoc(base, deps).at).toBe("SERVER_TS");
+  });
+
+  it("omits details when absent and includes them when present", () => {
+    expect("details" in buildAuditDoc(base, deps)).toBe(false);
+    expect(
+      buildAuditDoc({ ...base, details: { roleId: "r1" } }, deps).details
+    ).toEqual({ roleId: "r1" });
+  });
+
+  it("round-trips through parseAuditEvent with a real Date stamp", () => {
+    const at = new Date("2026-04-01T12:00:00.000Z");
+    const payload = buildAuditDoc(base, { serverTimestamp: () => at });
+    expect(parseAuditEvent("evt-1", payload)).toEqual({
+      id: "evt-1",
+      at,
+      actorUid: "uid-admin",
+      actorEmail: "admin@example.com",
+      action: "user.approve",
+      targetType: "user",
+      targetId: "uid-target",
+    });
   });
 });

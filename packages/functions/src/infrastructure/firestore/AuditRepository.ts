@@ -9,7 +9,7 @@ import type {
   AuditRecordInput,
   AuditRepository,
 } from "@vet/shared";
-import { parseAuditEvent } from "@vet/shared";
+import { buildAuditDoc, parseAuditEvent } from "@vet/shared";
 
 export class FirestoreAuditRepository implements AuditRepository {
   constructor(
@@ -33,15 +33,9 @@ export class FirestoreAuditRepository implements AuditRepository {
   }
 
   async record(event: AuditRecordInput): Promise<void> {
-    const payload = {
-      at: FieldValue.serverTimestamp(),
-      actorUid: event.actorUid,
-      actorEmail: event.actorEmail,
-      action: event.action,
-      targetType: event.targetType,
-      targetId: event.targetId,
-      ...(event.details !== undefined ? { details: event.details } : {}),
-    };
+    const payload = buildAuditDoc(event, {
+      serverTimestamp: () => FieldValue.serverTimestamp(),
+    });
     if (this.tx) {
       const ref = this.db.collection("audit").doc();
       this.tx.set(ref, payload);

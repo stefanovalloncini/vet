@@ -251,7 +251,9 @@ export {
 export {
   auditEventDtoSchema,
   parseAuditEvent,
+  buildAuditDoc,
   type AuditEventDTO,
+  type AuditWritePayload,
 } from "./firestore-dto/audit.js";
 export {
   contoEmitInputSchema,
