@@ -8,6 +8,7 @@ export const pagamentiI18n = {
   colAzienda: "Azienda",
   colStato: "Stato",
   colAperto: "Aperto",
+  totaleAperto: "Totale aperto",
   colUltimo: "Ultimo conto",
   filterStato: "Stato",
   filtroTutti: "Tutti",

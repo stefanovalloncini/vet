@@ -155,9 +155,26 @@ export function PagamentiPage() {
     []
   );
 
+  const totaleAperto = useMemo(() => {
+    const visible = statoFilter
+      ? rows.filter((r) => statusOf(r) === statoFilter)
+      : rows;
+    return (
+      Math.round(visible.reduce((s, r) => s + r.totaleAperto, 0) * 100) / 100
+    );
+  }, [rows, statoFilter]);
+
   return (
     <AppShell wide>
       <PageHeader title={t.title} subtitle={t.subtitle} />
+      <div className="sm:hidden mb-3 flex items-center justify-between rounded-lg border border-(--color-border) bg-(--color-surface) px-4 py-2.5">
+        <span className="text-sm text-(--color-text-muted)">
+          {t.totaleAperto}
+        </span>
+        <span className="font-mono tabular-nums font-medium text-(--color-text)">
+          {formatEuro(totaleAperto)}
+        </span>
+      </div>
       <DataGrid<PagamentoOverview>
         rows={rows}
         columns={columns}
