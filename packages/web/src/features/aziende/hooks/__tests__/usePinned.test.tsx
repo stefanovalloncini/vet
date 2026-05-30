@@ -111,4 +111,19 @@ describe("usePinned", () => {
     });
     expect(result.current.pinned.size).toBe(before);
   });
+
+  it("keeps the toggle in memory when persistence throws", () => {
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: () => null,
+        setItem: () => {
+          throw new Error("storage disabled");
+        },
+      } as unknown as Storage,
+    });
+    const { result } = renderHook(() => usePinned());
+    act(() => result.current.toggle("az1"));
+    expect(result.current.isPinned("az1")).toBe(true);
+  });
 });

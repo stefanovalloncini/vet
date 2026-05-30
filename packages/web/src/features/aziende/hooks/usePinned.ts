@@ -15,6 +15,14 @@ function read(): Set<string> {
   return new Set();
 }
 
+function write(ids: Set<string>): void {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+  } catch {
+    return;
+  }
+}
+
 export function usePinned() {
   const [pinned, setPinned] = useState<Set<string>>(read);
 
@@ -31,7 +39,7 @@ export function usePinned() {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]));
+      write(next);
       return next;
     });
   }

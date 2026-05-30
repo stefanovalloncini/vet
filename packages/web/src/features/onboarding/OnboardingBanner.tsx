@@ -3,15 +3,29 @@ import { Link } from "react-router-dom";
 
 const STORAGE_KEY = "vet.onboardingDismissed";
 
+function readDismissed(): boolean {
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function persistDismissed(): void {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, "1");
+  } catch {
+    return;
+  }
+}
+
 interface OnboardingBannerProps {
   hasAziende: boolean;
   hasAttivita: boolean;
 }
 
 export function OnboardingBanner({ hasAziende, hasAttivita }: OnboardingBannerProps) {
-  const [dismissed, setDismissed] = useState(
-    () => window.localStorage.getItem(STORAGE_KEY) === "1"
-  );
+  const [dismissed, setDismissed] = useState(readDismissed);
 
   if (dismissed || (hasAziende && hasAttivita)) return null;
 
@@ -23,7 +37,7 @@ export function OnboardingBanner({ hasAziende, hasAttivita }: OnboardingBannerPr
       <button
         type="button"
         onClick={() => {
-          window.localStorage.setItem(STORAGE_KEY, "1");
+          persistDismissed();
           setDismissed(true);
         }}
         className="absolute right-0 top-0 text-xs text-(--color-text-subtle) hover:text-(--color-text) focus:outline-none focus-visible:underline underline-offset-4"
