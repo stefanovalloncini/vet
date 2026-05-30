@@ -1,16 +1,23 @@
-import type { Azienda, CadenzaFatturazione } from "@vet/shared";
+import type { Azienda, Conto } from "@vet/shared";
 import type { ContiByAziendaMap } from "./groupContiByAzienda";
+import { previousFor, rangeForSelection } from "./periodSelection";
 
-const MONTHS_BY_CADENZA: Record<CadenzaFatturazione, number> = {
-  monthly: 1,
-  quarterly: 3,
-  semiannual: 6,
-};
+function isEmittedConto(conto: Conto): boolean {
+  return !conto.isDeleted && conto.modalita === "emesso";
+}
+
+function coversPeriod(conto: Conto, from: Date, to: Date): boolean {
+  return (
+    conto.periodoFrom.getTime() <= to.getTime() &&
+    conto.periodoTo.getTime() >= from.getTime()
+  );
+}
 
 /**
- * Returns the set of aziendaIds where the last conto emission is older than
- * the azienda's billing cadence — i.e. it's time to issue a new conto.
- * Aziende without `cadenzaFatturazione` or without any emitted conto are not flagged.
+ * Returns the set of aziendaIds whose previous full calendar period (for their
+ * billing cadence) is not covered by any emitted conto — i.e. it's time to
+ * issue a new conto for that period. Aziende without `cadenzaFatturazione` or
+ * without any conto are not flagged.
  */
 export function aziendeNeedingNewConto(
   aziende: ReadonlyArray<Azienda>,
@@ -22,11 +29,12 @@ export function aziendeNeedingNewConto(
     if (!a.cadenzaFatturazione) continue;
     const bucket = contiByAzienda.get(a.id);
     if (!bucket) continue;
-    const months = MONTHS_BY_CADENZA[a.cadenzaFatturazione];
-    const cutoff = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
-    if (bucket.lastEmittedAt.getTime() < cutoff.getTime()) {
-      out.add(a.id);
-    }
+    const { from, to } = rangeForSelection(previousFor(a.cadenzaFatturazione, now));
+    if (to.getTime() >= now.getTime()) continue;
+    const covered = bucket.conti.some(
+      (c) => isEmittedConto(c) && coversPeriod(c, from, to)
+    );
+    if (!covered) out.add(a.id);
   }
   return out;
 }

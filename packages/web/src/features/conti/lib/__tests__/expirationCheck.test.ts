@@ -25,13 +25,13 @@ function conto(overrides: Partial<Conto>): Conto {
     id: overrides.id ?? `c-${Math.random()}`,
     aziendaId: overrides.aziendaId ?? "az1",
     aziendaNome: "Cascina",
-    periodoFrom: new Date("2026-01-01"),
-    periodoTo: new Date("2026-03-31"),
+    periodoFrom: new Date(2026, 0, 1),
+    periodoTo: new Date(2026, 2, 31, 23, 59, 59, 999),
     attivitaIds: [],
     totaleConto: 100,
     modalita: "emesso",
     saldato: false,
-    emittedAt: overrides.emittedAt ?? new Date("2026-05-01"),
+    emittedAt: overrides.emittedAt ?? new Date(2026, 3, 5),
     emittedBy: "u1",
     emittedByName: "Vet",
     isDeleted: false,
@@ -40,55 +40,136 @@ function conto(overrides: Partial<Conto>): Conto {
   } as Conto;
 }
 
-const NOW = new Date("2026-08-15T12:00:00Z");
+const NOW = new Date(2026, 7, 15);
 
 describe("aziendeNeedingNewConto", () => {
-  it("flags quarterly azienda whose last emit is older than 3 months", () => {
+  it("flags a quarterly azienda whose only conto covers an earlier quarter", () => {
     const aziende = [azienda({ id: "az1", cadenzaFatturazione: "quarterly" })];
-    const conti = [conto({ aziendaId: "az1", emittedAt: new Date("2026-04-01") })];
+    const conti = [
+      conto({
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 0, 1),
+        periodoTo: new Date(2026, 2, 31, 23, 59, 59, 999),
+      }),
+    ];
     const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
     expect(result.has("az1")).toBe(true);
   });
 
-  it("does not flag quarterly azienda emitted within last 3 months", () => {
+  it("does not flag when an emitted conto covers the previous calendar quarter", () => {
     const aziende = [azienda({ id: "az1", cadenzaFatturazione: "quarterly" })];
-    const conti = [conto({ aziendaId: "az1", emittedAt: new Date("2026-07-01") })];
+    const conti = [
+      conto({
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 3, 1),
+        periodoTo: new Date(2026, 5, 30, 23, 59, 59, 999),
+      }),
+    ];
     const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
     expect(result.has("az1")).toBe(false);
   });
 
-  it("flags monthly azienda older than 1 month", () => {
+  it("ignores a proforma conto for coverage (still flags)", () => {
+    const aziende = [azienda({ id: "az1", cadenzaFatturazione: "quarterly" })];
+    const conti = [
+      conto({
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 3, 1),
+        periodoTo: new Date(2026, 5, 30, 23, 59, 59, 999),
+        modalita: "proforma",
+      }),
+    ];
+    const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
+    expect(result.has("az1")).toBe(true);
+  });
+
+  it("ignores a deleted conto for coverage (still flags)", () => {
+    const aziende = [azienda({ id: "az1", cadenzaFatturazione: "quarterly" })];
+    const conti = [
+      conto({
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 3, 1),
+        periodoTo: new Date(2026, 5, 30, 23, 59, 59, 999),
+        isDeleted: true,
+      }),
+    ];
+    const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
+    expect(result.has("az1")).toBe(true);
+  });
+
+  it("does not flag a monthly azienda whose conto covers the previous month", () => {
     const aziende = [azienda({ id: "az1", cadenzaFatturazione: "monthly" })];
-    const conti = [conto({ aziendaId: "az1", emittedAt: new Date("2026-06-30") })];
-    const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
-    expect(result.has("az1")).toBe(true);
-  });
-
-  it("flags semiannual azienda older than 6 months", () => {
-    const aziende = [azienda({ id: "az1", cadenzaFatturazione: "semiannual" })];
-    const conti = [conto({ aziendaId: "az1", emittedAt: new Date("2026-01-01") })];
-    const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
-    expect(result.has("az1")).toBe(true);
-  });
-
-  it("does not flag azienda without cadenzaFatturazione", () => {
-    const aziende = [azienda({ id: "az1" })];
-    const conti = [conto({ aziendaId: "az1", emittedAt: new Date("2020-01-01") })];
+    const conti = [
+      conto({
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 6, 1),
+        periodoTo: new Date(2026, 6, 31, 23, 59, 59, 999),
+      }),
+    ];
     const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
     expect(result.has("az1")).toBe(false);
   });
 
-  it("does not flag azienda with no emitted conto at all", () => {
+  it("flags a monthly azienda whose conto covers an older month", () => {
+    const aziende = [azienda({ id: "az1", cadenzaFatturazione: "monthly" })];
+    const conti = [
+      conto({
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 4, 1),
+        periodoTo: new Date(2026, 4, 31, 23, 59, 59, 999),
+      }),
+    ];
+    const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
+    expect(result.has("az1")).toBe(true);
+  });
+
+  it("does not flag a semiannual azienda whose conto covers the previous semester", () => {
+    const aziende = [azienda({ id: "az1", cadenzaFatturazione: "semiannual" })];
+    const conti = [
+      conto({
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 0, 1),
+        periodoTo: new Date(2026, 5, 30, 23, 59, 59, 999),
+      }),
+    ];
+    const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
+    expect(result.has("az1")).toBe(false);
+  });
+
+  it("does not flag an azienda without cadenzaFatturazione", () => {
+    const aziende = [azienda({ id: "az1" })];
+    const conti = [
+      conto({
+        aziendaId: "az1",
+        periodoFrom: new Date(2020, 0, 1),
+        periodoTo: new Date(2020, 2, 31, 23, 59, 59, 999),
+      }),
+    ];
+    const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
+    expect(result.has("az1")).toBe(false);
+  });
+
+  it("does not flag an azienda with no conto at all", () => {
     const aziende = [azienda({ id: "az1", cadenzaFatturazione: "quarterly" })];
     const result = aziendeNeedingNewConto(aziende, groupContiByAzienda([]), NOW);
     expect(result.has("az1")).toBe(false);
   });
 
-  it("considers the most recent emit per azienda (not just any conto)", () => {
+  it("does not flag when any emitted conto covers the previous period", () => {
     const aziende = [azienda({ id: "az1", cadenzaFatturazione: "quarterly" })];
     const conti = [
-      conto({ id: "c-old", aziendaId: "az1", emittedAt: new Date("2026-01-01") }),
-      conto({ id: "c-new", aziendaId: "az1", emittedAt: new Date("2026-07-15") }),
+      conto({
+        id: "c-old",
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 0, 1),
+        periodoTo: new Date(2026, 2, 31, 23, 59, 59, 999),
+      }),
+      conto({
+        id: "c-prev",
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 3, 1),
+        periodoTo: new Date(2026, 5, 30, 23, 59, 59, 999),
+      }),
     ];
     const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
     expect(result.has("az1")).toBe(false);
@@ -99,7 +180,13 @@ describe("aziendeNeedingNewConto", () => {
       azienda({ id: "az1", cadenzaFatturazione: "quarterly" }),
       azienda({ id: "az2", cadenzaFatturazione: "quarterly" }),
     ];
-    const conti = [conto({ aziendaId: "az1", emittedAt: new Date("2026-04-01") })];
+    const conti = [
+      conto({
+        aziendaId: "az1",
+        periodoFrom: new Date(2026, 0, 1),
+        periodoTo: new Date(2026, 2, 31, 23, 59, 59, 999),
+      }),
+    ];
     const result = aziendeNeedingNewConto(aziende, groupContiByAzienda(conti), NOW);
     expect(result.has("az1")).toBe(true);
     expect(result.has("az2")).toBe(false);

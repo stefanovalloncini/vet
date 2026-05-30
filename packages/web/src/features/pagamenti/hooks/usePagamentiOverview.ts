@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import { roundCents } from "../../../shared/lib/money";
-import type { Attivita, Azienda, CadenzaFatturazione, Conto } from "@vet/shared";
+import type { Attivita, Azienda, Conto } from "@vet/shared";
 import { useAziende } from "../../aziende/hooks/useAziende";
 import { useConti } from "../../conti/hooks/useConti";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
-import { collectBilledAttivitaIds, hasUnbilledAttivita } from "../lib/unbilled";
+import { collectBilledAttivitaIds } from "../lib/unbilled";
+import { needsNewContoForAzienda } from "../lib/contoPeriodPolicy";
 
 export interface PagamentoOverview {
   readonly azienda: Azienda;
@@ -13,12 +14,6 @@ export interface PagamentoOverview {
   readonly hasUnpaid: boolean;
   readonly needsNewConto: boolean;
 }
-
-const MONTHS_BY_CADENZA: Record<CadenzaFatturazione, number> = {
-  monthly: 1,
-  quarterly: 3,
-  semiannual: 6,
-};
 
 interface Aggregate {
   totaleAperto: number;
@@ -69,30 +64,6 @@ function buildAttivitaByAzienda(
   >;
 }
 
-function computeNeedsNew(
-  azienda: Azienda,
-  ultimoContoAt: Date | null,
-  attivitaByAzienda: Map<string, ReadonlyArray<Attivita>>,
-  billedIds: ReadonlySet<string>,
-  now: Date
-): boolean {
-  if (!azienda.cadenzaFatturazione) return false;
-  const months = MONTHS_BY_CADENZA[azienda.cadenzaFatturazione];
-  if (!hasUnbilledAttivita(attivitaByAzienda.get(azienda.id), billedIds)) {
-    return false;
-  }
-  if (ultimoContoAt === null) {
-    // No prior conto AND there are unbilled attivita → suggest emitting.
-    return true;
-  }
-  const cutoff = new Date(
-    now.getFullYear(),
-    now.getMonth() - months,
-    now.getDate()
-  );
-  return ultimoContoAt.getTime() < cutoff.getTime();
-}
-
 export interface UsePagamentiOverviewResult {
   rows: ReadonlyArray<PagamentoOverview>;
   loading: boolean;
@@ -117,13 +88,13 @@ export function usePagamentiOverview(now: Date = new Date()): UsePagamentiOvervi
       const totaleAperto = agg?.totaleAperto ?? 0;
       const ultimoContoAt = agg?.ultimoContoAt ?? null;
       const hasUnpaid = agg?.hasUnpaid ?? false;
-      const needsNewConto = computeNeedsNew(
+      const needsNewConto = needsNewContoForAzienda({
         azienda,
-        ultimoContoAt,
-        attivitaByAzienda,
+        conti,
+        attivita: attivitaByAzienda.get(azienda.id),
         billedIds,
-        now
-      );
+        now,
+      });
       return { azienda, totaleAperto, ultimoContoAt, hasUnpaid, needsNewConto };
     });
     out.sort((a, b) => a.azienda.nomeNorm.localeCompare(b.azienda.nomeNorm, "it"));
