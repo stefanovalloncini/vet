@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { useAuthState } from "../auth";
-import { useAttivita } from "../attivita/hooks/useAttivita";
+import { useHasAnyAttivita } from "../attivita/hooks/useAttivita";
 import { QuickEntryDialog } from "./ui/QuickEntryDialog";
 
 const HIDE_PATTERNS: ReadonlyArray<RegExp> = [
@@ -28,13 +28,13 @@ export function QuickEntryFab() {
   const { user } = useAuthState();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
-  const { items, isLoading } = useAttivita();
 
   const enabled =
     !!user?.caps.has("activities.create") &&
     !HIDE_PATTERNS.some((rx) => rx.test(pathname));
 
-  const attentive = enabled && !isLoading && items.length === 0;
+  const { data: hasAny, isLoading } = useHasAnyAttivita(enabled);
+  const attentive = enabled && !isLoading && hasAny === false;
 
   useEffect(() => {
     if (!enabled) return undefined;

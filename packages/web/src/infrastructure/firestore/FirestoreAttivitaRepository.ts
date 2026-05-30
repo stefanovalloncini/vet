@@ -67,6 +67,17 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     return snap.docs.map((d) => parseAttivita(d.id, d.data()));
   }
 
+  async hasAnyActive(): Promise<boolean> {
+    const snap = await getDocs(
+      query(
+        collection(this.db, "attivita"),
+        where("isDeleted", "==", false),
+        limit(1)
+      )
+    );
+    return !snap.empty;
+  }
+
   async getById(id: string): Promise<Attivita | null> {
     const snap = await getDoc(doc(this.db, "attivita", id));
     if (!snap.exists()) return null;

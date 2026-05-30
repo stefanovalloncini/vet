@@ -40,6 +40,8 @@ export interface AttivitaRepository {
   hardDelete(id: string): Promise<void>;
   /** Purge all attivita matching the predicate; returns how many were deleted. */
   purgeOlderThanDeletedAt(cutoff: Date): Promise<number>;
+  /** Cheap existence check (limit 1) — true if any non-deleted attivita exists. */
+  hasAnyActive(): Promise<boolean>;
   /** Delete all attivita owned by the given uid (GDPR). Returns count. */
   deleteAllForOwner(ownerUid: string): Promise<number>;
   /**

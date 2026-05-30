@@ -14,6 +14,17 @@ const input: AttivitaInput = {
 const owner = { uid: "owner", email: "o@x.com", displayName: "Owner" };
 const editor = { uid: "editor", email: "e@x.com", displayName: "Editor B" };
 
+describe("InMemoryAttivitaRepository.hasAnyActive", () => {
+  it("is false when empty and true once a non-deleted attivita exists", async () => {
+    const repo = new InMemoryAttivitaRepository();
+    expect(await repo.hasAnyActive()).toBe(false);
+    const a = await repo.create(input, denorm, owner);
+    expect(await repo.hasAnyActive()).toBe(true);
+    await repo.softDelete(a.id, owner);
+    expect(await repo.hasAnyActive()).toBe(false);
+  });
+});
+
 describe("InMemoryAttivitaRepository editor tracking", () => {
   it("update() records the editor as updatedBy/updatedByName (prod fidelity)", async () => {
     const repo = new InMemoryAttivitaRepository();

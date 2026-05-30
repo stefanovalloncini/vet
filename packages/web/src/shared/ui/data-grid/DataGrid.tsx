@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useImperativeHandle, useMemo, useState } from "react";
+import { useCallback, useImperativeHandle, useMemo, useState } from "react";
 import { DataLoader } from "../DataLoader";
 import { EmptyState } from "../EmptyState";
 import { Button } from "../Button";
@@ -76,14 +76,6 @@ export function DataGrid<T>(props: DataGridProps<T>) {
     defaultSort ?? null
   );
   const sort = sortControlled ? sortProp ?? null : internalSort;
-
-  // emit default sort once on mount when controlled handler is present
-  useEffect(() => {
-    if (sortControlled) return;
-    if (defaultSort && onSortChange) onSortChange(defaultSort);
-    // run only on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const toggleSort = useCallback(
     (columnId: string) => {

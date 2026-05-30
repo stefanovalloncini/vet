@@ -164,6 +164,15 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     return total;
   }
 
+  async hasAnyActive(): Promise<boolean> {
+    const snap = await this.db
+      .collection("attivita")
+      .where("isDeleted", "==", false)
+      .limit(1)
+      .get();
+    return !snap.empty;
+  }
+
   async deleteAllForOwner(ownerUid: string): Promise<number> {
     let total = 0;
     const BATCH_SIZE = 400;

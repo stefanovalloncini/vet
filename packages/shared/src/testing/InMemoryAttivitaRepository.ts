@@ -155,6 +155,11 @@ export class InMemoryAttivitaRepository implements AttivitaRepository {
     return count;
   }
 
+  async hasAnyActive(): Promise<boolean> {
+    for (const a of this.map.values()) if (!a.isDeleted) return true;
+    return false;
+  }
+
   async deleteAllForOwner(ownerUid: string): Promise<number> {
     let count = 0;
     for (const [id, a] of [...this.map.entries()]) {

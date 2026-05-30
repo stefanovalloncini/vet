@@ -5,7 +5,7 @@ import type { ActorContext, Capability, Repositories } from "@vet/shared";
 import { InMemoryAuthService } from "@vet/shared/testing";
 import { RepositoriesProvider } from "../../../infrastructure/RepositoriesContext";
 import { createInMemoryRepositories } from "../../../infrastructure/composition/in-memory";
-import { useCapabilities, useCapability } from "../useCapability";
+import { useCapability } from "../useCapability";
 
 function makeUser(caps: readonly Capability[]): ActorContext {
   return {
@@ -83,39 +83,5 @@ describe("useCapability", () => {
       auth.setSimulatedUser(makeUser(["activities.create"]));
     });
     expect(result.current).toBe(true);
-  });
-});
-
-describe("useCapabilities", () => {
-  it("returns a record of booleans keyed by capability", () => {
-    const { result } = setupHook(["aziende.read", "activities.create"], () =>
-      useCapabilities("aziende.read", "activities.create", "audit.read")
-    );
-    expect(result.current).toEqual({
-      "aziende.read": true,
-      "activities.create": true,
-      "audit.read": false,
-    });
-  });
-
-  it("returns all false when there is no user", () => {
-    const { result } = setupHook(null, () =>
-      useCapabilities("aziende.read", "activities.create")
-    );
-    expect(result.current).toEqual({
-      "aziende.read": false,
-      "activities.create": false,
-    });
-  });
-
-  it("memoizes the result object across renders when caps don't change", () => {
-    const { result, auth } = setupHook(["aziende.read"], () =>
-      useCapabilities("aziende.read", "activities.create")
-    );
-    const before = result.current;
-    act(() => {
-      auth.setSimulatedUser(makeUser(["aziende.read"]));
-    });
-    expect(result.current).toBe(before);
   });
 });

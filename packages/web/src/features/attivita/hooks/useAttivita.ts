@@ -36,6 +36,15 @@ export function useAttivita(filters: AttivitaFilters = {}) {
   };
 }
 
+export function useHasAnyAttivita(enabled: boolean) {
+  const { attivita: repo } = useRepositories();
+  return useQuery<boolean>({
+    queryKey: queryKeys.attivitaHasAny,
+    queryFn: () => repo.hasAnyActive(),
+    enabled,
+  });
+}
+
 export function useLastAttivitaByAziendaAndTipo(
   aziendaId: string | undefined,
   tipoId: string | undefined,

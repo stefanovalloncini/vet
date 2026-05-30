@@ -51,6 +51,7 @@ export const queryKeys = {
     ["attivita", filters ?? {}] as const,
   attivitaById: (id: string | undefined) =>
     ["attivita", "byId", id ?? null] as const,
+  attivitaHasAny: ["attivita", "hasAny"] as const,
   attivitaLastByAziendaAndTipo: (
     aziendaId: string | undefined,
     tipoId: string | undefined

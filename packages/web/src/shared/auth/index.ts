@@ -1,2 +1,2 @@
-export { useCapability, useCapabilities } from "./useCapability";
+export { useCapability } from "./useCapability";
 export { CapabilityGate, type CapabilityGateProps } from "./CapabilityGate";
