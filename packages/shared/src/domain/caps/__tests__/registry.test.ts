@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { CAPABILITIES, capabilitySchema, isCapability } from "../registry.js";
+import {
+  CAPABILITIES,
+  capCode,
+  capabilitySchema,
+  decodeCaps,
+  encodeCaps,
+  isCapability,
+} from "../registry.js";
 import { CAPABILITY_LABELS } from "../labels.js";
 
 describe("CAPABILITIES", () => {
@@ -48,5 +55,26 @@ describe("CAPABILITY_LABELS", () => {
       expect(CAPABILITY_LABELS[cap]).toBeTruthy();
       expect(typeof CAPABILITY_LABELS[cap]).toBe("string");
     }
+  });
+});
+
+describe("short-code encoding", () => {
+  it("assigns a unique short code to every capability", () => {
+    const codes = CAPABILITIES.map((c) => capCode(c));
+    expect(codes.every((c) => /^[a-z]+$/.test(c))).toBe(true);
+    expect(new Set(codes).size).toBe(codes.length);
+  });
+
+  it("round-trips every capability through encode/decode", () => {
+    const encoded = encodeCaps(CAPABILITIES);
+    expect(decodeCaps(encoded)).toEqual([...CAPABILITIES]);
+    for (const cap of CAPABILITIES) {
+      expect(decodeCaps([capCode(cap)])).toEqual([cap]);
+    }
+  });
+
+  it("also decodes full capability names (forward-compat) and drops unknown codes", () => {
+    expect(decodeCaps(["activities.create"])).toEqual(["activities.create"]);
+    expect(decodeCaps(["zzz", "ac", "nope"])).toEqual(["activities.create"]);
   });
 });
