@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { buildReminderMarkDonePatch, parseReminder } from "../reminder.js";
+import {
+  buildReminderCreateDoc,
+  buildReminderMarkDonePatch,
+  parseReminder,
+} from "../reminder.js";
+import type { ActorContext } from "../../domain/entities/ActorContext.js";
+import type { ReminderInput } from "../../domain/schemas/reminder.js";
 
 const dueAt = new Date("2026-03-15T07:00:00.000Z");
 const createdAt = new Date("2026-03-01T07:00:00.000Z");
@@ -109,6 +115,104 @@ describe("buildReminderMarkDonePatch", () => {
       done: false,
       updatedAt: "SERVER_TS",
       doneAt: null,
+    });
+  });
+});
+
+describe("buildReminderCreateDoc", () => {
+  const SERVER_TS = "SERVER_TS" as const;
+  const actor: ActorContext = {
+    uid: "uid-vet",
+    email: "vet@example.com",
+    displayName: "Vet One",
+    roleId: "vet",
+    caps: new Set(["reminders.create"]),
+    approved: true,
+  };
+  const baseInput: ReminderInput = {
+    aziendaId: "az-1",
+    titolo: "Richiamo vaccinazioni",
+    dueAt,
+  };
+  const denorm = { aziendaNome: "Cascina San Marco" };
+  const deps = {
+    fromDate: (d: Date) => d,
+    serverTimestamp: () => SERVER_TS,
+  };
+
+  it("maps input + denorm + actor into the create payload", () => {
+    const payload = buildReminderCreateDoc(
+      { input: baseInput, denorm, actor },
+      deps
+    );
+    expect(payload).toEqual({
+      aziendaId: "az-1",
+      aziendaNome: "Cascina San Marco",
+      titolo: "Richiamo vaccinazioni",
+      dueAt,
+      done: false,
+      createdAt: SERVER_TS,
+      updatedAt: SERVER_TS,
+      createdBy: "uid-vet",
+      schemaVersion: 1,
+    });
+  });
+
+  it("denormalizes aziendaNome from denorm, not from input", () => {
+    expect(
+      buildReminderCreateDoc({ input: baseInput, denorm, actor }, deps)
+        .aziendaNome
+    ).toBe("Cascina San Marco");
+  });
+
+  it("includes note when present and omits it when absent", () => {
+    expect(
+      buildReminderCreateDoc(
+        { input: { ...baseInput, note: "in stalla" }, denorm, actor },
+        deps
+      ).note
+    ).toBe("in stalla");
+    expect(
+      "note" in
+        buildReminderCreateDoc({ input: baseInput, denorm, actor }, deps)
+    ).toBe(false);
+  });
+
+  it("uses deps.fromDate for dueAt and serverTimestamp for audit stamps", () => {
+    const payload = buildReminderCreateDoc(
+      { input: baseInput, denorm, actor },
+      deps
+    );
+    expect(payload.dueAt).toBe(dueAt);
+    expect(payload.createdAt).toBe(SERVER_TS);
+    expect(payload.updatedAt).toBe(SERVER_TS);
+  });
+
+  it("stamps createdBy from the actor uid", () => {
+    expect(
+      buildReminderCreateDoc({ input: baseInput, denorm, actor }, deps)
+        .createdBy
+    ).toBe("uid-vet");
+  });
+
+  it("round-trips through parseReminder with real Date stamps", () => {
+    const now = new Date("2026-03-10T07:00:00.000Z");
+    const payload = buildReminderCreateDoc(
+      { input: { ...baseInput, note: "in stalla" }, denorm, actor },
+      { fromDate: (d: Date) => d, serverTimestamp: () => now }
+    );
+    expect(parseReminder("rem-1", payload)).toEqual({
+      id: "rem-1",
+      aziendaId: "az-1",
+      aziendaNome: "Cascina San Marco",
+      titolo: "Richiamo vaccinazioni",
+      dueAt,
+      note: "in stalla",
+      done: false,
+      createdAt: now,
+      updatedAt: now,
+      createdBy: "uid-vet",
+      schemaVersion: 1,
     });
   });
 });
