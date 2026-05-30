@@ -298,7 +298,7 @@ test.describe("RBAC: role separation and cross-user safety", () => {
       await expect(
         page.getByRole("heading", { level: 1, name: /Allowlist/i })
       ).toBeVisible({ timeout: SHELL });
-      const pendingTab = page.getByRole("tab", { name: /In attesa/i });
+      const pendingTab = page.getByRole("tab", { name: /Richieste di accesso/i });
       if ((await pendingTab.count()) === 0) {
         await page.reload();
         await expect(
