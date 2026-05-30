@@ -12,6 +12,7 @@ import {
   PageHeader,
   Spinner,
 } from "../../../shared/ui";
+import { formatDate } from "../../../shared/lib/format";
 import { useAuthState } from "../../auth";
 import { useReferenceData } from "../hooks/useReferenceData";
 import {
@@ -150,6 +151,18 @@ export function AttivitaFormPage() {
           />
         </form>
       </FormProvider>
+      {isEdit && existing.data ? (
+        <p className="max-w-[760px] mt-6 pt-4 border-t border-(--color-border) text-xs text-(--color-text-subtle)">
+          Registrato da {existing.data.ownerName} il{" "}
+          {formatDate(existing.data.createdAt)}
+          {existing.data.updatedByName ? (
+            <>
+              {" · "}Modificato da {existing.data.updatedByName} il{" "}
+              {formatDate(existing.data.updatedAt)}
+            </>
+          ) : null}
+        </p>
+      ) : null}
       <QuickAddAziendaDialog
         open={addAziendaOpen}
         onClose={() => setAddAziendaOpen(false)}
