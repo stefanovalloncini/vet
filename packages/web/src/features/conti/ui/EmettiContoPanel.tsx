@@ -11,18 +11,40 @@ import {
 import { useAuthState } from "../../auth";
 import {
   dateInputValue,
+  formatDate,
   formatEuro,
   parseDateInput,
 } from "../../../shared/lib/format";
 import { roundCents } from "../../../shared/lib/money";
+import { openWhatsappShare } from "../../../shared/pdf/share/whatsapp";
 import { useEmettiConto, useContiForAzienda } from "../hooks/useConti";
 import { useArmadietto } from "../hooks/useArmadietto";
 import { contiI18n as t } from "../i18n";
-import { computeContoPreview, defaultPeriodoFor } from "../lib/contoPreview";
+import { computeContoPreview, periodoLabel } from "../lib/contoPreview";
+import { contoDefaultPeriod } from "../lib/contoDefaultPeriod";
 import { countAlreadyBilled } from "../lib/alreadyBilled";
 import { contoFilenameStem, contoNumeroFor } from "../lib/contoDocMeta";
 import { ArmadiettoRow } from "./ArmadiettoRow";
 import { PeriodPicker } from "./PeriodPicker";
+
+function waPhone(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const digits = raw.replace(/\D/g, "").replace(/^00/, "");
+  return digits.length >= 8 ? digits : undefined;
+}
+
+function shareCaption(
+  aziendaNome: string,
+  from: Date,
+  to: Date,
+  totale: number,
+  cadenza: Azienda["cadenzaFatturazione"]
+): string {
+  const periodo = cadenza
+    ? periodoLabel(from, to, cadenza)
+    : `${formatDate(from)} - ${formatDate(to)}`;
+  return `${aziendaNome}\nConto ${periodo}\nTotale: ${formatEuro(totale)}\n\nIn allegato il PDF appena scaricato.`;
+}
 
 interface EmettiContoPanelProps {
   azienda: Azienda;
@@ -33,10 +55,25 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
   const { user } = useAuthState();
   const { notify } = useToast();
   const emit = useEmettiConto();
-  const defaults = useMemo(() => defaultPeriodoFor(azienda), [azienda]);
-  const [from, setFrom] = useState(() => dateInputValue(defaults.from));
-  const [to, setTo] = useState(() => dateInputValue(defaults.to));
+  const existingConti = useContiForAzienda(azienda.id);
+  const [edited, setEdited] = useState<{ from: string; to: string } | null>(
+    null
+  );
   const [confirmingEmit, setConfirmingEmit] = useState(false);
+
+  const proposed = useMemo(() => {
+    const period = contoDefaultPeriod(
+      existingConti.data ?? [],
+      azienda.cadenzaFatturazione
+    );
+    return {
+      from: dateInputValue(period.from),
+      to: dateInputValue(period.to),
+    };
+  }, [existingConti.data, azienda.cadenzaFatturazione]);
+
+  const from = edited?.from ?? proposed.from;
+  const to = edited?.to ?? proposed.to;
 
   const fromDate = parseDateInput(from);
   const toDate = parseDateInput(to);
@@ -52,7 +89,6 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
     return computeContoPreview(items, azienda.id, fromDate, endOfDay);
   }, [items, azienda.id, fromDate, toDate, periodValid]);
 
-  const existingConti = useContiForAzienda(azienda.id);
   const alreadyBilled = useMemo(
     () => countAlreadyBilled(preview.attivitaIds, existingConti.data ?? []),
     [preview.attivitaIds, existingConti.data]
@@ -157,8 +193,30 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
   const disabled = !periodValid || !hasContent || emit.isPending;
 
   function applyRange(nextFrom: Date, nextTo: Date): void {
-    setFrom(dateInputValue(nextFrom));
-    setTo(dateInputValue(nextTo));
+    setEdited({ from: dateInputValue(nextFrom), to: dateInputValue(nextTo) });
+  }
+
+  function setFromValue(value: string): void {
+    setEdited({ from: value, to });
+  }
+
+  function setToValue(value: string): void {
+    setEdited({ from, to: value });
+  }
+
+  function shareWhatsapp(): void {
+    if (!fromDate || !toDate) return;
+    const phone = waPhone(azienda.telefono);
+    openWhatsappShare({
+      text: shareCaption(
+        azienda.nome,
+        fromDate,
+        toDate,
+        grandTotal,
+        azienda.cadenzaFatturazione
+      ),
+      ...(phone ? { phone } : {}),
+    });
   }
 
   return (
@@ -170,8 +228,8 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
           from={from}
           to={to}
           onChange={applyRange}
-          onCustomFromChange={setFrom}
-          onCustomToChange={setTo}
+          onCustomFromChange={setFromValue}
+          onCustomToChange={setToValue}
           {...(azienda.cadenzaFatturazione
             ? { cadenza: azienda.cadenzaFatturazione }
             : {})}
@@ -212,6 +270,14 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
       ) : null}
 
       <Toolbar gap="sm" align="end" className="mt-4">
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={disabled}
+          onClick={shareWhatsapp}
+        >
+          {t.whatsapp}
+        </Button>
         {canProforma ? (
           <Button
             type="button"
