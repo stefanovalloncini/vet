@@ -9,6 +9,7 @@ import {
   Tabs,
   useToast,
 } from "../../../shared/ui";
+import { formatDate } from "../../../shared/lib/format";
 import { useAuthState } from "../../auth";
 import { useReminders } from "../../reminders/hooks/useReminders";
 import { useTags } from "../hooks/useTags";
@@ -156,6 +157,11 @@ export function AziendaDetailPage() {
           ) : null}
         </aside>
       </div>
+      <p className="mt-6 pt-4 border-t border-(--color-border) text-xs text-(--color-text-subtle)">
+        Creato da {azienda.createdByName} il {formatDate(azienda.createdAt)}
+        {" · "}
+        Aggiornato da {azienda.updatedByName} il {formatDate(azienda.updatedAt)}
+      </p>
       <ConfirmDialog
         open={confirmArchive}
         title="Archiviare questa azienda?"
