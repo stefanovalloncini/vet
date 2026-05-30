@@ -1,7 +1,6 @@
 export const allowlistI18n = {
   title: "Allowlist",
   subtitle: "Solo le email qui elencate possono accedere.",
-  loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   saveError: "Operazione non riuscita.",
   empty: "Nessuna email autorizzata.",

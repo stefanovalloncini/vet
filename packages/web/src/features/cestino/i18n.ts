@@ -3,7 +3,6 @@ export const cestinoI18n = {
   subtitle: "Attività eliminate negli ultimi 7 giorni. Dopo verranno cancellate definitivamente.",
   empty: "Niente nel cestino.",
   emptyHint: "Le attività eliminate restano qui per qualche giorno, poi spariscono.",
-  loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   viewMine: "Le mie",
   viewAll: "Di tutti",

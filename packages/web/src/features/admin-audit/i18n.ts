@@ -1,7 +1,6 @@
 export const auditI18n = {
   title: "Audit log",
   subtitle: "Eventi sensibili registrati dal server.",
-  loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   empty: "Nessun evento ancora.",
   azione: "Azione",

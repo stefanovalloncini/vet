@@ -8,7 +8,6 @@ export const agendaI18n = {
   emptyHint: "Tocca + per registrarne una.",
   emptyShort: "Libero",
   aggiungiShort: "+ Aggiungi",
-  loading: "Caricamento…",
   loadError: "Caricamento fallito.",
   nuovaCta: "Nuova attività",
 } as const;
