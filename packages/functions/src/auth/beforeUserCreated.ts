@@ -12,6 +12,19 @@ function denyAndThrow(reason: AuthDenyReason, context: Record<string, unknown>):
 
 const ALLOWED_PROVIDERS = new Set(["google.com", "password"]);
 
+export function checkProviderEligibility(input: {
+  provider?: string | undefined;
+  emailVerified?: boolean | undefined;
+}): AuthDenyReason | null {
+  if (input.provider && !ALLOWED_PROVIDERS.has(input.provider)) {
+    return "provider-not-allowed";
+  }
+  if (input.provider === "password" && input.emailVerified !== true) {
+    return "email-not-verified";
+  }
+  return null;
+}
+
 export const beforeUserCreated: ReturnType<typeof beforeUserCreatedFn> =
   beforeUserCreatedFn({ region: "europe-west8" }, async (event) => {
     const email = event.data?.email;
@@ -34,28 +47,17 @@ export const beforeUserCreated: ReturnType<typeof beforeUserCreatedFn> =
 
     const norm = normalizeEmail(email);
 
-    if (provider && !ALLOWED_PROVIDERS.has(provider)) {
+    const providerReason = checkProviderEligibility({ provider, emailVerified });
+    if (providerReason) {
       await recordAuthDenyAudit({
         emailNorm: norm,
         email,
         actorUid: uid,
-        reason: "provider-not-allowed",
+        reason: providerReason,
         source: "beforeUserCreated",
         eventType,
       });
-      denyAndThrow("provider-not-allowed", { email: norm, uid, provider, eventType });
-    }
-
-    if (provider === "password" && emailVerified !== true) {
-      await recordAuthDenyAudit({
-        emailNorm: norm,
-        email,
-        actorUid: uid,
-        reason: "email-not-verified",
-        source: "beforeUserCreated",
-        eventType,
-      });
-      denyAndThrow("email-not-verified", { email: norm, uid, provider, eventType });
+      denyAndThrow(providerReason, { email: norm, uid, provider, eventType });
     }
     const allow = await getRepositories().allowlist.getByEmail(email);
     if (allow) {
