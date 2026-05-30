@@ -6,6 +6,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   serverTimestamp,
 } from "firebase/firestore";
 import { encodeCaps } from "@vet/shared";
@@ -19,6 +20,7 @@ const attivitaSeed = {
   tipoId: "visita",
   tipoNome: "Visita",
   oraria: false,
+  adElemento: false,
   tariffa: 50,
   totale: 50,
   ownerUid: "owner-uid",
@@ -234,6 +236,17 @@ describe("attivita rules", () => {
       updateDoc(doc(db, "attivita/a1"), {
         tariffa: 60,
         totale: 60,
+        updatedAt: serverTimestamp(),
+      })
+    );
+  });
+
+  it("update denied when adElemento is dropped (must stay present, like create)", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "owner-uid", ["activities.update.own"]);
+    await assertFails(
+      updateDoc(doc(db, "attivita/a1"), {
+        adElemento: deleteField(),
         updatedAt: serverTimestamp(),
       })
     );

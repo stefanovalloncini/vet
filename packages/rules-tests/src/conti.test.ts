@@ -312,6 +312,19 @@ describe("conti rules", () => {
       );
     });
 
+    it("denied on an annullato (soft-deleted) conto", async () => {
+      const env = await getEnv();
+      const db = authedAs(env, "capo", SALDO, { name: "Capo" });
+      await assertFails(
+        updateDoc(doc(db, "conti/emesso-annullato"), {
+          saldato: true,
+          saldatoAt: serverTimestamp(),
+          saldatoBy: "capo",
+          saldatoByName: "Capo",
+        })
+      );
+    });
+
     it("denied when saldatoBy != auth.uid", async () => {
       const env = await getEnv();
       const db = authedAs(env, "capo", SALDO, { name: "Capo" });

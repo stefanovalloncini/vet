@@ -206,7 +206,7 @@ service cloud.firestore {
       }
       function validUpdate() {
         let d = request.resource.data;
-        return d.keys().hasAll(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "tariffa", "totale", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "schemaVersion"])
+        return d.keys().hasAll(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "adElemento", "tariffa", "totale", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "schemaVersion"])
           && d.keys().hasOnly(["data", "aziendaId", "aziendaNome", "tipoId", "tipoNome", "oraria", "adElemento", "tariffa", "ore", "elementi", "totale", "note", "ownerUid", "ownerEmail", "ownerName", "createdAt", "updatedAt", "isDeleted", "deletedAt", "deletedBy", "updatedBy", "updatedByName", "schemaVersion"])
           && d.data is timestamp
           && d.aziendaId is string && d.aziendaId.size() >= 1 && d.aziendaId.size() <= 64
@@ -427,7 +427,7 @@ service cloud.firestore {
         && (request.resource.data.modalita == "proforma"
             || (request.resource.data.modalita == "emesso" && hasCap("ce")));
       allow update: if tokenIsFresh() && (
-        (hasCap("cs") && resource.data.modalita == "emesso" && resource.data.saldato == false && validSaldoUpdate() && isServerStamped("saldatoAt")
+        (hasCap("cs") && resource.data.modalita == "emesso" && resource.data.saldato == false && resource.data.isDeleted == false && validSaldoUpdate() && isServerStamped("saldatoAt")
           && hasTokenName() && request.resource.data.saldatoByName == request.auth.token.name)
         || (hasCap("ce") && resource.data.isDeleted == false && validAnnullaUpdate() && isServerStamped("deletedAt"))
       );
