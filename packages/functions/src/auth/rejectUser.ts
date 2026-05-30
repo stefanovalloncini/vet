@@ -8,14 +8,21 @@ import { ensureRecentAuth } from "./recentAuth.js";
 
 const inputSchema = z.object({ uid: z.string().min(1).max(128) }).strict();
 
+export function ensureCanRejectUser(actor: {
+  uid: string | undefined;
+  caps: readonly string[];
+}): string {
+  if (!actor.uid || !actor.caps.includes("users.approve")) {
+    throw new HttpsError("permission-denied", "");
+  }
+  return actor.uid;
+}
+
 export const rejectUser = onCall(
   { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
-    const actorUid = request.auth?.uid;
     const { email: actorEmail, caps } = readActorClaims(request.auth?.token);
-    if (!actorUid || !caps.includes("users.approve")) {
-      throw new HttpsError("permission-denied", "");
-    }
+    const actorUid = ensureCanRejectUser({ uid: request.auth?.uid, caps });
     ensureRecentAuth(request);
 
     let targetUid: string;
