@@ -3,7 +3,6 @@ import { useForm, useWatch, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import {
-  GINECOLOGIA_TIPO_ID,
   attivitaInputSchema,
   type ActorContext,
   type Attivita,
@@ -125,6 +124,7 @@ export function useQuickEntryFormState({
   });
   const dupSkipRef = useRef(false);
   const prevTipoRef = useRef("");
+  const autoFilledRef = useRef("");
 
   const recentQuery = useQuery<Attivita[]>({
     queryKey: queryKeys.attivita(),
@@ -193,31 +193,43 @@ export function useQuickEntryFormState({
       const fallback = defaultTariffaForTipo(tipoId, ref.tipi);
       if (fallback !== null) {
         form.setValue("tariffa", fallback, { shouldDirty: false });
+        autoFilledRef.current = fallback;
       }
     }
   }, [tipoId, open, ref.tipi, form]);
 
-  const ginQuery = useLastAttivitaByAziendaAndTipo(
+  const lastQuery = useLastAttivitaByAziendaAndTipo(
     aziendaId,
     tipoId,
-    { enabled: open && tipoId === GINECOLOGIA_TIPO_ID && !!aziendaId }
+    { enabled: open && !!tipoId && !!aziendaId }
   );
   useEffect(() => {
     if (!open) return;
-    if (tipoId !== GINECOLOGIA_TIPO_ID) return;
-    if (!aziendaId) return;
-    if (ginQuery.isPending || ginQuery.isFetching) return;
-    const last = ginQuery.data;
-    if (!last) return;
-    if (form.getValues("tariffa").trim() !== "") return;
-    form.setValue("tariffa", String(last.tariffa), { shouldDirty: false });
-  }, [aziendaId, tipoId, open, ginQuery.data, ginQuery.isPending, ginQuery.isFetching, form]);
+    if (!tipoId || !aziendaId) return;
+    if (lastQuery.isPending || lastQuery.isFetching) return;
+    const last = lastQuery.data;
+    if (last?.tariffa === undefined) return;
+    const current = form.getValues("tariffa").trim();
+    if (current !== "" && current !== autoFilledRef.current) return;
+    const value = String(last.tariffa);
+    form.setValue("tariffa", value, { shouldDirty: false });
+    autoFilledRef.current = value;
+  }, [
+    aziendaId,
+    tipoId,
+    open,
+    lastQuery.data,
+    lastQuery.isPending,
+    lastQuery.isFetching,
+    form,
+  ]);
 
   const resetAll = useCallback(
     (over?: Partial<QuickEntryFormValues>): void => {
       form.reset({ ...defaultValues(), ...over });
       dupSkipRef.current = false;
       prevTipoRef.current = "";
+      autoFilledRef.current = "";
     },
     [form]
   );

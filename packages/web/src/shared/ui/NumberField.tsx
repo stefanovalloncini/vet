@@ -1,4 +1,9 @@
-import { forwardRef, useCallback, type InputHTMLAttributes } from "react";
+import {
+  forwardRef,
+  useCallback,
+  type InputHTMLAttributes,
+  type KeyboardEvent,
+} from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 type NativeProps = Omit<
@@ -39,6 +44,19 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
   const atMin = typeof min === "number" && Number.isFinite(current) && current <= min;
   const atMax = typeof max === "number" && Number.isFinite(current) && current >= max;
 
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        bump(1);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        bump(-1);
+      }
+    },
+    [bump]
+  );
+
   return (
     <div>
       <label htmlFor={id} className="block text-xs uppercase tracking-wider font-medium text-(--color-text-muted) mb-2">
@@ -58,6 +76,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
             const parsed = Number(v.replace(",", "."));
             onChange(Number.isFinite(parsed) ? parsed : "");
           }}
+          onKeyDown={onKeyDown}
           step="any"
           {...(typeof min === "number" ? { min } : {})}
           {...(typeof max === "number" ? { max } : {})}

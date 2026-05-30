@@ -60,7 +60,7 @@ describe("ActivityTypeForm", () => {
         onSubmit={vi.fn()}
       />
     );
-    const input = document.getElementById("tariffa-ecografia");
+    const input = document.getElementById("ecografia-tariffa");
     expect(input).not.toBeNull();
     expect((input as HTMLInputElement).value).toBe("50");
   });
@@ -91,5 +91,24 @@ describe("ActivityTypeForm", () => {
     fireEvent.change(input, { target: { value: "" } });
     fireEvent.click(screen.getByRole("button", { name: /Salva/i }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(""));
+  });
+
+  it("steps the tariffa by 10 on ArrowUp and keeps cents typeable", () => {
+    render(
+      <ActivityTypeForm
+        id="visita"
+        initial={50}
+        busy={false}
+        onSubmit={vi.fn()}
+      />
+    );
+    const input = screen.getByLabelText(/Tariffa standard/i) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "19.99" } });
+    expect(input.validity.stepMismatch).toBe(false);
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(input.value).toBe("30");
+    fireEvent.change(input, { target: { value: "60" } });
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(input.value).toBe("70");
   });
 });

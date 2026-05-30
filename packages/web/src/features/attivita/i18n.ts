@@ -45,7 +45,7 @@ export const attivitaI18n = {
   campoElementi: "Quantità",
   campoNote: "Note",
   totale: "Totale",
-  ginecologiaSuggerita: "Tariffa precompilata dall'ultima ginecologia di questo cliente.",
+  tariffaSuggerita: "Tariffa precompilata in automatico. Modificala se serve.",
   selezionaAzienda: "Scegli azienda",
   selezionaTipo: "Scegli tipo",
   erroreSalvataggio: "Salvataggio non riuscito.",
