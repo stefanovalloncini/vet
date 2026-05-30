@@ -43,4 +43,17 @@ describe("userDocSchema", () => {
       userDocSchema.parse({ ...base, approvedAt: new Date(), approvedBy: "" })
     ).toThrow();
   });
+
+  it("caps the email length, matching the DTO boundary", () => {
+    const longLocal = "a".repeat(200);
+    expect(() =>
+      userDocSchema.parse({ ...base, email: `${longLocal}@b.com` })
+    ).toThrow();
+  });
+
+  it("rejects an email with a formula-injection prefix", () => {
+    expect(() =>
+      userDocSchema.parse({ ...base, email: "=cmd@evil.com" })
+    ).toThrow();
+  });
 });

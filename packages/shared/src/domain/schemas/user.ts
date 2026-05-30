@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { safeEmail } from "./safeString.js";
 
 export const userDocSchema = z
   .object({
-    email: z.string().email(),
+    email: safeEmail(120),
     displayName: z.string().min(1).max(80),
     roleId: z.string().min(1).max(60),
     approved: z.boolean(),
