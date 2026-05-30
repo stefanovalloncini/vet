@@ -1,6 +1,7 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { Timestamp } from "firebase-admin/firestore";
 import { getRepositories } from "../infrastructure/composition.js";
+import { escapeHtml } from "../shared/html.js";
 import { isCadenzaDue, periodFor, type Cadenza } from "./period.js";
 
 interface Attivita {
@@ -99,15 +100,6 @@ export function renderHtmlReport(input: RenderInput): string {
     )
     .join("");
   return `<!doctype html><html lang="it"><body style="font-family:Georgia,serif;background:#f7f3eb;padding:24px;color:#333"><div style="max-width:560px;margin:auto;background:#fff;border-radius:12px;padding:24px"><h2 style="margin:0 0 4px 0">Riepilogo ${escapeHtml(input.periodLabel)}</h2><p style="color:#555;margin:0 0 4px 0">${escapeHtml(input.aziendaNome)}</p><p style="color:#888;margin:0 0 16px 0;font-size:12px;font-style:italic">Documento non fiscalmente valido — riepilogo prestazioni.</p><table style="width:100%;border-collapse:collapse" cellspacing="0"><thead><tr><th align="left">Data</th><th align="left">Tipo</th><th align="right">Totale</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="2" style="padding-top:12px;font-weight:600">Totale</td><td style="padding-top:12px;text-align:right;font-weight:600">${formatEuro(input.total)}</td></tr></tfoot></table></div></body></html>`;
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 const euroFormatter = new Intl.NumberFormat("it-IT", {

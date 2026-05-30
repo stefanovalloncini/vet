@@ -2,6 +2,7 @@ import { onMessagePublished } from "firebase-functions/v2/pubsub";
 import { logger } from "firebase-functions/v2";
 import { CloudBillingClient } from "@google-cloud/billing";
 import { getRepositories } from "../infrastructure/composition.js";
+import { escapeHtml } from "../shared/html.js";
 
 const KILL_THRESHOLD = 5;
 const ALERT_RECIPIENT = "stefano.valloncini@gmail.com";
@@ -26,13 +27,7 @@ export function buildKillSwitchEmail(input: {
   budget: string;
   threshold: number;
 }): string {
-  const safe = (s: string) =>
-    s
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  return `<!doctype html><html lang="it"><body style="font-family:Georgia,serif;padding:24px;color:#333"><h2>Kill switch attivato</h2><p>Il progetto <strong>${safe(input.projectId)}</strong> ha superato la soglia di spesa configurata. Il billing è stato disabilitato automaticamente.</p><table style="border-collapse:collapse"><tr><td style="padding:4px 12px 4px 0">Budget</td><td><strong>${safe(input.budget)}</strong></td></tr><tr><td style="padding:4px 12px 4px 0">Costo attuale</td><td>${input.cost} ${safe(input.currency)}</td></tr><tr><td style="padding:4px 12px 4px 0">Soglia kill-switch</td><td>${input.threshold} ${safe(input.currency)}</td></tr></table><p>Per ripristinare il servizio, ri-collega il billing manualmente: <code>gcloud beta billing projects link ${safe(input.projectId)} --billing-account=...</code></p><p>Vedi il runbook <code>~/.claude/plans/Vet/RUNBOOKS/2026-incident-response.md</code> per la procedura completa.</p></body></html>`;
+  return `<!doctype html><html lang="it"><body style="font-family:Georgia,serif;padding:24px;color:#333"><h2>Kill switch attivato</h2><p>Il progetto <strong>${escapeHtml(input.projectId)}</strong> ha superato la soglia di spesa configurata. Il billing è stato disabilitato automaticamente.</p><table style="border-collapse:collapse"><tr><td style="padding:4px 12px 4px 0">Budget</td><td><strong>${escapeHtml(input.budget)}</strong></td></tr><tr><td style="padding:4px 12px 4px 0">Costo attuale</td><td>${input.cost} ${escapeHtml(input.currency)}</td></tr><tr><td style="padding:4px 12px 4px 0">Soglia kill-switch</td><td>${input.threshold} ${escapeHtml(input.currency)}</td></tr></table><p>Per ripristinare il servizio, ri-collega il billing manualmente: <code>gcloud beta billing projects link ${escapeHtml(input.projectId)} --billing-account=...</code></p><p>Vedi il runbook <code>~/.claude/plans/Vet/RUNBOOKS/2026-incident-response.md</code> per la procedura completa.</p></body></html>`;
 }
 
 export function parseNotification(raw: unknown): BudgetNotification | null {

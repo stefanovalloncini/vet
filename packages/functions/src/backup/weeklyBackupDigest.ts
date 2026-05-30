@@ -3,6 +3,7 @@ import { logger } from "firebase-functions/v2";
 import { defineSecret } from "firebase-functions/params";
 import { google, type drive_v3 } from "googleapis";
 import { getRepositories } from "../infrastructure/composition.js";
+import { escapeHtml } from "../shared/html.js";
 import type { BackupManifest } from "./dailyDriveExport.js";
 
 const DRIVE_BACKUP_KEY = defineSecret("drive-backup-key");
@@ -91,14 +92,7 @@ export function makeDigestReadClient(input: { serviceAccountJson: string }): Dig
   };
 }
 
-export function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+export { escapeHtml };
 
 export function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
