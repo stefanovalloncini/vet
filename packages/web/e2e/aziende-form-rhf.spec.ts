@@ -46,6 +46,20 @@ test.describe("aziende form (react-hook-form)", () => {
     ).toBeVisible({ timeout: 10_000 });
   });
 
+  test("accepts a float-fragile 2-decimal canone (regression: 19.99 was wrongly rejected)", async ({
+    signedInVet,
+  }) => {
+    const unique = `RHF Canone ${Date.now().toString().slice(-6)}`;
+    await signedInVet.goto("/aziende/nuova");
+    await signedInVet.getByLabel(/Nome/i, { exact: false }).first().fill(unique);
+    await signedInVet.getByLabel(/Armadietto/i).fill("19.99");
+    await signedInVet.getByRole("button", { name: /Salva/i }).click();
+    await expect(signedInVet).toHaveURL(/\/aziende\/?$/, { timeout: 15_000 });
+    await expect(
+      signedInVet.getByRole("link").filter({ hasText: unique }).first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
   test("hydrates and updates an existing azienda in edit mode", async ({
     signedInVet,
   }) => {
