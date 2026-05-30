@@ -8,6 +8,7 @@ import {
   type Column,
 } from "../../../shared/ui/data-grid";
 import { useAuthState } from "../../auth";
+import { openQuickEntry } from "../../quick-entry";
 import type { Attivita } from "@vet/shared";
 import { agendaI18n as t } from "../i18n";
 import { dateInputValue } from "../../../shared/lib/format";
@@ -39,7 +40,6 @@ function formatTime(date: Date): string {
 export function AgendaDayList({ date, items, loading = false }: AgendaDayListProps) {
   const { user } = useAuthState();
   const canCreate = user?.caps.has("activities.create") ?? false;
-  const newHref = `${routes.attivitaNew.path}?data=${dateInputValue(date)}`;
 
   const dayItems = useMemo(
     () => items.filter((a) => dateInputValue(a.data) === dateInputValue(date)),
@@ -92,7 +92,7 @@ export function AgendaDayList({ date, items, loading = false }: AgendaDayListPro
         loading={loading}
         rowActions={[]}
         defaultSort={{ columnId: "ora", direction: "asc" }}
-        emptyState={<EmptyDayState canCreate={canCreate} newHref={newHref} />}
+        emptyState={<EmptyDayState canCreate={canCreate} />}
         card={(a) => <AgendaRow attivita={a} />}
       />
     </section>
@@ -141,22 +141,22 @@ function AgendaRow({ attivita }: AgendaRowProps) {
 
 interface EmptyDayStateProps {
   readonly canCreate: boolean;
-  readonly newHref: string;
 }
 
-function EmptyDayState({ canCreate, newHref }: EmptyDayStateProps) {
+function EmptyDayState({ canCreate }: EmptyDayStateProps) {
   return (
     <div className="px-1 py-8 flex flex-col items-start gap-3">
       <p className="text-sm text-(--color-text)">{t.emptyDay}</p>
       {canCreate ? (
         <div className="flex items-center gap-2 text-(--color-text-muted)">
           <CornerDownRight size={16} strokeWidth={1.75} aria-hidden="true" />
-          <Link
-            to={newHref}
+          <button
+            type="button"
+            onClick={openQuickEntry}
             className="text-sm text-(--color-accent) hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2 rounded-md"
           >
             {t.nuovaCta}
-          </Link>
+          </button>
         </div>
       ) : (
         <p className="text-xs text-(--color-text-muted)">{t.emptyHint}</p>
