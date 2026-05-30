@@ -9,23 +9,13 @@ import {
   SettingsRow,
 } from "../../../shared/ui";
 import { useTheme } from "../../../shared/theme/useTheme";
-import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../../auth";
 import { impostazioniI18n as t } from "../i18n";
 import { RetentionSettings } from "./RetentionSettings";
-import {
-  attivitaCsvFilename,
-  backupFilename,
-  buildBackupPayload,
-  getLastBackupAt,
-  markBackupDone,
-  triggerCsvDownload,
-  triggerJsonDownload,
-} from "../lib/exportBackup";
 import { backupAge, type BackupAge } from "../lib/backupReminderLogic";
-import { toCsvItalian } from "../../attivita";
 import { useRetention } from "../lib/useRetention";
 import { useGdprErasure } from "../hooks/useGdprErasure";
+import { useBackupExport } from "../hooks/useBackupExport";
 
 function relativeBackupAgeLabel(age: BackupAge): string | null {
   if (age.kind === "today") return "oggi";
@@ -36,63 +26,11 @@ function relativeBackupAgeLabel(age: BackupAge): string | null {
 
 export function ImpostazioniPage() {
   const { user } = useAuthState();
-  const { aziende, attivita, reminders } = useRepositories();
   const { theme, set: setTheme } = useTheme();
   const erasure = useGdprErasure();
+  const backup = useBackupExport();
   const [confirming, setConfirming] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [exportError, setExportError] = useState<string | null>(null);
-  const [csvExporting, setCsvExporting] = useState(false);
-  const [csvError, setCsvError] = useState<string | null>(null);
   const [retention, setRetention] = useRetention();
-  const [lastBackupAt, setLastBackupAt] = useState<number | null>(() =>
-    getLastBackupAt()
-  );
-
-  async function handleExport(): Promise<void> {
-    setExporting(true);
-    setExportError(null);
-    try {
-      const [az, at, re] = await Promise.all([
-        aziende.list(),
-        attivita.list(),
-        reminders.list(),
-      ]);
-      const payload = buildBackupPayload({
-        exportedBy: user?.email ?? "",
-        aziende: az,
-        attivita: at,
-        reminders: re,
-      });
-      triggerJsonDownload(payload, backupFilename());
-      const now = Date.now();
-      markBackupDone(now);
-      setLastBackupAt(now);
-    } catch (err) {
-      setExportError(t.datiBackupError);
-      console.error("export failed", err);
-    } finally {
-      setExporting(false);
-    }
-  }
-
-  async function handleCsvExport(): Promise<void> {
-    setCsvExporting(true);
-    setCsvError(null);
-    try {
-      const items = await attivita.list();
-      const csv = toCsvItalian(items);
-      triggerCsvDownload(csv, attivitaCsvFilename());
-      const now = Date.now();
-      markBackupDone(now);
-      setLastBackupAt(now);
-    } catch (err) {
-      setCsvError(t.datiCsvError);
-      console.error("csv export failed", err);
-    } finally {
-      setCsvExporting(false);
-    }
-  }
 
   function formatLastBackup(ts: number | null): string {
     if (ts === null) return t.datiBackupMaiFatto;
@@ -137,38 +75,38 @@ export function ImpostazioniPage() {
 
         <Panel
           title={t.datiSection}
-          description={formatLastBackup(lastBackupAt)}
+          description={formatLastBackup(backup.lastBackupAt)}
         >
           <SettingsRow
             label={t.datiBackup}
             description={
-              <DescrWithError text={t.datiBackupDescr} error={exportError} />
+              <DescrWithError text={t.datiBackupDescr} error={backup.exportError} />
             }
           >
             <Button
               type="button"
               variant="secondary"
               size="sm"
-              onClick={handleExport}
-              disabled={exporting}
+              onClick={backup.exportJson}
+              disabled={backup.exporting}
             >
-              {exporting ? t.datiBackupBusy : t.datiBackupCta}
+              {backup.exporting ? t.datiBackupBusy : t.datiBackupCta}
             </Button>
           </SettingsRow>
           <SettingsRow
             label={t.datiCsv}
             description={
-              <DescrWithError text={t.datiCsvDescr} error={csvError} />
+              <DescrWithError text={t.datiCsvDescr} error={backup.csvError} />
             }
           >
             <Button
               type="button"
               variant="secondary"
               size="sm"
-              onClick={handleCsvExport}
-              disabled={csvExporting}
+              onClick={backup.exportCsv}
+              disabled={backup.csvExporting}
             >
-              {csvExporting ? t.datiCsvBusy : t.datiCsvCta}
+              {backup.csvExporting ? t.datiCsvBusy : t.datiCsvCta}
             </Button>
           </SettingsRow>
         </Panel>
