@@ -22,12 +22,17 @@ const actor: ActorContext = {
   approved: true,
 };
 
-async function seed(repos: Repositories): Promise<{ aziendaId: string }> {
+interface Seeded {
+  aziendaId: string;
+  attivitaIds: string[];
+}
+
+async function seed(repos: Repositories): Promise<Seeded> {
   const { id: aziendaId } = await repos.aziende.create(
     { nome: "Allevamento Demo", indirizzo: "Via 1", piva: "12345" },
     actor
   );
-  await repos.attivita.create(
+  const first = await repos.attivita.create(
     {
       data: new Date("2026-04-10T10:00:00Z"),
       aziendaId,
@@ -38,7 +43,7 @@ async function seed(repos: Repositories): Promise<{ aziendaId: string }> {
     { aziendaNome: "Allevamento Demo", tipoNome: "Visita" },
     actor
   );
-  await repos.attivita.create(
+  const second = await repos.attivita.create(
     {
       data: new Date("2026-04-15T10:00:00Z"),
       aziendaId,
@@ -51,7 +56,24 @@ async function seed(repos: Repositories): Promise<{ aziendaId: string }> {
     { aziendaNome: "Allevamento Demo", tipoNome: "Visita" },
     actor
   );
-  return { aziendaId };
+  return { aziendaId, attivitaIds: [first.id, second.id] };
+}
+
+async function emitContoFor(
+  repos: Repositories,
+  aziendaId: string,
+  attivitaIds: string[]
+): Promise<void> {
+  await repos.conti.emit(
+    {
+      aziendaId,
+      periodoFrom: new Date("2026-04-01T00:00:00Z"),
+      periodoTo: new Date("2026-04-30T23:59:59Z"),
+      modalita: "emesso",
+    },
+    { aziendaNome: "Allevamento Demo", attivitaIds, totaleConto: 0 },
+    actor
+  );
 }
 
 function wrap(repos: Repositories) {
@@ -81,7 +103,7 @@ describe("useRiepilogoPdf", () => {
     const repos = createInMemoryRepositories();
     const { aziendaId } = await seed(repos);
     const { result } = renderHook(
-      () => useRiepilogoPdf({ aziendaId, fromStr: "", toStr: "" }),
+      () => useRiepilogoPdf({ aziendaId, fromStr: "", toStr: "", includeBilled: false }),
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -103,6 +125,7 @@ describe("useRiepilogoPdf", () => {
           aziendaId,
           fromStr: "2026-04-12",
           toStr: "2026-04-20",
+          includeBilled: false,
         }),
       { wrapper: wrap(repos) }
     );
@@ -116,7 +139,7 @@ describe("useRiepilogoPdf", () => {
   it("returns not-found error when azienda missing", async () => {
     const repos = createInMemoryRepositories();
     const { result } = renderHook(
-      () => useRiepilogoPdf({ aziendaId: "missing", fromStr: "", toStr: "" }),
+      () => useRiepilogoPdf({ aziendaId: "missing", fromStr: "", toStr: "", includeBilled: false }),
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -127,7 +150,7 @@ describe("useRiepilogoPdf", () => {
   it("returns not-found when aziendaId is empty", async () => {
     const repos = createInMemoryRepositories();
     const { result } = renderHook(
-      () => useRiepilogoPdf({ aziendaId: "", fromStr: "", toStr: "" }),
+      () => useRiepilogoPdf({ aziendaId: "", fromStr: "", toStr: "", includeBilled: false }),
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -138,7 +161,7 @@ describe("useRiepilogoPdf", () => {
     const repos = createInMemoryRepositories();
     vi.spyOn(repos.aziende, "getById").mockRejectedValueOnce(new Error("boom"));
     const { result } = renderHook(
-      () => useRiepilogoPdf({ aziendaId: "x", fromStr: "", toStr: "" }),
+      () => useRiepilogoPdf({ aziendaId: "x", fromStr: "", toStr: "", includeBilled: false }),
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -151,7 +174,7 @@ describe("useRiepilogoPdf", () => {
     const repos = createInMemoryRepositories();
     const { aziendaId } = await seed(repos);
     const { result } = renderHook(
-      () => useRiepilogoPdf({ aziendaId, fromStr: "", toStr: "" }),
+      () => useRiepilogoPdf({ aziendaId, fromStr: "", toStr: "", includeBilled: false }),
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -172,7 +195,7 @@ describe("useRiepilogoPdf", () => {
     const repos = createInMemoryRepositories();
     const { aziendaId } = await seed(repos);
     const { result } = renderHook(
-      () => useRiepilogoPdf({ aziendaId, fromStr: "", toStr: "" }),
+      () => useRiepilogoPdf({ aziendaId, fromStr: "", toStr: "", includeBilled: false }),
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -192,7 +215,7 @@ describe("useRiepilogoPdf", () => {
     (openWhatsappShare as ReturnType<typeof vi.fn>).mockClear();
     const repos = createInMemoryRepositories();
     const { result } = renderHook(
-      () => useRiepilogoPdf({ aziendaId: "missing", fromStr: "", toStr: "" }),
+      () => useRiepilogoPdf({ aziendaId: "missing", fromStr: "", toStr: "", includeBilled: false }),
       { wrapper: wrap(repos) }
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -201,5 +224,46 @@ describe("useRiepilogoPdf", () => {
       await new Promise<void>((r) => setTimeout(r, 0));
     });
     expect(openWhatsappShare).not.toHaveBeenCalled();
+  });
+
+  it("excludes already-billed attività by default", async () => {
+    const repos = createInMemoryRepositories();
+    const { aziendaId, attivitaIds } = await seed(repos);
+    await emitContoFor(repos, aziendaId, [attivitaIds[0]!]);
+    const { result } = renderHook(
+      () => useRiepilogoPdf({ aziendaId, fromStr: "", toStr: "", includeBilled: false }),
+      { wrapper: wrap(repos) }
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.summary?.items).toHaveLength(1);
+    expect(result.current.summary?.items[0]?.id).toBe(attivitaIds[1]);
+    expect(result.current.summary?.total).toBeCloseTo(60, 2);
+    expect(result.current.summary?.excludedBilledCount).toBe(1);
+  });
+
+  it("includes already-billed attività when toggled on", async () => {
+    const repos = createInMemoryRepositories();
+    const { aziendaId, attivitaIds } = await seed(repos);
+    await emitContoFor(repos, aziendaId, [attivitaIds[0]!]);
+    const { result } = renderHook(
+      () => useRiepilogoPdf({ aziendaId, fromStr: "", toStr: "", includeBilled: true }),
+      { wrapper: wrap(repos) }
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.summary?.items).toHaveLength(2);
+    expect(result.current.summary?.total).toBeCloseTo(110, 2);
+    expect(result.current.summary?.excludedBilledCount).toBe(0);
+  });
+
+  it("excludes nothing when there are no conti", async () => {
+    const repos = createInMemoryRepositories();
+    const { aziendaId } = await seed(repos);
+    const { result } = renderHook(
+      () => useRiepilogoPdf({ aziendaId, fromStr: "", toStr: "", includeBilled: false }),
+      { wrapper: wrap(repos) }
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.summary?.items).toHaveLength(2);
+    expect(result.current.summary?.excludedBilledCount).toBe(0);
   });
 });

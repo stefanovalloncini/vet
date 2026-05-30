@@ -23,7 +23,8 @@ function formatTariffa(a: Attivita): string {
 }
 
 export function RiepilogoPreview({ summary }: RiepilogoPreviewProps) {
-  const { azienda, items, total, from, to, vetName } = summary;
+  const { azienda, items, total, from, to, vetName, excludedBilledCount } =
+    summary;
   const issuedAt = new Date();
 
   return (
@@ -81,6 +82,12 @@ export function RiepilogoPreview({ summary }: RiepilogoPreviewProps) {
           </p>
         </div>
       </section>
+
+      {excludedBilledCount > 0 ? (
+        <p className="mb-6 text-xs text-(--color-text-muted) print:hidden">
+          {t.excludedNotice(excludedBilledCount)}
+        </p>
+      ) : null}
 
       {items.length === 0 ? (
         <p className="text-sm py-12 text-center text-(--color-text-muted) print:text-black/60">
