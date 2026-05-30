@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseReminder } from "../reminder.js";
+import { buildReminderMarkDonePatch, parseReminder } from "../reminder.js";
 
 const dueAt = new Date("2026-03-15T07:00:00.000Z");
 const createdAt = new Date("2026-03-01T07:00:00.000Z");
@@ -73,5 +73,25 @@ describe("parseReminder", () => {
     expect(() =>
       parseReminder("rem-1", { ...validDoc, note: "n".repeat(501) })
     ).toThrow();
+  });
+});
+
+describe("buildReminderMarkDonePatch", () => {
+  const deps = { fromDate: (d: Date) => d, serverTimestamp: () => "SERVER_TS" };
+
+  it("sets doneAt to the server stamp when marking done", () => {
+    expect(buildReminderMarkDonePatch({ done: true }, deps)).toEqual({
+      done: true,
+      updatedAt: "SERVER_TS",
+      doneAt: "SERVER_TS",
+    });
+  });
+
+  it("clears doneAt to null when un-marking", () => {
+    expect(buildReminderMarkDonePatch({ done: false }, deps)).toEqual({
+      done: false,
+      updatedAt: "SERVER_TS",
+      doneAt: null,
+    });
   });
 });
