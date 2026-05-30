@@ -1,6 +1,11 @@
 import { Card } from "../../../shared/ui";
 import { FieldGroup } from "../../../shared/ui/forms/FieldGroup";
-import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
+import {
+  RHFNumberField,
+  RHFSelect,
+  RHFTextArea,
+  RHFTextField,
+} from "../../../shared/ui/rhf";
 import { aziendeI18n as t } from "../i18n";
 import type { AziendaFormValues } from "../lib/formSchema";
 
@@ -98,15 +103,13 @@ export function AziendaFormFields({ busy }: { busy: boolean }) {
               disabled={busy}
             />
           </div>
-          <RHFTextField<AziendaFormValues>
+          <RHFNumberField<AziendaFormValues>
             name="armadiettoCanoneAnnuo"
-            type="number"
-            inputMode="decimal"
-            min={0}
-            max={100000}
-            step="0.01"
             label={t.campoArmadietto}
             hint={t.campoArmadiettoHint}
+            step={10}
+            min={0}
+            max={100000}
             disabled={busy}
           />
           <RHFTextArea<AziendaFormValues>

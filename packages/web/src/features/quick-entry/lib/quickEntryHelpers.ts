@@ -1,9 +1,11 @@
 import {
-  ALTRO_TIPO_ID,
   GINECOLOGIA_TIPO_ID,
   type ActivityType,
   type Attivita,
 } from "@vet/shared";
+import { sortTipiForEntry } from "../../../shared/lib/tipiOrder";
+
+export const sortTipiForQuickEntry = sortTipiForEntry;
 
 export function defaultTariffaForTipo(
   tipoId: string,
@@ -12,18 +14,6 @@ export function defaultTariffaForTipo(
   if (!tipoId || tipoId === GINECOLOGIA_TIPO_ID) return null;
   const tipo = tipi.find((t) => t.id === tipoId);
   return tipo?.tariffaStandard !== undefined ? String(tipo.tariffaStandard) : null;
-}
-
-export function sortTipiForQuickEntry(
-  tipi: ReadonlyArray<ActivityType>
-): ReadonlyArray<ActivityType> {
-  const ginecologia = tipi.filter((t) => t.id === GINECOLOGIA_TIPO_ID);
-  const altro = tipi.filter((t) => t.id === ALTRO_TIPO_ID);
-  const others = tipi
-    .filter((t) => t.id !== GINECOLOGIA_TIPO_ID && t.id !== ALTRO_TIPO_ID)
-    .slice()
-    .sort((a, b) => a.nome.localeCompare(b.nome, "it"));
-  return [...ginecologia, ...others, ...altro];
 }
 
 function isSameDay(a: Date, b: Date): boolean {

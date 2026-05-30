@@ -149,4 +149,22 @@ describe("NumberField", () => {
     fireEvent.click(screen.getByRole("button", { name: "Aumenta" }));
     expect((screen.getByLabelText("Tariffa") as HTMLInputElement).value).toBe("11");
   });
+
+  it("ArrowUp on the input bumps by step, ArrowDown lowers by step", () => {
+    render(<Harness initial={20} step={10} min={0} />);
+    const input = screen.getByLabelText("Tariffa") as HTMLInputElement;
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(input.value).toBe("30");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(input.value).toBe("20");
+  });
+
+  it("keyboard ArrowUp keeps typed cents valid on euro step", () => {
+    render(<Harness initial="" step={10} min={0} />);
+    const input = screen.getByLabelText("Tariffa") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "19.99" } });
+    expect(input.validity.stepMismatch).toBe(false);
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(input.value).toBe("30");
+  });
 });

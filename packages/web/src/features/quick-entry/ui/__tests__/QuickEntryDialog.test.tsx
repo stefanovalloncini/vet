@@ -281,7 +281,7 @@ describe("QuickEntryDialog", () => {
     });
   });
 
-  it("tariffa accepts any typed value and arrows bump by 10", async () => {
+  it("tariffa accepts any typed value and arrow keys bump by 10", async () => {
     const world = await buildWorld();
     await mount(world);
     const tariffaInput = document.querySelector(
@@ -292,9 +292,12 @@ describe("QuickEntryDialog", () => {
     fireEvent.change(tariffaInput, { target: { value: "49.5" } });
     expect(tariffaInput.validity.stepMismatch).toBe(false);
     fireEvent.change(tariffaInput, { target: { value: "75" } });
+    fireEvent.keyDown(tariffaInput, { key: "ArrowUp" });
+    expect(tariffaInput.value).toBe("85");
+    fireEvent.keyDown(tariffaInput, { key: "ArrowDown" });
+    expect(tariffaInput.value).toBe("75");
     fireEvent.click(screen.getByRole("button", { name: /Aumenta/i }));
     expect(tariffaInput.value).toBe("85");
-    expect(screen.getByRole("button", { name: /Diminuisci/i })).toBeInTheDocument();
   });
 
   it("Salva button is full-width and Annulla is the ghost cancel", async () => {

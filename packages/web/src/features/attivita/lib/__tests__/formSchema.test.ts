@@ -89,6 +89,27 @@ describe("attivitaFormSchema", () => {
     });
     expect(r.success).toBe(false);
   });
+
+  it("requires a note when tipo is Altro", () => {
+    const r = attivitaFormSchema.safeParse({
+      ...base(),
+      tipoId: "altro",
+      note: "   ",
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues.some((i) => i.path[0] === "note")).toBe(true);
+    }
+  });
+
+  it("accepts tipo Altro when a note is present", () => {
+    const r = attivitaFormSchema.safeParse({
+      ...base(),
+      tipoId: "altro",
+      note: "dettaglio",
+    });
+    expect(r.success).toBe(true);
+  });
 });
 
 describe("emptyFormValues", () => {

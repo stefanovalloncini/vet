@@ -23,6 +23,7 @@ import {
 } from "../hooks/useAttivitaForm";
 import { QuickAddAziendaDialog } from "../../aziende";
 import { QuickAddTipoDialog, nextOrdine } from "../../activity-types";
+import { sortTipiForEntry } from "../../../shared/lib/tipiOrder";
 import { attivitaI18n as t } from "../i18n";
 import {
   attivitaFormSchema,
@@ -76,7 +77,10 @@ export function AttivitaFormPage() {
   const tipoOptions = useMemo(
     () => [
       { value: "", label: t.selezionaTipo },
-      ...ref.tipi.map((tipo) => ({ value: tipo.id, label: tipo.nome })),
+      ...sortTipiForEntry(ref.tipi).map((tipo) => ({
+        value: tipo.id,
+        label: tipo.nome,
+      })),
     ],
     [ref.tipi]
   );

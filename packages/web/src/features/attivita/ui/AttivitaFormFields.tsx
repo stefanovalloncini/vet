@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Card, SectionLabel } from "../../../shared/ui";
-import { RHFSelect, RHFTextArea, RHFTextField } from "../../../shared/ui/rhf";
+import {
+  RHFNumberField,
+  RHFSelect,
+  RHFTextArea,
+  RHFTextField,
+} from "../../../shared/ui/rhf";
 import { attivitaI18n as t } from "../i18n";
 import { formatEuro } from "../../../shared/lib/format";
 import type { AttivitaFormValues } from "../lib/formSchema";
@@ -71,17 +76,14 @@ export function AttivitaFormFields({
         <Section legend={t.sezioneTariffa}>
           <RateModeToggles busy={busy} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <RHFTextField<AttivitaFormValues>
+            <RHFNumberField<AttivitaFormValues>
               name="tariffa"
-              type="number"
-              inputMode="decimal"
-              step="0.01"
-              min="0"
-              max="100000"
               label={t.campoTariffa}
-              required
+              step={10}
+              min={0}
+              max={100000}
               disabled={busy}
-              {...(tariffaSuggested ? { hint: t.ginecologiaSuggerita } : {})}
+              {...(tariffaSuggested ? { hint: t.tariffaSuggerita } : {})}
             />
             {oraria ? (
               <RHFTextField<AttivitaFormValues>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { GINECOLOGIA_TIPO_ID, type ActivityType } from "@vet/shared";
+import type { ActivityType } from "@vet/shared";
 import { useLastAttivitaByAziendaAndTipo } from "./useAttivita";
 
 interface Result {
@@ -23,11 +23,10 @@ export function useTariffaSuggestion(args: Args): Result {
   const currentTariffaRef = useRef(args.currentTariffa);
   currentTariffaRef.current = args.currentTariffa;
 
-  const isGin = args.tipoId === GINECOLOGIA_TIPO_ID;
-  const ginQuery = useLastAttivitaByAziendaAndTipo(
+  const lastQuery = useLastAttivitaByAziendaAndTipo(
     args.aziendaId,
     args.tipoId,
-    { enabled: !args.isEdit && isGin && !!args.aziendaId }
+    { enabled: !args.isEdit && !!args.aziendaId && !!args.tipoId }
   );
 
   useEffect(() => {
@@ -36,39 +35,31 @@ export function useTariffaSuggestion(args: Args): Result {
       setLastSuggested(null);
       return;
     }
-    if (isGin) {
-      if (!args.aziendaId || ginQuery.isPending || ginQuery.isFetching) return;
-      const last = ginQuery.data;
-      if (last) {
-        const value = String(last.tariffa);
-        if (currentTariffaRef.current === "") {
-          onSuggestRef.current(value);
-        }
-        setLastSuggested(value);
-      } else {
-        setLastSuggested(null);
-      }
+    if (args.aziendaId && (lastQuery.isPending || lastQuery.isFetching)) return;
+    const last = args.aziendaId ? lastQuery.data : null;
+    const tipo = args.tipi.find((t) => t.id === args.tipoId);
+    const value =
+      last?.tariffa !== undefined
+        ? String(last.tariffa)
+        : tipo?.tariffaStandard !== undefined
+          ? String(tipo.tariffaStandard)
+          : null;
+    if (value === null) {
+      setLastSuggested(null);
       return;
     }
-    const tipo = args.tipi.find((t) => t.id === args.tipoId);
-    if (tipo?.tariffaStandard !== undefined) {
-      const value = String(tipo.tariffaStandard);
-      if (currentTariffaRef.current === "") {
-        onSuggestRef.current(value);
-      }
-      setLastSuggested(value);
-    } else {
-      setLastSuggested(null);
+    if (currentTariffaRef.current === "") {
+      onSuggestRef.current(value);
     }
+    setLastSuggested(value);
   }, [
     args.aziendaId,
     args.tipoId,
     args.isEdit,
     args.tipi,
-    isGin,
-    ginQuery.data,
-    ginQuery.isPending,
-    ginQuery.isFetching,
+    lastQuery.data,
+    lastQuery.isPending,
+    lastQuery.isFetching,
   ]);
 
   const suggested =

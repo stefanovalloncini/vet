@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ALTRO_TIPO_ID,
   attivitaInputSchema,
   type Attivita,
   type AttivitaInput,
@@ -68,6 +69,13 @@ export const attivitaFormSchema = z
           message: "Numero elementi non valido",
         });
       }
+    }
+    if (val.tipoId === ALTRO_TIPO_ID && val.note.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["note"],
+        message: "La nota è obbligatoria per il tipo Altro",
+      });
     }
   });
 

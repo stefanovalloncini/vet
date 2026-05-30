@@ -205,9 +205,9 @@ export function useAttivitaSubmit(args: SubmitArgs): UseAttivitaSubmitResult {
         form.setError("root", { message: t.erroreSalvataggio });
         return;
       }
-      const input = formValuesToInput(values);
       const denorm = { aziendaNome: azienda.nome, tipoNome: tipo.nome };
       try {
+        const input = formValuesToInput(values);
         if (isEdit && id) {
           await updateMutation.mutateAsync({ id, input, denorm, actor: user });
           notify("Attività aggiornata", "success");

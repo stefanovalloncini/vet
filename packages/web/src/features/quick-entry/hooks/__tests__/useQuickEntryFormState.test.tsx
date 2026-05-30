@@ -125,6 +125,26 @@ describe("useQuickEntryFormState", () => {
     expect(result.current.form.getValues("tariffa")).toBe("75");
   });
 
+  it("prefers the last-used tariffa over tariffaStandard for any tipo", async () => {
+    await attivita.create(
+      {
+        data: new Date("2026-01-15"),
+        aziendaId: "az-1",
+        tipoId: "visita",
+        oraria: false, adElemento: false,
+        tariffa: 55,
+      },
+      { aziendaNome: "Cliente Uno", tipoNome: "Visita" },
+      actor()
+    );
+    const { result } = await mount();
+    act(() => result.current.form.setValue("aziendaId", "az-1"));
+    act(() => result.current.form.setValue("tipoId", "visita"));
+    await waitFor(() => {
+      expect(result.current.form.getValues("tariffa")).toBe("55");
+    });
+  });
+
   it("loads the last ginecologia tariffa for the same azienda when empty", async () => {
     await attivita.create(
       {
