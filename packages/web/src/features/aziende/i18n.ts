@@ -6,7 +6,6 @@ export const aziendeI18n = {
   emptyHint: "Usa Nuova azienda in alto per la prima.",
   emptySearch: "Nessun risultato.",
   loading: "Caricamento…",
-  modifica: "Modifica",
   elimina: "Elimina",
   annulla: "Annulla",
   salva: "Salva",

@@ -6,7 +6,6 @@ export const activityTypesI18n = {
   attiviVuoto: "Nessun tipo attivo.",
   archiviatiVuoto: "Nessun tipo archiviato.",
   attivo: "Attivo",
-  inattivo: "Inattivo",
   attiva: "Attiva",
   disattiva: "Disattiva",
   loading: "Caricamento…",

@@ -5,7 +5,6 @@ export const cestinoI18n = {
   emptyHint: "Le attività eliminate restano qui per qualche giorno, poi spariscono.",
   loading: "Caricamento…",
   loadError: "Caricamento fallito.",
-  view: "Mostra",
   viewMine: "Le mie",
   viewAll: "Di tutti",
   ripristina: "Ripristina",
@@ -25,11 +24,8 @@ export const cestinoI18n = {
   confermaPurgeBulkTitolo: "Eliminare le voci selezionate?",
   confermaPurgeBulk: (n: number) =>
     `Verranno cancellate ${n} ${n === 1 ? "voce" : "voci"}. Non si possono recuperare.`,
-  successRestore: "Ripristinato.",
-  successPurge: "Cancellato.",
   errorRestore: "Ripristino non riuscito.",
   errorPurge: "Eliminazione non riuscita.",
-  deletedBy: "Eliminata da",
   deletedAt: "il",
 } as const;
 

@@ -59,9 +59,6 @@ export const allowlistI18n = {
   colRuolo: "Ruolo",
   colData: "Data",
   colStato: "Stato",
-  colTentativi: "Tentativi",
-  colAzioni: "Azioni",
-  statoApprovato: "Approvato",
   statoInAttesa: "In attesa",
   statoRichiesta: "Richiesta",
 } as const;

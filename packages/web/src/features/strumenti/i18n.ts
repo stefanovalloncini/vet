@@ -9,17 +9,11 @@ export const strumentiI18n = {
   concentrazioneLabel: "Concentrazione (mg/ml)",
   risultatoLabel: "Da somministrare",
   preset: "Preset",
-  presetCustom: "Personalizzato",
   sospensione: "Sospensione",
   sospensioneCarne: "Carne",
   sospensioneLatte: "Latte",
   giorni: "giorni",
   hint: "Verifica sempre il foglio illustrativo. I valori qui sono indicativi.",
-  // converter
-  convertitoreTitle: "Convertitore unità",
-  convertitoreSubtitle: "Conversione tra unità di misura.",
-  da: "Da",
-  a: "A",
 } as const;
 
 export interface DosagePreset {

@@ -7,7 +7,6 @@ export const riepilogoI18n = {
   note: "Note",
   ore: "Ore",
   tariffa: "Tariffa",
-  importo: "Importo",
   totale: "Totale",
   partitaIva: "P.IVA",
   veterinario: "Veterinario",
@@ -17,7 +16,4 @@ export const riepilogoI18n = {
   notFound: "Cliente non trovato.",
   loadError: "Caricamento del riepilogo non riuscito.",
   noData: "Nessuna attività nel periodo.",
-  filtroDa: "Da",
-  filtroA: "A",
-  apri: "Apri riepilogo",
 } as const;

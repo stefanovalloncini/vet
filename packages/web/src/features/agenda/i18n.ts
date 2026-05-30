@@ -1,8 +1,6 @@
 export const agendaI18n = {
   title: "Agenda",
   subtitle: "Le attività del giorno.",
-  meseScorso: "Mese precedente",
-  meseProssimo: "Mese successivo",
   settimanaScorsa: "Settimana precedente",
   settimanaProssima: "Settimana successiva",
   oggi: "Oggi",
