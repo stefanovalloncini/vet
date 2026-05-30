@@ -22,6 +22,16 @@ export function computeClaimsForUser(input: ComputeInput) {
   };
 }
 
+export function isCapsVerBumpWrite(input: {
+  beforeCapsVer?: number | undefined;
+  afterCapsVer?: number | undefined;
+}): boolean {
+  return (
+    input.afterCapsVer !== undefined &&
+    input.afterCapsVer !== input.beforeCapsVer
+  );
+}
+
 export const onRoleChange = onDocumentWritten(
   {
     document: "roles/{roleId}",
@@ -38,7 +48,12 @@ export const onRoleChange = onDocumentWritten(
       | undefined;
     if (!after) return;
 
-    if (after.capsVer !== undefined && after.capsVer !== before?.capsVer) {
+    if (
+      isCapsVerBumpWrite({
+        beforeCapsVer: before?.capsVer,
+        afterCapsVer: after.capsVer,
+      })
+    ) {
       return;
     }
 
