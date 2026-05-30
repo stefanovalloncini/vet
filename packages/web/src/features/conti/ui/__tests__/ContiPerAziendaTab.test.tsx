@@ -160,6 +160,7 @@ describe("ContiPerAziendaTab", () => {
       ).toBeInTheDocument()
     );
     expect(within(container).getByText(/250,00/)).toBeInTheDocument();
+    expect(within(container).getByText("Vet One")).toBeInTheDocument();
     expect(
       within(container).queryByText(/\d{2}\.\d{3}\.\d{3}\.\d{3}/)
     ).not.toBeInTheDocument();
