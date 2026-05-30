@@ -40,6 +40,7 @@ export const contiI18n = {
   nonSaldato: "Non saldato",
   proforma: "Pro forma",
   annulla: "Annulla",
+  whatsapp: "WhatsApp",
   loadError: "Caricamento fallito.",
   pdfFallito: "Conto salvato, PDF non generato. Riprova dallo storico.",
 } as const;

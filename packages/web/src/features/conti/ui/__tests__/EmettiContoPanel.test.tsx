@@ -16,11 +16,16 @@ import { EmettiContoPanel } from "../EmettiContoPanel";
 import { defaultPeriodoFor } from "../../lib/contoPreview";
 import { dateInputValue } from "../../../../shared/lib/format";
 import { downloadPdf } from "../../../../shared/pdf";
+import { openWhatsappShare } from "../../../../shared/pdf/share/whatsapp";
 
 vi.mock("../../../../shared/pdf", () => ({
   ContoDocument: () => null,
   ProformaDocument: () => null,
   downloadPdf: vi.fn().mockResolvedValue(undefined),
+  openWhatsappShare: vi.fn().mockReturnValue(true),
+}));
+
+vi.mock("../../../../shared/pdf/share/whatsapp", () => ({
   openWhatsappShare: vi.fn().mockReturnValue(true),
 }));
 
@@ -117,8 +122,14 @@ describe("EmettiContoPanel", () => {
 
   it("warns about activities already in an emesso conto, ignoring proforma", async () => {
     const { repos, conti } = buildSetup(["conti.proforma", "conti.emit"]);
-    const { from, to } = defaultPeriodoFor(azienda());
-    const period = { aziendaId: "az1", periodoFrom: from, periodoTo: to } as const;
+    const { from } = defaultPeriodoFor(azienda());
+    const priorTo = new Date(from.getTime() - 1);
+    const priorFrom = new Date(priorTo.getFullYear(), priorTo.getMonth() - 2, 1);
+    const period = {
+      aziendaId: "az1",
+      periodoFrom: priorFrom,
+      periodoTo: priorTo,
+    } as const;
     const denorm = (ids: string[]) => ({
       aziendaNome: "Cascina Verdi",
       attivitaIds: ids,
@@ -226,6 +237,58 @@ describe("EmettiContoPanel", () => {
     const toInput = screen.getByLabelText(/^A$/i) as HTMLInputElement;
     expect(fromInput.value).toBe(dateInputValue(expected.from));
     expect(toInput.value).toBe(dateInputValue(expected.to));
+  });
+
+  it("anchors the proposed period to the day after the last emitted conto", async () => {
+    const { repos, conti } = buildSetup(["conti.emit"]);
+    const { from } = defaultPeriodoFor(azienda());
+    const priorTo = new Date(from.getTime() - 1);
+    const priorFrom = new Date(priorTo.getFullYear(), priorTo.getMonth() - 2, 1);
+    await conti.emit(
+      { aziendaId: "az1", periodoFrom: priorFrom, periodoTo: priorTo, modalita: "emesso" },
+      { aziendaNome: "Cascina Verdi", attivitaIds: ["x"], totaleConto: 100 },
+      actor(["conti.emit"])
+    );
+    render(<EmettiContoPanel azienda={azienda()} items={[]} />, {
+      wrapper: buildProvidersWrapper({ repos }),
+    });
+    await waitFor(() => {
+      const fromInput = screen.getByLabelText(/^Da$/i) as HTMLInputElement;
+      expect(fromInput.value).toBe(dateInputValue(from));
+    });
+    const fromInput = screen.getByLabelText(/^Da$/i) as HTMLInputElement;
+    fireEvent.change(fromInput, { target: { value: "2026-09-09" } });
+    expect((screen.getByLabelText(/^Da$/i) as HTMLInputElement).value).toBe(
+      "2026-09-09"
+    );
+  });
+
+  it("shares the conto on WhatsApp with a caption and the azienda phone", () => {
+    const { repos } = buildSetup(["conti.emit"]);
+    render(
+      <EmettiContoPanel
+        azienda={azienda({ telefono: "+39 333 1234567" })}
+        items={withItemsInPeriod()}
+      />,
+      { wrapper: buildProvidersWrapper({ repos }) }
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^WhatsApp$/i }));
+    expect(openWhatsappShare).toHaveBeenCalledTimes(1);
+    const arg = vi.mocked(openWhatsappShare).mock.calls[0]?.[0];
+    expect(arg?.phone).toBe("393331234567");
+    expect(arg?.text).toContain("Cascina Verdi");
+    expect(arg?.text).toContain("150,00");
+  });
+
+  it("omits the phone when the azienda has no telefono", () => {
+    const { repos } = buildSetup(["conti.emit"]);
+    vi.mocked(openWhatsappShare).mockClear();
+    render(
+      <EmettiContoPanel azienda={azienda()} items={withItemsInPeriod()} />,
+      { wrapper: buildProvidersWrapper({ repos }) }
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^WhatsApp$/i }));
+    expect(vi.mocked(openWhatsappShare).mock.calls[0]?.[0].phone).toBeUndefined();
   });
 
   it("renders the right total and count in the preview", () => {
