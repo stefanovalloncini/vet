@@ -22,9 +22,16 @@ import {
   triggerCsvDownload,
   triggerJsonDownload,
 } from "../lib/exportBackup";
-import { backupAge } from "../lib/backupReminderLogic";
+import { backupAge, type BackupAge } from "../lib/backupReminderLogic";
 import { toCsvItalian } from "../../attivita";
 import { useRetention } from "../lib/useRetention";
+
+function relativeBackupAgeLabel(age: BackupAge): string | null {
+  if (age.kind === "today") return "oggi";
+  if (age.kind === "yesterday") return "ieri";
+  if (age.kind === "days-ago") return `${age.days} giorni fa`;
+  return null;
+}
 
 export function ImpostazioniPage() {
   const { user } = useAuthState();
@@ -97,14 +104,7 @@ export function ImpostazioniPage() {
       month: "short",
       year: "numeric",
     });
-    const relative =
-      age.kind === "today"
-        ? "oggi"
-        : age.kind === "yesterday"
-          ? "ieri"
-          : age.kind === "days-ago"
-            ? `${age.days} giorni fa`
-            : null;
+    const relative = relativeBackupAgeLabel(age);
     return relative
       ? `${t.datiBackupUltimo}: ${relative} (${dt})`
       : `${t.datiBackupUltimo}: ${dt}`;
