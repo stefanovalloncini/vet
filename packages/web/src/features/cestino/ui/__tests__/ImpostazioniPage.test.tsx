@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import type { ActorContext, Repositories } from "@vet/shared";
@@ -11,11 +11,17 @@ import {
 } from "@vet/shared/testing";
 import { buildProvidersWrapper } from "../../../../__tests__/renderWithProviders";
 import { impostazioniI18n as t } from "../../i18n";
+import { triggerJsonDownload, triggerCsvDownload } from "../../lib/exportBackup";
 import { ImpostazioniPage } from "../ImpostazioniPage";
 
 vi.mock("../../../../shared/ui/AppShell", () => ({
   AppShell: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
+
+vi.mock("../../lib/exportBackup", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../lib/exportBackup")>();
+  return { ...actual, triggerJsonDownload: vi.fn(), triggerCsvDownload: vi.fn() };
+});
 
 function installStorage(): void {
   const store = new Map<string, string>();
@@ -49,6 +55,7 @@ interface Harness {
   auth: InMemoryAuthService;
   attivita: InMemoryAttivitaRepository;
   trash: InMemoryTrashService;
+  aziende: InMemoryAziendeRepository;
 }
 
 function buildHarness(user: ActorContext | null = actor()): Harness {
@@ -66,6 +73,7 @@ function buildHarness(user: ActorContext | null = actor()): Harness {
     auth,
     attivita,
     trash,
+    aziende,
   };
 }
 
@@ -78,6 +86,7 @@ function renderPage(repos: Repositories) {
 describe("ImpostazioniPage", () => {
   beforeEach(() => {
     installStorage();
+    vi.clearAllMocks();
   });
 
   it("shows the signed-in vet's profile from the auth identity, not a free-text field", () => {
@@ -134,5 +143,24 @@ describe("ImpostazioniPage", () => {
     fireEvent.click(screen.getByRole("button", { name: t.gdprButton }));
     expect(await screen.findByText(t.gdprErrore)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: t.gdprCta })).toBeInTheDocument();
+  });
+
+  it("downloads a full JSON backup of the vet's data (Art. 15 portability)", async () => {
+    const { repos, aziende } = buildHarness();
+    await aziende.create({ nome: "Cascina A" }, actor());
+    renderPage(repos);
+    fireEvent.click(screen.getByRole("button", { name: t.datiBackupCta }));
+    await waitFor(() => expect(triggerJsonDownload).toHaveBeenCalledTimes(1));
+    const payload = vi.mocked(triggerJsonDownload).mock.calls[0]![0];
+    expect(payload).toMatchObject({ version: 1, exportedBy: "vet@example.com" });
+    expect(payload.aziende).toHaveLength(1);
+  });
+
+  it("exports the vet's activities as an Italian CSV", async () => {
+    const { repos } = buildHarness();
+    renderPage(repos);
+    fireEvent.click(screen.getByRole("button", { name: t.datiCsvCta }));
+    await waitFor(() => expect(triggerCsvDownload).toHaveBeenCalledTimes(1));
+    expect(typeof vi.mocked(triggerCsvDownload).mock.calls[0]![0]).toBe("string");
   });
 });
