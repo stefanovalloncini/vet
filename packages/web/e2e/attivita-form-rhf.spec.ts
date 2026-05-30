@@ -36,6 +36,32 @@ test.describe("attivita form (RHF)", () => {
     ).toBeVisible({ timeout: 10_000 });
   });
 
+  test("accepts a float-fragile 2-decimal tariffa (regression: 19.99 was wrongly rejected)", async ({
+    signedInVet,
+  }) => {
+    await signedInVet.goto("/attivita/nuova");
+    await expect(signedInVet.getByRole("heading", { level: 1 })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await signedInVet.getByLabel(/Data/i).fill("2026-05-23");
+    await signedInVet
+      .getByLabel(/Azienda/i, { exact: false })
+      .selectOption(FIXTURE.azienda.id);
+    await signedInVet
+      .getByLabel(/Tipo/i, { exact: false })
+      .first()
+      .selectOption(FIXTURE.tipo.id);
+    await signedInVet.getByLabel(/Tariffa/i).fill("19.99");
+
+    await signedInVet.getByRole("button", { name: /^Salva$/i }).click();
+
+    await expect(signedInVet).toHaveURL(/\/attivita(\?|$)/, { timeout: 15_000 });
+    await expect(
+      signedInVet.getByText(/19[,.]99/).filter({ visible: true }).first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
   test("surfaces validation errors when required fields are missing", async ({
     signedInVet,
   }) => {
