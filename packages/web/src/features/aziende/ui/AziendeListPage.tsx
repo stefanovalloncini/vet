@@ -5,6 +5,7 @@ import type { FilterDef } from "../../../shared/ui/data-grid";
 import { useAuthState } from "../../auth";
 import { useAziende } from "../hooks/useAziende";
 import { usePinned } from "../hooks/usePinned";
+import { sortAziendeByPinned } from "../lib/sortAziende";
 import { aziendeI18n as t } from "../i18n";
 import { AziendeList } from "./AziendeList";
 import { usePagamentiOverview } from "../../pagamenti";
@@ -44,13 +45,7 @@ export function AziendeListPage() {
   const canUpdate = user?.caps.has("aziende.update") ?? false;
 
   const sorted = useMemo(
-    () =>
-      [...aziende].sort((a, b) => {
-        const ap = pinned.has(a.id) ? 0 : 1;
-        const bp = pinned.has(b.id) ? 0 : 1;
-        if (ap !== bp) return ap - bp;
-        return a.nomeNorm.localeCompare(b.nomeNorm, "it");
-      }),
+    () => sortAziendeByPinned(aziende, pinned),
     [aziende, pinned]
   );
 
