@@ -53,6 +53,8 @@ export function statsForRange(
     kt.count += 1;
     byTipo.set(a.tipoId, kt);
   }
+  for (const v of byAzienda.values()) v.total = roundCents(v.total);
+  for (const v of byTipo.values()) v.total = roundCents(v.total);
   return {
     count: inRange.length,
     total: roundCents(total),
