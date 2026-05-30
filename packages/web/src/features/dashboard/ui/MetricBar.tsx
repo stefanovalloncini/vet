@@ -9,7 +9,7 @@ interface MetricBarProps {
 
 export function MetricBar({ metrics }: MetricBarProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 divide-y divide-(--color-border) sm:divide-y-0 sm:divide-x rounded-lg border border-(--color-border) bg-(--color-surface)">
+    <div className="grid grid-cols-2 divide-x divide-(--color-border) rounded-lg border border-(--color-border) bg-(--color-surface)">
       {metrics.map((m) => (
         <div key={m.label} className="flex flex-col gap-1 px-4 py-3">
           <span className="text-xs uppercase tracking-wider text-(--color-text-muted)">

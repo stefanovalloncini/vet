@@ -1,15 +1,12 @@
 import { useMemo } from "react";
 import { AppShell, Card, EmptyState, InlineError, Skeleton } from "../../../shared/ui";
 import { dashboardI18n as t } from "../i18n";
-import { formatEuro } from "../../../shared/lib/format";
 import { Onboarding } from "../../onboarding";
 import { OnboardingBanner } from "../../onboarding/OnboardingBanner";
 import { useDashboardStats, type DashboardStats } from "../hooks/useDashboardStats";
 import { MONTHS_IT } from "../../../shared/i18n/months";
 import { MetricBar } from "./MetricBar";
 import { ChartPanel } from "./ChartPanel";
-import { RecentActivitiesPanel } from "./RecentActivitiesPanel";
-import { TipoBreakdownPanel } from "./TipoBreakdownPanel";
 
 function periodLabel(now: Date): string {
   const m = MONTHS_IT[now.getMonth()] ?? "";
@@ -57,21 +54,11 @@ function DashboardBody({ stats }: { stats: DashboardStats }) {
   const metrics = [
     { label: t.visiteMese, value: String(stats.thisMonth.count) },
     { label: t.aziendeAttive, value: String(stats.aziendeAttiveCount) },
-    { label: t.incassiMese, value: formatEuro(stats.thisMonth.total) },
-    { label: t.incassiAnno, value: formatEuro(stats.trailingTotal) },
   ];
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <MetricBar metrics={metrics} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        <ChartPanel trailing={stats.trailing} className="lg:col-span-2 min-w-0" />
-        <RecentActivitiesPanel items={stats.recent} className="lg:col-span-1 min-w-0" />
-        <TipoBreakdownPanel
-          rows={stats.tipiMese}
-          total={stats.thisMonth.total}
-          className="lg:col-span-3 min-w-0"
-        />
-      </div>
+      <ChartPanel trailing={stats.trailing} className="min-w-0" />
     </div>
   );
 }
@@ -87,27 +74,21 @@ function DashboardEmpty() {
 function DashboardSkeleton() {
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px rounded-lg border border-(--color-border) overflow-hidden">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid grid-cols-2 gap-px rounded-lg border border-(--color-border) overflow-hidden">
+        {Array.from({ length: 2 }).map((_, i) => (
           <div key={i} className="flex flex-col gap-2 bg-(--color-surface) px-4 py-3">
             <Skeleton className="h-3 w-20" />
             <Skeleton className="h-5 w-16" />
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        <Card className="lg:col-span-2">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-9 w-44" />
-          </div>
-          <Skeleton className="h-28 w-full" />
-        </Card>
-        <Card className="lg:col-span-1">
-          <Skeleton className="h-4 w-32 mb-3" />
-          <Skeleton className="h-40 w-full" />
-        </Card>
-      </div>
+      <Card>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-9 w-44" />
+        </div>
+        <Skeleton className="h-28 w-full" />
+      </Card>
     </div>
   );
 }
