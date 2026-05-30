@@ -99,6 +99,23 @@ describe("ContiPerAziendaTab", () => {
     );
   });
 
+  it("shows who emitted the conto, and who settled it once saldato", async () => {
+    const repos = reposWith([], () =>
+      Promise.resolve([conto({ saldato: true, saldatoByName: "Vet Two" })])
+    );
+    const { container } = render(<ContiPerAziendaTab aziendaId="az1" />, {
+      wrapper: buildProvidersWrapper({ repos }),
+    });
+    await waitFor(() =>
+      expect(
+        within(container).getByText(/Emesso da Vet One/)
+      ).toBeInTheDocument()
+    );
+    expect(
+      within(container).getByText(/Saldato da Vet Two/)
+    ).toBeInTheDocument();
+  });
+
   it("exposes a 44px saldo action for users with the saldo cap", async () => {
     const repos = reposWith(["conti.saldo"], () =>
       Promise.resolve([conto({ saldato: false })])

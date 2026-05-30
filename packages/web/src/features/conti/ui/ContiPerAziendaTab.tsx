@@ -120,8 +120,14 @@ function ContoCard({ conto, actions }: ContoCardProps) {
             {period}
           </p>
           <p className="mt-1 text-xs text-(--color-text-subtle) tabular-nums">
-            {t.emessoIl} {formatDate(conto.emittedAt)} · {t.attivita}: {conto.attivitaIds.length}
+            {t.emessoDa} {conto.emittedByName} il {formatDate(conto.emittedAt)} ·{" "}
+            {t.attivita}: {conto.attivitaIds.length}
           </p>
+          {conto.saldato && conto.saldatoByName ? (
+            <p className="mt-0.5 text-xs text-(--color-text-subtle)">
+              {t.saldatoDa} {conto.saldatoByName}
+            </p>
+          ) : null}
         </div>
         <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:flex-col sm:items-end">
           <span className="font-mono text-lg font-medium text-(--color-text) tabular-nums whitespace-nowrap">
