@@ -23,8 +23,12 @@ export interface RecordAuthDenyAuditInput {
   eventType: string | undefined;
 }
 
-function dateKey(now: Date): string {
+export function dateKey(now: Date): string {
   return now.toISOString().slice(0, 10);
+}
+
+export function isAuditThrottled(count: number): boolean {
+  return count >= MAX_PER_EMAIL_PER_DAY;
 }
 
 export async function recordAuthDenyAudit(
@@ -41,7 +45,7 @@ export async function recordAuthDenyAudit(
       const count = snap.exists
         ? Number((snap.data() ?? {})["count"] ?? 0)
         : 0;
-      if (count >= MAX_PER_EMAIL_PER_DAY) {
+      if (isAuditThrottled(count)) {
         logger.warn("auth.audit.deny.throttled", {
           source: input.source,
           email: input.emailNorm,
