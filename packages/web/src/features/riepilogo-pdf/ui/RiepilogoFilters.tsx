@@ -1,6 +1,6 @@
 import { Printer, Share2 } from "lucide-react";
 import type { CadenzaFatturazione } from "@vet/shared";
-import { Button } from "../../../shared/ui";
+import { Button, Switch } from "../../../shared/ui";
 import { PeriodPicker } from "../../conti";
 import { dateInputValue } from "../../../shared/lib/format";
 import { riepilogoI18n as t } from "../i18n";
@@ -14,6 +14,8 @@ interface RiepilogoFiltersProps {
   to: string;
   onPeriodChange: (key: "from" | "to", value: string) => void;
   onPeriodRange?: (from: Date, to: Date) => void;
+  includeBilled: boolean;
+  onIncludeBilledChange: (next: boolean) => void;
   cadenza?: CadenzaFatturazione;
 }
 
@@ -26,6 +28,8 @@ export function RiepilogoFilters({
   to,
   onPeriodChange,
   onPeriodRange,
+  includeBilled,
+  onIncludeBilledChange,
   cadenza,
 }: RiepilogoFiltersProps) {
   function handleRange(nextFrom: Date, nextTo: Date): void {
@@ -59,7 +63,12 @@ export function RiepilogoFilters({
             {...(cadenza ? { cadenza } : {})}
           />
         </div>
-        <div className="flex items-center gap-2 flex-wrap lg:flex-shrink-0">
+        <div className="flex items-center gap-4 flex-wrap lg:flex-shrink-0">
+          <Switch
+            checked={includeBilled}
+            onChange={onIncludeBilledChange}
+            label={t.includeBilled}
+          />
           {canShare ? (
             <Button
               type="button"

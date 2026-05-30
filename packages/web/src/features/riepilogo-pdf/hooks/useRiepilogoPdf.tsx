@@ -4,6 +4,9 @@ import type { Attivita, Azienda } from "@vet/shared";
 import { useRepositories } from "../../../infrastructure/RepositoriesContext";
 import { queryKeys } from "../../../shared/data/queryClient";
 import { formatDate, formatEuro, parseDateInput } from "../../../shared/lib/format";
+import { useConti } from "../../conti/hooks/useConti";
+// eslint-disable-next-line no-restricted-imports
+import { collectBilledAttivitaIds } from "../../pagamenti/lib/unbilled";
 
 function riepilogoFilenameStem(summary: RiepilogoSummary): string {
   const parts = ["riepilogo", summary.azienda.nomeNorm || "azienda"];
@@ -23,6 +26,7 @@ export interface RiepilogoFilters {
   aziendaId: string;
   fromStr: string;
   toStr: string;
+  includeBilled: boolean;
 }
 
 export interface RiepilogoSummary {
@@ -32,6 +36,7 @@ export interface RiepilogoSummary {
   from: Date | null;
   to: Date | null;
   vetName: string;
+  excludedBilledCount: number;
 }
 
 export interface UseRiepilogoPdfResult {
@@ -49,7 +54,7 @@ interface FetchedDetail {
 
 export function useRiepilogoPdf(filters: RiepilogoFilters): UseRiepilogoPdfResult {
   const { aziende, attivita } = useRepositories();
-  const { aziendaId, fromStr, toStr } = filters;
+  const { aziendaId, fromStr, toStr, includeBilled } = filters;
   const fromKey = fromStr || null;
   const toKey = toStr || null;
 
@@ -76,6 +81,9 @@ export function useRiepilogoPdf(filters: RiepilogoFilters): UseRiepilogoPdfResul
     },
   });
 
+  const contiQuery = useConti();
+  const conti = contiQuery.data;
+
   const error: "not-found" | "load-failed" | null = useMemo(() => {
     if (!aziendaId) return "not-found";
     if (query.isError) return "load-failed";
@@ -86,16 +94,24 @@ export function useRiepilogoPdf(filters: RiepilogoFilters): UseRiepilogoPdfResul
   const summary = useMemo<RiepilogoSummary | null>(() => {
     const data = query.data;
     if (!data?.azienda) return null;
-    const total = data.items.reduce((s, a) => s + a.totale, 0);
+    const billedIds = collectBilledAttivitaIds(conti ?? []);
+    const visible = includeBilled
+      ? data.items
+      : data.items.filter((a) => !billedIds.has(a.id));
+    const excludedBilledCount = includeBilled
+      ? 0
+      : data.items.length - visible.length;
+    const total = visible.reduce((s, a) => s + a.totale, 0);
     return {
       azienda: data.azienda,
-      items: data.items,
+      items: visible,
       total,
       from: parseDateInput(fromStr),
       to: parseDateInput(toStr),
       vetName: data.items[0]?.ownerName ?? "",
+      excludedBilledCount,
     };
-  }, [query.data, fromStr, toStr]);
+  }, [query.data, conti, includeBilled, fromStr, toStr]);
 
   const generatePdf = useCallback(async () => {
     if (!summary) return;
@@ -128,7 +144,8 @@ export function useRiepilogoPdf(filters: RiepilogoFilters): UseRiepilogoPdfResul
     });
   }, [summary]);
 
-  const loading = aziendaId !== "" && query.isLoading;
+  const loading =
+    aziendaId !== "" && (query.isLoading || contiQuery.isLoading);
 
   return { loading, error, summary, generatePdf, shareWhatsApp };
 }

@@ -15,6 +15,17 @@ export function RiepilogoPdfPage() {
 
   const fromStr = params.get("from") ?? "";
   const toStr = params.get("to") ?? "";
+  const includeBilled = params.get("fatturate") === "1";
+
+  const setIncludeBilled = useCallback(
+    (next: boolean) => {
+      const params2 = new URLSearchParams(params);
+      if (next) params2.set("fatturate", "1");
+      else params2.delete("fatturate");
+      setParams(params2, { replace: true });
+    },
+    [params, setParams]
+  );
 
   const setPeriod = useCallback(
     (key: "from" | "to", value: string) => {
@@ -40,6 +51,7 @@ export function RiepilogoPdfPage() {
     aziendaId: id ?? "",
     fromStr,
     toStr,
+    includeBilled,
   });
 
   useEffect(() => {
@@ -79,6 +91,8 @@ export function RiepilogoPdfPage() {
           to={toStr}
           onPeriodChange={setPeriod}
           onPeriodRange={setPeriodRange}
+          includeBilled={includeBilled}
+          onIncludeBilledChange={setIncludeBilled}
           {...(summary.azienda.cadenzaFatturazione
             ? { cadenza: summary.azienda.cadenzaFatturazione }
             : {})}
