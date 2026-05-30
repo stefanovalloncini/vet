@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   CADENZA_FATTURAZIONE,
   TIPI_ALLEVAMENTO,
+  hasAtMostTwoDecimals,
   isValidPartitaIva,
   type Azienda,
   type AziendaInput,
@@ -28,9 +29,7 @@ const canoneFormSchema = z.string().refine(
     const s = v.trim();
     if (s === "") return true;
     const n = Number(s);
-    return (
-      Number.isFinite(n) && n > 0 && n <= 100_000 && Math.round(n * 100) === n * 100
-    );
+    return Number.isFinite(n) && n > 0 && n <= 100_000 && hasAtMostTwoDecimals(n);
   },
   { message: "Canone non valido" }
 );

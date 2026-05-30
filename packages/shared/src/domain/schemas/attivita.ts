@@ -1,16 +1,9 @@
 import { z } from "zod";
 import { ALTRO_TIPO_ID } from "./activityType.js";
+import { euroAmountSchema } from "./money.js";
 import { safeName } from "./safeString.js";
 
-function hasAtMostTwoDecimals(n: number): boolean {
-  return Math.round(n * 100) === n * 100;
-}
-
-const tariffaSchema = z
-  .number()
-  .positive()
-  .max(100_000)
-  .refine(hasAtMostTwoDecimals, { message: "Massimo 2 decimali" });
+const tariffaSchema = euroAmountSchema;
 
 const oreSchema = z.number().positive().max(24);
 const elementiSchema = z.number().int().positive().max(10_000);

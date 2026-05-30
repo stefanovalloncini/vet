@@ -141,6 +141,8 @@ export type {
 export {
   metodoPagamentoSchema,
   METODI_PAGAMENTO,
+  euroAmountSchema,
+  hasAtMostTwoDecimals,
   type MetodoPagamento,
 } from "./domain/schemas/money.js";
 export type { Conto } from "./domain/entities/Conto.js";

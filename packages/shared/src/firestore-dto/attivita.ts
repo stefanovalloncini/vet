@@ -5,6 +5,7 @@ import {
   computeTotale,
   type AttivitaInput,
 } from "../domain/schemas/attivita.js";
+import { euroAmountSchema } from "../domain/schemas/money.js";
 import { safeName } from "../domain/schemas/safeString.js";
 import {
   timestampLike,
@@ -12,13 +13,7 @@ import {
   type SerializerStampDeps,
 } from "./_shared.js";
 
-const tariffaSchema = z
-  .number()
-  .positive()
-  .max(100_000)
-  .refine((n) => Math.round(n * 100) === n * 100, {
-    message: "Massimo 2 decimali",
-  });
+const tariffaSchema = euroAmountSchema;
 
 export const attivitaDtoSchema = z
   .object({

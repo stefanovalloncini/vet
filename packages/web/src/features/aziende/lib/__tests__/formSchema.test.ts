@@ -103,6 +103,9 @@ describe("aziendaFormSchema", () => {
     expect(ok("")).toBe(true);
     expect(ok("800")).toBe(true);
     expect(ok("800.50")).toBe(true);
+    // float-fragile 2-decimal values (70.1*100 !== 7010 exactly) must pass
+    expect(ok("70.10")).toBe(true);
+    expect(ok("19.99")).toBe(true);
     expect(ok("-5")).toBe(false);
     expect(ok("0")).toBe(false);
     expect(ok("200000")).toBe(false);

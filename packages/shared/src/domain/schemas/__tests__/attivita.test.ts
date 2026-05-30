@@ -75,6 +75,12 @@ describe("attivitaInputSchema", () => {
     expect(
       attivitaInputSchema.safeParse({ ...baseInput, tariffa: 50.55 }).success
     ).toBe(true);
+    // float-fragile 2-decimal values (19.99*100 !== 1999 exactly) must still pass
+    for (const tariffa of [19.99, 0.07, 8.55, 70.1]) {
+      expect(
+        attivitaInputSchema.safeParse({ ...baseInput, tariffa }).success
+      ).toBe(true);
+    }
   });
 
   it("rejects ore > 24 when oraria", () => {

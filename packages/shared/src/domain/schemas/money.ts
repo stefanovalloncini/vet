@@ -5,7 +5,7 @@ export type MetodoPagamento = (typeof METODI_PAGAMENTO)[number];
 export const metodoPagamentoSchema = z.enum(METODI_PAGAMENTO);
 
 export function hasAtMostTwoDecimals(n: number): boolean {
-  return Math.round(n * 100) === n * 100;
+  return Number(n.toFixed(2)) === n;
 }
 
 export const euroAmountSchema = z
