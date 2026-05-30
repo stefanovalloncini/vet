@@ -299,6 +299,28 @@ describe("attivitaDocSchema", () => {
     expect(r.success).toBe(true);
   });
 
+  it("rejects an ownerEmail with a formula-injection prefix", () => {
+    const now = new Date();
+    const r = attivitaDocSchema.safeParse({
+      data: now,
+      aziendaId: "az1",
+      aziendaNome: "Cascina",
+      tipoId: "visita",
+      tipoNome: "Visita",
+      oraria: false,
+      tariffa: 50,
+      totale: 50,
+      ownerUid: "uid",
+      ownerEmail: "=cmd@evil.com",
+      ownerName: "U",
+      createdAt: now,
+      updatedAt: now,
+      isDeleted: false,
+      schemaVersion: 1,
+    });
+    expect(r.success).toBe(false);
+  });
+
   it("requires denorm names", () => {
     const now = new Date();
     expect(

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ALTRO_TIPO_ID } from "./activityType.js";
 import { euroAmountSchema } from "./money.js";
-import { safeName } from "./safeString.js";
+import { safeEmail, safeName } from "./safeString.js";
 
 const tariffaSchema = euroAmountSchema;
 
@@ -80,7 +80,7 @@ export const attivitaDocSchema = z
     totale: z.number().nonnegative().max(2_400_000),
     note: z.string().max(2000).optional(),
     ownerUid: z.string().min(1).max(128),
-    ownerEmail: z.string().email().max(120),
+    ownerEmail: safeEmail(120),
     ownerName: safeName(80),
     createdAt: z.date(),
     updatedAt: z.date(),

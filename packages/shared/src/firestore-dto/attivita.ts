@@ -6,7 +6,7 @@ import {
   type AttivitaInput,
 } from "../domain/schemas/attivita.js";
 import { euroAmountSchema } from "../domain/schemas/money.js";
-import { safeName } from "../domain/schemas/safeString.js";
+import { safeEmail, safeName } from "../domain/schemas/safeString.js";
 import {
   timestampLike,
   timestampToDate,
@@ -30,7 +30,7 @@ export const attivitaDtoSchema = z
     totale: z.number().nonnegative().max(2_400_000),
     note: z.string().max(2000).optional(),
     ownerUid: z.string().min(1).max(128),
-    ownerEmail: z.string().email().max(120),
+    ownerEmail: safeEmail(120),
     ownerName: safeName(80),
     createdAt: timestampLike,
     updatedAt: timestampLike,
