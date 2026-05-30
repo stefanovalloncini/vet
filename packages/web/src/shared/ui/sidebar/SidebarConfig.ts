@@ -3,7 +3,6 @@ import {
   Calendar,
   ClipboardList,
   Building2,
-  Euro,
   Wallet,
   Tags,
   ShieldCheck,
@@ -30,10 +29,9 @@ export interface NavSection {
 export const PRIMARY_NAV_ITEMS: NavItem[] = [
   { to: "/riepilogo", label: "Riepilogo", icon: LayoutDashboard, requiredCap: "activities.read.all" },
   { to: "/agenda", label: "Agenda", icon: Calendar, requiredCap: "activities.read.all" },
-  { to: "/attivita", label: "Attività", icon: ClipboardList, requiredCap: "activities.read.all" },
-  { to: "/pagamenti", label: "Pagamenti", icon: Wallet, requiredCap: "conti.proforma" },
   { to: "/aziende", label: "Aziende", icon: Building2, requiredCap: "aziende.read" },
-  { to: "/conti", label: "Conti", icon: Euro, requiredCap: "conti.proforma" },
+  { to: "/pagamenti", label: "Pagamenti", icon: Wallet, requiredCap: "conti.proforma" },
+  { to: "/attivita", label: "Attività", icon: ClipboardList, requiredCap: "activities.read.all" },
 ];
 
 export const NAV_SECTIONS: NavSection[] = [
