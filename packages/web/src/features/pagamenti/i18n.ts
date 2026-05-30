@@ -1,10 +1,6 @@
 export const pagamentiI18n = {
   title: "Pagamenti",
   subtitle: "Stato delle aziende e dei conti emessi",
-  loading: "Caricamento…",
-  loadError: "Errore di caricamento",
-  empty: "Nessuna azienda da mostrare.",
-  emptyFiltered: "Nessun risultato per i filtri selezionati",
   colAzienda: "Azienda",
   colStato: "Stato",
   colAperto: "Aperto",
