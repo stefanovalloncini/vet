@@ -67,6 +67,28 @@ describe("capability bundles", () => {
     }
   });
 
+  it("adds EXACTLY the billing caps from veterinario to titolare", () => {
+    const delta = TITOLARE_CAPS.filter((c) => !VETERINARIO_CAPS.includes(c));
+    expect([...delta].sort()).toEqual(["conti.emit", "conti.saldo"]);
+  });
+
+  it("adds EXACTLY the admin caps from titolare to amministratore", () => {
+    const delta = AMMINISTRATORE_CAPS.filter((c) => !TITOLARE_CAPS.includes(c));
+    expect([...delta].sort()).toEqual(
+      [
+        "activity_types.manage",
+        "allowlist.manage",
+        "allowlist.read",
+        "audit.read",
+        "roles.assign",
+        "roles.manage",
+        "roles.read",
+        "users.approve",
+        "users.read.all",
+      ].sort()
+    );
+  });
+
   it("grants amministratore the admin capabilities", () => {
     for (const c of [
       "users.approve",
