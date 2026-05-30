@@ -1,4 +1,4 @@
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { runScript } from "./lib/runScript.js";
 
 await runScript({
@@ -15,7 +15,7 @@ await runScript({
         continue;
       }
       await docSnap.ref.set(
-        { approved: true, updatedAt: new Date() },
+        { approved: true, updatedAt: FieldValue.serverTimestamp() },
         { merge: true }
       );
       touched += 1;

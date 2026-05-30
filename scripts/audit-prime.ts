@@ -2,6 +2,7 @@ import { writeFileSync } from "node:fs";
 import { initializeApp, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { encodeCaps, type Capability } from "@vet/shared";
 
 const FAKE_API_KEY = "fake-emulator-api-key";
 const PROJECT_ID = "vet-dev";
@@ -19,7 +20,7 @@ const ADMIN = {
   roleId: "admin",
 };
 
-const ADMIN_CAPS = [
+const ADMIN_CAPS: Capability[] = [
   "activities.read.all","activities.create","activities.update.own","activities.update.any",
   "activities.delete.own","activities.delete.any","activities.export",
   "aziende.read","aziende.create","aziende.update","aziende.delete",
@@ -31,8 +32,6 @@ const ADMIN_CAPS = [
   "conti.proforma","conti.emit","conti.saldo",
   "reminders.read","reminders.create","reminders.update.own","reminders.update.any","reminders.delete.own","reminders.delete.any",
 ];
-
-function encodeCaps(caps: ReadonlyArray<string>): string[] { return [...caps]; }
 
 try { await auth.deleteUser(ADMIN.uid); } catch { /* ignore */ }
 await auth.createUser({ uid: ADMIN.uid, email: ADMIN.email, password: ADMIN.password, displayName: ADMIN.displayName, emailVerified: true });
