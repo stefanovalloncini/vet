@@ -14,6 +14,7 @@ import {
   formatEuro,
   parseDateInput,
 } from "../../../shared/lib/format";
+import { roundCents } from "../../../shared/lib/money";
 import { useEmettiConto } from "../hooks/useConti";
 import { useArmadietto } from "../hooks/useArmadietto";
 import { contiI18n as t } from "../i18n";
@@ -55,8 +56,7 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
     armadietto.attivo && armadietto.importoNum !== null
       ? armadietto.importoNum
       : undefined;
-  const grandTotal =
-    Math.round((preview.totaleConto + (armadiettoImporto ?? 0)) * 100) / 100;
+  const grandTotal = roundCents(preview.totaleConto + (armadiettoImporto ?? 0));
   const hasContent = preview.count > 0 || armadiettoImporto !== undefined;
 
   const canProforma = user?.caps.has("conti.proforma") ?? false;

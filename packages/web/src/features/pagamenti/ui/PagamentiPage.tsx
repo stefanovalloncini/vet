@@ -9,6 +9,7 @@ import {
   type FilterDef,
 } from "../../../shared/ui/data-grid";
 import { formatDate, formatEuro } from "../../../shared/lib/format";
+import { roundCents } from "../../../shared/lib/money";
 import { routes } from "../../../routes";
 import { ContiPerAziendaTab } from "../../conti";
 import { usePagamentiOverview, type PagamentoOverview } from "../hooks/usePagamentiOverview";
@@ -107,9 +108,7 @@ export function PagamentiPage() {
         ),
         footer: (rs) => (
           <span className="font-mono tabular-nums font-medium">
-            {formatEuro(
-              Math.round(rs.reduce((s, r) => s + r.totaleAperto, 0) * 100) / 100
-            )}
+            {formatEuro(roundCents(rs.reduce((s, r) => s + r.totaleAperto, 0)))}
           </span>
         ),
       },
@@ -159,9 +158,7 @@ export function PagamentiPage() {
     const visible = statoFilter
       ? rows.filter((r) => statusOf(r) === statoFilter)
       : rows;
-    return (
-      Math.round(visible.reduce((s, r) => s + r.totaleAperto, 0) * 100) / 100
-    );
+    return roundCents(visible.reduce((s, r) => s + r.totaleAperto, 0));
   }, [rows, statoFilter]);
 
   return (

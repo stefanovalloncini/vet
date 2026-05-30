@@ -9,6 +9,7 @@ import {
   trailingMonths,
   type MonthStats,
 } from "../lib/stats";
+import { roundCents } from "../../../shared/lib/money";
 import type { Attivita, Azienda, AttivitaFilters } from "@vet/shared";
 
 export interface TipoBreakdownRow {
@@ -71,7 +72,7 @@ export function useDashboardStats(now: Date): DashboardStats {
   );
 
   const trailingTotal = useMemo(
-    () => Math.round(trailing.totals.reduce((s, v) => s + v, 0) * 100) / 100,
+    () => roundCents(trailing.totals.reduce((s, v) => s + v, 0)),
     [trailing]
   );
 
