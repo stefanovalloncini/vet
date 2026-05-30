@@ -36,7 +36,7 @@ export function partitionForRetention(
   retentionCount: number
 ): { retained: DatedFolder[]; toDelete: DatedFolder[] } {
   const dated = folders.filter((f) => isDatedFolderName(f.name));
-  const sorted = [...dated].sort((a, b) => (a.name < b.name ? 1 : a.name > b.name ? -1 : 0));
+  const sorted = [...dated].sort((a, b) => b.name.localeCompare(a.name));
   const retained = sorted.slice(0, retentionCount);
   const toDelete = sorted.slice(retentionCount);
   return { retained, toDelete };

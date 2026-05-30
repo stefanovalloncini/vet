@@ -21,6 +21,12 @@ const ITALIAN_MONTHS = [
   "Dicembre",
 ];
 
+const MONTHS_BY_CADENZA: Record<Cadenza, number> = {
+  monthly: 1,
+  quarterly: 3,
+  semiannual: 6,
+};
+
 export function isCadenzaDue(cadenza: Cadenza, runAt: Date): boolean {
   const m = runAt.getUTCMonth() + 1;
   if (cadenza === "monthly") return true;
@@ -30,8 +36,7 @@ export function isCadenzaDue(cadenza: Cadenza, runAt: Date): boolean {
 }
 
 export function periodFor(cadenza: Cadenza, runAt: Date): Period {
-  const months =
-    cadenza === "monthly" ? 1 : cadenza === "quarterly" ? 3 : 6;
+  const months = MONTHS_BY_CADENZA[cadenza];
   const year = runAt.getUTCFullYear();
   const month = runAt.getUTCMonth();
   const end = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
