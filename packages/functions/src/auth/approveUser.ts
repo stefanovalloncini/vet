@@ -3,7 +3,7 @@ import { logger } from "firebase-functions/v2";
 import { z } from "zod";
 import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
-import { encodeCaps } from "@vet/shared";
+import { encodeCaps, actorCanAssignRole } from "@vet/shared";
 import { readActorClaims } from "./actorClaims.js";
 import { ensureRecentAuth } from "./recentAuth.js";
 
@@ -45,6 +45,9 @@ export const approveUser = onCall(
     ]);
     if (!user) throw new HttpsError("not-found", "user");
     if (!role) throw new HttpsError("not-found", "role");
+    if (!actorCanAssignRole(role.capabilities, caps)) {
+      throw new HttpsError("permission-denied", "");
+    }
 
     const capsVer = Date.now();
 

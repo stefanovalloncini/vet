@@ -39,6 +39,19 @@ service cloud.firestore {
         );
     }
 
+    // Mirrors PRIVILEGED_CAPABILITIES in @vet/shared (caps/privileged.ts).
+    // A role is privileged if it can grant power to other accounts.
+    function roleIsPrivileged(roleId) {
+      return roleId == "admin"
+        || (exists(/databases/$(database)/documents/roles/$(roleId))
+            && get(/databases/$(database)/documents/roles/$(roleId)).data.capabilities
+                .hasAny(["roles.manage", "roles.assign", "allowlist.manage", "users.approve"]));
+    }
+
+    function canAssignRole(roleId) {
+      return !roleIsPrivileged(roleId) || hasCap("rm");
+    }
+
     match /users/{uid} {
       allow read: if (request.auth != null && request.auth.uid == uid) || hasCap("usr");
       allow create: if false;
@@ -54,7 +67,7 @@ service cloud.firestore {
             && request.resource.data.roleId is string
             && request.resource.data.roleId.size() >= 1
             && request.resource.data.roleId.size() <= 60
-            && request.resource.data.roleId != "admin")
+            && canAssignRole(request.resource.data.roleId))
           || (hasCap("uap") && uid != request.auth.uid
             && tokenIsFresh()
             && request.resource.data.diff(resource.data).changedKeys().hasOnly(["approved", "roleId", "approvedAt", "approvedBy", "updatedAt"])
@@ -62,7 +75,7 @@ service cloud.firestore {
             && request.resource.data.roleId is string
             && request.resource.data.roleId.size() >= 1
             && request.resource.data.roleId.size() <= 60
-            && request.resource.data.roleId != "admin"
+            && canAssignRole(request.resource.data.roleId)
             && request.resource.data.approvedBy is string
             && request.resource.data.approvedBy == request.auth.uid
             && request.resource.data.approvedAt == request.time)
@@ -140,7 +153,7 @@ service cloud.firestore {
           && d.email is string && d.email.size() >= 3 && d.email.size() <= 120 && d.email.matches("^[^=+\\-@\\s][^@\\s]*@[^@\\s]+\\.[^@\\s]+$")
           && d.email.lower() == emailNorm
           && d.defaultRoleId is string && d.defaultRoleId.size() >= 1 && d.defaultRoleId.size() <= 60
-          && d.defaultRoleId != "admin"
+          && canAssignRole(d.defaultRoleId)
           && d.invitedBy is string && d.invitedBy.size() <= 128
           && (!("notes" in d.keys()) || (d.notes is string && d.notes.size() <= 500))
           && d.schemaVersion == 1;

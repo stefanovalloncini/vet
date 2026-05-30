@@ -4,6 +4,7 @@ import { getRepositories } from "../infrastructure/composition.js";
 import { toHttpsError } from "../infrastructure/httpsErrors.js";
 import {
   acceptAccessRequestInputSchema,
+  actorCanAssignRole,
   normalizeEmail,
 } from "@vet/shared";
 import { readActorClaims } from "./actorClaims.js";
@@ -56,6 +57,9 @@ export const acceptAccessRequest = onCall(
         }
         if (!role) {
           throw new HttpsError("failed-precondition", "");
+        }
+        if (!actorCanAssignRole(role.capabilities, caps)) {
+          throw new HttpsError("permission-denied", "");
         }
         if (!existingAllow) {
           await tx.allowlist.add(

@@ -32,6 +32,11 @@ export {
 } from "./domain/caps/registry.js";
 export { CAPABILITY_LABELS } from "./domain/caps/labels.js";
 export {
+  PRIVILEGED_CAPABILITIES,
+  roleHasPrivilegedCaps,
+  actorCanAssignRole,
+} from "./domain/caps/privileged.js";
+export {
   VETERINARIO_CAPS,
   TITOLARE_CAPS,
   AMMINISTRATORE_CAPS,
