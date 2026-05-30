@@ -7,6 +7,7 @@ import { useRepositories } from "../../infrastructure/RepositoriesContext";
 import { useAuthState } from "../auth";
 import { queryKeys } from "../../shared/data";
 import type { Attivita, Azienda } from "@vet/shared";
+import { filterAziende, filterAttivita } from "./lib/filter";
 
 export const SEARCH_OPEN_EVENT = "vet:search:open";
 
@@ -60,31 +61,15 @@ export function SearchPalette() {
     [attivitaQ.data]
   );
 
-  const filteredAziende = useMemo(() => {
-    if (!query.trim()) return items.slice(0, 6);
-    const q = query.toLowerCase();
-    return items
-      .filter(
-        (a) =>
-          a.nomeNorm.includes(q) ||
-          a.nome.toLowerCase().includes(q) ||
-          (a.telefono ?? "").includes(q)
-      )
-      .slice(0, 8);
-  }, [query, items]);
+  const filteredAziende = useMemo(
+    () => filterAziende(items, query),
+    [query, items]
+  );
 
-  const filteredAtt = useMemo(() => {
-    if (!query.trim()) return [] as Attivita[];
-    const q = query.toLowerCase();
-    return recentAtt
-      .filter(
-        (a) =>
-          a.aziendaNome.toLowerCase().includes(q) ||
-          a.tipoNome.toLowerCase().includes(q) ||
-          (a.note ?? "").toLowerCase().includes(q)
-      )
-      .slice(0, 6);
-  }, [query, recentAtt]);
+  const filteredAtt = useMemo(
+    () => filterAttivita(recentAtt, query),
+    [query, recentAtt]
+  );
 
   const totalResults = filteredAziende.length + filteredAtt.length;
   const hasQuery = query.trim().length > 0;
