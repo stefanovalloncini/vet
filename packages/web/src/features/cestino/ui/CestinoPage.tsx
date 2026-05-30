@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   AppShell,
   Button,
@@ -15,6 +15,7 @@ import {
 } from "../../../shared/ui/data-grid";
 import { useAuthState } from "../../auth";
 import { usePurgeTrashed, useRestoreTrashed, useTrash } from "../hooks/useTrash";
+import { useTrashSelection } from "../hooks/useTrashSelection";
 import { cestinoI18n as t } from "../i18n";
 import type { Attivita } from "@vet/shared";
 import { CestinoRow } from "./CestinoRow";
@@ -42,7 +43,6 @@ export function CestinoPage() {
   const [confirmingPurgeId, setConfirmingPurgeId] = useState<string | null>(null);
   const [confirmingBulkPurge, setConfirmingBulkPurge] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const canRestoreItem = useCallback(
     (a: Attivita): boolean =>
@@ -54,37 +54,7 @@ export function CestinoPage() {
     () => items.filter((a) => canPurge || canRestoreItem(a)),
     [items, canPurge, canRestoreItem]
   );
-  const selectedItems = useMemo(
-    () => actionableItems.filter((a) => selected.has(a.id)),
-    [actionableItems, selected]
-  );
-  const allSelected =
-    actionableItems.length > 0 && selectedItems.length === actionableItems.length;
-
-  useEffect(() => {
-    if (selected.size === 0) return;
-    const validIds = new Set(actionableItems.map((a) => a.id));
-    const next = new Set<string>();
-    for (const id of selected) if (validIds.has(id)) next.add(id);
-    if (next.size !== selected.size) setSelected(next);
-  }, [actionableItems, selected]);
-
-  function toggleOne(id: string, next: boolean): void {
-    setSelected((prev) => {
-      const out = new Set(prev);
-      if (next) out.add(id);
-      else out.delete(id);
-      return out;
-    });
-  }
-
-  function toggleAll(next: boolean): void {
-    if (!next) {
-      setSelected(new Set());
-      return;
-    }
-    setSelected(new Set(actionableItems.map((a) => a.id)));
-  }
+  const selection = useTrashSelection(actionableItems);
 
   async function handleRestore(a: Attivita): Promise<void> {
     setBusyId(a.id);
@@ -112,7 +82,7 @@ export function CestinoPage() {
   }
 
   async function handleBulkRestore(): Promise<void> {
-    const toRestore = selectedItems.filter(canRestoreItem);
+    const toRestore = selection.selectedItems.filter(canRestoreItem);
     if (toRestore.length === 0) return;
     setBulkBusy(true);
     setErrorMsg(null);
@@ -120,7 +90,7 @@ export function CestinoPage() {
       for (const a of toRestore) {
         await restoreMutation.mutateAsync(a.id);
       }
-      setSelected(new Set());
+      selection.clear();
     } catch {
       setErrorMsg(t.errorRestore);
     } finally {
@@ -129,14 +99,14 @@ export function CestinoPage() {
   }
 
   async function handleBulkPurge(): Promise<void> {
-    if (!canPurge || selectedItems.length === 0) return;
+    if (!canPurge || selection.selectedItems.length === 0) return;
     setBulkBusy(true);
     setErrorMsg(null);
     try {
-      for (const a of selectedItems) {
+      for (const a of selection.selectedItems) {
         await purgeMutation.mutateAsync(a.id);
       }
-      setSelected(new Set());
+      selection.clear();
       setConfirmingBulkPurge(false);
     } catch {
       setErrorMsg(t.errorPurge);
@@ -145,8 +115,8 @@ export function CestinoPage() {
     }
   }
 
-  const selectionCount = selectedItems.length;
-  const canBulkRestore = selectedItems.some(canRestoreItem);
+  const selectionCount = selection.selectionCount;
+  const canBulkRestore = selection.selectedItems.some(canRestoreItem);
   const showTabs = canSeeAny;
   const showBulkBar = actionableItems.length > 0;
 
@@ -207,11 +177,11 @@ export function CestinoPage() {
           <BulkBar
             total={actionableItems.length}
             selectionCount={selectionCount}
-            allSelected={allSelected}
+            allSelected={selection.allSelected}
             busy={bulkBusy}
             canBulkRestore={canBulkRestore}
             canBulkPurge={canPurge}
-            onSelectAll={toggleAll}
+            onSelectAll={selection.toggleAll}
             onRestore={handleBulkRestore}
             onPurgeAsk={() => setConfirmingBulkPurge(true)}
           />
@@ -235,8 +205,8 @@ export function CestinoPage() {
             canRestore={canRestoreItem(a)}
             canPurge={canPurge}
             selectable={canPurge || canRestoreItem(a)}
-            selected={selected.has(a.id)}
-            onSelectChange={(next) => toggleOne(a.id, next)}
+            selected={selection.selected.has(a.id)}
+            onSelectChange={(next) => selection.toggleOne(a.id, next)}
             onRestore={() => handleRestore(a)}
             onPurgeAsk={() => setConfirmingPurgeId(a.id)}
           />
