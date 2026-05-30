@@ -38,17 +38,22 @@ describe("decideAuthResult", () => {
     expect(out.isFirst).toBe(false);
   });
 
-  it("approved user: capsVer in claims comes from role.capsVer", () => {
+  it("approved user: capsVer in claims comes from the user's minCapsVer floor", () => {
     const out = decideAuthResult({
       allow,
-      existing: { approved: true, roleId: "vet", displayName: "A" },
-      role: { capabilities: ["activities.read.all"], capsVer: 42 },
+      existing: {
+        approved: true,
+        roleId: "vet",
+        displayName: "A",
+        minCapsVer: 1748600000000,
+      },
+      role,
       displayName: "A",
     });
-    expect(out.customClaims).toMatchObject({ capsVer: 42 });
+    expect(out.customClaims).toMatchObject({ capsVer: 1748600000000 });
   });
 
-  it("approved user: capsVer defaults to 0 when role doc has none", () => {
+  it("approved user: capsVer defaults to 0 when the user has no minCapsVer", () => {
     const out = decideAuthResult({
       allow,
       existing: { approved: true, roleId: "vet", displayName: "A" },
@@ -56,5 +61,25 @@ describe("decideAuthResult", () => {
       displayName: "A",
     });
     expect(out.customClaims).toMatchObject({ capsVer: 0 });
+  });
+
+  it("re-sign-in invariant: minted capsVer satisfies the persisted minCapsVer floor", () => {
+    // approveUser/selfRevoke/revokeUserSession/onRoleChange all write minCapsVer
+    // as a wall-clock millis value; the token minted on the next sign-in must
+    // clear that floor or firestore.rules tokenIsFresh() bricks the user.
+    const persistedFloor = 1748600000000;
+    const out = decideAuthResult({
+      allow,
+      existing: {
+        approved: true,
+        roleId: "vet",
+        displayName: "A",
+        minCapsVer: persistedFloor,
+      },
+      role,
+      displayName: "A",
+    });
+    const minted = (out.customClaims as { capsVer: number }).capsVer;
+    expect(minted).toBeGreaterThanOrEqual(persistedFloor);
   });
 });

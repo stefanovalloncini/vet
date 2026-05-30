@@ -58,7 +58,13 @@ export const onRoleChange = onDocumentWritten(
     }
 
     const repos = getRepositories();
-    const capsVer = await repos.roles.bumpCapsVer(roleId);
+    // bumpCapsVer changes roles/{roleId}.capsVer, which re-triggers this handler;
+    // isCapsVerBumpWrite above detects that and short-circuits the re-trigger.
+    // The session floor itself lives in wall-clock millis (same space as
+    // approveUser/selfRevoke/revokeUserSession), so beforeSignIn can mint a token
+    // that clears it on the next sign-in.
+    await repos.roles.bumpCapsVer(roleId);
+    const capsVer = Date.now();
 
     const targets = await repos.users.listByRole(roleId);
 

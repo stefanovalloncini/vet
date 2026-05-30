@@ -26,8 +26,13 @@ export function composeClaims(input: ComposeInput) {
 
 interface DecideInput {
   allow: { defaultRoleId: string };
-  existing: { approved?: boolean; roleId?: string; displayName?: string } | null;
-  role: { capabilities: ReadonlyArray<Capability>; capsVer?: number };
+  existing: {
+    approved?: boolean;
+    roleId?: string;
+    displayName?: string;
+    minCapsVer?: number;
+  } | null;
+  role: { capabilities: ReadonlyArray<Capability> };
   displayName: string;
 }
 
@@ -50,7 +55,7 @@ export function decideAuthResult(input: DecideInput): DecideOutput {
     ...composeClaims({
       roleId,
       capabilities: [...role.capabilities],
-      capsVer: role.capsVer ?? 0,
+      capsVer: existing?.minCapsVer ?? 0,
     }),
     name: existing?.displayName ?? displayName,
   };
@@ -210,12 +215,12 @@ export const beforeSignIn: ReturnType<typeof beforeUserSignedIn> = beforeUserSig
             approved: existingUser.approved,
             roleId: existingUser.roleId,
             displayName: existingUser.displayName,
+            ...(existingUser.minCapsVer !== undefined
+              ? { minCapsVer: existingUser.minCapsVer }
+              : {}),
           }
         : null,
-      role: {
-        capabilities: role.capabilities,
-        ...(role.capsVer !== undefined ? { capsVer: role.capsVer } : {}),
-      },
+      role: { capabilities: role.capabilities },
       displayName,
     });
 
