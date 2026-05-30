@@ -8,14 +8,30 @@ import {
 } from "@vet/shared";
 import { readActorClaims } from "./actorClaims.js";
 
+export function ensureCanAcceptAccessRequest(actor: {
+  uid: string | undefined;
+  caps: readonly string[];
+}): string {
+  if (!actor.uid || !actor.caps.includes("allowlist.manage")) {
+    throw new HttpsError("permission-denied", "");
+  }
+  return actor.uid;
+}
+
+export function ensureAssignableRole(roleId: string): void {
+  if (roleId === "admin") {
+    throw new HttpsError("invalid-argument", "");
+  }
+}
+
 export const acceptAccessRequest = onCall(
   { region: "europe-west8", enforceAppCheck: true },
   async (request) => {
-    const actorUid = request.auth?.uid;
     const { email: actorEmail, caps } = readActorClaims(request.auth?.token);
-    if (!actorUid || !caps.includes("allowlist.manage")) {
-      throw new HttpsError("permission-denied", "");
-    }
+    const actorUid = ensureCanAcceptAccessRequest({
+      uid: request.auth?.uid,
+      caps,
+    });
 
     let input;
     try {
@@ -23,9 +39,7 @@ export const acceptAccessRequest = onCall(
     } catch {
       throw new HttpsError("invalid-argument", "");
     }
-    if (input.roleId === "admin") {
-      throw new HttpsError("invalid-argument", "");
-    }
+    ensureAssignableRole(input.roleId);
 
     const emailNorm = normalizeEmail(input.email);
     const repos = getRepositories();
