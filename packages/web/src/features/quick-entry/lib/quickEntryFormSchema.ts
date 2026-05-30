@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ALTRO_TIPO_ID, modalitaSchema } from "@vet/shared";
+import { ALTRO_TIPO_ID, hasAtMostTwoDecimals, modalitaSchema } from "@vet/shared";
 
 const positiveNumberString = z.string().superRefine((value, ctx) => {
   if (value.trim() === "") return;
@@ -23,7 +23,12 @@ export const quickEntryFormSchema = z
       .min(1, "Tariffa obbligatoria")
       .superRefine((value, ctx) => {
         const num = Number(value);
-        if (!Number.isFinite(num) || num <= 0) {
+        if (
+          !Number.isFinite(num) ||
+          num <= 0 ||
+          num > 100_000 ||
+          !hasAtMostTwoDecimals(num)
+        ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Tariffa non valida",

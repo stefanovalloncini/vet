@@ -36,6 +36,17 @@ describe("quickEntryFormSchema", () => {
     expect(failsAt({ ...base, tariffa: "abc" }, "tariffa")).toBe(true);
   });
 
+  it("rejects a tariffa with >2 decimals or over the 100k cap (matches the shared schema)", () => {
+    expect(failsAt({ ...base, tariffa: "19.999" }, "tariffa")).toBe(true);
+    expect(failsAt({ ...base, tariffa: "200000" }, "tariffa")).toBe(true);
+  });
+
+  it("accepts float-fragile 2-decimal tariffe inline", () => {
+    for (const tariffa of ["19.99", "0.07", "8.55", "70.10"]) {
+      expect(quickEntryFormSchema.safeParse({ ...base, tariffa }).success).toBe(true);
+    }
+  });
+
   it("requires positive ore when modalita is oraria", () => {
     expect(failsAt({ ...base, modalita: "oraria", ore: "" }, "ore")).toBe(true);
     expect(failsAt({ ...base, modalita: "oraria", ore: "0" }, "ore")).toBe(true);
