@@ -124,8 +124,9 @@ function ContoCard({ conto, actions }: ContoCardProps) {
             {t.attivita}: {conto.attivitaIds.length}
           </p>
           {conto.saldato && conto.saldatoByName ? (
-            <p className="mt-0.5 text-xs text-(--color-text-subtle)">
+            <p className="mt-0.5 text-xs text-(--color-text-subtle) tabular-nums">
               {t.saldatoDa} {conto.saldatoByName}
+              {conto.saldatoAt ? ` il ${formatDate(conto.saldatoAt)}` : ""}
             </p>
           ) : null}
         </div>

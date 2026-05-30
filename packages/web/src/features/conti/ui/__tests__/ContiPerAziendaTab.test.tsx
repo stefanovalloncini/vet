@@ -101,18 +101,24 @@ describe("ContiPerAziendaTab", () => {
 
   it("shows who emitted the conto, and who settled it once saldato", async () => {
     const repos = reposWith([], () =>
-      Promise.resolve([conto({ saldato: true, saldatoByName: "Vet Two" })])
+      Promise.resolve([
+        conto({
+          saldato: true,
+          saldatoByName: "Vet Two",
+          saldatoAt: new Date("2026-04-15T10:00:00Z"),
+        }),
+      ])
     );
     const { container } = render(<ContiPerAziendaTab aziendaId="az1" />, {
       wrapper: buildProvidersWrapper({ repos }),
     });
     await waitFor(() =>
       expect(
-        within(container).getByText(/Emesso da Vet One/)
+        within(container).getByText(/Emesso da Vet One il \d{2}\/\d{2}\/2026/)
       ).toBeInTheDocument()
     );
     expect(
-      within(container).getByText(/Saldato da Vet Two/)
+      within(container).getByText(/Saldato da Vet Two il \d{2}\/\d{2}\/2026/)
     ).toBeInTheDocument();
   });
 
