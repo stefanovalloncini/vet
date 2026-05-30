@@ -1,49 +1,67 @@
-import type { Azienda, CadenzaFatturazione } from "@vet/shared";
+import type { Attivita, Azienda, CadenzaFatturazione, Conto } from "@vet/shared";
+import { previousFor, rangeForSelection } from "../../conti";
 
-const MONTHS_BY_CADENZA: Record<CadenzaFatturazione, number> = {
-  monthly: 1,
-  quarterly: 3,
-  semiannual: 6,
-};
+const DEFAULT_CADENZA: CadenzaFatturazione = "quarterly";
 
-const DEFAULT_MONTHS = 3;
-
-function startOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
+function cadenzaFor(azienda: Pick<Azienda, "cadenzaFatturazione">): CadenzaFatturazione {
+  return azienda.cadenzaFatturazione ?? DEFAULT_CADENZA;
 }
 
-function endOfMonth(d: Date): Date {
-  // Day 0 of next month = last day of current month.
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0);
-}
-
-/**
- * Returns the default conto period for an azienda relative to `today`.
- *
- * - monthly    → previous full calendar month
- * - quarterly  → previous 3 full calendar months
- * - semiannual → previous 6 full calendar months
- * - unset      → previous 3 months (sensible default)
- *
- * `from` is the first day of the earliest month in the window, `to` is the
- * last day of the most-recent fully-elapsed month. The current month is
- * never included.
- */
 export function defaultPeriodForAzienda(
   azienda: Azienda,
   today: Date
 ): { from: Date; to: Date } {
-  const months = azienda.cadenzaFatturazione
-    ? MONTHS_BY_CADENZA[azienda.cadenzaFatturazione]
-    : DEFAULT_MONTHS;
-  // The most recent fully-elapsed calendar month is `today - 1 month`.
-  const lastMonthAnchor = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const to = endOfMonth(lastMonthAnchor);
-  const firstMonthAnchor = new Date(
-    today.getFullYear(),
-    today.getMonth() - months,
-    1
+  return rangeForSelection(previousFor(cadenzaFor(azienda), today));
+}
+
+function inRange(d: Date, from: Date, to: Date): boolean {
+  const t = d.getTime();
+  return t >= from.getTime() && t <= to.getTime();
+}
+
+function overlaps(
+  conto: Pick<Conto, "periodoFrom" | "periodoTo">,
+  from: Date,
+  to: Date
+): boolean {
+  return (
+    conto.periodoFrom.getTime() <= to.getTime() &&
+    conto.periodoTo.getTime() >= from.getTime()
   );
-  const from = startOfMonth(firstMonthAnchor);
-  return { from, to };
+}
+
+function isEmittedConto(conto: Conto): boolean {
+  return !conto.isDeleted && conto.modalita === "emesso";
+}
+
+export interface NeedsNewContoArgs {
+  readonly azienda: Azienda;
+  readonly conti: ReadonlyArray<Conto>;
+  readonly attivita: ReadonlyArray<Attivita> | undefined;
+  readonly billedIds: ReadonlySet<string>;
+  readonly now: Date;
+}
+
+export function needsNewContoForAzienda(args: NeedsNewContoArgs): boolean {
+  const { azienda, conti, attivita, billedIds, now } = args;
+  if (!azienda.cadenzaFatturazione) return false;
+  if (!attivita || attivita.length === 0) return false;
+
+  const { from, to } = rangeForSelection(previousFor(azienda.cadenzaFatturazione, now));
+  if (to.getTime() >= now.getTime()) return false;
+
+  const hasUnbilledInPeriod = attivita.some(
+    (a) =>
+      a.aziendaId === azienda.id &&
+      !a.isDeleted &&
+      !billedIds.has(a.id) &&
+      inRange(a.data, from, to)
+  );
+  if (!hasUnbilledInPeriod) return false;
+
+  const covered = conti.some(
+    (c) =>
+      c.aziendaId === azienda.id && isEmittedConto(c) && overlaps(c, from, to)
+  );
+  return !covered;
 }

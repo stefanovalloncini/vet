@@ -100,7 +100,7 @@ describe("usePagamentiOverview", () => {
     expect(rows[1]?.totaleAperto).toBe(0);
   });
 
-  it("flags needsNewConto only when cadenza expired AND there are unbilled attivita", async () => {
+  it("flags needsNewConto when the closed calendar period has unbilled attivita", async () => {
     const { aziende, attivita, wrapper } = await setup();
     const a = await aziende.create(
       { nome: "Cadenza Mensile", cadenzaFatturazione: "monthly" },
@@ -111,11 +111,11 @@ describe("usePagamentiOverview", () => {
       actor(["aziende.create"])
     );
 
-    // Add an attivita today for both.
-    const today = new Date(2026, 4, 15); // 2026-05-15
+    const now = new Date(2026, 4, 15); // 2026-05-15, closed month = April
+    const inApril = new Date(2026, 3, 10);
     await attivita.create(
       {
-        data: today,
+        data: inApril,
         aziendaId: a.id,
         tipoId: "t1",
         oraria: false,
@@ -127,7 +127,7 @@ describe("usePagamentiOverview", () => {
     );
     await attivita.create(
       {
-        data: today,
+        data: inApril,
         aziendaId: a2.id,
         tipoId: "t1",
         oraria: false,
@@ -138,7 +138,7 @@ describe("usePagamentiOverview", () => {
       actor()
     );
 
-    const { result } = renderHook(() => usePagamentiOverview(today), {
+    const { result } = renderHook(() => usePagamentiOverview(now), {
       wrapper,
     });
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -146,9 +146,79 @@ describe("usePagamentiOverview", () => {
     const rows = result.current.rows;
     expect(rows).toHaveLength(2);
     const byId = new Map(rows.map((r) => [r.azienda.id, r]));
-    // Azienda with cadenza and no prior conto + unbilled attivita → todo.
+    // Monthly azienda, unbilled attivita in the just-closed month, no conto → flagged.
     expect(byId.get(a.id)?.needsNewConto).toBe(true);
     // Azienda without cadenza → never flagged.
     expect(byId.get(a2.id)?.needsNewConto).toBe(false);
+  });
+
+  it("does not flag needsNewConto when unbilled attivita fall only in the current open period", async () => {
+    const { aziende, attivita, wrapper } = await setup();
+    const a = await aziende.create(
+      { nome: "Cadenza Mensile", cadenzaFatturazione: "monthly" },
+      actor(["aziende.create"])
+    );
+
+    const now = new Date(2026, 4, 15); // 2026-05-15
+    await attivita.create(
+      {
+        data: now,
+        aziendaId: a.id,
+        tipoId: "t1",
+        oraria: false,
+        adElemento: false,
+        tariffa: 50,
+      },
+      { aziendaNome: a.nome, tipoNome: "Visita" },
+      actor()
+    );
+
+    const { result } = renderHook(() => usePagamentiOverview(now), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const byId = new Map(result.current.rows.map((r) => [r.azienda.id, r]));
+    expect(byId.get(a.id)?.needsNewConto).toBe(false);
+  });
+
+  it("does not flag needsNewConto when an emitted conto covers the closed period", async () => {
+    const { aziende, attivita, conti, wrapper } = await setup();
+    const a = await aziende.create(
+      { nome: "Cadenza Mensile", cadenzaFatturazione: "monthly" },
+      actor(["aziende.create"])
+    );
+
+    const now = new Date(2026, 4, 15); // closed month = April
+    await attivita.create(
+      {
+        data: new Date(2026, 3, 10),
+        aziendaId: a.id,
+        tipoId: "t1",
+        oraria: false,
+        adElemento: false,
+        tariffa: 50,
+      },
+      { aziendaNome: a.nome, tipoNome: "Visita" },
+      actor()
+    );
+    await conti.emit(
+      {
+        aziendaId: a.id,
+        periodoFrom: new Date(2026, 3, 1),
+        periodoTo: new Date(2026, 3, 30, 23, 59, 59, 999),
+        modalita: "emesso",
+      },
+      { aziendaNome: a.nome, attivitaIds: [], totaleConto: 50 },
+      actor()
+    );
+
+    const { result } = renderHook(() => usePagamentiOverview(now), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const byId = new Map(result.current.rows.map((r) => [r.azienda.id, r]));
+    expect(byId.get(a.id)?.needsNewConto).toBe(false);
   });
 });
