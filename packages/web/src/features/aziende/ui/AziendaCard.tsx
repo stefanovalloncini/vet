@@ -5,7 +5,7 @@ import { aziendeI18n as t } from "../i18n";
 import { routes } from "../../../routes";
 import type { Azienda, CadenzaFatturazione } from "@vet/shared";
 import type { RowAction } from "../../../shared/ui/data-grid";
-import { statoFor, type StatoKey, type StatoMeta } from "../../pagamenti";
+import { statusFor } from "../lib/cardStatus";
 
 const CADENZA_LABEL: Record<CadenzaFatturazione, string> = {
   monthly: t.campoCadenzaMensile,
@@ -16,29 +16,6 @@ const CADENZA_LABEL: Record<CadenzaFatturazione, string> = {
 const capiFormatter = new Intl.NumberFormat("it-IT", {
   maximumFractionDigits: 0,
 });
-
-export type StatusTone = StatoMeta["tone"];
-export type StatusKey = StatoKey;
-
-export interface Status {
-  tone: StatusTone;
-  label: string;
-  key: StatusKey;
-}
-
-const CARD_LABEL: Record<StatoKey, string> = {
-  unpaid: "Conti non saldati",
-  todo: "Da emettere",
-  ok: "Tutto saldato",
-};
-
-export function statusFor(
-  hasUnsaldatiConti: boolean,
-  needsNewConto: boolean
-): Status {
-  const meta = statoFor({ hasUnpaid: hasUnsaldatiConti, needsNewConto });
-  return { tone: meta.tone, label: CARD_LABEL[meta.key], key: meta.key };
-}
 
 export interface AziendaCardProps {
   azienda: Azienda;

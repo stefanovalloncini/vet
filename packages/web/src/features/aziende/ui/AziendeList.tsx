@@ -11,7 +11,8 @@ import type {
 import { formatEuro } from "../../../shared/lib/format";
 import { routes } from "../../../routes";
 import { aziendeI18n as t } from "../i18n";
-import { AziendaCard, statusFor } from "./AziendaCard";
+import { AziendaCard } from "./AziendaCard";
+import { statusFor } from "../lib/cardStatus";
 import type { Azienda } from "@vet/shared";
 
 const capiFormatter = new Intl.NumberFormat("it-IT", {
