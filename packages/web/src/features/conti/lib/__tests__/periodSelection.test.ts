@@ -110,18 +110,24 @@ describe("previousSelection / nextSelection wrap-around", () => {
 });
 
 describe("detectPeriodSelection round-trips rangeForSelection", () => {
-  const cases: PeriodSelection[] = [
-    { kind: "monthly", year: 2026, index: 1 },
-    { kind: "monthly", year: 2026, index: 2 },
-    { kind: "monthly", year: 2026, index: 12 },
-    { kind: "quarterly", year: 2026, index: 1 },
-    { kind: "quarterly", year: 2026, index: 4 },
-    { kind: "semiannual", year: 2026, index: 1 },
-    { kind: "semiannual", year: 2026, index: 2 },
-    { kind: "annual", year: 2026, index: 0 },
-  ];
+  const years = [2024, 2026];
+  const cases: PeriodSelection[] = years.flatMap((year) => [
+    ...Array.from({ length: 12 }, (_, i) => ({
+      kind: "monthly" as const,
+      year,
+      index: i + 1,
+    })),
+    ...Array.from({ length: 4 }, (_, i) => ({
+      kind: "quarterly" as const,
+      year,
+      index: i + 1,
+    })),
+    { kind: "semiannual" as const, year, index: 1 },
+    { kind: "semiannual" as const, year, index: 2 },
+    { kind: "annual" as const, year, index: 0 },
+  ]);
   for (const sel of cases) {
-    it(`${sel.kind} #${sel.index} survives a round trip`, () => {
+    it(`${sel.kind} #${sel.index} ${sel.year} survives a round trip`, () => {
       const { from, to } = rangeForSelection(sel);
       expect(detectPeriodSelection(from, to)).toEqual(sel);
     });
