@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseAccessRequest } from "../accessRequest.js";
+import {
+  TTL_DAYS,
+  computeExpiresAtMillis,
+  parseAccessRequest,
+} from "../accessRequest.js";
 
 const firstAttemptAt = new Date("2026-02-01T10:00:00.000Z");
 const lastAttemptAt = new Date("2026-02-03T10:00:00.000Z");
@@ -76,5 +80,18 @@ describe("parseAccessRequest", () => {
     expect(() =>
       parseAccessRequest("x", { ...validDoc, photoURL: "not a url" })
     ).toThrow();
+  });
+});
+
+describe("computeExpiresAtMillis", () => {
+  it("adds the TTL window to the given instant", () => {
+    const now = Date.UTC(2026, 1, 1, 10, 0, 0);
+    const msPerDay = 24 * 60 * 60 * 1000;
+    expect(computeExpiresAtMillis(now)).toBe(now + TTL_DAYS * msPerDay);
+  });
+
+  it("uses a positive 90-day TTL", () => {
+    expect(TTL_DAYS).toBe(90);
+    expect(computeExpiresAtMillis(0)).toBeGreaterThan(0);
   });
 });
