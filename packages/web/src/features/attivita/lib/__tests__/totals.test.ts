@@ -52,6 +52,14 @@ describe("groupAttivita", () => {
     expect(r[0]?.totale).toBe(150);
   });
 
+  it("rounds the 'none' group total like the grouped branches", () => {
+    const r = groupAttivita(
+      [att({ id: "1", totale: 0.1 }), att({ id: "2", totale: 0.2 })],
+      "none"
+    );
+    expect(r[0]?.totale).toBe(0.3);
+  });
+
   it("groups by azienda using aziendaId as key and aziendaNome as label", () => {
     const r = groupAttivita(
       [

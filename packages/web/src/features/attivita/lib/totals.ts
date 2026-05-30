@@ -49,7 +49,7 @@ export function groupAttivita(items: Attivita[], by: GroupKey): Group[] {
         key: "all",
         label: "",
         items,
-        totale: items.reduce((s, a) => s + a.totale, 0),
+        totale: roundCents(items.reduce((s, a) => s + a.totale, 0)),
       },
     ];
   }
