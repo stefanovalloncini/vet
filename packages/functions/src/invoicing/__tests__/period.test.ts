@@ -32,6 +32,13 @@ describe("periodFor", () => {
     expect(p.label).toBe("Aprile 2026");
   });
 
+  it("monthly January rolls back to prior year December", () => {
+    const p = periodFor("monthly", new Date(Date.UTC(2026, 0, 10)));
+    expect(p.start.toISOString()).toBe("2025-12-01T00:00:00.000Z");
+    expect(p.end.toISOString()).toBe("2025-12-31T23:59:59.999Z");
+    expect(p.label).toBe("Dicembre 2025");
+  });
+
   it("quarterly bills the previous 3 months", () => {
     const p = periodFor("quarterly", new Date(Date.UTC(2026, 3, 10)));
     expect(p.start.toISOString()).toBe("2026-01-01T00:00:00.000Z");
@@ -51,5 +58,12 @@ describe("periodFor", () => {
     expect(p.start.toISOString()).toBe("2026-01-01T00:00:00.000Z");
     expect(p.end.toISOString()).toBe("2026-06-30T23:59:59.999Z");
     expect(p.label).toBe("Gennaio – Giugno 2026");
+  });
+
+  it("semiannual January rolls back to prior year H2", () => {
+    const p = periodFor("semiannual", new Date(Date.UTC(2026, 0, 10)));
+    expect(p.start.toISOString()).toBe("2025-07-01T00:00:00.000Z");
+    expect(p.end.toISOString()).toBe("2025-12-31T23:59:59.999Z");
+    expect(p.label).toBe("Luglio – Dicembre 2025");
   });
 });
