@@ -20,7 +20,7 @@ import { primeAuthStorage } from "../setup/auth";
  */
 export const TITOLARE: SeedAccount = {
   uid: "e2e-titolare-uid",
-  email: "titolare.e2e@example.com",
+  email: "titolare.billing.e2e@example.com",
   password: "Password-Titolare-1!",
   displayName: "E2E Titolare",
   roleId: "titolare",
@@ -57,6 +57,12 @@ async function seedTitolareUser(app: App): Promise<void> {
   const db = getFirestore(app);
   try {
     await auth.deleteUser(TITOLARE.uid);
+  } catch {
+    void 0;
+  }
+  try {
+    const existing = await auth.getUserByEmail(TITOLARE.email);
+    await auth.deleteUser(existing.uid);
   } catch {
     void 0;
   }
