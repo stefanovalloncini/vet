@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { dateKey, isAuditThrottled } from "../auditDenyLog.js";
+import {
+  dateKey,
+  isAuditThrottled,
+  isGlobalDenyCapExceeded,
+} from "../auditDenyLog.js";
 
 describe("auditDenyLog.dateKey", () => {
   it("buckets a timestamp into its UTC calendar day", () => {
@@ -22,5 +26,17 @@ describe("auditDenyLog.isAuditThrottled", () => {
   it("throttles once the daily cap is reached", () => {
     expect(isAuditThrottled(10)).toBe(true);
     expect(isAuditThrottled(11)).toBe(true);
+  });
+});
+
+describe("auditDenyLog.isGlobalDenyCapExceeded", () => {
+  it("allows writes below the global daily cap", () => {
+    expect(isGlobalDenyCapExceeded(0)).toBe(false);
+    expect(isGlobalDenyCapExceeded(4999)).toBe(false);
+  });
+
+  it("blocks writes once the global daily cap is reached", () => {
+    expect(isGlobalDenyCapExceeded(5000)).toBe(true);
+    expect(isGlobalDenyCapExceeded(5001)).toBe(true);
   });
 });
