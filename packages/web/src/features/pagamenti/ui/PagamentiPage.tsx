@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AppShell, PageHeader } from "../../../shared/ui";
+import { AppShell, Card, PageHeader } from "../../../shared/ui";
 import {
   DataGrid,
   dataGridIt,
@@ -19,6 +19,39 @@ function statusOf(row: PagamentoOverview): StatoBadgeStatus {
   if (row.hasUnpaid) return "unpaid";
   if (row.needsNewConto) return "todo";
   return "ok";
+}
+
+function PagamentoCard({ row }: { row: PagamentoOverview }) {
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <Link
+            to={routes.aziendaDetail.to({ id: row.azienda.id })}
+            className="block truncate font-medium text-(--color-accent) hover:underline focus-visible:outline-none focus-visible:underline"
+            title={row.azienda.nome}
+          >
+            {row.azienda.nome}
+          </Link>
+          <div className="mt-1.5">
+            <StatoBadge status={statusOf(row)} size="sm" />
+          </div>
+          <p className="mt-1.5 text-xs text-(--color-text-subtle) tabular-nums">
+            {t.colUltimo}:{" "}
+            {row.ultimoContoAt ? formatDate(row.ultimoContoAt) : t.nessunConto}
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-[10px] uppercase tracking-wide text-(--color-text-subtle)">
+            {t.colAperto}
+          </p>
+          <p className="font-mono tabular-nums text-(--color-text)">
+            {formatEuro(row.totaleAperto)}
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
 }
 
 const STATO_OPTIONS = [
@@ -122,7 +155,9 @@ export function PagamentiPage() {
         rows={rows}
         columns={columns}
         getRowId={(r) => r.azienda.id}
-        mode="table"
+        mode="responsive"
+        cardsLayout="list"
+        card={(row) => <PagamentoCard row={row} />}
         i18n={dataGridIt}
         loading={loading}
         error={error}
