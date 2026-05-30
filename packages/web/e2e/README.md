@@ -7,7 +7,7 @@ by minting custom claims directly via the Admin SDK.
 ## Prereqs
 
 - Node 20+, pnpm 11+
-- Java 11+ on `PATH` (Firestore emulator requirement)
+- Java 21+ on `PATH` (recent Firestore emulator builds reject older JDKs)
 - Firebase CLI available via `pnpm exec firebase` (already in the workspace dev
   dependencies)
 - Playwright browsers installed once: `pnpm -F @vet/web exec playwright install chromium`

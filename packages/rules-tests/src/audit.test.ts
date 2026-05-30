@@ -1,6 +1,14 @@
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+  setDoc,
+} from "firebase/firestore";
 import { disposeEnv, getEnv } from "./setup";
 import { adminAs, authedAs } from "./helpers";
 
@@ -29,6 +37,30 @@ describe("audit rules", () => {
     await assertSucceeds(
       getDoc(doc(authedAs(env, "u", ["audit.read"]), "audit/abc"))
     );
+  });
+
+  it("list allowed with audit.read and a within-cap limit", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["audit.read"]);
+    await assertSucceeds(getDocs(query(collection(db, "audit"), limit(500))));
+  });
+
+  it("list denied without audit.read", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u");
+    await assertFails(getDocs(query(collection(db, "audit"), limit(50))));
+  });
+
+  it("list denied without a query limit (unbounded read)", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["audit.read"]);
+    await assertFails(getDocs(query(collection(db, "audit"))));
+  });
+
+  it("list denied when the limit exceeds the cap", async () => {
+    const env = await getEnv();
+    const db = authedAs(env, "u", ["audit.read"]);
+    await assertFails(getDocs(query(collection(db, "audit"), limit(501))));
   });
 
   it("client cannot write audit ever", async () => {
