@@ -15,10 +15,11 @@ import {
   parseDateInput,
 } from "../../../shared/lib/format";
 import { roundCents } from "../../../shared/lib/money";
-import { useEmettiConto } from "../hooks/useConti";
+import { useEmettiConto, useContiForAzienda } from "../hooks/useConti";
 import { useArmadietto } from "../hooks/useArmadietto";
 import { contiI18n as t } from "../i18n";
 import { computeContoPreview, defaultPeriodoFor } from "../lib/contoPreview";
+import { countAlreadyBilled } from "../lib/alreadyBilled";
 import { contoFilenameStem, contoNumeroFor } from "../lib/contoDocMeta";
 import { ArmadiettoRow } from "./ArmadiettoRow";
 import { PeriodPicker } from "./PeriodPicker";
@@ -50,6 +51,12 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
     endOfDay.setHours(23, 59, 59, 999);
     return computeContoPreview(items, azienda.id, fromDate, endOfDay);
   }, [items, azienda.id, fromDate, toDate, periodValid]);
+
+  const existingConti = useContiForAzienda(azienda.id);
+  const alreadyBilled = useMemo(
+    () => countAlreadyBilled(preview.attivitaIds, existingConti.data ?? []),
+    [preview.attivitaIds, existingConti.data]
+  );
 
   const armadietto = useArmadietto(azienda, fromDate, toDate);
   const armadiettoImporto =
@@ -196,6 +203,11 @@ export function EmettiContoPanel({ azienda, items }: EmettiContoPanelProps) {
       {preview.count === 0 && armadiettoImporto === undefined && periodValid ? (
         <p className="mt-3 text-xs text-(--color-text-muted)">
           {t.noActivities}
+        </p>
+      ) : null}
+      {alreadyBilled > 0 && periodValid ? (
+        <p className="mt-3 text-xs text-(--color-warning)" role="status">
+          {t.giaFatturate(alreadyBilled)}
         </p>
       ) : null}
 

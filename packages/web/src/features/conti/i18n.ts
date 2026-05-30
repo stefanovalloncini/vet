@@ -29,6 +29,10 @@ export const contiI18n = {
   armadietto: "Armadietto farmaci",
   armadiettoImporto: "Importo (€)",
   attivitaSubtotale: "Subtotale attività",
+  giaFatturate: (n: number) =>
+    n === 1
+      ? "1 attività è in un conto già emesso"
+      : `${n} attività sono in un conto già emesso`,
   segnaSaldato: "Segna saldato",
   emessoDa: "Emesso da",
   saldatoDa: "Saldato da",

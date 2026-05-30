@@ -115,6 +115,26 @@ describe("EmettiContoPanel", () => {
     ).toBeInTheDocument();
   });
 
+  it("warns about activities already in an emesso conto, ignoring proforma", async () => {
+    const { repos, conti } = buildSetup(["conti.proforma", "conti.emit"]);
+    const { from, to } = defaultPeriodoFor(azienda());
+    const period = { aziendaId: "az1", periodoFrom: from, periodoTo: to } as const;
+    const denorm = (ids: string[]) => ({
+      aziendaNome: "Cascina Verdi",
+      attivitaIds: ids,
+      totaleConto: 100,
+    });
+    await conti.emit({ ...period, modalita: "emesso" }, denorm(["a1"]), actor(["conti.emit"]));
+    await conti.emit({ ...period, modalita: "proforma" }, denorm(["a2"]), actor(["conti.emit"]));
+    render(
+      <EmettiContoPanel azienda={azienda()} items={withItemsInPeriod()} />,
+      { wrapper: buildProvidersWrapper({ repos }) }
+    );
+    expect(
+      await screen.findByText("1 attività è in un conto già emesso")
+    ).toBeInTheDocument();
+  });
+
   it("hides 'Salva come pro forma' when missing conti.proforma cap", async () => {
     const { repos } = buildSetup(["conti.emit"]);
     render(
