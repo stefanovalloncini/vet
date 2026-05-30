@@ -4,6 +4,7 @@ import type { Attivita, Azienda, CadenzaFatturazione, Conto } from "@vet/shared"
 import { useAziende } from "../../aziende/hooks/useAziende";
 import { useConti } from "../../conti/hooks/useConti";
 import { useAttivita } from "../../attivita/hooks/useAttivita";
+import { collectBilledAttivitaIds, hasUnbilledAttivita } from "../lib/unbilled";
 
 export interface PagamentoOverview {
   readonly azienda: Azienda;
@@ -68,28 +69,16 @@ function buildAttivitaByAzienda(
   >;
 }
 
-function hasUnbilledAttivita(
-  list: ReadonlyArray<Attivita> | undefined,
-  ultimoContoAt: Date | null
-): boolean {
-  if (!list || list.length === 0) return false;
-  if (ultimoContoAt === null) return true;
-  const cutoff = ultimoContoAt.getTime();
-  for (const a of list) {
-    if (a.data.getTime() > cutoff) return true;
-  }
-  return false;
-}
-
 function computeNeedsNew(
   azienda: Azienda,
   ultimoContoAt: Date | null,
   attivitaByAzienda: Map<string, ReadonlyArray<Attivita>>,
+  billedIds: ReadonlySet<string>,
   now: Date
 ): boolean {
   if (!azienda.cadenzaFatturazione) return false;
   const months = MONTHS_BY_CADENZA[azienda.cadenzaFatturazione];
-  if (!hasUnbilledAttivita(attivitaByAzienda.get(azienda.id), ultimoContoAt)) {
+  if (!hasUnbilledAttivita(attivitaByAzienda.get(azienda.id), billedIds)) {
     return false;
   }
   if (ultimoContoAt === null) {
@@ -121,6 +110,7 @@ export function usePagamentiOverview(now: Date = new Date()): UsePagamentiOvervi
     const conti = contiQuery.data ?? [];
     const attivita = attivitaQuery.items;
     const contiAgg = aggregateConti(conti);
+    const billedIds = collectBilledAttivitaIds(conti);
     const attivitaByAzienda = buildAttivitaByAzienda(attivita);
     const out: PagamentoOverview[] = aziende.map((azienda) => {
       const agg = contiAgg.get(azienda.id);
@@ -131,6 +121,7 @@ export function usePagamentiOverview(now: Date = new Date()): UsePagamentiOvervi
         azienda,
         ultimoContoAt,
         attivitaByAzienda,
+        billedIds,
         now
       );
       return { azienda, totaleAperto, ultimoContoAt, hasUnpaid, needsNewConto };

@@ -64,6 +64,39 @@ describe("buildContoEmitDoc", () => {
     expect(payload.schemaVersion).toBe(1);
   });
 
+  it("rejects a totaleConto with more than two decimals", () => {
+    expect(() =>
+      buildContoEmitDoc(
+        { input, denorm: { ...denorm, totaleConto: 100.005 }, actor },
+        deps
+      )
+    ).toThrow();
+  });
+
+  it("rejects a negative or out-of-range totaleConto", () => {
+    expect(() =>
+      buildContoEmitDoc(
+        { input, denorm: { ...denorm, totaleConto: -1 }, actor },
+        deps
+      )
+    ).toThrow();
+    expect(() =>
+      buildContoEmitDoc(
+        { input, denorm: { ...denorm, totaleConto: 2_400_001 }, actor },
+        deps
+      )
+    ).toThrow();
+  });
+
+  it("accepts a clean two-decimal totaleConto", () => {
+    expect(() =>
+      buildContoEmitDoc(
+        { input, denorm: { ...denorm, totaleConto: 19.99 }, actor },
+        deps
+      )
+    ).not.toThrow();
+  });
+
   it("uses deps.fromDate for period bounds", () => {
     const payload = buildContoEmitDoc({ input, denorm, actor }, deps);
     expect(payload.periodoFrom).toBeInstanceOf(TsStamp);

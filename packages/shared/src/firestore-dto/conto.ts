@@ -5,7 +5,13 @@ import {
   contoModalitaSchema,
   type ContoEmitInput,
 } from "../domain/schemas/conto.js";
-import { euroAmountSchema, metodoPagamentoSchema } from "../domain/schemas/money.js";
+import {
+  euroAmountSchema,
+  hasAtMostTwoDecimals,
+  metodoPagamentoSchema,
+} from "../domain/schemas/money.js";
+
+const MAX_TOTALE_CONTO = 2_400_000;
 import {
   timestampLike,
   timestampToDate,
@@ -107,13 +113,24 @@ export function buildContoEmitDoc<TStamp, TServerStamp>(
   },
   deps: SerializerStampDeps<TStamp, TServerStamp>
 ): ContoEmitWritePayload<TStamp, TServerStamp> {
+  const totaleConto = args.denorm.totaleConto;
+  if (
+    !Number.isFinite(totaleConto) ||
+    totaleConto < 0 ||
+    totaleConto > MAX_TOTALE_CONTO ||
+    !hasAtMostTwoDecimals(totaleConto)
+  ) {
+    throw new Error(
+      "totaleConto must be a non-negative euro amount with at most 2 decimals"
+    );
+  }
   return {
     aziendaId: args.input.aziendaId,
     aziendaNome: args.denorm.aziendaNome,
     periodoFrom: deps.fromDate(args.input.periodoFrom),
     periodoTo: deps.fromDate(args.input.periodoTo),
     attivitaIds: [...args.denorm.attivitaIds],
-    totaleConto: args.denorm.totaleConto,
+    totaleConto,
     ...(args.input.armadiettoImporto !== undefined
       ? { armadiettoImporto: args.input.armadiettoImporto }
       : {}),
