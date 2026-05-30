@@ -59,7 +59,7 @@ export interface StatisticheData {
   yoyDiff: number | null;
 }
 
-function filtersForRange(range: StatistichePeriodo, now: Date): AttivitaFilter {
+export function filtersForRange(range: StatistichePeriodo, now: Date): AttivitaFilter {
   if (range === "ytd") {
     return { from: new Date(now.getFullYear(), 0, 1), to: now };
   }
@@ -72,7 +72,7 @@ function filtersForRange(range: StatistichePeriodo, now: Date): AttivitaFilter {
   return {};
 }
 
-function byTipoSlices(items: ReadonlyArray<Attivita>): SimpleSlice[] {
+export function byTipoSlices(items: ReadonlyArray<Attivita>): SimpleSlice[] {
   const map = new Map<string, SimpleSlice>();
   for (const a of items) {
     const cur = map.get(a.tipoId) ?? { label: a.tipoNome, value: 0 };
@@ -82,7 +82,7 @@ function byTipoSlices(items: ReadonlyArray<Attivita>): SimpleSlice[] {
   return [...map.values()].sort((a, b) => b.value - a.value).slice(0, 8);
 }
 
-function topClientsSlices(items: ReadonlyArray<Attivita>): ClientSlice[] {
+export function topClientsSlices(items: ReadonlyArray<Attivita>): ClientSlice[] {
   const map = new Map<string, ClientSlice>();
   for (const a of items) {
     const cur = map.get(a.aziendaId) ?? {
@@ -97,7 +97,7 @@ function topClientsSlices(items: ReadonlyArray<Attivita>): ClientSlice[] {
   return [...map.values()].sort((a, b) => b.value - a.value).slice(0, 5);
 }
 
-function monthlyComparisonOf(
+export function monthlyComparisonOf(
   items: ReadonlyArray<Attivita>,
   lastYearItems: ReadonlyArray<Attivita>,
   now: Date
@@ -115,7 +115,7 @@ function monthlyComparisonOf(
   return { thisYear, lastYear };
 }
 
-function stackedMonthsOf(
+export function stackedMonthsOf(
   items: ReadonlyArray<Attivita>,
   now: Date
 ): StackedMonth[] {
@@ -159,7 +159,7 @@ function stackedMonthsOf(
   }));
 }
 
-function funnelOf(
+export function funnelOf(
   items: ReadonlyArray<Attivita>,
   aziende: ReadonlyArray<Azienda>
 ): FunnelStage[] {
