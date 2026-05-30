@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { roundCents } from "../../../shared/lib/money";
 import type { Attivita, Azienda, CadenzaFatturazione, Conto } from "@vet/shared";
 import { useAziende } from "../../aziende/hooks/useAziende";
 import { useConti } from "../../conti/hooks/useConti";
@@ -46,7 +47,7 @@ function aggregateConti(conti: ReadonlyArray<Conto>): Map<string, Aggregate> {
     out.set(c.aziendaId, cur);
   }
   for (const v of out.values()) {
-    v.totaleAperto = Math.round(v.totaleAperto * 100) / 100;
+    v.totaleAperto = roundCents(v.totaleAperto);
   }
   return out;
 }

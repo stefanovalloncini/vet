@@ -1,4 +1,5 @@
 import type { Azienda, Conto } from "@vet/shared";
+import { roundCents } from "../../../shared/lib/money";
 
 export interface ContiByAzienda {
   readonly conti: ReadonlyArray<Conto>;
@@ -35,7 +36,7 @@ export function computeContiCounters(
   return {
     pending,
     total,
-    totaleUnsaldati: Math.round(totaleUnsaldati * 100) / 100,
+    totaleUnsaldati: roundCents(totaleUnsaldati),
   };
 }
 
@@ -71,7 +72,7 @@ export function groupContiByAzienda(
     out.set(aziendaId, {
       conti: bucket.conti,
       unsaldatiCount: unsaldatiList.length,
-      totaleUnsaldati: Math.round(totaleUnsaldati * 100) / 100,
+      totaleUnsaldati: roundCents(totaleUnsaldati),
       hasUnsaldati: unsaldatiList.length > 0,
       lastEmittedAt: bucket.lastEmittedAt,
     });

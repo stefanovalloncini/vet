@@ -1,4 +1,5 @@
 import type { Attivita } from "@vet/shared";
+import { roundCents } from "../../../shared/lib/money";
 import { SHORT_MONTHS_IT as SHORT_MONTHS } from "../../../shared/i18n/months";
 
 export interface MonthStats {
@@ -54,7 +55,7 @@ export function statsForRange(
   }
   return {
     count: inRange.length,
-    total: Math.round(total * 100) / 100,
+    total: roundCents(total),
     byAzienda,
     byTipo,
   };
@@ -102,7 +103,7 @@ export function trailingMonths(
         count += 1;
       }
     }
-    totals.push(Math.round(sum * 100) / 100);
+    totals.push(roundCents(sum));
     counts.push(count);
     labels.push(SHORT_MONTHS[start.getMonth()]!);
   }

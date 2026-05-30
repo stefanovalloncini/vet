@@ -1,4 +1,5 @@
 import type { Attivita } from "@vet/shared";
+import { roundCents } from "../../../shared/lib/money";
 import { dateInputValue } from "../../../shared/lib/format";
 
 const dayLabelFormatter = new Intl.DateTimeFormat("it-IT", {
@@ -26,7 +27,7 @@ export function computeTotals(items: Attivita[]): Totals {
   }
   return {
     count: items.length,
-    totale: Math.round(totale * 100) / 100,
+    totale: roundCents(totale),
     aziende: aziende.size,
     vets: vets.size,
   };
@@ -65,7 +66,7 @@ export function groupAttivita(items: Attivita[], by: GroupKey): Group[] {
   }
   return [...map.values()].map((g) => ({
     ...g,
-    totale: Math.round(g.totale * 100) / 100,
+    totale: roundCents(g.totale),
   }));
 }
 

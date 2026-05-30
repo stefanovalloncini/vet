@@ -1,4 +1,5 @@
 import type { Attivita } from "@vet/shared";
+import { roundCents } from "../../../shared/lib/money";
 
 export * from "./periodSelection";
 
@@ -26,7 +27,7 @@ export function computeContoPreview(
   const totale = matching.reduce((s, a) => s + a.totale, 0);
   return {
     attivitaIds: matching.map((a) => a.id),
-    totaleConto: Math.round(totale * 100) / 100,
+    totaleConto: roundCents(totale),
     count: matching.length,
   };
 }

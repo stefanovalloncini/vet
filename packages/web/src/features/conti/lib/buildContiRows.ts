@@ -1,4 +1,5 @@
 import type { Azienda } from "@vet/shared";
+import { roundCents } from "../../../shared/lib/money";
 import type { ContiByAzienda, ContiByAziendaMap } from "./groupContiByAzienda";
 
 export interface ContoRow {
@@ -26,5 +27,5 @@ export function buildContiRows(
 export function sumDovuto(rows: ReadonlyArray<ContoRow>): number {
   let total = 0;
   for (const row of rows) total += row.bucket.totaleUnsaldati;
-  return Math.round(total * 100) / 100;
+  return roundCents(total);
 }

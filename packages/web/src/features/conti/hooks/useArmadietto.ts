@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { roundCents } from "../../../shared/lib/money";
 import { prorateArmadietto, type Azienda } from "@vet/shared";
 
 export interface ArmadiettoState {
@@ -40,7 +41,7 @@ export function useArmadietto(
   const importoNum = useMemo(() => {
     const n = Number(importoStr);
     if (!Number.isFinite(n) || n <= 0) return null;
-    return Math.round(n * 100) / 100;
+    return roundCents(n);
   }, [importoStr]);
 
   return {

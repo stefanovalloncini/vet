@@ -1,4 +1,5 @@
 import { useMemo, type ReactNode } from "react";
+import { roundCents } from "../../../shared/lib/money";
 import { Link } from "react-router-dom";
 import type { Attivita } from "@vet/shared";
 import { Button, EmptyState } from "../../../shared/ui";
@@ -36,7 +37,7 @@ function isoDate(d: Date): string {
 function sumTotals(rows: ReadonlyArray<Attivita>): number {
   let s = 0;
   for (const a of rows) s += a.totale;
-  return Math.round(s * 100) / 100;
+  return roundCents(s);
 }
 
 export function groupingFor(group: GroupKey): GroupingDef<Attivita> | undefined {
