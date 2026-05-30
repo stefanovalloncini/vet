@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Attivita, Azienda } from "@vet/shared";
+import { formatDate } from "../../shared/lib/format";
 
 interface EmptyResultsProps {
   hasQuery: boolean;
@@ -97,7 +98,7 @@ export function AttivitaResult({ attivita: a, onSelect }: AttivitaResultProps) {
             {a.aziendaNome} · {a.tipoNome}
           </span>
           <span className="block text-xs text-(--color-text-muted) truncate font-mono tabular-nums">
-            {a.data.toLocaleDateString("it-IT")}
+            {formatDate(a.data)}
           </span>
         </span>
       </button>

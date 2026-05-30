@@ -1,6 +1,7 @@
 import type { AccessRequest } from "@vet/shared";
 import { Check, X } from "lucide-react";
 import { Badge, Button } from "../../../shared/ui";
+import { formatDate } from "../../../shared/lib/format";
 import { allowlistI18n as t } from "../i18n";
 
 interface AccessRequestRowProps {
@@ -27,8 +28,8 @@ export function AccessRequestRow({
   const provider = providerLabel(request.providerId);
   const meta = [
     t.requestAttempts(request.attempts),
-    `${t.requestFirstSeen} ${request.firstAttemptAt.toLocaleDateString("it-IT")}`,
-    `${t.requestLastSeen} ${request.lastAttemptAt.toLocaleDateString("it-IT")}`,
+    `${t.requestFirstSeen} ${formatDate(request.firstAttemptAt)}`,
+    `${t.requestLastSeen} ${formatDate(request.lastAttemptAt)}`,
     provider,
   ].filter((x): x is string => Boolean(x));
 

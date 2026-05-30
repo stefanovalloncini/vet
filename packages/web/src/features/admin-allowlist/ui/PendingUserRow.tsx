@@ -1,5 +1,6 @@
 import { Check, X } from "lucide-react";
 import { Badge, Button, Select } from "../../../shared/ui";
+import { formatDate } from "../../../shared/lib/format";
 import type { User } from "@vet/shared";
 import { allowlistI18n as t } from "../i18n";
 
@@ -38,7 +39,7 @@ export function PendingUserRow({
             {t.pendingSignedUpAt}{" "}
           </span>
           <span className="tabular-nums">
-            {user.createdAt.toLocaleDateString("it-IT")}
+            {formatDate(user.createdAt)}
           </span>
         </p>
       </div>

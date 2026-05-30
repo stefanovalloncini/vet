@@ -1,5 +1,5 @@
 import type { Attivita } from "@vet/shared";
-import { mondayIndex } from "../../../shared/lib/format";
+import { mondayIndex, formatDate } from "../../../shared/lib/format";
 import { ChartEmpty } from "./ChartEmpty";
 
 interface HeatmapProps {
@@ -82,7 +82,7 @@ export function Heatmap({ items, weeks = 13, now = new Date() }: HeatmapProps) {
               return (
                 <span
                   key={`${dow}-${cell.date.toISOString()}`}
-                  title={`${cell.date.toLocaleDateString("it-IT")}: ${cell.count} visite`}
+                  title={`${formatDate(cell.date)}: ${cell.count} visite`}
                   className="rounded-sm border border-(--color-border)/40"
                   style={{
                     backgroundColor:

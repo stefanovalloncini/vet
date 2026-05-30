@@ -14,7 +14,7 @@ import {
   type Column,
 } from "../../../shared/ui/data-grid";
 import { useVetStats, type VetStat } from "../hooks/useVetStats";
-import { formatEuro } from "../../../shared/lib/format";
+import { formatEuro, formatDate } from "../../../shared/lib/format";
 
 type Range = "month" | "year" | "all";
 
@@ -88,9 +88,7 @@ function buildColumns(totalAll: number): ReadonlyArray<Column<VetStat>> {
       accessor: (s) => s.lastActivity?.getTime() ?? 0,
       cell: (s) => (
         <span className="tabular-nums text-(--color-text-muted)">
-          {s.lastActivity
-            ? s.lastActivity.toLocaleDateString("it-IT")
-            : "—"}
+          {s.lastActivity ? formatDate(s.lastActivity) : "—"}
         </span>
       ),
     },

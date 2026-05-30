@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import { Badge, Button } from "../../../shared/ui";
+import { formatDate } from "../../../shared/lib/format";
 import type { AllowlistEntry } from "@vet/shared";
 import { allowlistI18n as t } from "../i18n";
 
@@ -39,7 +40,7 @@ export function AllowlistEntryRow({
       </div>
       <p className="min-w-0 hidden md:block text-xs text-(--color-text-muted) truncate">
         <span className="tabular-nums">
-          {entry.invitedAt.toLocaleDateString("it-IT")}
+          {formatDate(entry.invitedAt)}
         </span>
         <span className="text-(--color-text-subtle)"> {t.invitedBy} </span>
         <span>{entry.invitedBy}</span>
