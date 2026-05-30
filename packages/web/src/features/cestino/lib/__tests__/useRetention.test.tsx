@@ -91,4 +91,30 @@ describe("useRetention", () => {
     });
     expect(result.current[0]).toBe(before);
   });
+
+  it("falls back to the default when reading storage throws", () => {
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      get() {
+        throw new Error("storage disabled");
+      },
+    });
+    const { result } = renderHook(() => useRetention());
+    expect(result.current[0]).toBe(7);
+  });
+
+  it("keeps the new in-memory value when persisting throws", () => {
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: () => null,
+        setItem: () => {
+          throw new Error("storage disabled");
+        },
+      } as unknown as Storage,
+    });
+    const { result } = renderHook(() => useRetention());
+    act(() => result.current[1](14));
+    expect(result.current[0]).toBe(14);
+  });
 });
