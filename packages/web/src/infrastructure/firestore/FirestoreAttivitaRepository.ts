@@ -141,4 +141,10 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
   async deleteAllForOwner(): Promise<number> {
     throw new Error("AttivitaRepository.deleteAllForOwner is server-only");
   }
+
+  async anonymizeOwnerReferences(): Promise<number> {
+    throw new Error(
+      "AttivitaRepository.anonymizeOwnerReferences is server-only"
+    );
+  }
 }

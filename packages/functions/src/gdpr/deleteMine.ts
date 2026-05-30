@@ -1,4 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { normalizeEmail } from "@vet/shared";
 import { adminAuth } from "../admin/firebaseAdmin.js";
 import { getRepositories } from "../infrastructure/composition.js";
 import { ensureRecentAuth } from "../auth/recentAuth.js";
@@ -18,6 +19,10 @@ export const gdprDeleteMine = onCall(
 
     const repos = getRepositories();
     const attivita = await repos.attivita.deleteAllForOwner(uid);
+    const attivitaEditorAnon = await repos.attivita.anonymizeOwnerReferences(
+      uid,
+      { anonUid: ANON_UID, anonName: ANON_NAME }
+    );
     const aziendeAnon = await repos.aziende.anonymizeOwnerReferences(uid, {
       anonUid: ANON_UID,
       anonName: ANON_NAME,
@@ -38,11 +43,18 @@ export const gdprDeleteMine = onCall(
     }
 
     let allowlistDoc = false;
+    let accessRequestDoc = false;
     if (email) {
       const allow = await repos.allowlist.getByEmail(email);
       if (allow) {
         await repos.allowlist.remove(email);
         allowlistDoc = true;
+      }
+      const emailNorm = normalizeEmail(email);
+      const accessReq = await repos.accessRequests.getByEmail(emailNorm);
+      if (accessReq) {
+        await repos.accessRequests.delete(emailNorm);
+        accessRequestDoc = true;
       }
     }
 
@@ -53,12 +65,14 @@ export const gdprDeleteMine = onCall(
 
     const erased = {
       attivita,
+      attivitaEditorAnon,
       aziendeAnon,
       contiAnon,
       remindersAnon,
       auditAnon,
       userDoc,
       allowlistDoc,
+      accessRequestDoc,
     };
 
     await repos.audit.record({

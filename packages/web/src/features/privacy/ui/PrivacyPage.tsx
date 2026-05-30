@@ -81,6 +81,11 @@ export function PrivacyPage() {
               Cloudflare, Inc. — distribuzione dei contenuti statici della web app
               (CDN/Workers Static Assets).
             </li>
+            <li>
+              Google LLC — Google Drive, usato come destinazione delle copie di
+              backup giornaliere del database. La regione di archiviazione delle
+              copie dipende dall&apos;account Google Workspace configurato.
+            </li>
           </ul>
           <p>
             Firebase Authentication può comportare un trasferimento di dati di
@@ -107,6 +112,10 @@ export function PrivacyPage() {
             <li>
               Audit log: conservato per finalità di accountability per la durata
               dell&apos;utilizzo del servizio.
+            </li>
+            <li>
+              Copie di backup su Google Drive: conservate per 7 giorni, con
+              rotazione automatica delle cartelle giornaliere.
             </li>
           </ul>
         </section>

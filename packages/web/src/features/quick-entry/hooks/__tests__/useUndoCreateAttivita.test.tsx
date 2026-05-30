@@ -128,6 +128,7 @@ describe("useUndoCreateAttivita", () => {
       hardDelete: (id) => repo.hardDelete(id),
       purgeOlderThanDeletedAt: (c) => repo.purgeOlderThanDeletedAt(c),
       deleteAllForOwner: (o) => repo.deleteAllForOwner(o),
+      anonymizeOwnerReferences: (u, a) => repo.anonymizeOwnerReferences(u, a),
     };
     const { Wrapper, client } = buildWrapper(failing);
     const seeded = [fakeAttivita("a-1"), fakeAttivita("a-2")];

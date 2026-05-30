@@ -106,6 +106,8 @@ export class InMemoryAttivitaRepository implements AttivitaRepository {
       updatedAt: now,
       isDeleted: existing.isDeleted,
       schemaVersion: existing.schemaVersion,
+      updatedBy: actor.uid,
+      updatedByName: actor.displayName,
       ...(input.ore !== undefined ? { ore: input.ore } : {}),
       ...(input.elementi !== undefined ? { elementi: input.elementi } : {}),
       ...(input.note !== undefined ? { note: input.note } : {}),
@@ -113,7 +115,6 @@ export class InMemoryAttivitaRepository implements AttivitaRepository {
       ...(existing.deletedBy !== undefined ? { deletedBy: existing.deletedBy } : {}),
     };
     this.map.set(id, next);
-    void actor;
   }
 
   async softDelete(id: string, actor: ActorContext): Promise<void> {
@@ -159,6 +160,24 @@ export class InMemoryAttivitaRepository implements AttivitaRepository {
     for (const [id, a] of [...this.map.entries()]) {
       if (a.ownerUid === ownerUid) {
         this.map.delete(id);
+        count++;
+      }
+    }
+    return count;
+  }
+
+  async anonymizeOwnerReferences(
+    editorUid: string,
+    args: { anonUid: string; anonName: string }
+  ): Promise<number> {
+    let count = 0;
+    for (const [id, a] of [...this.map.entries()]) {
+      if (a.updatedBy === editorUid) {
+        this.map.set(id, {
+          ...a,
+          updatedBy: args.anonUid,
+          updatedByName: args.anonName,
+        });
         count++;
       }
     }

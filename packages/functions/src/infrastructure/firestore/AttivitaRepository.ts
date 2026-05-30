@@ -182,4 +182,31 @@ export class FirestoreAttivitaRepository implements AttivitaRepository {
     }
     return total;
   }
+
+  async anonymizeOwnerReferences(
+    editorUid: string,
+    args: { anonUid: string; anonName: string }
+  ): Promise<number> {
+    const BATCH_SIZE = 400;
+    let count = 0;
+    for (;;) {
+      const snap = await this.db
+        .collection("attivita")
+        .where("updatedBy", "==", editorUid)
+        .limit(BATCH_SIZE)
+        .get();
+      if (snap.empty) break;
+      const batch = this.db.batch();
+      for (const d of snap.docs) {
+        batch.update(d.ref, {
+          updatedBy: args.anonUid,
+          updatedByName: args.anonName,
+        });
+      }
+      await batch.commit();
+      count += snap.size;
+      if (snap.size < BATCH_SIZE) break;
+    }
+    return count;
+  }
 }

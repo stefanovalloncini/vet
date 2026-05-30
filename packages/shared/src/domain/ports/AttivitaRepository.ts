@@ -42,4 +42,13 @@ export interface AttivitaRepository {
   purgeOlderThanDeletedAt(cutoff: Date): Promise<number>;
   /** Delete all attivita owned by the given uid (GDPR). Returns count. */
   deleteAllForOwner(ownerUid: string): Promise<number>;
+  /**
+   * GDPR: replace updatedBy/updatedByName refs to the given editor with anon
+   * values, on attivita owned by OTHER users that this editor touched. Returns
+   * how many docs were anonymized.
+   */
+  anonymizeOwnerReferences(
+    editorUid: string,
+    args: { anonUid: string; anonName: string }
+  ): Promise<number>;
 }
