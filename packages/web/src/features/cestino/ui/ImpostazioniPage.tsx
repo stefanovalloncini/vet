@@ -25,6 +25,7 @@ import {
 import { backupAge, type BackupAge } from "../lib/backupReminderLogic";
 import { toCsvItalian } from "../../attivita";
 import { useRetention } from "../lib/useRetention";
+import { useGdprErasure } from "../hooks/useGdprErasure";
 
 function relativeBackupAgeLabel(age: BackupAge): string | null {
   if (age.kind === "today") return "oggi";
@@ -35,16 +36,14 @@ function relativeBackupAgeLabel(age: BackupAge): string | null {
 
 export function ImpostazioniPage() {
   const { user } = useAuthState();
-  const { trash, auth, aziende, attivita, reminders } = useRepositories();
+  const { aziende, attivita, reminders } = useRepositories();
   const { theme, set: setTheme } = useTheme();
+  const erasure = useGdprErasure();
   const [confirming, setConfirming] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [csvExporting, setCsvExporting] = useState(false);
   const [csvError, setCsvError] = useState<string | null>(null);
-  const [gdprError, setGdprError] = useState<string | null>(null);
   const [retention, setRetention] = useRetention();
   const [lastBackupAt, setLastBackupAt] = useState<number | null>(() =>
     getLastBackupAt()
@@ -108,21 +107,6 @@ export function ImpostazioniPage() {
     return relative
       ? `${t.datiBackupUltimo}: ${relative} (${dt})`
       : `${t.datiBackupUltimo}: ${dt}`;
-  }
-
-  async function handleDelete(): Promise<void> {
-    setBusy(true);
-    setGdprError(null);
-    try {
-      await trash.gdprDeleteMine();
-      setDone(true);
-      setTimeout(() => {
-        void auth.signOut();
-      }, 1500);
-    } catch {
-      setGdprError(t.gdprErrore);
-      setBusy(false);
-    }
   }
 
   return (
@@ -193,10 +177,14 @@ export function ImpostazioniPage() {
           <SettingsRow
             label={t.gdprTitle}
             description={
-              <DescrWithError text={t.gdprDescr} error={gdprError} />
+              <DescrWithError text={t.gdprDescr} error={erasure.error} />
             }
           >
-            <GdprAction done={done} busy={busy} onAsk={() => setConfirming(true)} />
+            <GdprAction
+              done={erasure.done}
+              busy={erasure.busy}
+              onAsk={() => setConfirming(true)}
+            />
           </SettingsRow>
         </Panel>
       </div>
@@ -208,10 +196,10 @@ export function ImpostazioniPage() {
         confirmLabel={t.gdprButton}
         cancelLabel={t.gdprAnnulla}
         variant="danger"
-        busy={busy}
+        busy={erasure.busy}
         onConfirm={() => {
           setConfirming(false);
-          void handleDelete();
+          void erasure.erase();
         }}
         onClose={() => setConfirming(false)}
       />
