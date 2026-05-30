@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, humanDays } from "../dates";
+import { addDays, daysUntil, humanDays } from "../dates";
 
 describe("addDays", () => {
   it("adds positive days", () => {
@@ -24,6 +24,30 @@ describe("addDays", () => {
     const dataAtTimes = d.getTime();
     addDays(d, 5);
     expect(d.getTime()).toBe(dataAtTimes);
+  });
+});
+
+describe("daysUntil", () => {
+  it("returns 0 for any time today", () => {
+    expect(daysUntil(new Date())).toBe(0);
+  });
+
+  it("counts whole days forward and backward", () => {
+    const now = new Date();
+    expect(daysUntil(addDays(now, 1))).toBe(1);
+    expect(daysUntil(addDays(now, -1))).toBe(-1);
+    expect(daysUntil(addDays(now, 30))).toBe(30);
+    expect(daysUntil(addDays(now, -30))).toBe(-30);
+  });
+
+  it("ignores the time of day (normalizes to midnight)", () => {
+    const target = addDays(new Date(), 5);
+    const morning = new Date(target);
+    morning.setHours(2, 0, 0, 0);
+    const evening = new Date(target);
+    evening.setHours(22, 30, 0, 0);
+    expect(daysUntil(morning)).toBe(daysUntil(evening));
+    expect(daysUntil(morning)).toBe(5);
   });
 });
 
