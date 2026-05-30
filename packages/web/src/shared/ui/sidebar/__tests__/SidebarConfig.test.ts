@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NAV_SECTIONS, visibleItems } from "../SidebarConfig";
+import { NAV_SECTIONS, PRIMARY_NAV_ITEMS, visibleItems } from "../SidebarConfig";
 
 function amministrazioneSection() {
   const section = NAV_SECTIONS.find((s) => s.title === "Amministrazione");
@@ -23,6 +23,23 @@ const NON_ADMIN_CAPS: ReadonlySet<string> = new Set([
   "conti.proforma",
   "trash.read.own",
 ]);
+
+describe("PRIMARY_NAV_ITEMS order", () => {
+  it("lists exactly the five primary items in the requested order", () => {
+    expect(PRIMARY_NAV_ITEMS.map((i) => i.to)).toEqual([
+      "/riepilogo",
+      "/agenda",
+      "/aziende",
+      "/pagamenti",
+      "/attivita",
+    ]);
+  });
+
+  it("places Attività last and drops Conti", () => {
+    expect(PRIMARY_NAV_ITEMS.at(-1)?.to).toBe("/attivita");
+    expect(PRIMARY_NAV_ITEMS.some((i) => i.to === "/conti")).toBe(false);
+  });
+});
 
 describe("AMMINISTRAZIONE section visibility", () => {
   it("shows every administration item to an administrator", () => {
