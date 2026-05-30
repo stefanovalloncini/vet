@@ -105,6 +105,13 @@ export function PagamentiPage() {
             {formatEuro(r.totaleAperto)}
           </span>
         ),
+        footer: (rs) => (
+          <span className="font-mono tabular-nums font-medium">
+            {formatEuro(
+              Math.round(rs.reduce((s, r) => s + r.totaleAperto, 0) * 100) / 100
+            )}
+          </span>
+        ),
       },
       {
         id: "ultimo",
