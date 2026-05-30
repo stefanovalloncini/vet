@@ -52,6 +52,23 @@ describe("parseReminder", () => {
     expect("doneAt" in reminder).toBe(false);
   });
 
+  it("parses a doc whose doneAt was cleared to null (un-done reminder)", () => {
+    const reminder = parseReminder("rem-1", {
+      ...validDoc,
+      done: false,
+      doneAt: null,
+    });
+    expect(reminder.done).toBe(false);
+    expect("doneAt" in reminder).toBe(false);
+  });
+
+  it("round-trips the mark-not-done patch through the parser", () => {
+    const deps = { fromDate: (d: Date) => d, serverTimestamp: () => new Date() };
+    const patch = buildReminderMarkDonePatch({ done: false }, deps);
+    const merged = { ...validDoc, ...patch };
+    expect(() => parseReminder("rem-1", merged)).not.toThrow();
+  });
+
   it("rejects an extra field via .strict()", () => {
     expect(() => parseReminder("rem-1", { ...validDoc, ghost: 1 })).toThrow();
   });

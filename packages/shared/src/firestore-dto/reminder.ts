@@ -16,7 +16,7 @@ export const reminderDtoSchema = z
     dueAt: timestampLike,
     note: z.string().max(500).optional(),
     done: z.boolean(),
-    doneAt: timestampLike.optional(),
+    doneAt: timestampLike.nullish(),
     createdAt: timestampLike,
     updatedAt: timestampLike,
     createdBy: z.string().min(1).max(128),
@@ -36,9 +36,7 @@ export function parseReminder(id: string, raw: unknown): Reminder {
     dueAt: timestampToDate(dto.dueAt),
     ...(dto.note !== undefined ? { note: dto.note } : {}),
     done: dto.done,
-    ...(dto.doneAt !== undefined
-      ? { doneAt: timestampToDate(dto.doneAt) }
-      : {}),
+    ...(dto.doneAt != null ? { doneAt: timestampToDate(dto.doneAt) } : {}),
     createdAt: timestampToDate(dto.createdAt),
     updatedAt: timestampToDate(dto.updatedAt),
     createdBy: dto.createdBy,
