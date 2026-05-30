@@ -13,7 +13,6 @@ export const allowlistI18n = {
   campoEmailPlaceholder: "es. mario.rossi@vet.it",
   campoRuolo: "Ruolo iniziale",
   campoNote: "Note",
-  invitedAt: "Aggiunta il",
   invitedBy: "da",
   elimina: "Rimuovi",
   confermaRimozioneTitolo: "Rimuovere questa email?",
@@ -57,7 +56,6 @@ export const allowlistI18n = {
   colEmail: "Email",
   colRuolo: "Ruolo",
   colData: "Data",
-  colStato: "Stato",
   statoInAttesa: "In attesa",
   statoRichiesta: "Richiesta",
 } as const;

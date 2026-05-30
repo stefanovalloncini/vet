@@ -9,8 +9,6 @@ export const aziendeI18n = {
   elimina: "Elimina",
   annulla: "Annulla",
   salva: "Salva",
-  back: "Torna indietro",
-  confermaEliminazione: "Eliminare questa azienda?",
   confermaEliminazioneDescr:
     "L'azienda viene archiviata: i record di attività restano consultabili.",
   gruppoAnagrafica: "Anagrafica",

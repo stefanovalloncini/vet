@@ -17,7 +17,6 @@ export const contiI18n = {
   counterPending: (pending: number, total: number) =>
     `${pending} di ${total} ${total === 1 ? "azienda" : "aziende"} con pagamenti pendenti`,
   totaleDaRiscuotere: "Totale da riscuotere",
-  periodo: "Periodo",
   emit: "Emetti conto",
   emitProforma: "Salva come pro forma",
   emetti: "Emetti",
